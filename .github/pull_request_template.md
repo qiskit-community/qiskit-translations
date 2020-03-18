@@ -10,8 +10,11 @@
 
 ### Summary
 
-
-
-### Details and comments
+<!-- 
+⚠️ Please add the related GitHub issue (language request) of the format **Related #<number>** here. Find the issue number 
+under the link https://github.com/Qiskit/qiskit-translations/issues. If you don't find any open issue for the language
+you'd like to contribute, create one - https://github.com/Qiskit/qiskit-translations/issues/new/choose.
+-->
 
 Related #<replace_me_with_related_issue_number>
+
