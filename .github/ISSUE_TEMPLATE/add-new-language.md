@@ -2,7 +2,8 @@
 name: Add New Language
 about: Request for adding new language to Qiskit Documentation
 title: Request for [LANGUAGE]
-labels: help wanted, New Language Request
+labels: New Language Request, help wanted
+assignees: ''
 
 ---
 
