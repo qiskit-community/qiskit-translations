@@ -43,4 +43,4 @@ popd
 openssl aes-256-cbc -K $encrypted_rclone_key -iv $encrypted_rclone_iv -in tools/rclone.conf.enc -out $RCLONE_CONFIG_PATH -d
 
 echo "Pushing built docs to website"
-rclone sync ./docs/_build/html/locale/$TRANSLATION_LANG IBMCOS:qiskit-org-web-resources/documentation/locale/$TRANSLATION_LANG
+rclone sync --progress ./docs/_build/html/locale/$TRANSLATION_LANG IBMCOS:qiskit-org-web-resources/documentation/locale/$TRANSLATION_LANG
