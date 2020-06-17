@@ -16,6 +16,19 @@ If you are interested in contributing to translations, please follow the instruc
 4. In the [Qiskit-Docs Crowdin project](https://crowdin.com/project/qiskit-docs), choose the language that you want to contribute to.<br/>
 5. Click the **Join** button and **paste the URL of your PR** in the dialog box where you are asked why you want to join the Crowdin project. The administrators of the Crowdin project will review your request and give you access as quickly as they can.<br/>
 
+### Translation Leads (as of June, 2020)
+| Language | Translation Lead |
+| ---     | ---    |
+| Brazilian Portuguese | Jose Gilberto Biondo Junior |
+| French | Olivier Hess |
+| German | Joachim Schaefer |
+| Italian | Eleonora Picca |
+| Japanese | TBD |
+| Portuguese | Omar Costa Hamido |
+| Spanish | Enric Delgado Samper |
+| Spanish-Mexico | Carlos Gonzalez |
+| Turkish | Aysin Tasdelen |
+
 ### When you find an issue in the original documenation
 During the process of translating Qiskit documentations, you may identify errors (mostly typos) in the original documentation. Please feel free to suggest corrections by opening an [issue](https://github.com/Qiskit/qiskit/issues/new/choose) by choosing **Get Started** next to **Documentation**.
 
