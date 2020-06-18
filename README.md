@@ -20,7 +20,7 @@ If you are interested in contributing to translations, please follow the instruc
 6. Connect with other translators and receive updates regarding the project through our [slack channel](https://join.slack.com/share/zt-f6klra3n-CDutz6KkYu9JWhgTzWVvrQ).
 
 ### Translation Leads (as of June, 2020)
-| Language | Translation Lead |
+| Language | Translation Leads |
 | ---     | ---    |
 | Brazilian Portuguese | Jose Gilberto Biondo Junior |
 | French | Olivier Hess |
@@ -28,7 +28,7 @@ If you are interested in contributing to translations, please follow the instruc
 | Italian | Eleonora Picca |
 | Japanese | Yuri Kobayashi |
 | Portuguese | Omar Costa Hamido |
-| Spanish | Enric Delgado Samper |
+| Spanish | Antonio Acuaviva Huertos, Enric Delgado Samper |
 | Spanish-Mexico | Carlos Gonzalez |
 | Turkish | Ayşin Taşdelen |
 
@@ -41,11 +41,12 @@ Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.c
 
 
 ### For adding a new language to translate
-The Qiskit Localization Project currently supports: `Brazilian Portuguese, French, German, Italian, Japanese, Korean, Portuguese, Spanish, Spanish- Mexico, and Turkish`.
+The Qiskit Localization Project currently supports: Brazilian Portuguese, French, German, Italian, Japanese, Korean, Portuguese, Spanish, Spanish- Mexico, and Turkish.
 
 [Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html) and [German](https://qiskit.org/documentation/locale/de_DE/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
 
 As mentioned in the blog post [Qiskit in my language is Qiskit](https://medium.com/qiskit/qiskit-in-my-language-is-qiskit-73d4626a99d3), we want to make sure that translated languages have enough community support to ensure quality and consistency. <br/>
+
 If you want to add a new language and become a translation lead, you can open a [GitHub issue](https://github.com/qiskit-community/qiskit-translations/issues/new/choose) to start a discussion with the Qiskit team and recruit translation project members. Please refer to the [criteria](#what-is-the-criteria-for-adding-a-new-language?) below to receive official support from the administrators for new languages.
 
 ### What is the criteria for adding a new language?
