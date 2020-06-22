@@ -27,6 +27,7 @@ If you are interested in contributing to translations, please follow the instruc
 | German | Joachim Schaefer |
 | Italian | Eleonora Picca |
 | Japanese | Yuri Kobayashi |
+| Korean | Jinho Hwang |
 | Portuguese | Omar Costa Hamido |
 | Spanish | Antonio Acuaviva Huertos, Enric Delgado Samper |
 | Spanish-Mexico | Carlos Gonzalez |
