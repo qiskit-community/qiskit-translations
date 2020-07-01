@@ -2,6 +2,24 @@
 
 > :warning: **This repository is not a package.**: The [setup.py](https://github.com/qiskit-community/qiskit-translations/blob/master/setup.py) file is only in this repository as a requirement for building docs. If you'd like to install Qiskit, follow the [link](https://github.com/Qiskit/qiskit).
 
+# Staging site of Localized Qiskit Documentation
+
+This is the staging site to view the translation progress. Following are the translation progress and the links to view the translations.
+
+| Languages | Progress |
+|-----------|----------|
+| [Brazilian Portuguese](https://sooluthomas.github.io/qiskit-translations/pt_BR/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/pt-BR#) |
+| [French](https://sooluthomas.github.io/qiskit-translations/fr_FR/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/fr#) |
+| [German](https://sooluthomas.github.io/qiskit-translations/de_DE/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/de#) |
+| [Italian](https://sooluthomas.github.io/qiskit-translations/it_IT/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/it#) |
+| [Japanese](https://sooluthomas.github.io/qiskit-translations/ja_JP/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/ja#) |
+| [Korean](https://sooluthomas.github.io/qiskit-translations/ko_KR/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/ko#) |
+| [Portuguese](https://sooluthomas.github.io/qiskit-translations/pt_PT/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/pt-PT#) |
+| [Spanish](https://sooluthomas.github.io/qiskit-translations/es_ES/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/es-ES#) |
+| [Spanish-Mexico](https://sooluthomas.github.io/qiskit-translations/es_MX/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/es-MX#) |
+| [Turkish](https://sooluthomas.github.io/qiskit-translations/tr_TR/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/tr#) |
+
+
 # Qiskit Documentation Localization
 
 First of all, **thank you** for showing your interest in translating (localizing) Qiskit Documentation! This helps make the documentation more accessible and available to our global community.
