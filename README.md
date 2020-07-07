@@ -29,7 +29,7 @@ If you are interested in contributing to translations, please follow the instruc
 | Japanese | Yuri Kobayashi |
 | Korean | Jinho Hwang |
 | Portuguese | Omar Costa Hamido |
-| Spanish | Antonio Acuaviva Huertos, Enric Delgado Samper |
+| Spanish | Arturo Acuaviva Huertos, Enric Delgado Samper |
 | Spanish-Mexico | Carlos Gonzalez |
 | Turkish | Ayşin Taşdelen |
 
