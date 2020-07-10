@@ -1,5 +1,5 @@
 ---
-permalink: /404.md
+permalink: /index.md
 ---
 
 ![Image](images/qiskit_header.png?raw=true)
