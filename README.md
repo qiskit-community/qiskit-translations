@@ -1,3 +1,7 @@
+---
+permalink: /404.md
+---
+
 ![Image](images/qiskit_header.png?raw=true)
 
 > :warning: **This repository is not a package.**: The [setup.py](https://github.com/qiskit-community/qiskit-translations/blob/master/setup.py) file is only in this repository as a requirement for building docs. If you'd like to install Qiskit, follow the [link](https://github.com/Qiskit/qiskit).
