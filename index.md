@@ -1,6 +1,4 @@
----
-permalink: /404.html
----
+
 
 # Staging site of Localized Qiskit Documentation
 
