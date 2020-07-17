@@ -44,7 +44,7 @@ Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.c
 ### To add a new language to translate
 The Qiskit Localization Project currently supports: Brazilian Portuguese, French, German, Italian, Japanese, Korean, Portuguese, Spanish, Spanish- Mexico, and Turkish.
 
-[Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html) and [German](https://qiskit.org/documentation/locale/de_DE/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
+[Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html) and [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
 
 As mentioned in the blog post [Qiskit in my language is Qiskit](https://medium.com/qiskit/qiskit-in-my-language-is-qiskit-73d4626a99d3), we want to make sure that translated languages have enough community support to ensure quality and consistency. <br/>
 
