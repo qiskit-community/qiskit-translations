@@ -145,14 +145,6 @@ coupling_map = CouplingMap(
     [[0, 1], [1, 0], [1, 2], [1, 3], [2, 1], [3, 1], [3, 4], [4, 3]])
 coupling_map.draw()
 
-from qiskit import pulse
-
-sched = pulse.Schedule(name='test')
-sched += pulse.SamplePulse(
-    [0., 0,], name='test_pulse')(pulse.DriveChannel(0))
-sched += pulse.FrameChange(1.0)(pulse.DriveChannel(0))
-print(sched)
-
 from qiskit.transpiler import CouplingMap
 
 coupling_map = CouplingMap.from_line(5)
