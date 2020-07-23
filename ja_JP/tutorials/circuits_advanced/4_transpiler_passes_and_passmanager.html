@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Transpiler Passes and Pass Manager &mdash; Qiskit 0.19.6 ドキュメント</title>
+  <title>トランスパイラー パスとパス マネージャー &mdash; Qiskit 0.19.6 ドキュメント</title>
   
 
   
@@ -49,7 +49,7 @@
     
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="検索" href="../../search.html" />
-    <link rel="next" title="High-Performance Simulator Tutorials" href="../simulators/index.html" />
+    <link rel="next" title="Pulse Tutorials" href="../pulse/index.html" />
     <link rel="prev" title="量子回路の可視化" href="3_advanced_circuit_visualization.html" />
     <script>
     (function () {
@@ -168,9 +168,9 @@
 <li class="toctree-l2"><a class="reference internal" href="1_advanced_circuits.html">高度な回路</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_operators_overview.html">オペレーター</a></li>
 <li class="toctree-l2"><a class="reference internal" href="3_advanced_circuit_visualization.html">量子回路の可視化</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Transpiler Passes and Pass Manager</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#Introduction">Introduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#PassManager-object">PassManager object</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">トランスパイラー パスとパス マネージャー</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#はじめに">はじめに</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#パスマネージャーオブジェクト">パスマネージャーオブジェクト</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Different-Variants-of-the-Same-Pass">Different Variants of the Same Pass</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Preset-Pass-Managers">Preset Pass Managers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Introducing-the-DAG">Introducing the DAG</a></li>
@@ -185,9 +185,12 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../pulse/index.html">パルス</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../simulators/index.html">ハイパフォーマンス・シミュレーター</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../noise/index.html">量子システムエラー解析</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../optimization/index.html">最適化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../optimization/index.html">数理最適化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../finance/index.html">金融</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chemistry/index.html">化学</a></li>
 </ul>
 <p class="caption"><span class="caption-text">ライブラリ</span></p>
 <ul>
@@ -252,7 +255,7 @@
         
           <li><a href="index.html">Advanced Circuit Tutorials</a> &raquo;</li>
         
-      <li>Transpiler Passes and Pass Manager</li>
+      <li>トランスパイラー パスとパス マネージャー</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -526,13 +529,17 @@ div.rendered_html tbody tr:hover {
     text-align: unset;
 }
 </style>
-<div class="section" id="Transpiler-Passes-and-Pass-Manager">
-<h1>Transpiler Passes and Pass Manager<a class="headerlink" href="#Transpiler-Passes-and-Pass-Manager" title="このヘッドラインへのパーマリンク">¶</a></h1>
-<div class="section" id="Introduction">
-<h2>Introduction<a class="headerlink" href="#Introduction" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">注釈</p>
+<p>This page was generated from <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/circuits_advanced/4_transpiler_passes_and_passmanager.ipynb">tutorials/circuits_advanced/4_transpiler_passes_and_passmanager.ipynb</a>.</p>
+</div>
+<div class="section" id="トランスパイラー-パスとパス-マネージャー">
+<h1>トランスパイラー パスとパス マネージャー<a class="headerlink" href="#トランスパイラー-パスとパス-マネージャー" title="このヘッドラインへのパーマリンク">¶</a></h1>
+<div class="section" id="はじめに">
+<h2>はじめに<a class="headerlink" href="#はじめに" title="このヘッドラインへのパーマリンク">¶</a></h2>
 <p>A central component of Qiskit Terra is the transpiler, which is designed for modularity and extensibility. The goal is to be able to easily write new circuit transformations (known as transpiler <strong>passes</strong>), and combine them with other existing passes. Which passes are chained together and in which order has a major effect on the final outcome. This pipeline is determined by a <strong>pass manager</strong>, which schedules the passes and also allows passes to communicate with each other by providing a shared
 space. In this way, the transpiler opens up the door for research into aggressive optimization of quantum circuits.</p>
-<p>In this notebook, we look at the built-in passes, how to use the pass manager, and develop a simple custom transpiler pass. In order to do the latter, we first need to introduce the internal representation of quantum circuits in Qiskit, in the form of a Directed Acyclic Graph, or <strong>DAG</strong>. Then, we illustrate a simple swap mapper pass, which transforms an input circuit to be compatible with a limited-connectivity quantum device.</p>
+<p>このノートブックでは、ビルドインされたパスを調べ、パスマネージャーの利用法を確認し、簡単なトランスパイラーパスを開発します。そのために、最初に有向非巡回グラフまたはDAGの形で、Qiskitにおける量子回路の内部表現を紹介します。 次に、接続性が制限されている量子デバイスと互換性があるように入力回路を変換する単純な swap mapper パスを説明します。</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -546,8 +553,8 @@ space. In this way, the transpiler opens up the door for research into aggressiv
 </div>
 </div>
 </div>
-<div class="section" id="PassManager-object">
-<h2>PassManager object<a class="headerlink" href="#PassManager-object" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<div class="section" id="パスマネージャーオブジェクト">
+<h2>パスマネージャーオブジェクト<a class="headerlink" href="#パスマネージャーオブジェクト" title="このヘッドラインへのパーマリンク">¶</a></h2>
 <p>Lets you specify the set of passes you want.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
@@ -1706,7 +1713,7 @@ qiskit.compiler.transpile - MainProcess - INFO: Total Transpile Time - 191.32900
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../simulators/index.html" class="btn btn-neutral float-right" title="High-Performance Simulator Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../pulse/index.html" class="btn btn-neutral float-right" title="Pulse Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="3_advanced_circuit_visualization.html" class="btn btn-neutral float-left" title="量子回路の可視化" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -1721,7 +1728,7 @@ qiskit.compiler.transpile - MainProcess - INFO: Total Transpile Time - 191.32900
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/07/02
+        最終更新: 2020/07/23
       </span>
 
     </p>
@@ -1759,6 +1766,8 @@ qiskit.compiler.transpile - MainProcess - INFO: Total Transpile Time - 191.32900
         <dd><a class="version" href="/documentation/locale/ja_JP/tutorials/circuits_advanced/4_transpiler_passes_and_passmanager.html">Japanese</a></dd>
       
         <dd><a class="version" href="/documentation/locale/de_DE/tutorials/circuits_advanced/4_transpiler_passes_and_passmanager.html">German</a></dd>
+      
+        <dd><a class="version" href="/documentation/locale/ko_KR/tutorials/circuits_advanced/4_transpiler_passes_and_passmanager.html">Korean</a></dd>
       
     </dl>
     
