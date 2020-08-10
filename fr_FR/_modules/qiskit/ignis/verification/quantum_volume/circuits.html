@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.ignis.verification.quantum_volume.circuits &mdash; Documentation Qiskit 0.19.6</title>
+  <title>qiskit.ignis.verification.quantum_volume.circuits &mdash; Documentation Qiskit 0.20.0</title>
   
 
   
@@ -273,13 +273,18 @@
 <span class="sd">Generates quantum volume circuits</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">qiskit</span>
-<span class="kn">from</span> <span class="nn">qiskit.quantum_info.random</span> <span class="kn">import</span> <span class="n">random_unitary</span>
+
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">QuantumVolume</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.quantumcircuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
 
 
-<div class="viewcode-block" id="qv_circuits"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.qv_circuits.html#qiskit.ignis.verification.qv_circuits">[docs]</a><span class="k">def</span> <span class="nf">qv_circuits</span><span class="p">(</span><span class="n">qubit_lists</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ntrials</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                <span class="n">qr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="qv_circuits"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.qv_circuits.html#qiskit.ignis.verification.qv_circuits">[docs]</a><span class="k">def</span> <span class="nf">qv_circuits</span><span class="p">(</span><span class="n">qubit_lists</span><span class="p">,</span> <span class="n">ntrials</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">qr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return a list of square quantum volume circuits (depth=width)</span>
 
@@ -293,6 +298,7 @@
 <span class="sd">        ntrials (int): number of random iterations</span>
 <span class="sd">        qr (QuantumRegister): quantum register to act on (if None one is created)</span>
 <span class="sd">        cr (ClassicalRegister): classical register to measure to (if None one is created)</span>
+<span class="sd">        seed (int): An optional RNG seed to use for the generated circuit</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        tuple: A tuple of the type (``circuits``, ``circuits_nomeas``) wheere:</span>
@@ -300,57 +306,56 @@
 <span class="sd">            (separate list for each trial) and `` circuitss_nomeas`` is the</span>
 <span class="sd">            same circuits but with no measurements for the ideal simulation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">qr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Passing in a custom quantum register is deprecated and &quot;</span>
+                      <span class="s2">&quot;will be removed in a future release. This argument &quot;</span>
+                      <span class="s2">&quot;never had any effect.&quot;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">cr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Passing in a custom classical register is deprecated &quot;</span>
+                      <span class="s2">&quot;and will be removed in a future release. This argument &quot;</span>
+                      <span class="s2">&quot;never had any effect.&quot;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">qubit_list</span> <span class="ow">in</span> <span class="n">qubit_lists</span><span class="p">:</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">qubit_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">qubit_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">qubit</span> <span class="o">!=</span> <span class="nb">next</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Using a qubit list to map a virtual circuit to &quot;</span>
+                              <span class="s2">&quot;a physical layout is deprecated and will be &quot;</span>
+                              <span class="s2">&quot;removed in a future release. Instead use &quot;</span>
+                              <span class="s2">&quot;&#39;&#39;qiskit.transpile&#39; with the &quot;</span>
+                              <span class="s2">&quot;&#39;initial_layout&#39; parameter&quot;</span><span class="p">,</span>
+                              <span class="ne">DeprecationWarning</span><span class="p">)</span>
+    <span class="n">depth_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">qubit_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">qubit_list</span> <span class="ow">in</span> <span class="n">qubit_lists</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">seed</span><span class="p">:</span>
+        <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_seed</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="n">circuits</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntrials</span><span class="p">)]</span>
     <span class="n">circuits_nomeas</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntrials</span><span class="p">)]</span>
 
-    <span class="c1"># get the largest qubit number out of all the lists (for setting the</span>
-    <span class="c1"># register)</span>
-
-    <span class="n">depth_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">qubit_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">qubit_list</span> <span class="ow">in</span> <span class="n">qubit_lists</span><span class="p">]</span>
-
-    <span class="c1"># go through for each trial</span>
     <span class="k">for</span> <span class="n">trial</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntrials</span><span class="p">):</span>
-
-        <span class="c1"># go through for each depth in the depth list</span>
         <span class="k">for</span> <span class="n">depthidx</span><span class="p">,</span> <span class="n">depth</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">depth_list</span><span class="p">):</span>
-
             <span class="n">n_q_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">qubit_lists</span><span class="p">[</span><span class="n">depthidx</span><span class="p">])</span>
-
-            <span class="n">qr</span> <span class="o">=</span> <span class="n">qiskit</span><span class="o">.</span><span class="n">QuantumRegister</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n_q_max</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;qr&#39;</span><span class="p">)</span>
-            <span class="n">qr2</span> <span class="o">=</span> <span class="n">qiskit</span><span class="o">.</span><span class="n">QuantumRegister</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">depth</span><span class="p">),</span> <span class="s1">&#39;qr&#39;</span><span class="p">)</span>
-            <span class="n">cr</span> <span class="o">=</span> <span class="n">qiskit</span><span class="o">.</span><span class="n">ClassicalRegister</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">depth</span><span class="p">),</span> <span class="s1">&#39;cr&#39;</span><span class="p">)</span>
-
-            <span class="n">qc</span> <span class="o">=</span> <span class="n">qiskit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qr</span><span class="p">,</span> <span class="n">cr</span><span class="p">)</span>
-            <span class="n">qc2</span> <span class="o">=</span> <span class="n">qiskit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qr2</span><span class="p">,</span> <span class="n">cr</span><span class="p">)</span>
-
+            <span class="k">if</span> <span class="n">seed</span><span class="p">:</span>
+                <span class="n">_seed</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+            <span class="n">qv_circ</span> <span class="o">=</span> <span class="n">QuantumVolume</span><span class="p">(</span><span class="n">depth</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">_seed</span><span class="p">)</span>
+            <span class="n">qc2</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">qv_circ</span><span class="p">)</span>
+            <span class="c1"># TODO: Remove this when we remove support for doing pseudo-layout</span>
+            <span class="c1"># via qubit lists</span>
+            <span class="k">if</span> <span class="n">n_q_max</span> <span class="o">!=</span> <span class="n">depth</span><span class="p">:</span>
+                <span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n_q_max</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">qc</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">qv_circ</span><span class="p">,</span> <span class="n">qubit_lists</span><span class="p">[</span><span class="n">depthidx</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">qc</span> <span class="o">=</span> <span class="n">qv_circ</span>
+            <span class="n">qc</span><span class="o">.</span><span class="n">measure_active</span><span class="p">()</span>
             <span class="n">qc</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;qv_depth_</span><span class="si">%d</span><span class="s1">_trial_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">depth</span><span class="p">,</span> <span class="n">trial</span><span class="p">)</span>
             <span class="n">qc2</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">qc</span><span class="o">.</span><span class="n">name</span>
 
-            <span class="c1"># build the circuit</span>
-            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">depth</span><span class="p">):</span>
-                <span class="c1"># Generate uniformly random permutation Pj of [0...n-1]</span>
-                <span class="n">perm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">depth</span><span class="p">)</span>
-                <span class="c1"># For each pair p in Pj, generate Haar random SU(4)</span>
-                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">depth</span><span class="o">/</span><span class="mi">2</span><span class="p">))):</span>
-                    <span class="n">unitary</span> <span class="o">=</span> <span class="n">random_unitary</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
-                    <span class="n">pair</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">perm</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">k</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">perm</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
-                    <span class="n">qc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unitary</span><span class="p">,</span> <span class="p">[</span><span class="n">qr</span><span class="p">[</span><span class="n">qubit_lists</span><span class="p">[</span><span class="n">depthidx</span><span class="p">][</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]]],</span>
-                                        <span class="n">qr</span><span class="p">[</span><span class="n">qubit_lists</span><span class="p">[</span><span class="n">depthidx</span><span class="p">][</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]]]])</span>
-                    <span class="n">qc2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unitary</span><span class="p">,</span> <span class="p">[</span><span class="n">qr2</span><span class="p">[</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
-                                         <span class="n">qr2</span><span class="p">[</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]]])</span>
-
-            <span class="c1"># append an id to all the qubits in the ideal circuits</span>
-            <span class="c1"># to prevent a truncation error in the statevector</span>
-            <span class="c1"># simulators</span>
-            <span class="n">qc2</span><span class="o">.</span><span class="n">u1</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">qr2</span><span class="p">)</span>
-
             <span class="n">circuits_nomeas</span><span class="p">[</span><span class="n">trial</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qc2</span><span class="p">)</span>
-
-            <span class="c1"># add measurement</span>
-            <span class="k">for</span> <span class="n">qind</span><span class="p">,</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qubit_lists</span><span class="p">[</span><span class="n">depthidx</span><span class="p">]):</span>
-                <span class="n">qc</span><span class="o">.</span><span class="n">measure</span><span class="p">(</span><span class="n">qr</span><span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="n">cr</span><span class="p">[</span><span class="n">qind</span><span class="p">])</span>
-
             <span class="n">circuits</span><span class="p">[</span><span class="n">trial</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">circuits</span><span class="p">,</span> <span class="n">circuits_nomeas</span></div>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.providers.aer.utils.noise_model_inserter &mdash; Documentation Qiskit 0.19.6</title>
+  <title>qiskit.providers.aer.utils.noise_model_inserter &mdash; Documentation Qiskit 0.20.0</title>
   
 
   
@@ -295,7 +295,9 @@
     <span class="n">is_circuits_list</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">circuits</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
     <span class="n">circuits</span> <span class="o">=</span> <span class="n">circuits</span> <span class="k">if</span> <span class="n">is_circuits_list</span> <span class="k">else</span> <span class="p">[</span><span class="n">circuits</span><span class="p">]</span>
     <span class="n">result_circuits</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">errors</span> <span class="o">=</span> <span class="n">noise_model</span><span class="o">.</span><span class="n">_default_quantum_errors</span>
+    <span class="n">nonlocal_errors</span> <span class="o">=</span> <span class="n">noise_model</span><span class="o">.</span><span class="n">_nonlocal_quantum_errors</span>
+    <span class="n">local_errors</span> <span class="o">=</span> <span class="n">noise_model</span><span class="o">.</span><span class="n">_local_quantum_errors</span>
+    <span class="n">default_errors</span> <span class="o">=</span> <span class="n">noise_model</span><span class="o">.</span><span class="n">_default_quantum_errors</span>
     <span class="k">for</span> <span class="n">circuit</span> <span class="ow">in</span> <span class="n">circuits</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">transpile</span><span class="p">:</span>
             <span class="n">transpiled_circuit</span> <span class="o">=</span> <span class="n">qiskit</span><span class="o">.</span><span class="n">compiler</span><span class="o">.</span><span class="n">transpile</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span>
@@ -306,8 +308,19 @@
         <span class="n">result_circuit</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">inst</span><span class="p">,</span> <span class="n">qargs</span><span class="p">,</span> <span class="n">cargs</span> <span class="ow">in</span> <span class="n">transpiled_circuit</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
             <span class="n">result_circuit</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">inst</span><span class="p">,</span> <span class="n">qargs</span><span class="p">,</span> <span class="n">cargs</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">inst</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">errors</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">error</span> <span class="o">=</span> <span class="n">errors</span><span class="p">[</span><span class="n">inst</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+            <span class="n">qubits_string</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">])</span>
+            <span class="c1"># Priority for error model used:</span>
+            <span class="c1"># nonlocal error &gt; local error &gt; default error</span>
+            <span class="k">if</span> <span class="n">inst</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">nonlocal_errors</span> <span class="ow">and</span> <span class="n">qubits_string</span> <span class="ow">in</span> <span class="n">nonlocal_errors</span><span class="p">[</span><span class="n">inst</span><span class="o">.</span><span class="n">name</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">noise_qubits</span> <span class="ow">in</span> <span class="n">nonlocal_errors</span><span class="p">[</span><span class="n">inst</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">qubits_string</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">error</span> <span class="o">=</span> <span class="n">nonlocal_errors</span><span class="p">[</span><span class="n">inst</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">qubits_string</span><span class="p">][</span><span class="n">noise_qubits</span><span class="p">]</span>
+                    <span class="n">noise_qargs</span> <span class="o">=</span> <span class="n">noise_model</span><span class="o">.</span><span class="n">_str2qubits</span><span class="p">(</span><span class="n">noise_qubits</span><span class="p">)</span>
+                    <span class="n">result_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">(),</span> <span class="n">noise_qargs</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">inst</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">local_errors</span> <span class="ow">and</span> <span class="n">qubits_string</span> <span class="ow">in</span> <span class="n">local_errors</span><span class="p">[</span><span class="n">inst</span><span class="o">.</span><span class="n">name</span><span class="p">]:</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="n">local_errors</span><span class="p">[</span><span class="n">inst</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">qubits_string</span><span class="p">]</span>
+                <span class="n">result_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">(),</span> <span class="n">qargs</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">inst</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">default_errors</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="n">default_errors</span><span class="p">[</span><span class="n">inst</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
                 <span class="n">result_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">(),</span> <span class="n">qargs</span><span class="p">)</span>
         <span class="n">result_circuits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_circuit</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">result_circuits</span> <span class="k">if</span> <span class="n">is_circuits_list</span> <span class="k">else</span> <span class="n">result_circuits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
