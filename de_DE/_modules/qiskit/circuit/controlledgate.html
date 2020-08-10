@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.circuit.controlledgate &mdash; Qiskit 0.19.6 Dokumentation</title>
+  <title>qiskit.circuit.controlledgate &mdash; Qiskit 0.20.0 Dokumentation</title>
   
 
   
@@ -271,13 +271,13 @@
 
 <span class="sd">&quot;&quot;&quot;Controlled unitary gate.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.exceptions</span> <span class="kn">import</span> <span class="n">CircuitError</span>
 
+<span class="c1"># pylint: disable=cyclic-import</span>
+<span class="kn">from</span> <span class="nn">.quantumcircuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">.gate</span> <span class="kn">import</span> <span class="n">Gate</span>
 <span class="kn">from</span> <span class="nn">.quantumregister</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
-<span class="kn">from</span> <span class="nn">.quantumregister</span> <span class="kn">import</span> <span class="n">Qubit</span>
-<span class="kn">from</span> <span class="nn">.classicalregister</span> <span class="kn">import</span> <span class="n">Clbit</span>
 
 <span class="c1"># pylint: disable=missing-return-doc</span>
 
@@ -287,7 +287,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
                  <span class="n">label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">num_ctrl_qubits</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-                 <span class="n">definition</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Gate</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Qubit</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Clbit</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">definition</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s1">&#39;QuantumCircuit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">ctrl_state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a new ControlledGate. In the new gate the first ``num_ctrl_qubits``</span>
 <span class="sd">        of the gate are the controls.</span>
@@ -342,15 +342,13 @@
 <span class="sd">           qc2.draw()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">num_ctrl_qubits</span> <span class="o">&lt;</span> <span class="n">num_qubits</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">num_ctrl_qubits</span> <span class="o">=</span> <span class="n">num_ctrl_qubits</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s1">&#39;number of control qubits must be less than the number of qubits&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_ctrl_qubits</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_ctrl_qubits</span> <span class="o">=</span> <span class="n">num_ctrl_qubits</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">base_gate</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">definition</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">definition</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">base_gate</span> <span class="o">=</span> <span class="n">definition</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">base_gate</span> <span class="o">=</span> <span class="n">definition</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">base_gate</span><span class="p">,</span> <span class="n">ControlledGate</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">base_gate</span> <span class="o">=</span> <span class="n">base_gate</span><span class="o">.</span><span class="n">base_gate</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -368,26 +366,52 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open_ctrl</span><span class="p">:</span>
             <span class="n">closed_gate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="n">closed_gate</span><span class="o">.</span><span class="n">ctrl_state</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="c1"># pylint: disable=cyclic-import</span>
-            <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates</span> <span class="kn">import</span> <span class="n">XGate</span>
             <span class="n">bit_ctrl_state</span> <span class="o">=</span> <span class="nb">bin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrl_state</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_ctrl_qubits</span><span class="p">)</span>
             <span class="n">qreg</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s1">&#39;q&#39;</span><span class="p">)</span>
-            <span class="n">definition</span> <span class="o">=</span> <span class="p">[(</span><span class="n">closed_gate</span><span class="p">,</span> <span class="n">qreg</span><span class="p">,</span> <span class="p">[])]</span>
-            <span class="n">open_rules</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">qc_open_ctrl</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qreg</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">qind</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bit_ctrl_state</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
                 <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="s1">&#39;0&#39;</span><span class="p">:</span>
-                    <span class="n">open_rules</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">XGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">qreg</span><span class="p">[</span><span class="n">qind</span><span class="p">]],</span> <span class="p">[]])</span>
-            <span class="k">if</span> <span class="n">open_rules</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">open_rules</span> <span class="o">+</span> <span class="n">definition</span> <span class="o">+</span> <span class="n">open_rules</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_definition</span>
+                    <span class="n">qc_open_ctrl</span><span class="o">.</span><span class="n">x</span><span class="p">(</span><span class="n">qind</span><span class="p">)</span>
+            <span class="n">qc_open_ctrl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">closed_gate</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qreg</span><span class="p">[:])</span>
+            <span class="k">for</span> <span class="n">qind</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bit_ctrl_state</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="s1">&#39;0&#39;</span><span class="p">:</span>
+                    <span class="n">qc_open_ctrl</span><span class="o">.</span><span class="n">x</span><span class="p">(</span><span class="n">qind</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">qc_open_ctrl</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">definition</span>
 
     <span class="nd">@definition</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">excited_def</span><span class="p">:</span> <span class="n">List</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set controlled gate definition with closed controls.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">excited_def</span><span class="p">:</span> <span class="s1">&#39;QuantumCircuit&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set controlled gate definition with closed controls.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            excited_def: The circuit with all closed controls.&quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Gate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">fset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">excited_def</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_ctrl_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get number of control qubits.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: The number of control qubits for the gate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_ctrl_qubits</span>
+
+    <span class="nd">@num_ctrl_qubits</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">num_ctrl_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_ctrl_qubits</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the number of control qubits.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            num_ctrl_qubits (int): The number of control qubits in [1, num_qubits-1].</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            CircuitError: num_ctrl_qubits is not an integer in [1, num_qubits - 1].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">num_ctrl_qubits</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_ctrl_qubits</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">num_ctrl_qubits</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_num_ctrl_qubits</span> <span class="o">=</span> <span class="n">num_ctrl_qubits</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s1">&#39;The number of control qubits must be in [1, num_qubits-1]&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ctrl_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -440,7 +464,8 @@
 
 <div class="viewcode-block" id="ControlledGate.inverse"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.ControlledGate.inverse.html#qiskit.circuit.ControlledGate.inverse">[Doku]</a>    <span class="k">def</span> <span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ControlledGate&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Invert this gate by calling inverse on the base gate.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_gate</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span><span class="o">.</span><span class="n">control</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_ctrl_qubits</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_gate</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span><span class="o">.</span><span class="n">control</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_ctrl_qubits</span><span class="p">,</span>
+                                                <span class="n">ctrl_state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrl_state</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -456,7 +481,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Zuletzt aktualisiert am 2020/08/07.
+        Zuletzt aktualisiert am 2020/08/10.
       </span>
 
     </p>

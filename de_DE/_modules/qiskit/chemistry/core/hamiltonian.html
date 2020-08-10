@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.chemistry.core.hamiltonian &mdash; Qiskit 0.19.6 Dokumentation</title>
+  <title>qiskit.chemistry.core.hamiltonian &mdash; Qiskit 0.20.0 Dokumentation</title>
   
 
   
@@ -273,7 +273,7 @@
 <span class="sd">energy of the electrons and nuclei in a molecule.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
 
@@ -282,7 +282,9 @@
 <span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">Z2Symmetries</span><span class="p">,</span> <span class="n">WeightedPauliOperator</span>
 <span class="kn">from</span> <span class="nn">qiskit.chemistry</span> <span class="kn">import</span> <span class="n">QMolecule</span><span class="p">,</span> <span class="n">QiskitChemistryError</span>
 <span class="kn">from</span> <span class="nn">qiskit.chemistry.fermionic_operator</span> <span class="kn">import</span> <span class="n">FermionicOperator</span>
-<span class="kn">from</span> <span class="nn">.chemistry_operator</span> <span class="kn">import</span> <span class="n">ChemistryOperator</span><span class="p">,</span> <span class="n">MolecularGroundStateResult</span>
+<span class="kn">from</span> <span class="nn">.chemistry_operator</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ChemistryOperator</span><span class="p">,</span>
+                                 <span class="n">MolecularGroundStateResult</span><span class="p">,</span>
+                                 <span class="n">DipoleTuple</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..components.initial_states</span> <span class="kn">import</span> <span class="n">HartreeFock</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -536,13 +538,13 @@
         <span class="k">if</span> <span class="n">z2_symmetries</span><span class="o">.</span><span class="n">is_empty</span><span class="p">():</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;No Z2 symmetries found&#39;</span><span class="p">)</span>
             <span class="n">z2_qubit_op</span> <span class="o">=</span> <span class="n">qubit_op</span>
-            <span class="n">z2_aux_ops</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">z2_symmetries</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">z2_aux_ops</span> <span class="o">=</span> <span class="n">aux_ops</span>
+            <span class="n">z2_symmetries</span> <span class="o">=</span> <span class="n">Z2Symmetries</span><span class="p">([],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> Z2 symmetries found: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">z2_symmetries</span><span class="o">.</span><span class="n">symmetries</span><span class="p">),</span>
                          <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">symm</span><span class="o">.</span><span class="n">to_label</span><span class="p">()</span> <span class="k">for</span> <span class="n">symm</span> <span class="ow">in</span> <span class="n">z2_symmetries</span><span class="o">.</span><span class="n">symmetries</span><span class="p">]))</span>
 
-            <span class="c1"># Check auxiliary operators commute with man operator&#39;s symmetry</span>
+            <span class="c1"># Check auxiliary operators commute with main operator&#39;s symmetry</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Checking operators commute with symmetry:&#39;</span><span class="p">)</span>
             <span class="n">symmetry_ops</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">symmetry</span> <span class="ow">in</span> <span class="n">z2_symmetries</span><span class="o">.</span><span class="n">symmetries</span><span class="p">:</span>
@@ -576,10 +578,12 @@
                 <span class="n">z2_symmetries</span><span class="o">.</span><span class="n">tapering_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z2symmetry_reduction</span>
 
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Apply symmetry with tapering values </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">z2_symmetries</span><span class="o">.</span><span class="n">tapering_values</span><span class="p">)</span>
-            <span class="n">z2_qubit_op</span> <span class="o">=</span> <span class="n">z2_symmetries</span><span class="o">.</span><span class="n">taper</span><span class="p">(</span><span class="n">qubit_op</span><span class="p">)</span>
+            <span class="n">chop_to</span> <span class="o">=</span> <span class="mf">0.00000001</span>  <span class="c1"># Use same threshold as qubit mapping to chop tapered operator</span>
+            <span class="n">z2_qubit_op</span> <span class="o">=</span> <span class="n">z2_symmetries</span><span class="o">.</span><span class="n">taper</span><span class="p">(</span><span class="n">qubit_op</span><span class="p">)</span><span class="o">.</span><span class="n">chop</span><span class="p">(</span><span class="n">chop_to</span><span class="p">)</span>
             <span class="n">z2_aux_ops</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">aux_op</span> <span class="ow">in</span> <span class="n">aux_ops</span><span class="p">:</span>
-                <span class="n">z2_aux_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z2_symmetries</span><span class="o">.</span><span class="n">taper</span><span class="p">(</span><span class="n">aux_op</span><span class="p">)</span> <span class="k">if</span> <span class="n">aux_op</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">z2_aux_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z2_symmetries</span><span class="o">.</span><span class="n">taper</span><span class="p">(</span><span class="n">aux_op</span><span class="p">)</span><span class="o">.</span><span class="n">chop</span><span class="p">(</span><span class="n">chop_to</span><span class="p">)</span> <span class="k">if</span> <span class="n">aux_op</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                                  <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">z2_qubit_op</span><span class="p">,</span> <span class="n">z2_aux_ops</span><span class="p">,</span> <span class="n">z2_symmetries</span>
 
@@ -644,7 +648,7 @@
                 <span class="n">dipm</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dipole_idx</span><span class="p">,</span> <span class="n">dipole_idx</span><span class="o">+</span><span class="mi">3</span><span class="p">):</span>  <span class="c1"># Gets X, Y and Z components</span>
                     <span class="n">dipm</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aux_ops_vals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">real</span> <span class="k">if</span> <span class="n">aux_ops_vals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
-                <span class="n">mgsr</span><span class="o">.</span><span class="n">computed_dipole_moment</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dipm</span><span class="p">)</span>
+                <span class="n">mgsr</span><span class="o">.</span><span class="n">computed_dipole_moment</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">DipoleTuple</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dipm</span><span class="p">))</span>
                 <span class="n">mgsr</span><span class="o">.</span><span class="n">ph_extracted_dipole_moment</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ph_x_dipole_shift</span><span class="p">,</span>
                                                    <span class="bp">self</span><span class="o">.</span><span class="n">_ph_y_dipole_shift</span><span class="p">,</span>
                                                    <span class="bp">self</span><span class="o">.</span><span class="n">_ph_z_dipole_shift</span><span class="p">)</span>
@@ -821,7 +825,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Zuletzt aktualisiert am 2020/08/07.
+        Zuletzt aktualisiert am 2020/08/10.
       </span>
 
     </p>

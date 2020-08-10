@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.optimization.problems.quadratic_program &mdash; Qiskit 0.19.6 Dokumentation</title>
+  <title>qiskit.optimization.problems.quadratic_program &mdash; Qiskit 0.20.0 Dokumentation</title>
   
 
   
@@ -270,11 +270,13 @@
 <span class="c1"># that they have been altered from the originals.</span>
 
 <span class="sd">&quot;&quot;&quot;Quadratic Program.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">cast</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">fsum</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">from</span> <span class="nn">docplex.mp.constr</span> <span class="kn">import</span> <span class="p">(</span><span class="n">LinearConstraint</span> <span class="k">as</span> <span class="n">DocplexLinearConstraint</span><span class="p">,</span>
                                <span class="n">QuadraticConstraint</span> <span class="k">as</span> <span class="n">DocplexQuadraticConstraint</span><span class="p">,</span>
@@ -283,16 +285,18 @@
 <span class="kn">from</span> <span class="nn">docplex.mp.model</span> <span class="kn">import</span> <span class="n">Model</span>
 <span class="kn">from</span> <span class="nn">docplex.mp.model_reader</span> <span class="kn">import</span> <span class="n">ModelReader</span>
 <span class="kn">from</span> <span class="nn">docplex.mp.quad</span> <span class="kn">import</span> <span class="n">QuadExpr</span>
-<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">ndarray</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">zeros</span><span class="p">,</span> <span class="nb">bool</span> <span class="k">as</span> <span class="n">nbool</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">spmatrix</span>
 
-<span class="kn">from</span> <span class="nn">.constraint</span> <span class="kn">import</span> <span class="n">Constraint</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">I</span><span class="p">,</span> <span class="n">OperatorBase</span><span class="p">,</span> <span class="n">PauliOp</span><span class="p">,</span> <span class="n">WeightedPauliOperator</span><span class="p">,</span> <span class="n">SummedOp</span><span class="p">,</span> <span class="n">ListOp</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">Pauli</span>
+<span class="kn">from</span> <span class="nn">.constraint</span> <span class="kn">import</span> <span class="n">Constraint</span><span class="p">,</span> <span class="n">ConstraintSense</span>
 <span class="kn">from</span> <span class="nn">.linear_constraint</span> <span class="kn">import</span> <span class="n">LinearConstraint</span>
 <span class="kn">from</span> <span class="nn">.linear_expression</span> <span class="kn">import</span> <span class="n">LinearExpression</span>
 <span class="kn">from</span> <span class="nn">.quadratic_constraint</span> <span class="kn">import</span> <span class="n">QuadraticConstraint</span>
 <span class="kn">from</span> <span class="nn">.quadratic_expression</span> <span class="kn">import</span> <span class="n">QuadraticExpression</span>
 <span class="kn">from</span> <span class="nn">.quadratic_objective</span> <span class="kn">import</span> <span class="n">QuadraticObjective</span>
-<span class="kn">from</span> <span class="nn">.variable</span> <span class="kn">import</span> <span class="n">Variable</span>
+<span class="kn">from</span> <span class="nn">.variable</span> <span class="kn">import</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">VarType</span>
 <span class="kn">from</span> <span class="nn">..exceptions</span> <span class="kn">import</span> <span class="n">QiskitOptimizationError</span>
 <span class="kn">from</span> <span class="nn">..infinity</span> <span class="kn">import</span> <span class="n">INFINITY</span>
 
@@ -321,16 +325,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">QuadraticProgram</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">VALID</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_variables</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># List[Variable]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_variables_index</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Dict[str, int]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variables</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[Variable]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variables_index</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, int]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_linear_constraints</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># List[LinearConstraint]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_linear_constraints_index</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Dict[str, int]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_linear_constraints</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[LinearConstraint]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_linear_constraints_index</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, int]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_quadratic_constraints</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># List[QuadraticConstraint]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_quadratic_constraints_index</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Dict[str, int]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_quadratic_constraints</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[QuadraticConstraint]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_quadratic_constraints_index</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, int]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_objective</span> <span class="o">=</span> <span class="n">QuadraticObjective</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_docplex</span><span class="p">()</span><span class="o">.</span><span class="n">export_as_lp_string</span><span class="p">()</span>
 
 <div class="viewcode-block" id="QuadraticProgram.clear"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.problems.QuadraticProgram.clear.html#qiskit.optimization.QuadraticProgram.clear">[Doku]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Clears the quadratic program, i.e., deletes all variables, constraints, the</span>
@@ -399,7 +406,7 @@
     <span class="k">def</span> <span class="nf">_add_variable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                       <span class="n">lowerbound</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
                       <span class="n">upperbound</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">INFINITY</span><span class="p">,</span>
-                      <span class="n">vartype</span><span class="p">:</span> <span class="n">Variable</span><span class="o">.</span><span class="n">Type</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">CONTINUOUS</span><span class="p">,</span>
+                      <span class="n">vartype</span><span class="p">:</span> <span class="n">VarType</span> <span class="o">=</span> <span class="n">VarType</span><span class="o">.</span><span class="n">CONTINUOUS</span><span class="p">,</span>
                       <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Variable</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Checks whether a variable name is already taken and adds the variable to list and index</span>
 <span class="sd">        if not.</span>
@@ -494,7 +501,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_variables_index</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span></div>
 
-<div class="viewcode-block" id="QuadraticProgram.get_num_vars"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.problems.QuadraticProgram.get_num_vars.html#qiskit.optimization.QuadraticProgram.get_num_vars">[Doku]</a>    <span class="k">def</span> <span class="nf">get_num_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vartype</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Variable</span><span class="o">.</span><span class="n">Type</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="QuadraticProgram.get_num_vars"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.problems.QuadraticProgram.get_num_vars.html#qiskit.optimization.QuadraticProgram.get_num_vars">[Doku]</a>    <span class="k">def</span> <span class="nf">get_num_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vartype</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">VarType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Returns the total number of variables or the number of variables of the specified type.</span>
 
 <span class="sd">        Args:</span>
@@ -553,7 +560,7 @@
 <div class="viewcode-block" id="QuadraticProgram.linear_constraint"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.problems.QuadraticProgram.linear_constraint.html#qiskit.optimization.QuadraticProgram.linear_constraint">[Doku]</a>    <span class="k">def</span> <span class="nf">linear_constraint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                           <span class="n">linear</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">spmatrix</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
                                         <span class="n">Dict</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                          <span class="n">sense</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&lt;=&#39;</span><span class="p">,</span>
+                          <span class="n">sense</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ConstraintSense</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&lt;=&#39;</span><span class="p">,</span>
                           <span class="n">rhs</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinearConstraint</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Adds a linear equality constraint to the quadratic program of the form:</span>
 <span class="sd">            linear * x sense rhs.</span>
@@ -640,7 +647,7 @@
                              <span class="n">quadratic</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">spmatrix</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
                                               <span class="n">Dict</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
                                                          <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                             <span class="n">sense</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&lt;=&#39;</span><span class="p">,</span>
+                             <span class="n">sense</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ConstraintSense</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&lt;=&#39;</span><span class="p">,</span>
                              <span class="n">rhs</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuadraticConstraint</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Adds a quadratic equality constraint to the quadratic program of the form:</span>
 <span class="sd">            x * Q * x &lt;= rhs.</span>
@@ -949,13 +956,13 @@
 
         <span class="c1"># add variables</span>
         <span class="n">var</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">vartype</span> <span class="o">==</span> <span class="n">Variable</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">CONTINUOUS</span><span class="p">:</span>
-                <span class="n">var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mdl</span><span class="o">.</span><span class="n">continuous_var</span><span class="p">(</span><span class="n">lb</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">lowerbound</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">upperbound</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">var</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">mdl</span><span class="o">.</span><span class="n">continuous_var</span><span class="p">(</span><span class="n">lb</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">lowerbound</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">upperbound</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">x</span><span class="o">.</span><span class="n">vartype</span> <span class="o">==</span> <span class="n">Variable</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">BINARY</span><span class="p">:</span>
-                <span class="n">var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mdl</span><span class="o">.</span><span class="n">binary_var</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">var</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">mdl</span><span class="o">.</span><span class="n">binary_var</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">x</span><span class="o">.</span><span class="n">vartype</span> <span class="o">==</span> <span class="n">Variable</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">INTEGER</span><span class="p">:</span>
-                <span class="n">var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mdl</span><span class="o">.</span><span class="n">integer_var</span><span class="p">(</span><span class="n">lb</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">lowerbound</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">upperbound</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">var</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">mdl</span><span class="o">.</span><span class="n">integer_var</span><span class="p">(</span><span class="n">lb</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">lowerbound</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">upperbound</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># should never happen</span>
                 <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span><span class="s1">&#39;Unsupported variable type: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">vartype</span><span class="p">))</span>
@@ -963,24 +970,24 @@
         <span class="c1"># add objective</span>
         <span class="n">objective</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">constant</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">objective</span> <span class="o">+=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">objective</span> <span class="o">+=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">quadratic</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">objective</span> <span class="o">+=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="n">objective</span> <span class="o">+=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">sense</span> <span class="o">==</span> <span class="n">QuadraticObjective</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">MINIMIZE</span><span class="p">:</span>
             <span class="n">mdl</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">objective</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">mdl</span><span class="o">.</span><span class="n">maximize</span><span class="p">(</span><span class="n">objective</span><span class="p">)</span>
 
         <span class="c1"># add linear constraints</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear_constraints</span><span class="p">):</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">name</span>
-            <span class="n">rhs</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">rhs</span>
-            <span class="k">if</span> <span class="n">rhs</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">constraint</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">coefficients</span><span class="o">.</span><span class="n">nnz</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">l_constraint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear_constraints</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">l_constraint</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">rhs</span> <span class="o">=</span> <span class="n">l_constraint</span><span class="o">.</span><span class="n">rhs</span>
+            <span class="k">if</span> <span class="n">rhs</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">l_constraint</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">coefficients</span><span class="o">.</span><span class="n">nnz</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">linear_expr</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">linear_expr</span> <span class="o">+=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-            <span class="n">sense</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">sense</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">l_constraint</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">linear_expr</span> <span class="o">+=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span>
+            <span class="n">sense</span> <span class="o">=</span> <span class="n">l_constraint</span><span class="o">.</span><span class="n">sense</span>
             <span class="k">if</span> <span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">EQ</span><span class="p">:</span>
                 <span class="n">mdl</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">linear_expr</span> <span class="o">==</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">ctname</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">GE</span><span class="p">:</span>
@@ -992,19 +999,19 @@
                 <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span><span class="s2">&quot;Unsupported constraint sense: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sense</span><span class="p">))</span>
 
         <span class="c1"># add quadratic constraints</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quadratic_constraints</span><span class="p">):</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">name</span>
-            <span class="n">rhs</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">rhs</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">q_constraint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quadratic_constraints</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">q_constraint</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">rhs</span> <span class="o">=</span> <span class="n">q_constraint</span><span class="o">.</span><span class="n">rhs</span>
             <span class="k">if</span> <span class="n">rhs</span> <span class="o">==</span> <span class="mi">0</span> \
-                    <span class="ow">and</span> <span class="n">constraint</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">coefficients</span><span class="o">.</span><span class="n">nnz</span> <span class="o">==</span> <span class="mi">0</span> \
-                    <span class="ow">and</span> <span class="n">constraint</span><span class="o">.</span><span class="n">quadratic</span><span class="o">.</span><span class="n">coefficients</span><span class="o">.</span><span class="n">nnz</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="ow">and</span> <span class="n">q_constraint</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">coefficients</span><span class="o">.</span><span class="n">nnz</span> <span class="o">==</span> <span class="mi">0</span> \
+                    <span class="ow">and</span> <span class="n">q_constraint</span><span class="o">.</span><span class="n">quadratic</span><span class="o">.</span><span class="n">coefficients</span><span class="o">.</span><span class="n">nnz</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">quadratic_expr</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">quadratic_expr</span> <span class="o">+=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-            <span class="k">for</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">quadratic</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">quadratic_expr</span> <span class="o">+=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-            <span class="n">sense</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">sense</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">q_constraint</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">quadratic_expr</span> <span class="o">+=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">q_constraint</span><span class="o">.</span><span class="n">quadratic</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">quadratic_expr</span> <span class="o">+=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">k</span><span class="p">)]</span>
+            <span class="n">sense</span> <span class="o">=</span> <span class="n">q_constraint</span><span class="o">.</span><span class="n">sense</span>
             <span class="k">if</span> <span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">EQ</span><span class="p">:</span>
                 <span class="n">mdl</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">quadratic_expr</span> <span class="o">==</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">ctname</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">GE</span><span class="p">:</span>
@@ -1017,12 +1024,23 @@
 
         <span class="k">return</span> <span class="n">mdl</span></div>
 
-<div class="viewcode-block" id="QuadraticProgram.pprint_as_string"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.problems.QuadraticProgram.pprint_as_string.html#qiskit.optimization.QuadraticProgram.pprint_as_string">[Doku]</a>    <span class="k">def</span> <span class="nf">pprint_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns the quadratic program as a string in Docplex&#39;s pretty print format.</span>
+<div class="viewcode-block" id="QuadraticProgram.export_as_lp_string"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.problems.QuadraticProgram.export_as_lp_string.html#qiskit.optimization.QuadraticProgram.export_as_lp_string">[Doku]</a>    <span class="k">def</span> <span class="nf">export_as_lp_string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the quadratic program as a string of LP format.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A string representing the quadratic program.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_docplex</span><span class="p">()</span><span class="o">.</span><span class="n">export_as_lp_string</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="QuadraticProgram.pprint_as_string"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.problems.QuadraticProgram.pprint_as_string.html#qiskit.optimization.QuadraticProgram.pprint_as_string">[Doku]</a>    <span class="k">def</span> <span class="nf">pprint_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the quadratic program as a string in Docplex&#39;s pretty print format.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            A string representing the quadratic program.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The pprint_as_string method is deprecated and will be &quot;</span>
+                      <span class="s2">&quot;removed in a future release. Instead use the&quot;</span>
+                      <span class="s2">&quot;to_docplex() method and run pprint_as_string() on that &quot;</span>
+                      <span class="s2">&quot;output&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_docplex</span><span class="p">()</span><span class="o">.</span><span class="n">pprint_as_string</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="QuadraticProgram.prettyprint"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.problems.QuadraticProgram.prettyprint.html#qiskit.optimization.QuadraticProgram.prettyprint">[Doku]</a>    <span class="k">def</span> <span class="nf">prettyprint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1032,15 +1050,11 @@
 <span class="sd">            out: The output stream or file name to print to.</span>
 <span class="sd">              if you specify a file name, the output file name is has &#39;.mod&#39; as suffix.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The prettyprint method is deprecated and will be &quot;</span>
+                      <span class="s2">&quot;removed in a future release. Instead use the&quot;</span>
+                      <span class="s2">&quot;to_docplex() method and run prettyprint() on that &quot;</span>
+                      <span class="s2">&quot;output&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">to_docplex</span><span class="p">()</span><span class="o">.</span><span class="n">prettyprint</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="QuadraticProgram.export_as_lp_string"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.problems.QuadraticProgram.export_as_lp_string.html#qiskit.optimization.QuadraticProgram.export_as_lp_string">[Doku]</a>    <span class="k">def</span> <span class="nf">export_as_lp_string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns the quadratic program as a string of LP format.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            A string representing the quadratic program.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_docplex</span><span class="p">()</span><span class="o">.</span><span class="n">export_as_lp_string</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="QuadraticProgram.read_from_lp_file"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.problems.QuadraticProgram.read_from_lp_file.html#qiskit.optimization.QuadraticProgram.read_from_lp_file">[Doku]</a>    <span class="k">def</span> <span class="nf">read_from_lp_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Loads the quadratic program from a LP file.</span>
@@ -1076,7 +1090,7 @@
             <span class="k">return</span> <span class="n">model_name</span>
 
         <span class="n">model_reader</span> <span class="o">=</span> <span class="n">ModelReader</span><span class="p">()</span>
-        <span class="n">model</span> <span class="o">=</span> <span class="n">model_reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">pathname</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="n">_parse_problem_name</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model_reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="n">_parse_problem_name</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">from_docplex</span><span class="p">(</span><span class="n">model</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="QuadraticProgram.write_to_lp_file"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.problems.QuadraticProgram.write_to_lp_file.html#qiskit.optimization.QuadraticProgram.write_to_lp_file">[Doku]</a>    <span class="k">def</span> <span class="nf">write_to_lp_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1119,7 +1133,218 @@
 <span class="sd">                - Same variable is substituted multiple times.</span>
 <span class="sd">                - Coefficient of variable substitution is zero.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">SubstituteVariables</span><span class="p">()</span><span class="o">.</span><span class="n">substitute_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constants</span><span class="p">,</span> <span class="n">variables</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">SubstituteVariables</span><span class="p">()</span><span class="o">.</span><span class="n">substitute_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constants</span><span class="p">,</span> <span class="n">variables</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QuadraticProgram.to_ising"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.problems.QuadraticProgram.to_ising.html#qiskit.optimization.QuadraticProgram.to_ising">[Doku]</a>    <span class="k">def</span> <span class="nf">to_ising</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return the Ising Hamiltonian of this problem.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            qubit_op: The qubit operator for the problem</span>
+<span class="sd">            offset: The constant value in the Ising Hamiltonian.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitOptimizationError: If a variable type is not binary.</span>
+<span class="sd">            QiskitOptimizationError: If constraints exist in the problem.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># if problem has variables that are not binary, raise an error</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_num_vars</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_num_binary_vars</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span><span class="s1">&#39;The type of variable must be a binary variable. &#39;</span>
+                                          <span class="s1">&#39;Use a QuadraticProgramToQubo converter to convert &#39;</span>
+                                          <span class="s1">&#39;integer variables to binary variables. &#39;</span>
+                                          <span class="s1">&#39;If the problem contains continuous variables, &#39;</span>
+                                          <span class="s1">&#39;currently we can not apply VQE/QAOA directly. &#39;</span>
+                                          <span class="s1">&#39;you might want to use an ADMM optimizer &#39;</span>
+                                          <span class="s1">&#39;for the problem. &#39;</span><span class="p">)</span>
+
+        <span class="c1"># if constraints exist, raise an error</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear_constraints</span> \
+                <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">quadratic_constraints</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span><span class="s1">&#39;An constraint exists. &#39;</span>
+                                          <span class="s1">&#39;The method supports only model with no constraints. &#39;</span>
+                                          <span class="s1">&#39;Use a QuadraticProgramToQubo converter. &#39;</span>
+                                          <span class="s1">&#39;It converts inequality constraints to equality &#39;</span>
+                                          <span class="s1">&#39;constraints, and then, it converters equality &#39;</span>
+                                          <span class="s1">&#39;constraints to penalty terms of the object function.&#39;</span><span class="p">)</span>
+
+        <span class="c1"># initialize Hamiltonian.</span>
+        <span class="n">num_nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_num_vars</span><span class="p">()</span>
+        <span class="n">pauli_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">zero</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">nbool</span><span class="p">)</span>
+
+        <span class="c1"># set a sign corresponding to a maximized or minimized problem.</span>
+        <span class="c1"># sign == 1 is for minimized problem. sign == -1 is for maximized problem.</span>
+        <span class="n">sense</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">sense</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="c1"># convert a constant part of the object function into Hamiltonian.</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">constant</span> <span class="o">*</span> <span class="n">sense</span>
+
+        <span class="c1"># convert linear parts of the object function into Hamiltonian.</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">coef</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">z_p</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">nbool</span><span class="p">)</span>
+            <span class="n">weight</span> <span class="o">=</span> <span class="n">coef</span> <span class="o">*</span> <span class="n">sense</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">z_p</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="n">pauli_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="n">weight</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">(</span><span class="n">z_p</span><span class="p">,</span> <span class="n">zero</span><span class="p">)])</span>
+            <span class="n">offset</span> <span class="o">+=</span> <span class="n">weight</span>
+
+        <span class="c1"># convert quadratic parts of the object function into Hamiltonian.</span>
+        <span class="c1"># first merge coefficients (i, j) and (j, i)</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">coeff</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">quadratic</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">i</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+                <span class="n">coeffs</span><span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">coeffs</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">coeff</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">coeffs</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span> <span class="o">=</span> <span class="n">coeffs</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">coeff</span>
+
+        <span class="c1"># create Pauli terms</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">coeff</span> <span class="ow">in</span> <span class="n">coeffs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+            <span class="n">weight</span> <span class="o">=</span> <span class="n">coeff</span> <span class="o">*</span> <span class="n">sense</span> <span class="o">/</span> <span class="mi">4</span>
+
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">j</span><span class="p">:</span>
+                <span class="n">offset</span> <span class="o">+=</span> <span class="n">weight</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">z_p</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">nbool</span><span class="p">)</span>
+                <span class="n">z_p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">z_p</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">pauli_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">weight</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">(</span><span class="n">z_p</span><span class="p">,</span> <span class="n">zero</span><span class="p">)])</span>
+
+            <span class="n">z_p</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">nbool</span><span class="p">)</span>
+            <span class="n">z_p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">pauli_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="n">weight</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">(</span><span class="n">z_p</span><span class="p">,</span> <span class="n">zero</span><span class="p">)])</span>
+
+            <span class="n">z_p</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">nbool</span><span class="p">)</span>
+            <span class="n">z_p</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">pauli_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="n">weight</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">(</span><span class="n">z_p</span><span class="p">,</span> <span class="n">zero</span><span class="p">)])</span>
+
+            <span class="n">offset</span> <span class="o">+=</span> <span class="n">weight</span>
+
+        <span class="c1"># Remove paulis whose coefficients are zeros.</span>
+        <span class="n">qubit_op</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">PauliOp</span><span class="p">(</span><span class="n">pauli</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="n">coeff</span><span class="p">)</span> <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="n">pauli_list</span><span class="p">)</span>
+
+        <span class="c1"># qubit_op could be the integer 0, in this case return an identity operator of</span>
+        <span class="c1"># appropriate size</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qubit_op</span><span class="p">,</span> <span class="n">OperatorBase</span><span class="p">):</span>
+            <span class="n">qubit_op</span> <span class="o">=</span> <span class="n">qubit_op</span><span class="o">.</span><span class="n">reduce</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">qubit_op</span> <span class="o">=</span> <span class="n">I</span> <span class="o">^</span> <span class="n">num_nodes</span>
+
+        <span class="k">return</span> <span class="n">qubit_op</span><span class="p">,</span> <span class="n">offset</span></div>
+
+<div class="viewcode-block" id="QuadraticProgram.from_ising"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.problems.QuadraticProgram.from_ising.html#qiskit.optimization.QuadraticProgram.from_ising">[Doku]</a>    <span class="k">def</span> <span class="nf">from_ising</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                   <span class="n">qubit_op</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="n">WeightedPauliOperator</span><span class="p">],</span>
+                   <span class="n">offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">linear</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create a quadratic program from a qubit operator and a shift value.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            qubit_op: The qubit operator of the problem.</span>
+<span class="sd">            offset: The constant value in the Ising Hamiltonian.</span>
+<span class="sd">            linear: If linear is True, :math:`x^2` is treated as a linear term</span>
+<span class="sd">                since :math:`x^2 = x` for :math:`x \in \{0,1\}`.</span>
+<span class="sd">                Else, :math:`x^2` is treat as a quadratic term.</span>
+<span class="sd">                The default value is False.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitOptimizationError: If there are Pauli Xs in any Pauli term</span>
+<span class="sd">            QiskitOptimizationError: If there are more than 2 Pauli Zs in any Pauli term</span>
+<span class="sd">            NotImplementedError: If the input operator is a ListOp</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qubit_op</span><span class="p">,</span> <span class="n">WeightedPauliOperator</span><span class="p">):</span>
+            <span class="n">qubit_op</span> <span class="o">=</span> <span class="n">qubit_op</span><span class="o">.</span><span class="n">to_opflow</span><span class="p">()</span>
+
+        <span class="c1"># No support for ListOp yet, this can be added in future</span>
+        <span class="c1"># pylint: disable=unidiomatic-typecheck</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">qubit_op</span><span class="p">)</span> <span class="o">==</span> <span class="n">ListOp</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s1">&#39;Conversion of a ListOp is not supported, convert each &#39;</span>
+                <span class="s1">&#39;operator in the ListOp separately.&#39;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># add binary variables</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">qubit_op</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">binary_var</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;x_</span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+        <span class="c1"># Create a QUBO matrix</span>
+        <span class="c1"># The Qubo matrix is an upper triangular matrix.</span>
+        <span class="c1"># Diagonal elements in the QUBO matrix are for linear terms of the qubit operator.</span>
+        <span class="c1"># The other elements in the QUBO matrix are for quadratic terms of the qubit operator.</span>
+        <span class="n">qubo_matrix</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="n">qubit_op</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">qubit_op</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qubit_op</span><span class="p">,</span> <span class="n">SummedOp</span><span class="p">):</span>
+            <span class="n">oplist</span> <span class="o">=</span> <span class="p">[</span><span class="n">qubit_op</span><span class="o">.</span><span class="n">to_pauli_op</span><span class="p">()]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">oplist</span> <span class="o">=</span> <span class="n">qubit_op</span><span class="o">.</span><span class="n">to_pauli_op</span><span class="p">()</span><span class="o">.</span><span class="n">oplist</span>
+
+        <span class="k">for</span> <span class="n">pauli_op</span> <span class="ow">in</span> <span class="n">oplist</span><span class="p">:</span>
+            <span class="n">pauli</span> <span class="o">=</span> <span class="n">pauli_op</span><span class="o">.</span><span class="n">primitive</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="n">pauli_op</span><span class="o">.</span><span class="n">coeff</span>
+            <span class="c1"># Count the number of Pauli Zs in a Pauli term</span>
+            <span class="n">lst_z</span> <span class="o">=</span> <span class="n">pauli</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">z_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lst_z</span><span class="p">)</span> <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">]</span>
+            <span class="n">num_z</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">z_index</span><span class="p">)</span>
+
+            <span class="c1"># Add its weight of the Pauli term to the corresponding element of QUBO matrix</span>
+            <span class="k">if</span> <span class="n">num_z</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">qubo_matrix</span><span class="p">[</span><span class="n">z_index</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">z_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">coeff</span><span class="o">.</span><span class="n">real</span>
+            <span class="k">elif</span> <span class="n">num_z</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">qubo_matrix</span><span class="p">[</span><span class="n">z_index</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">z_index</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">coeff</span><span class="o">.</span><span class="n">real</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span>
+                    <span class="s1">&#39;There are more than 2 Pauli Zs in the Pauli term </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pauli</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="c1"># If there are Pauli Xs in the Pauli term, raise an error</span>
+            <span class="n">lst_x</span> <span class="o">=</span> <span class="n">pauli</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">x_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lst_x</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_index</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span><span class="s1">&#39;Pauli Xs exist in the Pauli </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pauli</span><span class="o">.</span><span class="n">x</span><span class="p">))</span>
+
+        <span class="c1"># Initialize dicts for linear terms and quadratic terms</span>
+        <span class="n">linear_terms</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">quadratic_terms</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># For quadratic pauli terms of operator</span>
+        <span class="c1"># x_i * x_ j = (1 - Z_i - Z_j + Z_i * Z_j)/4</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qubo_matrix</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+                <span class="c1"># Focus on the upper triangular matrix</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;=</span> <span class="n">i</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="c1"># Add a quadratic term to the object function of `QuadraticProgram`</span>
+                <span class="c1"># The coefficient of the quadratic term in `QuadraticProgram` is</span>
+                <span class="c1"># 4 * weight of the pauli</span>
+                <span class="n">coef</span> <span class="o">=</span> <span class="n">weight</span> <span class="o">*</span> <span class="mi">4</span>
+                <span class="n">quadratic_terms</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">coef</span>
+                <span class="c1"># Sub the weight of the quadratic pauli term from the QUBO matrix</span>
+                <span class="n">qubo_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">-=</span> <span class="n">weight</span>
+                <span class="c1"># Sub the weight of the linear pauli term from the QUBO matrix</span>
+                <span class="n">qubo_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weight</span>
+                <span class="n">qubo_matrix</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weight</span>
+                <span class="c1"># Sub the weight from offset</span>
+                <span class="n">offset</span> <span class="o">-=</span> <span class="n">weight</span>
+
+        <span class="c1"># After processing quadratic pauli terms, only linear paulis are left</span>
+        <span class="c1"># x_i = (1 - Z_i)/2</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">qubit_op</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">):</span>
+            <span class="n">weight</span> <span class="o">=</span> <span class="n">qubo_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+            <span class="c1"># Add a linear term to the object function of `QuadraticProgram`</span>
+            <span class="c1"># The coefficient of the linear term in `QuadraticProgram` is</span>
+            <span class="c1"># 2 * weight of the pauli</span>
+            <span class="n">coef</span> <span class="o">=</span> <span class="n">weight</span> <span class="o">*</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="n">linear</span><span class="p">:</span>
+                <span class="c1"># If the linear option is True, add it into linear_terms</span>
+                <span class="n">linear_terms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">coef</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Else, add it into quadratic_terms as a diagonal element.</span>
+                <span class="n">quadratic_terms</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">coef</span>
+            <span class="c1"># Sub the weight of the linear pauli term from the QUBO matrix</span>
+            <span class="n">qubo_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">-=</span> <span class="n">weight</span>
+            <span class="n">offset</span> <span class="o">+=</span> <span class="n">weight</span>
+
+        <span class="c1"># Set the objective function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">constant</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span> <span class="n">linear</span><span class="o">=</span><span class="n">linear_terms</span><span class="p">,</span> <span class="n">quadratic</span><span class="o">=</span><span class="n">quadratic_terms</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">-=</span> <span class="n">offset</span></div></div>
 
 
 <span class="k">class</span> <span class="nc">SubstituteVariables</span><span class="p">:</span>
@@ -1129,9 +1354,9 @@
     <span class="n">CONST</span> <span class="o">=</span> <span class="s1">&#39;__CONSTANT__&#39;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_src</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Optional[QuadraticProgram]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Optional[QuadraticProgram]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_subs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_src</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[QuadraticProgram]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[QuadraticProgram]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subs</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[Union[int, str], Tuple[str, float]]</span>
 
     <span class="k">def</span> <span class="nf">substitute_variables</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">,</span>
@@ -1176,7 +1401,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_feasible</span><span class="p">(</span><span class="n">sense</span><span class="p">:</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="p">,</span> <span class="n">rhs</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_feasible</span><span class="p">(</span><span class="n">sense</span><span class="p">:</span> <span class="n">ConstraintSense</span><span class="p">,</span> <span class="n">rhs</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Checks feasibility of the following condition</span>
 <span class="sd">            0 `sense` rhs</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1204,7 +1429,7 @@
 
     <span class="k">def</span> <span class="nf">_subs_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constants</span><span class="p">,</span> <span class="n">variables</span><span class="p">):</span>
         <span class="c1"># guarantee that there is no overlap between variables to be replaced and combine input</span>
-        <span class="n">subs</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Dict[str, Tuple[str, float]]</span>
+        <span class="n">subs</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[Union[int, str], Tuple[str, float]]</span>
         <span class="k">if</span> <span class="n">constants</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">constants</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="c1"># substitute i &lt;- v</span>
@@ -1293,7 +1518,7 @@
     <span class="k">def</span> <span class="nf">_linear_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lin_expr</span><span class="p">:</span> <span class="n">LinearExpression</span><span class="p">)</span> \
             <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">LinearExpression</span><span class="p">]:</span>
         <span class="n">const</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">lin_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">lin_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>  <span class="c1"># type: Dict[Union[int, str], float]</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">w_i</span> <span class="ow">in</span> <span class="n">lin_expr</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">use_name</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">repl_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subs</span> <span class="k">else</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="n">prod</span> <span class="o">=</span> <span class="n">w_i</span> <span class="o">*</span> <span class="n">repl_i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -1309,15 +1534,15 @@
     <span class="k">def</span> <span class="nf">_quadratic_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quad_expr</span><span class="p">:</span> <span class="n">QuadraticExpression</span><span class="p">)</span> \
             <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">LinearExpression</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">QuadraticExpression</span><span class="p">]]:</span>
         <span class="n">const</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">lin_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
-        <span class="n">quad_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">lin_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>  <span class="c1"># type: Dict[Union[int, str], float]</span>
+        <span class="n">quad_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>  <span class="c1"># type: Dict[Tuple[Union[int, str], Union[int, str]], float]</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">w_ij</span> <span class="ow">in</span> <span class="n">quad_expr</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">use_name</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">repl_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subs</span> <span class="k">else</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="n">repl_j</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">if</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subs</span> <span class="k">else</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="n">idx</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="p">[</span><span class="n">repl_i</span><span class="p">,</span> <span class="n">repl_j</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CONST</span><span class="p">)</span>
             <span class="n">prod</span> <span class="o">=</span> <span class="n">w_ij</span> <span class="o">*</span> <span class="n">repl_i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">repl_j</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="n">quad_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">prod</span>
+                <span class="n">quad_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">prod</span>  <span class="c1"># type: ignore</span>
             <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">lin_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+=</span> <span class="n">prod</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1394,7 +1619,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Zuletzt aktualisiert am 2020/08/07.
+        Zuletzt aktualisiert am 2020/08/10.
       </span>
 
     </p>

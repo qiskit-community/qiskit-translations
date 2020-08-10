@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.quantum_info.operators.operator &mdash; Qiskit 0.19.6 Dokumentation</title>
+  <title>qiskit.quantum_info.operators.operator &mdash; Qiskit 0.20.0 Dokumentation</title>
   
 
   
@@ -742,11 +742,12 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_init_instruction</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">instruction</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Convert a QuantumCircuit or Instruction to an Operator.&quot;&quot;&quot;</span>
+        <span class="c1"># Initialize an identity operator of the correct size of the circuit</span>
+        <span class="n">dimension</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">instruction</span><span class="o">.</span><span class="n">num_qubits</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">dimension</span><span class="p">))</span>
         <span class="c1"># Convert circuit to an instruction</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">instruction</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
             <span class="n">instruction</span> <span class="o">=</span> <span class="n">instruction</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
-        <span class="c1"># Initialize an identity operator of the correct size of the circuit</span>
-        <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">instruction</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">))</span>
         <span class="n">op</span><span class="o">.</span><span class="n">_append_instruction</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">op</span>
 
@@ -767,19 +768,35 @@
 
     <span class="k">def</span> <span class="nf">_append_instruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Update the current Operator by apply an instruction.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">qiskit.circuit.barrier</span> <span class="kn">import</span> <span class="n">Barrier</span>
+        <span class="kn">from</span> <span class="nn">.scalar_op</span> <span class="kn">import</span> <span class="n">ScalarOp</span>
+
         <span class="n">mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instruction_to_matrix</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">mat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Perform the composition and inplace update the current state</span>
             <span class="c1"># of the operator</span>
             <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Barrier</span><span class="p">):</span>
+            <span class="k">return</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># If the instruction doesn&#39;t have a matrix defined we use its</span>
             <span class="c1"># circuit decomposition definition if it exists, otherwise we</span>
             <span class="c1"># cannot compose this gate and raise an error.</span>
             <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;Cannot apply Instruction: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">qregs</span><span class="p">,</span> <span class="n">cregs</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;Instruction &quot;</span><span class="si">{}</span><span class="s1">&quot; &#39;</span>
+                                  <span class="s1">&#39;definition is </span><span class="si">{}</span><span class="s1"> but expected QuantumCircuit.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                      <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">global_phase</span><span class="p">:</span>
+                <span class="n">dimension</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span>
+                <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span>
+                    <span class="n">ScalarOp</span><span class="p">(</span><span class="n">dimension</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">global_phase</span><span class="p">))),</span>
+                    <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">data</span>
+            <span class="n">flat_instr</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">qregs</span><span class="p">,</span> <span class="n">cregs</span> <span class="ow">in</span> <span class="n">flat_instr</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">cregs</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
                         <span class="s1">&#39;Cannot apply instruction with classical registers: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -805,7 +822,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Zuletzt aktualisiert am 2020/08/07.
+        Zuletzt aktualisiert am 2020/08/10.
       </span>
 
     </p>

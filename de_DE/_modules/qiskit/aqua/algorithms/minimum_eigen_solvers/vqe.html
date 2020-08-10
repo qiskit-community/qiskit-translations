@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.algorithms.minimum_eigen_solvers.vqe &mdash; Qiskit 0.19.6 Dokumentation</title>
+  <title>qiskit.aqua.algorithms.minimum_eigen_solvers.vqe &mdash; Qiskit 0.20.0 Dokumentation</title>
   
 
   
@@ -274,7 +274,7 @@
 <span class="sd">See https://arxiv.org/abs/1304.3061</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
@@ -405,8 +405,9 @@
             <span class="n">initial_point</span> <span class="o">=</span> <span class="n">var_form</span><span class="o">.</span><span class="n">preferred_init_points</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_max_evals_grouped</span> <span class="o">=</span> <span class="n">max_evals_grouped</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_sampler</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_sampler</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[CircuitSampler]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_expectation</span> <span class="o">=</span> <span class="n">expectation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_user_valid_expectation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_include_custom</span> <span class="o">=</span> <span class="n">include_custom</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_expect_op</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_operator</span> <span class="o">=</span> <span class="kc">None</span>
@@ -416,7 +417,7 @@
                          <span class="n">cost_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_energy_evaluation</span><span class="p">,</span>
                          <span class="n">initial_point</span><span class="o">=</span><span class="n">initial_point</span><span class="p">,</span>
                          <span class="n">quantum_instance</span><span class="o">=</span><span class="n">quantum_instance</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Dict[str, Any]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eval_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">set_max_evals_grouped</span><span class="p">(</span><span class="n">max_evals_grouped</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_callback</span> <span class="o">=</span> <span class="n">callback</span>
@@ -441,26 +442,29 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_operator</span> <span class="o">=</span> <span class="n">operator</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_expect_op</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_operator_varform</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Expectation was not passed by user, try to create one</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_valid_expectation</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_try_set_expectation_value_from_factory</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_try_set_expectation_value_from_factory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">operator</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantum_instance</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">expectation</span> <span class="o">=</span> <span class="n">ExpectationFactory</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">operator</span><span class="p">,</span>
-                                                        <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quantum_instance</span><span class="p">,</span>
-                                                        <span class="n">include_custom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_include_custom</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_try_set_expectation_value_from_factory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">operator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantum_instance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_expectation</span><span class="p">(</span><span class="n">ExpectationFactory</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">operator</span><span class="p">,</span>
+                                                           <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quantum_instance</span><span class="p">,</span>
+                                                           <span class="n">include_custom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_include_custom</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_set_expectation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp</span><span class="p">:</span> <span class="n">ExpectationBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expectation</span> <span class="o">=</span> <span class="n">exp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_user_valid_expectation</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expect_op</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@QuantumAlgorithm</span><span class="o">.</span><span class="n">quantum_instance</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">quantum_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QuantumInstance</span><span class="p">,</span> <span class="n">BaseBackend</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot; set quantum_instance &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">VQE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span><span class="o">.</span><span class="n">quantum_instance</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_sampler</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_sampler</span> <span class="o">=</span> <span class="n">CircuitSampler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_quantum_instance</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_sampler</span><span class="o">.</span><span class="n">quantum_instance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quantum_instance</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_sampler</span> <span class="o">=</span> <span class="n">CircuitSampler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_quantum_instance</span><span class="p">)</span>
+        <span class="c1"># Expectation was not passed by user, try to create one</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_valid_expectation</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_try_set_expectation_value_from_factory</span><span class="p">()</span>
 
     <span class="nd">@property</span>
@@ -471,8 +475,8 @@
 
     <span class="nd">@expectation</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">expectation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp</span><span class="p">:</span> <span class="n">ExpectationBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_expectation</span> <span class="o">=</span> <span class="n">exp</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_expect_op</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_expectation</span><span class="p">(</span><span class="n">exp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_user_valid_expectation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">aux_operators</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">]]]:</span>
@@ -510,10 +514,10 @@
                                     <span class="s2">&quot;the operator, and the variational form does not allow setting &quot;</span>
                                     <span class="s2">&quot;the number of qubits using `num_qubits`.&quot;</span><span class="p">)</span>
 
-    <span class="nd">@VQAlgorithm</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">setter</span>
+    <span class="nd">@VQAlgorithm</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">setter</span>  <span class="c1"># type: ignore</span>
     <span class="k">def</span> <span class="nf">optimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">:</span> <span class="n">Optimizer</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Sets optimizer &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">VQE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">VQE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="k">if</span> <span class="n">optimizer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">optimizer</span><span class="o">.</span><span class="n">set_max_evals_grouped</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_evals_grouped</span><span class="p">)</span>
 
@@ -556,9 +560,9 @@
         <span class="n">ret</span> <span class="o">+=</span> <span class="s2">&quot;===============================================================</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="VQE.construct_circuit"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.VQE.construct_circuit.html#qiskit.aqua.algorithms.VQE.construct_circuit">[Doku]</a>    <span class="k">def</span> <span class="nf">construct_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                          <span class="n">parameter</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Parameter</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
-                          <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
+<div class="viewcode-block" id="VQE.construct_expectation"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.VQE.construct_expectation.html#qiskit.aqua.algorithms.VQE.construct_expectation">[Doku]</a>    <span class="k">def</span> <span class="nf">construct_expectation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                              <span class="n">parameter</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Parameter</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+                              <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate the ansatz circuit and expectation value measurement, and return their</span>
 <span class="sd">        runnable composition.</span>
@@ -580,18 +584,51 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_operator_varform</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_form</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
-            <span class="n">param_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var_form_params</span><span class="p">,</span> <span class="n">parameter</span><span class="p">))</span>
+            <span class="n">param_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var_form_params</span><span class="p">,</span> <span class="n">parameter</span><span class="p">))</span>  <span class="c1"># type: Dict</span>
             <span class="n">wave_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_form</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="n">param_dict</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">wave_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_form</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
 
-        <span class="c1"># If ExpectationValue was never created, create one now.</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">expectation</span><span class="p">:</span>
+        <span class="c1"># Expectation was never created, try to create one</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_try_set_expectation_value_from_factory</span><span class="p">()</span>
+
+        <span class="c1"># If setting the expectation failed, raise an Error:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s1">&#39;No expectation set and could not automatically set one, please &#39;</span>
+                            <span class="s1">&#39;try explicitly setting an expectation or specify a backend so it &#39;</span>
+                            <span class="s1">&#39;can be chosen automatically.&#39;</span><span class="p">)</span>
 
         <span class="n">observable_meas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expectation</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">StateFn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">operator</span><span class="p">,</span> <span class="n">is_measurement</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
         <span class="n">ansatz_circuit_op</span> <span class="o">=</span> <span class="n">CircuitStateFn</span><span class="p">(</span><span class="n">wave_function</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">observable_meas</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">ansatz_circuit_op</span><span class="p">)</span><span class="o">.</span><span class="n">reduce</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="VQE.construct_circuit"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.VQE.construct_circuit.html#qiskit.aqua.algorithms.VQE.construct_circuit">[Doku]</a>    <span class="k">def</span> <span class="nf">construct_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                          <span class="n">parameter</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Parameter</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+                          <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return the circuits used to compute the expectation value.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            parameter: Parameters for the ansatz circuit.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A list of the circuits used to compute the expectation value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">expect_op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">construct_expectation</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span><span class="o">.</span><span class="n">to_circuit_op</span><span class="p">()</span>
+
+        <span class="n">circuits</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># recursively extract circuits</span>
+        <span class="k">def</span> <span class="nf">extract_circuits</span><span class="p">(</span><span class="n">op</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">CircuitStateFn</span><span class="p">):</span>
+                <span class="n">circuits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">primitive</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">ListOp</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">op_i</span> <span class="ow">in</span> <span class="n">op</span><span class="o">.</span><span class="n">oplist</span><span class="p">:</span>
+                    <span class="n">extract_circuits</span><span class="p">(</span><span class="n">op_i</span><span class="p">)</span>
+
+        <span class="n">extract_circuits</span><span class="p">(</span><span class="n">expect_op</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">circuits</span></div>
 
 <div class="viewcode-block" id="VQE.supports_aux_operators"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.VQE.supports_aux_operators.html#qiskit.aqua.algorithms.VQE.supports_aux_operators">[Doku]</a>    <span class="k">def</span> <span class="nf">supports_aux_operators</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span></div>
@@ -634,14 +671,14 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_eval_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;opt_params&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_count</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eval_count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_count</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_cost</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvals&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvecs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_vector</span><span class="p">()])</span>
-
         <span class="n">result</span> <span class="o">=</span> <span class="n">VQEResult</span><span class="p">()</span>
         <span class="n">result</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">vqresult</span><span class="p">)</span>
         <span class="n">result</span><span class="o">.</span><span class="n">eigenvalue</span> <span class="o">=</span> <span class="n">vqresult</span><span class="o">.</span><span class="n">optimal_value</span> <span class="o">+</span> <span class="mi">0</span><span class="n">j</span>
         <span class="n">result</span><span class="o">.</span><span class="n">eigenstate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_vector</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_cost</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvals&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvecs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">result</span><span class="o">.</span><span class="n">eigenstate</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">aux_operators</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_eval_aux_ops</span><span class="p">()</span>
@@ -693,7 +730,7 @@
 <span class="sd">            RuntimeError: If the variational form has no parameters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expect_op</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_expect_op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var_form_params</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_expect_op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">construct_expectation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var_form_params</span><span class="p">)</span>
 
         <span class="n">num_parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_form</span><span class="o">.</span><span class="n">num_parameters</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var_form</span><span class="o">.</span><span class="n">num_parameters</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -701,7 +738,8 @@
 
         <span class="n">parameter_sets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_parameters</span><span class="p">))</span>
         <span class="c1"># Create dict associating each parameter with the lists of parameterization values for it</span>
-        <span class="n">param_bindings</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var_form_params</span><span class="p">,</span> <span class="n">parameter_sets</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
+        <span class="n">param_bindings</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var_form_params</span><span class="p">,</span>
+                                  <span class="n">parameter_sets</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>  <span class="c1"># type: Dict</span>
 
         <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
         <span class="n">sampled_expect_op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_sampler</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_expect_op</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">param_bindings</span><span class="p">)</span>
@@ -806,7 +844,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Zuletzt aktualisiert am 2020/08/07.
+        Zuletzt aktualisiert am 2020/08/10.
       </span>
 
     </p>
