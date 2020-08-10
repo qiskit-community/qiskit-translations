@@ -24,6 +24,14 @@ If you are interested in contributing to translations, please follow the instruc
 Failing to do so will result in a delay in approving your request in Crowdin and your Pull Request in GitHub. The administrators of the Crowdin project will review your request and give you access as quickly as they can.<br/>
 6. For questions regarding onboarding or strategy, to connect with other translators and receive updates regarding the project please join #qiskit-localization channel in the [Qiskit workspace](http://ibm.co/joinqiskitslack) or make an issue in this repo.
 
+### Project Leads (as of Aug, 2020)
+
+| Role | Name | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
+| ---     | ---    | --- |
+| Qiskit Localization Lead | Yuri Kobayashi | @Yuri Kobayashi |
+| Qiskit Localization Technical Lead | Soolu Thomas | @Soolu |
+
+
 ### Translation Leads (as of Aug, 2020)
 
 | Language | Translation Leads | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
@@ -32,7 +40,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | French | Olivier Hess | @Olivier Hess |
 | German | Joachim Schaefer | @Joachim Schwarm |
 | Italian | Eleonora Picca | @Eleonora Picca |
-| Japanese | Yuri Kobayashi | @Yuri Kobayashi |
+| Japanese | Takehiko Amano | @Takehiko Amano |
 | Korean | Jinho Hwang | @Jinho Hwang |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese | Omar Costa Hamido | @OCH |
