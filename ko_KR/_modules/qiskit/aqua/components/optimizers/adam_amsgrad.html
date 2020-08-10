@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.components.optimizers.adam_amsgrad &mdash; Qiskit 0.19.6 문서</title>
+  <title>qiskit.aqua.components.optimizers.adam_amsgrad &mdash; Qiskit 0.20.0 문서</title>
   
 
   
@@ -270,17 +270,9 @@
 <span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
 <span class="c1"># that they have been altered from the originals.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Adam</span>
-<span class="sd">Kingma, Diederik &amp; Ba, Jimmy. (2014).</span>
-<span class="sd">Adam: A Method for Stochastic Optimization. International Conference on Learning Representations.</span>
+<span class="sd">&quot;&quot;&quot;The Adam and AMSGRAD optimizers.&quot;&quot;&quot;</span>
 
-<span class="sd">AMSGRAD</span>
-<span class="sd">Sashank J. Reddi and Satyen Kale and Sanjiv Kumar. (2018).</span>
-<span class="sd">On the Convergence of Adam and Beyond. International Conference on Learning Representations.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
@@ -295,26 +287,25 @@
 
 
 <div class="viewcode-block" id="ADAM"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.optimizers.ADAM.html#qiskit.aqua.components.optimizers.ADAM">[문서]</a><span class="k">class</span> <span class="nc">ADAM</span><span class="p">(</span><span class="n">Optimizer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adam and AMSGRAD optimizer.</span>
+    <span class="sd">&quot;&quot;&quot;Adam and AMSGRAD optimizers.</span>
 
-<span class="sd">    | **Adam**</span>
-<span class="sd">    | *Kingma, Diederik &amp; Ba, Jimmy. (2014).*</span>
-<span class="sd">    | Adam: A Method for Stochastic Optimization. \</span>
-<span class="sd">    International Conference on Learning Representations.</span>
-
-<span class="sd">    Adam is a gradient-based optimization algorithm that is relies on adaptive estimates of</span>
+<span class="sd">    Adam [1] is a gradient-based optimization algorithm that is relies on adaptive estimates of</span>
 <span class="sd">    lower-order moments. The algorithm requires little memory and is invariant to diagonal</span>
 <span class="sd">    rescaling of the gradients. Furthermore, it is able to cope with non-stationary objective</span>
 <span class="sd">    functions and noisy and/or sparse gradients.</span>
 
-<span class="sd">    |</span>
-<span class="sd">    | **AMSGRAD**</span>
-<span class="sd">    | *Sashank J. Reddi and Satyen Kale and Sanjiv Kumar. (2018).*</span>
-<span class="sd">    | On the Convergence of Adam and Beyond. International Conference on Learning Representations.</span>
-
-<span class="sd">    AMSGRAD (a variant of ADAM) uses a &#39;long-term memory&#39; of past gradients and, thereby,</span>
+<span class="sd">    AMSGRAD [2] (a variant of Adam) uses a &#39;long-term memory&#39; of past gradients and, thereby,</span>
 <span class="sd">    improves convergence properties.</span>
+
+<span class="sd">    References:</span>
+
+<span class="sd">        [1]: Kingma, Diederik &amp; Ba, Jimmy (2014), Adam: A Method for Stochastic Optimization.</span>
+<span class="sd">             `arXiv:1412.6980 &lt;https://arxiv.org/abs/1412.6980&gt;`_</span>
+
+<span class="sd">        [2]: Sashank J. Reddi and Satyen Kale and Sanjiv Kumar (2018),</span>
+<span class="sd">             On the Convergence of Adam and Beyond.</span>
+<span class="sd">             `arXiv:1904.09237 &lt;https://arxiv.org/abs/1904.09237&gt;`_</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_OPTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;maxiter&#39;</span><span class="p">,</span> <span class="s1">&#39;tol&#39;</span><span class="p">,</span> <span class="s1">&#39;lr&#39;</span><span class="p">,</span> <span class="s1">&#39;beta_1&#39;</span><span class="p">,</span> <span class="s1">&#39;beta_2&#39;</span><span class="p">,</span>
@@ -357,6 +348,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_noise_factor</span> <span class="o">=</span> <span class="n">noise_factor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eps</span> <span class="o">=</span> <span class="n">eps</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_amsgrad</span> <span class="o">=</span> <span class="n">amsgrad</span>
+
+        <span class="c1"># runtime variables</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_t</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># time steps</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -381,8 +374,17 @@
             <span class="s1">&#39;initial_point&#39;</span><span class="p">:</span> <span class="n">Optimizer</span><span class="o">.</span><span class="n">SupportLevel</span><span class="o">.</span><span class="n">supported</span>
         <span class="p">}</span></div>
 
-<div class="viewcode-block" id="ADAM.save_params"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.optimizers.ADAM.save_params.html#qiskit.aqua.components.optimizers.ADAM.save_params">[문서]</a>    <span class="k">def</span> <span class="nf">save_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; save params &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ADAM.save_params"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.optimizers.ADAM.save_params.html#qiskit.aqua.components.optimizers.ADAM.save_params">[문서]</a>    <span class="k">def</span> <span class="nf">save_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Save the current iteration parameters to a file called ``adam_params.csv``.</span>
+
+<span class="sd">        Note:</span>
+
+<span class="sd">            The current parameters are appended to the file, if it exists already.</span>
+<span class="sd">            The file is not overwritten.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            snapshot_dir: The directory to store the file in.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_amsgrad</span><span class="p">:</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">snapshot_dir</span><span class="p">,</span> <span class="s1">&#39;adam_params.csv&#39;</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
                 <span class="n">fieldnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;v_eff&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">]</span>
@@ -395,8 +397,12 @@
                 <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span><span class="n">csv_file</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="n">fieldnames</span><span class="p">)</span>
                 <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">({</span><span class="s1">&#39;v&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_v</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t</span><span class="p">})</span></div>
 
-<div class="viewcode-block" id="ADAM.load_params"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.optimizers.ADAM.load_params.html#qiskit.aqua.components.optimizers.ADAM.load_params">[문서]</a>    <span class="k">def</span> <span class="nf">load_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">load_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; load params &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ADAM.load_params"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.optimizers.ADAM.load_params.html#qiskit.aqua.components.optimizers.ADAM.load_params">[문서]</a>    <span class="k">def</span> <span class="nf">load_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">load_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Load iteration parameters for a file called ``adam_params.csv``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            load_dir: The directory containing ``adam_params.csv``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">load_dir</span><span class="p">,</span> <span class="s1">&#39;adam_params.csv&#39;</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_amsgrad</span><span class="p">:</span>
                 <span class="n">fieldnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;v_eff&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">]</span>
@@ -420,15 +426,26 @@
         <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ADAM.minimize"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.optimizers.ADAM.minimize.html#qiskit.aqua.components.optimizers.ADAM.minimize">[문서]</a>    <span class="k">def</span> <span class="nf">minimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">,</span> <span class="n">initial_point</span><span class="p">,</span> <span class="n">gradient_function</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; minimize &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ADAM.minimize"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.optimizers.ADAM.minimize.html#qiskit.aqua.components.optimizers.ADAM.minimize">[문서]</a>    <span class="k">def</span> <span class="nf">minimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">],</span> <span class="n">initial_point</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">gradient_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Run the minimization.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            objective_function: A function handle to the objective function.</span>
+<span class="sd">            initial_point: The initial iteration point.</span>
+<span class="sd">            gradient_function: A function handle to the gradient of the objective function.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A tuple of (optimal parameters, optimal value, number of iterations).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">derivative</span> <span class="o">=</span> <span class="n">gradient_function</span><span class="p">(</span><span class="n">initial_point</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_t</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">derivative</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">derivative</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_amsgrad</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_v_eff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">derivative</span><span class="p">))</span>
 
-        <span class="n">params</span> <span class="o">=</span> <span class="n">initial_point</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">params_new</span> <span class="o">=</span> <span class="n">initial_point</span>
         <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxiter</span><span class="p">:</span>
             <span class="n">derivative</span> <span class="o">=</span> <span class="n">gradient_function</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_t</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -452,31 +469,31 @@
 
         <span class="k">return</span> <span class="n">params_new</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">(</span><span class="n">params_new</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t</span></div>
 
-<div class="viewcode-block" id="ADAM.optimize"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.optimizers.ADAM.optimize.html#qiskit.aqua.components.optimizers.ADAM.optimize">[문서]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_vars</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">,</span> <span class="n">gradient_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable_bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">initial_point</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Perform optimization.</span>
+<div class="viewcode-block" id="ADAM.optimize"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.optimizers.ADAM.optimize.html#qiskit.aqua.components.optimizers.ADAM.optimize">[문서]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_vars</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">],</span>
+                 <span class="n">gradient_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">variable_bounds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">initial_point</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Perform optimization.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            num_vars (int) : number of parameters to be optimized.</span>
-<span class="sd">            objective_function (callable) : handle to a function that</span>
-<span class="sd">                computes the objective function.</span>
-<span class="sd">            gradient_function (callable) : handle to a function that</span>
-<span class="sd">                computes the gradient of the objective function, or</span>
-<span class="sd">                None if not available.</span>
-<span class="sd">            variable_bounds (list[(float, float)]) : deprecated</span>
-<span class="sd">            initial_point (numpy.ndarray[float]) : initial point.</span>
+<span class="sd">            num_vars: Number of parameters to be optimized.</span>
+<span class="sd">            objective_function: Handle to a function that computes the objective function.</span>
+<span class="sd">            gradient_function: Handle to a function that computes the gradient of the objective</span>
+<span class="sd">                function.</span>
+<span class="sd">            variable_bounds: deprecated</span>
+<span class="sd">            initial_point: The initial point for the optimization.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            tuple(numpy.ndarray, float, int): tuple has (point, value, nfev) where\n</span>
+<span class="sd">            A tuple (point, value, nfev) where\n</span>
 <span class="sd">                point: is a 1D numpy.ndarray[float] containing the solution\n</span>
 <span class="sd">                value: is a float with the objective function value\n</span>
-<span class="sd">                nfev: number of objective function calls made if available or None</span>
+<span class="sd">                nfev: is the number of objective function calls</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">num_vars</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">,</span> <span class="n">gradient_function</span><span class="p">,</span>
                          <span class="n">variable_bounds</span><span class="p">,</span> <span class="n">initial_point</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">initial_point</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">initial_point</span> <span class="o">=</span> <span class="n">aqua_globals</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">num_vars</span><span class="p">)</span>
+            <span class="n">initial_point</span> <span class="o">=</span> <span class="n">aqua_globals</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">num_vars</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">gradient_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">gradient_function</span> <span class="o">=</span> <span class="n">Optimizer</span><span class="o">.</span><span class="n">wrap_function</span><span class="p">(</span><span class="n">Optimizer</span><span class="o">.</span><span class="n">gradient_num_diff</span><span class="p">,</span>
                                                         <span class="p">(</span><span class="n">objective_function</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eps</span><span class="p">))</span>

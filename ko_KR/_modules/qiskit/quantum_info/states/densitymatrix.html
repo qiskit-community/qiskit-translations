@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.quantum_info.states.densitymatrix &mdash; Qiskit 0.19.6 문서</title>
+  <title>qiskit.quantum_info.states.densitymatrix &mdash; Qiskit 0.20.0 문서</title>
   
 
   
@@ -511,6 +511,20 @@
             <span class="n">other</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evolve_operator</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="DensityMatrix.expectation_value"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.expectation_value.html#qiskit.quantum_info.DensityMatrix.expectation_value">[문서]</a>    <span class="k">def</span> <span class="nf">expectation_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oper</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the expectation value of an operator.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            oper (Operator): an operator to evaluate expval.</span>
+<span class="sd">            qargs (None or list): subsystems to apply the operator on.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            complex: the expectation value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oper</span><span class="p">,</span> <span class="n">Operator</span><span class="p">):</span>
+            <span class="n">oper</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">oper</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">Operator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">oper</span><span class="o">.</span><span class="n">adjoint</span><span class="p">(),</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="DensityMatrix.probabilities"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.probabilities.html#qiskit.quantum_info.DensityMatrix.probabilities">[문서]</a>    <span class="k">def</span> <span class="nf">probabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the subsystem measurement probability vector.</span>
 
@@ -804,12 +818,22 @@
 
     <span class="k">def</span> <span class="nf">_append_instruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Update the current Statevector by applying an instruction.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">qiskit.circuit.reset</span> <span class="kn">import</span> <span class="n">Reset</span>
+        <span class="kn">from</span> <span class="nn">qiskit.circuit.barrier</span> <span class="kn">import</span> <span class="n">Barrier</span>
 
         <span class="c1"># Try evolving by a matrix operator (unitary-like evolution)</span>
         <span class="n">mat</span> <span class="o">=</span> <span class="n">Operator</span><span class="o">.</span><span class="n">_instruction_to_matrix</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">mat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evolve_operator</span><span class="p">(</span><span class="n">Operator</span><span class="p">(</span><span class="n">mat</span><span class="p">),</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
             <span class="k">return</span>
+
+        <span class="c1"># Special instruction types</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Reset</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span><span class="o">.</span><span class="n">_data</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Barrier</span><span class="p">):</span>
+            <span class="k">return</span>
+
         <span class="c1"># Otherwise try evolving by a Superoperator</span>
         <span class="n">chan</span> <span class="o">=</span> <span class="n">SuperOp</span><span class="o">.</span><span class="n">_instruction_to_superop</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">chan</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -822,6 +846,9 @@
         <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">definition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;Cannot apply Instruction: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1"> instruction definition is </span><span class="si">{1}</span><span class="s1">; expected QuantumCircuit&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">definition</span><span class="p">)))</span>
         <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">qregs</span><span class="p">,</span> <span class="n">cregs</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">definition</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">cregs</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
@@ -841,6 +868,38 @@
         <span class="n">vec</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dims</span><span class="p">)</span>
         <span class="n">vec</span><span class="o">.</span><span class="n">_append_instruction</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">vec</span>
+
+<div class="viewcode-block" id="DensityMatrix.to_statevector"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.to_statevector.html#qiskit.quantum_info.DensityMatrix.to_statevector">[문서]</a>    <span class="k">def</span> <span class="nf">to_statevector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a statevector from a pure density matrix.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            atol (float): Absolute tolerance for checking operation validity.</span>
+<span class="sd">            rtol (float): Relative tolerance for checking operation validity.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Statevector: The pure density matrix&#39;s corresponding statevector.</span>
+<span class="sd">                Corresponds to the eigenvector of the only non-zero eigenvalue.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: if the state is not pure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">atol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">atol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atol</span>
+        <span class="k">if</span> <span class="n">rtol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rtol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rtol</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_hermitian_matrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Not a valid density matrix (non-hermitian).&quot;</span><span class="p">)</span>
+
+        <span class="n">evals</span><span class="p">,</span> <span class="n">evecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
+
+        <span class="n">nonzero_evals</span> <span class="o">=</span> <span class="n">evals</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">evals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">atol</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nonzero_evals</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">nonzero_evals</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span>
+                                                     <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Density matrix is not a pure state&quot;</span><span class="p">)</span>
+
+        <span class="n">psi</span> <span class="o">=</span> <span class="n">evecs</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">evals</span><span class="p">)]</span>  <span class="c1"># eigenvectors returned in columns.</span>
+        <span class="k">return</span> <span class="n">Statevector</span><span class="p">(</span><span class="n">psi</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DensityMatrix.to_counts"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.to_counts.html#qiskit.quantum_info.DensityMatrix.to_counts">[문서]</a>    <span class="k">def</span> <span class="nf">to_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the density matrix as a counts dict of probabilities.</span>

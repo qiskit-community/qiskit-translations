@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.extensions.quantum_initializer.initializer &mdash; Qiskit 0.19.6 문서</title>
+  <title>qiskit.extensions.quantum_initializer.initializer &mdash; Qiskit 0.20.0 문서</title>
   
 
   
@@ -282,7 +282,7 @@
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">Instruction</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.x</span> <span class="kn">import</span> <span class="n">CXGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.ry</span> <span class="kn">import</span> <span class="n">RYGate</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.rz</span> <span class="kn">import</span> <span class="n">RZGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.u1</span> <span class="kn">import</span> <span class="n">U1Gate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.reset</span> <span class="kn">import</span> <span class="n">Reset</span>
 
 <span class="n">_EPS</span> <span class="o">=</span> <span class="mf">1e-10</span>  <span class="c1"># global variable used to chop very small numbers to zero</span>
@@ -341,7 +341,7 @@
             <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Reset</span><span class="p">(),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">])</span>
         <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">initialize_instr</span><span class="p">,</span> <span class="n">q</span><span class="p">[:])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">initialize_circuit</span>
 
 <div class="viewcode-block" id="Initialize.gates_to_uncompute"><a class="viewcode-back" href="../../../../stubs/qiskit.extensions.Initialize.gates_to_uncompute.html#qiskit.circuit.Initialize.gates_to_uncompute">[문서]</a>    <span class="k">def</span> <span class="nf">gates_to_uncompute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Call to create a circuit with gates that take the desired vector to zero.</span>
@@ -364,10 +364,19 @@
 
             <span class="c1"># perform the required rotations to decouple the LSB qubit (so that</span>
             <span class="c1"># it can be &quot;factored&quot; out, leaving a shorter amplitude vector to peel away)</span>
-            <span class="n">rz_mult</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiplex</span><span class="p">(</span><span class="n">RZGate</span><span class="p">,</span> <span class="n">phis</span><span class="p">)</span>
-            <span class="n">ry_mult</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiplex</span><span class="p">(</span><span class="n">RYGate</span><span class="p">,</span> <span class="n">thetas</span><span class="p">)</span>
-            <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rz_mult</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">(),</span> <span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">])</span>
-            <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ry_mult</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">(),</span> <span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">])</span>
+
+            <span class="n">add_last_cnot</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">phis</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">thetas</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">add_last_cnot</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">phis</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">rz_mult</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiplex</span><span class="p">(</span><span class="n">U1Gate</span><span class="p">,</span> <span class="n">phis</span><span class="p">,</span> <span class="n">last_cnot</span><span class="o">=</span><span class="n">add_last_cnot</span><span class="p">)</span>
+                <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rz_mult</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">(),</span> <span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">thetas</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ry_mult</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiplex</span><span class="p">(</span><span class="n">RYGate</span><span class="p">,</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">last_cnot</span><span class="o">=</span><span class="n">add_last_cnot</span><span class="p">)</span>
+                <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ry_mult</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span><span class="o">.</span><span class="n">reverse_ops</span><span class="p">(),</span> <span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">])</span>
+
         <span class="k">return</span> <span class="n">circuit</span></div>
 
     <span class="nd">@staticmethod</span>
@@ -435,7 +444,7 @@
 
         <span class="k">return</span> <span class="n">final_r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">1.</span><span class="n">J</span> <span class="o">*</span> <span class="n">final_t</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span>
 
-    <span class="k">def</span> <span class="nf">_multiplex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_gate</span><span class="p">,</span> <span class="n">list_of_angles</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_multiplex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_gate</span><span class="p">,</span> <span class="n">list_of_angles</span><span class="p">,</span> <span class="n">last_cnot</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a recursive implementation of a multiplexor circuit,</span>
 <span class="sd">        where each instruction itself has a decomposition based on</span>
@@ -447,6 +456,7 @@
 <span class="sd">            target_gate (Gate): Ry or Rz gate to apply to target qubit, multiplexed</span>
 <span class="sd">                over all other &quot;select&quot; qubits</span>
 <span class="sd">            list_of_angles (list[float]): list of rotation angles to apply Ry and Rz</span>
+<span class="sd">            last_cnot (bool): add the last cnot if last_cnot = True</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            DAGCircuit: the circuit implementing the multiplexor&#39;s action</span>
@@ -474,7 +484,7 @@
         <span class="n">list_of_angles</span> <span class="o">=</span> <span class="n">angle_weight</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">list_of_angles</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
         <span class="c1"># recursive step on half the angles fulfilling the above assumption</span>
-        <span class="n">multiplex_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiplex</span><span class="p">(</span><span class="n">target_gate</span><span class="p">,</span> <span class="n">list_of_angles</span><span class="p">[</span><span class="mi">0</span><span class="p">:(</span><span class="n">list_len</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)])</span>
+        <span class="n">multiplex_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiplex</span><span class="p">(</span><span class="n">target_gate</span><span class="p">,</span> <span class="n">list_of_angles</span><span class="p">[</span><span class="mi">0</span><span class="p">:(</span><span class="n">list_len</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)],</span> <span class="kc">False</span><span class="p">)</span>
         <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">multiplex_1</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">(),</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
         <span class="c1"># attach CNOT as follows, thereby flipping the LSB qubit</span>
@@ -483,14 +493,15 @@
         <span class="c1"># implement extra efficiency from the paper of cancelling adjacent</span>
         <span class="c1"># CNOTs (by leaving out last CNOT and reversing (NOT inverting) the</span>
         <span class="c1"># second lower-level multiplex)</span>
-        <span class="n">multiplex_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiplex</span><span class="p">(</span><span class="n">target_gate</span><span class="p">,</span> <span class="n">list_of_angles</span><span class="p">[(</span><span class="n">list_len</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):])</span>
+        <span class="n">multiplex_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiplex</span><span class="p">(</span><span class="n">target_gate</span><span class="p">,</span> <span class="n">list_of_angles</span><span class="p">[(</span><span class="n">list_len</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):],</span> <span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">list_len</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">multiplex_2</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span><span class="o">.</span><span class="n">mirror</span><span class="p">(),</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">multiplex_2</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span><span class="o">.</span><span class="n">reverse_ops</span><span class="p">(),</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">multiplex_2</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">(),</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
         <span class="c1"># attach a final CNOT</span>
-        <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CXGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">msb</span><span class="p">,</span> <span class="n">lsb</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">last_cnot</span><span class="p">:</span>
+            <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CXGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">msb</span><span class="p">,</span> <span class="n">lsb</span><span class="p">])</span>
 
         <span class="k">return</span> <span class="n">circuit</span>
 

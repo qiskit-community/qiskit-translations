@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.visualization.dag_visualization &mdash; Qiskit 0.19.6 문서</title>
+  <title>qiskit.visualization.dag_visualization &mdash; Qiskit 0.20.0 문서</title>
   
 
   
@@ -259,7 +259,7 @@
 
 <span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
-<span class="c1"># (C) Copyright IBM 2017, 2018.</span>
+<span class="c1"># (C) Copyright IBM 2017, 2018, 2020.</span>
 <span class="c1">#</span>
 <span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
 <span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
@@ -343,32 +343,66 @@
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;dag_drawer requires pydot. &quot;</span>
                           <span class="s2">&quot;Run &#39;pip install pydot&#39;.&quot;</span><span class="p">)</span>
+    <span class="c1"># NOTE: use type str checking to avoid potential cyclical import</span>
+    <span class="c1"># the two tradeoffs ere that it will not handle subclasses and it is</span>
+    <span class="c1"># slower (which doesn&#39;t matter for a visualization function)</span>
+    <span class="n">type_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">dag</span><span class="p">))</span>
+    <span class="k">if</span> <span class="s1">&#39;dagcircuit.DAGDependency&#39;</span> <span class="ow">in</span> <span class="n">type_str</span><span class="p">:</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">to_networkx</span><span class="p">()</span>
+        <span class="n">G</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;dpi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">scale</span>
 
-    <span class="n">G</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">to_networkx</span><span class="p">()</span>
-    <span class="n">G</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;dpi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">scale</span>
+        <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;plain&#39;</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
+                <span class="n">n</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">node_id</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
+                <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;measure&#39;</span><span class="p">:</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;blue&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;filled&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;lightblue&#39;</span>
+                <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;barrier&#39;</span><span class="p">:</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;black&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;filled&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;green&#39;</span>
+                <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;snapshot&#39;</span><span class="p">:</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;black&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;filled&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;red&#39;</span>
+                <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">condition</span><span class="p">:</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">node_id</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; (conditional)&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;black&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;filled&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;lightgreen&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VisualizationError</span><span class="p">(</span><span class="s2">&quot;Unrecognized style for the dag_drawer.&quot;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;plain&#39;</span><span class="p">:</span>
-        <span class="k">pass</span>
-    <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
-            <span class="n">n</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
-            <span class="n">n</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
-            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;op&#39;</span><span class="p">:</span>
-                <span class="n">n</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;blue&#39;</span>
-                <span class="n">n</span><span class="p">[</span><span class="s1">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;filled&#39;</span>
-                <span class="n">n</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;lightblue&#39;</span>
-            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;in&#39;</span><span class="p">:</span>
-                <span class="n">n</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;black&#39;</span>
-                <span class="n">n</span><span class="p">[</span><span class="s1">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;filled&#39;</span>
-                <span class="n">n</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;green&#39;</span>
-            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;out&#39;</span><span class="p">:</span>
-                <span class="n">n</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;black&#39;</span>
-                <span class="n">n</span><span class="p">[</span><span class="s1">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;filled&#39;</span>
-                <span class="n">n</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;red&#39;</span>
-        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-            <span class="n">e</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">VisualizationError</span><span class="p">(</span><span class="s2">&quot;Unrecognized style for the dag_drawer.&quot;</span><span class="p">)</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">to_networkx</span><span class="p">()</span>
+        <span class="n">G</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;dpi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">scale</span>
+
+        <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;plain&#39;</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
+                <span class="n">n</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
+                <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;op&#39;</span><span class="p">:</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;blue&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;filled&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;lightblue&#39;</span>
+                <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;in&#39;</span><span class="p">:</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;black&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;filled&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;green&#39;</span>
+                <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;out&#39;</span><span class="p">:</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;black&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;filled&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;red&#39;</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                <span class="n">e</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VisualizationError</span><span class="p">(</span><span class="s2">&quot;Unrecognized style for the dag_drawer.&quot;</span><span class="p">)</span>
 
     <span class="n">dot</span> <span class="o">=</span> <span class="n">to_pydot</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
 
@@ -397,8 +431,8 @@
             <span class="n">tmp_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdirname</span><span class="p">,</span> <span class="s1">&#39;dag.png&#39;</span><span class="p">)</span>
             <span class="n">dot</span><span class="o">.</span><span class="n">write_png</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">)</span>
             <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">)</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">)</span>
             <span class="n">image</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 </pre></div>
 
