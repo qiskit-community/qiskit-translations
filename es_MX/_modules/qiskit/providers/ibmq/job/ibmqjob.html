@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.providers.ibmq.job.ibmqjob &mdash; documentación de Qiskit - 0.19.6</title>
+  <title>qiskit.providers.ibmq.job.ibmqjob &mdash; documentación de Qiskit - 0.20.0</title>
   
 
   
@@ -280,7 +280,6 @@
 <span class="kn">from</span> <span class="nn">concurrent</span> <span class="kn">import</span> <span class="n">futures</span>
 <span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Event</span>
 <span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">Empty</span>
-<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">SimpleNamespace</span>
 <span class="kn">import</span> <span class="nn">dateutil.parser</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">BaseJob</span>  <span class="c1"># type: ignore[attr-defined]</span>
@@ -294,9 +293,9 @@
 <span class="kn">from</span> <span class="nn">..api.clients</span> <span class="kn">import</span> <span class="n">AccountClient</span>
 <span class="kn">from</span> <span class="nn">..api.exceptions</span> <span class="kn">import</span> <span class="n">ApiError</span><span class="p">,</span> <span class="n">UserTimeoutExceededError</span>
 <span class="kn">from</span> <span class="nn">..utils.utils</span> <span class="kn">import</span> <span class="n">RefreshQueue</span><span class="p">,</span> <span class="n">validate_job_tags</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">utc_to_local</span>
 <span class="kn">from</span> <span class="nn">..utils.qobj_utils</span> <span class="kn">import</span> <span class="n">dict_to_qobj</span>
-<span class="kn">from</span> <span class="nn">..utils.json_decoder</span> <span class="kn">import</span> <span class="n">decode_backend_properties</span>
+<span class="kn">from</span> <span class="nn">..utils.json_decoder</span> <span class="kn">import</span> <span class="n">decode_backend_properties</span><span class="p">,</span> <span class="n">decode_result</span>
+<span class="kn">from</span> <span class="nn">..utils.converters</span> <span class="kn">import</span> <span class="n">utc_to_local</span><span class="p">,</span> <span class="n">utc_to_local_all</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">IBMQJobApiError</span><span class="p">,</span> <span class="n">IBMQJobFailureError</span><span class="p">,</span>
                          <span class="n">IBMQJobTimeoutError</span><span class="p">,</span> <span class="n">IBMQJobInvalidStateError</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.queueinfo</span> <span class="kn">import</span> <span class="n">QueueInfo</span>
@@ -306,7 +305,7 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="IBMQJob"><a class="viewcode-back" href="../../../../../stubs/qiskit.providers.ibmq.job.IBMQJob.html#qiskit.providers.ibmq.job.IBMQJob">[documentos]</a><span class="k">class</span> <span class="nc">IBMQJob</span><span class="p">(</span><span class="n">SimpleNamespace</span><span class="p">,</span> <span class="n">BaseJob</span><span class="p">):</span>
+<div class="viewcode-block" id="IBMQJob"><a class="viewcode-back" href="../../../../../stubs/qiskit.providers.ibmq.job.IBMQJob.html#qiskit.providers.ibmq.job.IBMQJob">[documentos]</a><span class="k">class</span> <span class="nc">IBMQJob</span><span class="p">(</span><span class="n">BaseJob</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Representation of a job that executes on an IBM Quantum Experience backend.</span>
 
 <span class="sd">    The job may be executed on a simulator or a real device. A new ``IBMQJob``</span>
@@ -358,13 +357,15 @@
 <span class="sd">    which is a supported attribute.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="n">_data</span> <span class="o">=</span> <span class="p">{}</span>
+
     <span class="n">_executor</span> <span class="o">=</span> <span class="n">futures</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span class="p">()</span>
     <span class="sd">&quot;&quot;&quot;Threads used for asynchronous processing.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">backend</span><span class="p">:</span> <span class="s1">&#39;ibmqbackend.IBMQBackend&#39;</span><span class="p">,</span>
-            <span class="n">api</span><span class="p">:</span> <span class="n">AccountClient</span><span class="p">,</span>
+            <span class="n">api_client</span><span class="p">:</span> <span class="n">AccountClient</span><span class="p">,</span>
             <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
             <span class="n">creation_date</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
             <span class="n">status</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -376,13 +377,15 @@
             <span class="n">error</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">tags</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">run_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">share_level</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">client_info</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;IBMQJob constructor.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            backend: The backend instance used to run this job.</span>
-<span class="sd">            api: Object for connecting to the server.</span>
+<span class="sd">            api_client: Object for connecting to the server.</span>
 <span class="sd">            job_id: Job ID.</span>
 <span class="sd">            creation_date: Job creation date.</span>
 <span class="sd">            status: Job status returned by the server.</span>
@@ -394,17 +397,18 @@
 <span class="sd">            error: Job error.</span>
 <span class="sd">            tags: Job tags.</span>
 <span class="sd">            run_mode: Scheduling mode the job runs in.</span>
+<span class="sd">            share_level: Level the job can be shared with.</span>
+<span class="sd">            client_info: Client version.</span>
 <span class="sd">            kwargs: Additional job attributes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span> <span class="o">=</span> <span class="n">backend</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_api</span> <span class="o">=</span> <span class="n">api</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span> <span class="o">=</span> <span class="n">api_client</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_job_id</span> <span class="o">=</span> <span class="n">job_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_creation_date</span> <span class="o">=</span> <span class="n">dateutil</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">isoparse</span><span class="p">(</span><span class="n">creation_date</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_api_status</span> <span class="o">=</span> <span class="n">status</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_kind</span> <span class="o">=</span> <span class="n">ApiJobKind</span><span class="p">(</span><span class="n">kind</span><span class="p">)</span> <span class="k">if</span> <span class="n">kind</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_time_per_step</span> <span class="o">=</span> <span class="n">time_per_step</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="n">Result</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="k">if</span> <span class="n">result</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qobj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="n">qobj</span> <span class="o">=</span> <span class="n">dict_to_qobj</span><span class="p">(</span><span class="n">qobj</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qobj</span> <span class="o">=</span> <span class="n">qobj</span>
@@ -414,9 +418,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_queue_info</span> <span class="o">=</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">_get_status_position</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;info_queue&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_use_object_storage</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kind</span> <span class="o">==</span> <span class="n">ApiJobKind</span><span class="o">.</span><span class="n">QOBJECT_STORAGE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_share_level</span> <span class="o">=</span> <span class="n">share_level</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_version</span> <span class="o">=</span> <span class="n">client_info</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_result</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 
-        <span class="n">SimpleNamespace</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">BaseJob</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># Append suffix to key to avoid conflicts.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">())</span>
 
         <span class="c1"># Properties used for caching.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cancelled</span> <span class="o">=</span> <span class="kc">False</span>
@@ -438,7 +448,7 @@
         <span class="c1"># pylint: disable=access-member-before-definition,attribute-defined-outside-init</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qobj</span><span class="p">:</span>  <span class="c1"># type: ignore[has-type]</span>
             <span class="k">with</span> <span class="n">api_to_job_error</span><span class="p">():</span>
-                <span class="n">qobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">job_download_qobj</span><span class="p">(</span>
+                <span class="n">qobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">job_download_qobj</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_object_storage</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_qobj</span> <span class="o">=</span> <span class="n">dict_to_qobj</span><span class="p">(</span><span class="n">qobj</span><span class="p">)</span>
 
@@ -456,12 +466,13 @@
 <span class="sd">                with the server.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="n">api_to_job_error</span><span class="p">():</span>
-            <span class="n">properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">job_properties</span><span class="p">(</span><span class="n">job_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">())</span>
+            <span class="n">properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">job_properties</span><span class="p">(</span><span class="n">job_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">properties</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="n">decode_backend_properties</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="n">utc_to_local_all</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">BackendProperties</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="IBMQJob.result"><a class="viewcode-back" href="../../../../../stubs/qiskit.providers.ibmq.job.IBMQJob.result.html#qiskit.providers.ibmq.job.IBMQJob.result">[documentos]</a>    <span class="k">def</span> <span class="nf">result</span><span class="p">(</span>
@@ -526,13 +537,22 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="ow">is</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">CANCELLED</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">IBMQJobInvalidStateError</span><span class="p">(</span><span class="s1">&#39;Unable to retrieve result for job </span><span class="si">{}</span><span class="s1">. &#39;</span>
                                                <span class="s1">&#39;Job was cancelled.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">()))</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="ow">is</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">ERROR</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">partial</span><span class="p">:</span>
+            <span class="c1"># Job failed.</span>
+            <span class="k">if</span> <span class="n">partial</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_result</span><span class="p">(</span><span class="n">refresh</span><span class="o">=</span><span class="n">refresh</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">partial</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span><span class="o">.</span><span class="n">results</span><span class="p">:</span>
+                <span class="n">error_message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_message</span><span class="p">()</span>
+                <span class="k">if</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">error_message</span><span class="p">:</span>
+                    <span class="n">error_message</span> <span class="o">=</span> <span class="s2">&quot;. Use job.error_message() to get more details&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">error_message</span> <span class="o">=</span> <span class="s2">&quot;: &quot;</span> <span class="o">+</span> <span class="n">error_message</span>
                 <span class="k">raise</span> <span class="n">IBMQJobFailureError</span><span class="p">(</span>
-                    <span class="s1">&#39;Unable to retrieve result for job </span><span class="si">{}</span><span class="s1">. Job has failed. &#39;</span>
-                    <span class="s1">&#39;Use job.error_message() to get more details.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">()))</span>
+                    <span class="s1">&#39;Unable to retrieve result for job </span><span class="si">{}</span><span class="s1">. Job has failed</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">(),</span> <span class="n">error_message</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_result</span><span class="p">(</span><span class="n">refresh</span><span class="o">=</span><span class="n">refresh</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_result</span><span class="p">(</span><span class="n">refresh</span><span class="o">=</span><span class="n">refresh</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span></div>
 
 <div class="viewcode-block" id="IBMQJob.cancel"><a class="viewcode-back" href="../../../../../stubs/qiskit.providers.ibmq.job.IBMQJob.cancel.html#qiskit.providers.ibmq.job.IBMQJob.cancel">[documentos]</a>    <span class="k">def</span> <span class="nf">cancel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Attempt to cancel the job.</span>
@@ -549,7 +569,7 @@
 <span class="sd">                with the server.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">job_cancel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">())</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">job_cancel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cancelled</span> <span class="o">=</span> <span class="n">get_cancel_status</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Job </span><span class="si">%s</span><span class="s1"> cancel status is &quot;</span><span class="si">%s</span><span class="s1">&quot;. Response data: </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span>
                          <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cancelled</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
@@ -579,7 +599,7 @@
                 <span class="s1">&#39;The job name needs to be a string.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">name</span><span class="p">)))</span>
 
         <span class="k">with</span> <span class="n">api_to_job_error</span><span class="p">():</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">job_update_attribute</span><span class="p">(</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">job_update_attribute</span><span class="p">(</span>
                 <span class="n">job_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">(),</span> <span class="n">attr_name</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">attr_value</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
         <span class="c1"># Get the name from the response and check if the update was successful.</span>
@@ -646,7 +666,7 @@
                                                   <span class="n">removal_tags</span><span class="o">=</span><span class="n">removal_tags</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">api_to_job_error</span><span class="p">():</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">job_update_attribute</span><span class="p">(</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">job_update_attribute</span><span class="p">(</span>
                 <span class="n">job_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">(),</span> <span class="n">attr_name</span><span class="o">=</span><span class="s1">&#39;tags&#39;</span><span class="p">,</span> <span class="n">attr_value</span><span class="o">=</span><span class="n">tags_to_update</span><span class="p">)</span>
 
         <span class="c1"># Get the tags from the response and check if the update was successful.</span>
@@ -684,7 +704,7 @@
         <span class="c1"># Tags prefix that denotes a job belongs to a jobset.</span>
         <span class="n">ibmq_jobset_prefix</span> <span class="o">=</span> <span class="s1">&#39;ibmq_jobset_&#39;</span>
 
-        <span class="n">tags_to_update</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tags</span><span class="p">)</span>  <span class="c1"># Get the current job tags.</span>
+        <span class="n">tags_to_update</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tags</span> <span class="ow">or</span> <span class="p">[])</span>  <span class="c1"># Get the current job tags.</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">replacement_tags</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>  <span class="c1"># `replacement_tags` could be an empty list.</span>
             <span class="c1"># Replace the current tags and re-add those associated with a job set.</span>
             <span class="n">validate_job_tags</span><span class="p">(</span><span class="n">replacement_tags</span><span class="p">,</span> <span class="n">IBMQJobInvalidStateError</span><span class="p">)</span>
@@ -738,9 +758,10 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span>
 
         <span class="k">with</span> <span class="n">api_to_job_error</span><span class="p">():</span>
-            <span class="n">api_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">job_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">())</span>
+            <span class="n">api_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">job_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_api_status</span> <span class="o">=</span> <span class="n">api_response</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_status</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_queue_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_status_position</span><span class="p">(</span>
-                <span class="n">api_response</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">],</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;info_queue&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_api_status</span><span class="p">,</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;info_queue&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
 
         <span class="c1"># Get all job attributes if the job is done.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="ow">in</span> <span class="n">JOB_FINAL_STATES</span><span class="p">:</span>
@@ -760,10 +781,7 @@
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job_error_msg</span><span class="p">:</span>
             <span class="c1"># First try getting error messages from the result.</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_result</span><span class="p">()</span>
-            <span class="k">except</span> <span class="n">IBMQJobFailureError</span><span class="p">:</span>
-                <span class="k">pass</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_result</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job_error_msg</span><span class="p">:</span>
             <span class="c1"># Then try refreshing the job</span>
@@ -833,9 +851,6 @@
 <span class="sd">            The job creation date as a datetime object, in local time.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">creation_date_local_dt</span> <span class="o">=</span> <span class="n">utc_to_local</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_creation_date</span><span class="p">)</span>
-        <span class="c1"># TODO: Remove when decided the warning is no longer needed.</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The creation date is returned in local time now, &#39;</span>
-                      <span class="s1">&#39;rather than UTC.&#39;</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">creation_date_local_dt</span></div>
 
 <div class="viewcode-block" id="IBMQJob.job_id"><a class="viewcode-back" href="../../../../../stubs/qiskit.providers.ibmq.job.IBMQJob.job_id.html#qiskit.providers.ibmq.job.IBMQJob.job_id">[documentos]</a>    <span class="k">def</span> <span class="nf">job_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -862,6 +877,18 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 
+<div class="viewcode-block" id="IBMQJob.share_level"><a class="viewcode-back" href="../../../../../stubs/qiskit.providers.ibmq.job.IBMQJob.share_level.html#qiskit.providers.ibmq.job.IBMQJob.share_level">[documentos]</a>    <span class="k">def</span> <span class="nf">share_level</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the share level of the job.</span>
+
+<span class="sd">        The share level is one of ``global``, ``hub``, ``group``, ``project``, and ``none``.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The share level of the job.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_share_level</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_share_level</span></div>
+
 <div class="viewcode-block" id="IBMQJob.time_per_step"><a class="viewcode-back" href="../../../../../stubs/qiskit.providers.ibmq.job.IBMQJob.time_per_step.html#qiskit.providers.ibmq.job.IBMQJob.time_per_step">[documentos]</a>    <span class="k">def</span> <span class="nf">time_per_step</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return the date and time information on each step of the job processing.</span>
 
@@ -885,8 +912,6 @@
         <span class="c1"># Note: By default, `None` should be returned if no time per step info is available.</span>
         <span class="n">time_per_step_local</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_per_step</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The time per step date and time information is returned in &#39;</span>
-                          <span class="s1">&#39;local time now, rather than UTC.&#39;</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
             <span class="n">time_per_step_local</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">for</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">time_data_utc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_per_step</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">time_per_step_local</span><span class="p">[</span><span class="n">step_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">utc_to_local</span><span class="p">(</span><span class="n">time_data_utc</span><span class="p">)</span>
@@ -911,6 +936,35 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_run_mode</span> <span class="o">=</span> <span class="s2">&quot;fairshare&quot;</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_mode</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">client_version</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return version of the client used for this job.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Client version in dictionary format, where the key is the name</span>
+<span class="sd">                of the client and the value is the version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client_version</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client_version</span>
+
+    <span class="nd">@client_version</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">client_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set client version.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data: Client version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;qiskit&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_client_version</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                    <span class="nb">zip</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">),</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_client_version</span> <span class="o">=</span> \
+                    <span class="p">{</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">):</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_client_version</span> <span class="o">=</span> <span class="p">{}</span>
 
 <div class="viewcode-block" id="IBMQJob.submit"><a class="viewcode-back" href="../../../../../stubs/qiskit.providers.ibmq.job.IBMQJob.submit.html#qiskit.providers.ibmq.job.IBMQJob.submit">[documentos]</a>    <span class="k">def</span> <span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Submit this job to an IBM Quantum Experience backend.</span>
@@ -941,7 +995,7 @@
 <span class="sd">                with the server.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="n">api_to_job_error</span><span class="p">():</span>
-            <span class="n">api_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">job_get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">())</span>
+            <span class="n">api_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">job_get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">())</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;job_id&#39;</span><span class="p">)</span>
@@ -949,8 +1003,6 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_api_status</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="s1">&#39;kind&#39;</span> <span class="ow">in</span> <span class="n">api_response</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_kind</span> <span class="o">=</span> <span class="n">ApiJobKind</span><span class="p">(</span><span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;kind&#39;</span><span class="p">))</span>
-            <span class="k">if</span> <span class="s1">&#39;result&#39;</span> <span class="ow">in</span> <span class="n">api_response</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="n">Result</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;result&#39;</span><span class="p">))</span>
             <span class="k">if</span> <span class="s1">&#39;qobj&#39;</span> <span class="ow">in</span> <span class="n">api_response</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_qobj</span> <span class="o">=</span> <span class="n">dict_to_qobj</span><span class="p">(</span><span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;qobj&#39;</span><span class="p">))</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
@@ -960,12 +1012,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_time_per_step</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;time_per_step&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_error</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;tags&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;tags&#39;</span><span class="p">,</span> <span class="p">[])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_run_mode</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;run_mode&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_use_object_storage</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kind</span> <span class="o">==</span> <span class="n">ApiJobKind</span><span class="o">.</span><span class="n">QOBJECT_STORAGE</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_queue_info</span> <span class="o">=</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">_get_status_position</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_api_status</span><span class="p">,</span> <span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;info_queue&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">api_response</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_share_level</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;share_level&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_version</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;client_info&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_result</span><span class="p">(</span><span class="n">api_response</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;result&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">api_response</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
 
 <div class="viewcode-block" id="IBMQJob.to_dict"><a class="viewcode-back" href="../../../../../stubs/qiskit.providers.ibmq.job.IBMQJob.to_dict.html#qiskit.providers.ibmq.job.IBMQJob.to_dict">[documentos]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Serialize the model into a Python dict of simple types.</span>
@@ -1072,7 +1129,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="ow">in</span> <span class="n">required_status</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">status_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">job_final_status</span><span class="p">(</span>
+            <span class="n">status_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">job_final_status</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">(),</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="n">wait</span><span class="p">,</span> <span class="n">status_queue</span><span class="o">=</span><span class="n">status_queue</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">UserTimeoutExceededError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">IBMQJobTimeoutError</span><span class="p">(</span>
@@ -1083,60 +1140,78 @@
             <span class="k">raise</span> <span class="n">IBMQJobApiError</span><span class="p">(</span><span class="s1">&#39;Error checking job status due to a network &#39;</span>
                                   <span class="s1">&#39;error: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">api_err</span><span class="p">)))</span> <span class="kn">from</span> <span class="nn">api_err</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_api_status</span> <span class="o">=</span> <span class="n">status_response</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_queue_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_status_position</span><span class="p">(</span>
-            <span class="n">status_response</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">],</span> <span class="n">status_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;info_queue&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_api_status</span><span class="p">,</span> <span class="n">status_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;info_queue&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
 
         <span class="c1"># Get all job attributes when the job is done.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="ow">in</span> <span class="n">required_status</span>
 
-    <span class="k">def</span> <span class="nf">_retrieve_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">refresh</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_retrieve_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">refresh</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the job result response.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            refresh: If ``True``, re-query the server for the result.</span>
 <span class="sd">               Otherwise return the cached value.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            The job result.</span>
-
 <span class="sd">        Raises:</span>
 <span class="sd">            IBMQJobApiError: If an unexpected error occurred when communicating</span>
 <span class="sd">                with the server.</span>
-<span class="sd">            IBMQJobFailureError: If the job failed and partial result could not</span>
-<span class="sd">                be retrieved.</span>
-<span class="sd">            IBMQJobInvalidStateError: If result is in an unsupported format.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># pylint: disable=access-member-before-definition,attribute-defined-outside-init</span>
-        <span class="n">result_response</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_status</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">ERROR_CREATING_JOB</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                                <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">ERROR_VALIDATING_JOB</span><span class="o">.</span><span class="n">value</span><span class="p">):</span>
+            <span class="c1"># No results if job was never executed.</span>
+            <span class="k">return</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="ow">or</span> <span class="n">refresh</span><span class="p">:</span>  <span class="c1"># type: ignore[has-type]</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">result_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">job_result</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_object_storage</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="n">Result</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">result_response</span><span class="p">)</span>
-            <span class="k">except</span> <span class="p">(</span><span class="n">ApiError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="n">result_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">job_result</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_object_storage</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_set_result</span><span class="p">(</span><span class="n">result_response</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="ow">is</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">ERROR</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">IBMQJobFailureError</span><span class="p">(</span>
-                        <span class="s1">&#39;Unable to retrieve result for job </span><span class="si">{}</span><span class="s1">. Job has failed. Use &#39;</span>
-                        <span class="s1">&#39;job.error_message() to get more details.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">()))</span> <span class="kn">from</span> <span class="nn">err</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kind</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">IBMQJobInvalidStateError</span><span class="p">(</span>
-                        <span class="s1">&#39;Unable to retrieve result for job </span><span class="si">{}</span><span class="s1">. Job result &#39;</span>
-                        <span class="s1">&#39;is in an unsupported format.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">()))</span> <span class="kn">from</span> <span class="nn">err</span>
-                <span class="k">raise</span> <span class="n">IBMQJobApiError</span><span class="p">(</span>
-                    <span class="s1">&#39;Unable to retrieve result for &#39;</span>
-                    <span class="s1">&#39;job </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">(),</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)))</span> <span class="kn">from</span> <span class="nn">err</span>
-            <span class="k">finally</span><span class="p">:</span>
-                <span class="c1"># In case partial results are returned or job failure, an error message is cached.</span>
-                <span class="k">if</span> <span class="n">result_response</span><span class="p">:</span>
+                    <span class="c1"># Look for error message in result response.</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_check_for_error_message</span><span class="p">(</span><span class="n">result_response</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">ApiError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">JobStatus</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">CANCELLED</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">IBMQJobApiError</span><span class="p">(</span>
+                        <span class="s1">&#39;Unable to retrieve result for &#39;</span>
+                        <span class="s1">&#39;job </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">(),</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)))</span> <span class="kn">from</span> <span class="nn">err</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="ow">is</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">ERROR</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span><span class="o">.</span><span class="n">results</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">IBMQJobFailureError</span><span class="p">(</span>
-                <span class="s1">&#39;Unable to retrieve result for job </span><span class="si">{}</span><span class="s1">. Job has failed. &#39;</span>
-                <span class="s1">&#39;Use job.error_message() to get more details.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">()))</span>
+    <span class="k">def</span> <span class="nf">_set_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set the job result.</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span>
+<span class="sd">        Args:</span>
+<span class="sd">            raw_data: Raw result data.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            IBMQJobInvalidStateError: If result is in an unsupported format.</span>
+<span class="sd">            IBMQJobApiError: If an unexpected error occurred when communicating</span>
+<span class="sd">                with the server.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">raw_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">return</span>
+        <span class="n">raw_data</span><span class="p">[</span><span class="s1">&#39;client_version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_version</span>
+        <span class="c1"># TODO Stop checking Terra version when it&#39;s released.</span>
+        <span class="kn">from</span> <span class="nn">qiskit.version</span> <span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">terra_version</span>
+        <span class="k">if</span> <span class="n">terra_version</span> <span class="o">&gt;=</span> <span class="s1">&#39;0.15.0&#39;</span><span class="p">:</span>
+            <span class="n">decode_result</span><span class="p">(</span><span class="n">raw_data</span><span class="p">)</span>
+        <span class="c1"># if &#39;date&#39; in raw_data:</span>
+        <span class="c1">#     raw_data[&#39;date&#39;] = utc_to_local(raw_data[&#39;date&#39;])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="n">Result</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">raw_data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_result</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_result</span><span class="o">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">utc_to_local</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_result</span><span class="o">.</span><span class="n">date</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kind</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">IBMQJobInvalidStateError</span><span class="p">(</span>
+                    <span class="s1">&#39;Unable to retrieve result for job </span><span class="si">{}</span><span class="s1">. Job result &#39;</span>
+                    <span class="s1">&#39;is in an unsupported format.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">()))</span> <span class="kn">from</span> <span class="nn">err</span>
+            <span class="k">raise</span> <span class="n">IBMQJobApiError</span><span class="p">(</span>
+                <span class="s1">&#39;Unable to retrieve result for &#39;</span>
+                <span class="s1">&#39;job </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">(),</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)))</span> <span class="kn">from</span> <span class="nn">err</span>
 
     <span class="k">def</span> <span class="nf">_check_for_error_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result_response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Retrieves the error message from the result response.</span>
@@ -1214,6 +1289,8 @@
                 <span class="k">if</span> <span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">queue_info</span><span class="p">)</span> <span class="o">==</span> <span class="n">last_data</span><span class="p">:</span>
                     <span class="k">continue</span>
                 <span class="n">last_data</span> <span class="o">=</span> <span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">queue_info</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Invoking callback function, job status=</span><span class="si">%s</span><span class="s2">, queue_info=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                         <span class="n">status</span><span class="p">,</span> <span class="n">queue_info</span><span class="p">)</span>
             <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">(),</span> <span class="n">status</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">queue_info</span><span class="o">=</span><span class="n">queue_info</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_status_position</span><span class="p">(</span>
@@ -1241,7 +1318,13 @@
         <span class="k">if</span> <span class="n">status</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">QUEUED</span><span class="p">:</span>
             <span class="n">queue_info</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="k">return</span> <span class="n">status</span><span class="p">,</span> <span class="n">queue_info</span></div>
+        <span class="k">return</span> <span class="n">status</span><span class="p">,</span> <span class="n">queue_info</span>
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;Attribute </span><span class="si">{}</span><span class="s1"> is not defined.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="kn">from</span> <span class="bp">None</span></div>
 </pre></div>
 
            </div>

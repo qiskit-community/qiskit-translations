@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.passes.optimization.consolidate_blocks &mdash; documentación de Qiskit - 0.19.6</title>
+  <title>qiskit.transpiler.passes.optimization.consolidate_blocks &mdash; documentación de Qiskit - 0.20.0</title>
   
 
   
@@ -273,13 +273,16 @@
 
 <span class="sd">&quot;&quot;&quot;Replace each block of consecutive gates by a single Unitary node.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">QuantumCircuit</span>
+
+<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">ClassicalRegister</span><span class="p">,</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.dagcircuit</span> <span class="kn">import</span> <span class="n">DAGCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators</span> <span class="kn">import</span> <span class="n">Operator</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.synthesis</span> <span class="kn">import</span> <span class="n">TwoQubitBasisDecomposer</span>
-<span class="kn">from</span> <span class="nn">qiskit.extensions</span> <span class="kn">import</span> <span class="n">UnitaryGate</span><span class="p">,</span> <span class="n">CXGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.extensions</span> <span class="kn">import</span> <span class="n">UnitaryGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates</span> <span class="kn">import</span> <span class="n">CXGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.basepasses</span> <span class="kn">import</span> <span class="n">TransformationPass</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.exceptions</span> <span class="kn">import</span> <span class="n">TranspilerError</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes.synthesis</span> <span class="kn">import</span> <span class="n">unitary_synthesis</span>
 
 
 <div class="viewcode-block" id="ConsolidateBlocks"><a class="viewcode-back" href="../../../../../stubs/qiskit.transpiler.passes.ConsolidateBlocks.html#qiskit.transpiler.passes.ConsolidateBlocks">[documentos]</a><span class="k">class</span> <span class="nc">ConsolidateBlocks</span><span class="p">(</span><span class="n">TransformationPass</span><span class="p">):</span>
@@ -294,16 +297,32 @@
 <span class="sd">        given such that blocks are in topological order. The blocks are</span>
 <span class="sd">        collected by a previous pass, such as `Collect2qBlocks`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kak_basis_gate</span><span class="o">=</span><span class="n">CXGate</span><span class="p">(),</span> <span class="n">force_consolidate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">kak_basis_gate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">force_consolidate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">basis_gates</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;ConsolidateBlocks initializer.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            kak_basis_gate (Gate): Basis gate for KAK decomposition.</span>
 <span class="sd">            force_consolidate (bool): Force block consolidation</span>
+<span class="sd">            basis_gates (List(str)): Basis gates from which to choose a KAK gate.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basis_gates</span> <span class="o">=</span> <span class="n">basis_gates</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">force_consolidate</span> <span class="o">=</span> <span class="n">force_consolidate</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">decomposer</span> <span class="o">=</span> <span class="n">TwoQubitBasisDecomposer</span><span class="p">(</span><span class="n">kak_basis_gate</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">kak_basis_gate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">decomposer</span> <span class="o">=</span> <span class="n">TwoQubitBasisDecomposer</span><span class="p">(</span><span class="n">kak_basis_gate</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">basis_gates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">kak_basis_gate</span> <span class="o">=</span> <span class="n">unitary_synthesis</span><span class="o">.</span><span class="n">_choose_kak_gate</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kak_basis_gate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">decomposer</span> <span class="o">=</span> <span class="n">TwoQubitBasisDecomposer</span><span class="p">(</span><span class="n">kak_basis_gate</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">decomposer</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">decomposer</span> <span class="o">=</span> <span class="n">TwoQubitBasisDecomposer</span><span class="p">(</span><span class="n">CXGate</span><span class="p">())</span>
 
 <div class="viewcode-block" id="ConsolidateBlocks.run"><a class="viewcode-back" href="../../../../../stubs/qiskit.transpiler.passes.ConsolidateBlocks.run.html#qiskit.transpiler.passes.ConsolidateBlocks.run">[documentos]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dag</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Run the ConsolidateBlocks pass on `dag`.</span>
@@ -311,6 +330,10 @@
 <span class="sd">        Iterate over each block and replace it with an equivalent Unitary</span>
 <span class="sd">        on the same wires.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">decomposer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">dag</span>
+
         <span class="n">new_dag</span> <span class="o">=</span> <span class="n">DAGCircuit</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">qreg</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">qregs</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="n">new_dag</span><span class="o">.</span><span class="n">add_qreg</span><span class="p">(</span><span class="n">qreg</span><span class="p">)</span>
@@ -352,20 +375,27 @@
         <span class="c1"># create the dag from the updated list of blocks</span>
         <span class="n">basis_gate_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decomposer</span><span class="o">.</span><span class="n">gate</span><span class="o">.</span><span class="n">name</span>
         <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">:</span>
-
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">block</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;cx&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">basis_gate_name</span>
+                                    <span class="ow">or</span> <span class="n">block</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">()):</span>
                 <span class="c1"># an intermediate node that was added into the overall list</span>
                 <span class="n">new_dag</span><span class="o">.</span><span class="n">apply_operation_back</span><span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">block</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">,</span>
-                                             <span class="n">block</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">cargs</span><span class="p">,</span> <span class="n">block</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">condition</span><span class="p">)</span>
+                                             <span class="n">block</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">cargs</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># find the qubits involved in this block</span>
                 <span class="n">block_qargs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+                <span class="n">block_cargs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
                 <span class="k">for</span> <span class="n">nd</span> <span class="ow">in</span> <span class="n">block</span><span class="p">:</span>
                     <span class="n">block_qargs</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">nd</span><span class="o">.</span><span class="n">condition</span><span class="p">:</span>
+                        <span class="n">block_cargs</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">condition</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="c1"># convert block to a sub-circuit, then simulate unitary and add</span>
-                <span class="n">block_width</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">block_qargs</span><span class="p">)</span>
-                <span class="n">q</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">block_width</span><span class="p">)</span>
-                <span class="n">subcirc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+                <span class="n">q</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">block_qargs</span><span class="p">))</span>
+                <span class="c1"># if condition in node, add clbits to circuit</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">block_cargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">c</span> <span class="o">=</span> <span class="n">ClassicalRegister</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">block_cargs</span><span class="p">))</span>
+                    <span class="n">subcirc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">subcirc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
                 <span class="n">block_index_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_block_qargs_to_indices</span><span class="p">(</span><span class="n">block_qargs</span><span class="p">,</span>
                                                                <span class="n">global_index_map</span><span class="p">)</span>
                 <span class="n">basis_count</span> <span class="o">=</span> <span class="mi">0</span>
@@ -374,14 +404,22 @@
                         <span class="n">basis_count</span> <span class="o">+=</span> <span class="mi">1</span>
                     <span class="n">subcirc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">block_index_map</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">nd</span><span class="o">.</span><span class="n">qargs</span><span class="p">])</span>
                 <span class="n">unitary</span> <span class="o">=</span> <span class="n">UnitaryGate</span><span class="p">(</span><span class="n">Operator</span><span class="p">(</span><span class="n">subcirc</span><span class="p">))</span>  <span class="c1"># simulates the circuit</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_consolidate</span> <span class="ow">or</span> <span class="n">unitary</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">or</span> \
-                        <span class="bp">self</span><span class="o">.</span><span class="n">decomposer</span><span class="o">.</span><span class="n">num_basis_gates</span><span class="p">(</span><span class="n">unitary</span><span class="p">)</span> <span class="o">!=</span> <span class="n">basis_count</span><span class="p">:</span>
 
+                <span class="n">max_2q_depth</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c1"># If depth &gt; 20, there will be 1q gates to consolidate.</span>
+                <span class="k">if</span> <span class="p">(</span>  <span class="c1"># pylint: disable=too-many-boolean-expressions</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">force_consolidate</span>
+                        <span class="ow">or</span> <span class="n">unitary</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&gt;</span> <span class="mi">2</span>
+                        <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">decomposer</span><span class="o">.</span><span class="n">num_basis_gates</span><span class="p">(</span><span class="n">unitary</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">basis_count</span>
+                        <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">subcirc</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_2q_depth</span>
+                        <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basis_gates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                            <span class="ow">and</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">subcirc</span><span class="o">.</span><span class="n">count_ops</span><span class="p">())</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basis_gates</span><span class="p">))</span>
+                <span class="p">):</span>
                     <span class="n">new_dag</span><span class="o">.</span><span class="n">apply_operation_back</span><span class="p">(</span>
-                        <span class="n">unitary</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">block_qargs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">block_index_map</span><span class="p">[</span><span class="n">x</span><span class="p">]))</span>
+                        <span class="n">UnitaryGate</span><span class="p">(</span><span class="n">unitary</span><span class="p">),</span>
+                        <span class="nb">sorted</span><span class="p">(</span><span class="n">block_qargs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">block_index_map</span><span class="p">[</span><span class="n">x</span><span class="p">]))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">nd</span> <span class="ow">in</span> <span class="n">block</span><span class="p">:</span>
-                        <span class="n">new_dag</span><span class="o">.</span><span class="n">apply_operation_back</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">nd</span><span class="o">.</span><span class="n">qargs</span><span class="p">,</span> <span class="n">nd</span><span class="o">.</span><span class="n">cargs</span><span class="p">,</span> <span class="n">nd</span><span class="o">.</span><span class="n">condition</span><span class="p">)</span>
+                        <span class="n">new_dag</span><span class="o">.</span><span class="n">apply_operation_back</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">nd</span><span class="o">.</span><span class="n">qargs</span><span class="p">,</span> <span class="n">nd</span><span class="o">.</span><span class="n">cargs</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">new_dag</span></div>
 

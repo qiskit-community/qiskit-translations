@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.visualization.state_visualization &mdash; documentación de Qiskit - 0.19.6</title>
+  <title>qiskit.visualization.state_visualization &mdash; documentación de Qiskit - 0.20.0</title>
   
 
   
@@ -271,6 +271,7 @@
 
 <span class="c1"># pylint: disable=invalid-name,ungrouped-imports,import-error</span>
 <span class="c1"># pylint: disable=inconsistent-return-statements,unsubscriptable-object</span>
+<span class="c1"># pylint: disable=missing-param-doc,missing-type-doc,unused-argument</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Visualization functions for quantum states.</span>
@@ -280,7 +281,8 @@
 <span class="kn">import</span> <span class="nn">colorsys</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">linalg</span>
-<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.pauli</span> <span class="kn">import</span> <span class="n">pauli_group</span><span class="p">,</span> <span class="n">Pauli</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.states</span> <span class="kn">import</span> <span class="n">DensityMatrix</span>
+<span class="kn">from</span> <span class="nn">qiskit.util</span> <span class="kn">import</span> <span class="n">deprecate_arguments</span>
 <span class="kn">from</span> <span class="nn">.matplotlib</span> <span class="kn">import</span> <span class="n">HAS_MATPLOTLIB</span>
 
 <span class="k">if</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
@@ -295,7 +297,8 @@
     <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d.art3d</span> <span class="kn">import</span> <span class="n">Poly3DCollection</span>
     <span class="kn">from</span> <span class="nn">qiskit.visualization.exceptions</span> <span class="kn">import</span> <span class="n">VisualizationError</span>
     <span class="kn">from</span> <span class="nn">qiskit.visualization.bloch</span> <span class="kn">import</span> <span class="n">Bloch</span>
-    <span class="kn">from</span> <span class="nn">qiskit.visualization.utils</span> <span class="kn">import</span> <span class="n">_validate_input_state</span>
+    <span class="kn">from</span> <span class="nn">qiskit.visualization.utils</span> <span class="kn">import</span> <span class="n">_bloch_multivector_data</span><span class="p">,</span> <span class="n">_paulivec_data</span>
+    <span class="kn">from</span> <span class="nn">qiskit.circuit.tools.pi_check</span> <span class="kn">import</span> <span class="n">pi_check</span>
 
 
 <span class="k">if</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
@@ -315,11 +318,12 @@
             <span class="n">FancyArrowPatch</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renderer</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="plot_state_hinton"><a class="viewcode-back" href="../../../stubs/qiskit.visualization.plot_state_hinton.html#qiskit.visualization.plot_state_hinton">[documentos]</a><span class="k">def</span> <span class="nf">plot_state_hinton</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax_real</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax_imag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Plot a hinton diagram for the quantum state.</span>
+<div class="viewcode-block" id="plot_state_hinton"><a class="viewcode-back" href="../../../stubs/qiskit.visualization.plot_state_hinton.html#qiskit.visualization.plot_state_hinton">[documentos]</a><span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="s1">&#39;state&#39;</span><span class="p">})</span>
+<span class="k">def</span> <span class="nf">plot_state_hinton</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax_real</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax_imag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot a hinton diagram for the density matrix of a quantum state.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        rho (ndarray): Numpy array for state vector or density matrix.</span>
+<span class="sd">        state (Statevector or DensityMatrix or ndarray): An N-qubit quantum state.</span>
 <span class="sd">        title (str): a string that represents the plot title</span>
 <span class="sd">        figsize (tuple): Figure size in inches.</span>
 <span class="sd">        ax_real (matplotlib.axes.Axes): An optional Axes object to be used for</span>
@@ -342,30 +346,37 @@
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ImportError: Requires matplotlib.</span>
+<span class="sd">        VisualizationError: if input is not a valid N-qubit state.</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        .. jupyter-execute::</span>
 
-<span class="sd">            from qiskit import QuantumCircuit, BasicAer, execute</span>
+<span class="sd">            from qiskit import QuantumCircuit</span>
+<span class="sd">            from qiskit.quantum_info import DensityMatrix</span>
 <span class="sd">            from qiskit.visualization import plot_state_hinton</span>
 <span class="sd">            %matplotlib inline</span>
 
-<span class="sd">            qc = QuantumCircuit(2, 2)</span>
+<span class="sd">            qc = QuantumCircuit(2)</span>
 <span class="sd">            qc.h(0)</span>
 <span class="sd">            qc.cx(0, 1)</span>
-<span class="sd">            qc.measure([0, 1], [0, 1])</span>
 
-<span class="sd">            backend = BasicAer.get_backend(&#39;statevector_simulator&#39;)</span>
-<span class="sd">            job = execute(qc, backend).result()</span>
-<span class="sd">            plot_state_hinton(job.get_statevector(qc), title=&quot;New Hinton Plot&quot;)</span>
+<span class="sd">            state = DensityMatrix.from_instruction(qc)</span>
+<span class="sd">            plot_state_hinton(state, title=&quot;New Hinton Plot&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &#39;</span>
                           <span class="s1">&#39;&quot;pip install matplotlib&quot;.&#39;</span><span class="p">)</span>
-    <span class="n">rho</span> <span class="o">=</span> <span class="n">_validate_input_state</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+    <span class="c1"># Figure data</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">rho</span><span class="o">.</span><span class="n">num_qubits</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VisualizationError</span><span class="p">(</span><span class="s2">&quot;Input is not a multi-qubit quantum state.&quot;</span><span class="p">)</span>
+    <span class="n">max_weight</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">rho</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">datareal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">rho</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">dataimag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">rho</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">figsize</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
-    <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rho</span><span class="p">)))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ax_real</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ax_imag</span><span class="p">:</span>
         <span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -375,13 +386,9 @@
             <span class="n">fig</span> <span class="o">=</span> <span class="n">ax_imag</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>
         <span class="n">ax1</span> <span class="o">=</span> <span class="n">ax_real</span>
         <span class="n">ax2</span> <span class="o">=</span> <span class="n">ax_imag</span>
-    <span class="n">max_weight</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
-    <span class="n">datareal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
-    <span class="n">dataimag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
     <span class="n">column_names</span> <span class="o">=</span> <span class="p">[</span><span class="nb">bin</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">num</span><span class="p">)]</span>
     <span class="n">row_names</span> <span class="o">=</span> <span class="p">[</span><span class="nb">bin</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">num</span><span class="p">)]</span>
-    <span class="n">lx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">datareal</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>            <span class="c1"># Work out matrix dimensions</span>
-    <span class="n">ly</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">datareal</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="n">ly</span><span class="p">,</span> <span class="n">lx</span> <span class="o">=</span> <span class="n">datareal</span><span class="o">.</span><span class="n">shape</span>
     <span class="c1"># Real</span>
     <span class="k">if</span> <span class="n">ax1</span><span class="p">:</span>
         <span class="n">ax1</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
@@ -398,7 +405,9 @@
 
         <span class="n">ax1</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">lx</span><span class="o">+</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
         <span class="n">ax1</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ly</span><span class="o">+</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">row_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="n">ax1</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">row_names</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+        <span class="n">column_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="n">ax1</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">column_names</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
         <span class="n">ax1</span><span class="o">.</span><span class="n">autoscale_view</span><span class="p">()</span>
         <span class="n">ax1</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
@@ -478,13 +487,14 @@
     <span class="k">return</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="plot_bloch_multivector"><a class="viewcode-back" href="../../../stubs/qiskit.visualization.plot_bloch_multivector.html#qiskit.visualization.plot_bloch_multivector">[documentos]</a><span class="k">def</span> <span class="nf">plot_bloch_multivector</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="plot_bloch_multivector"><a class="viewcode-back" href="../../../stubs/qiskit.visualization.plot_bloch_multivector.html#qiskit.visualization.plot_bloch_multivector">[documentos]</a><span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="s1">&#39;state&#39;</span><span class="p">})</span>
+<span class="k">def</span> <span class="nf">plot_bloch_multivector</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Plot the Bloch sphere.</span>
 
 <span class="sd">    Plot a sphere, axes, the Bloch vector, and its projections onto each axis.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        rho (ndarray): Numpy array for state vector or density matrix.</span>
+<span class="sd">        state (Statevector or DensityMatrix or ndarray): an N-qubit quantum state.</span>
 <span class="sd">        title (str): a string that represents the plot title</span>
 <span class="sd">        figsize (tuple): Has no effect, here for compatibility only.</span>
 
@@ -494,41 +504,34 @@
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ImportError: Requires matplotlib.</span>
+<span class="sd">        VisualizationError: if input is not a valid N-qubit state.</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        .. jupyter-execute::</span>
 
-<span class="sd">            from qiskit import QuantumCircuit, BasicAer, execute</span>
+<span class="sd">            from qiskit import QuantumCircuit</span>
+<span class="sd">            from qiskit.quantum_info import Statevector</span>
 <span class="sd">            from qiskit.visualization import plot_bloch_multivector</span>
 <span class="sd">            %matplotlib inline</span>
 
-<span class="sd">            qc = QuantumCircuit(2, 2)</span>
+<span class="sd">            qc = QuantumCircuit(2)</span>
 <span class="sd">            qc.h(0)</span>
 <span class="sd">            qc.cx(0, 1)</span>
-<span class="sd">            qc.measure([0, 1], [0, 1])</span>
 
-<span class="sd">            backend = BasicAer.get_backend(&#39;statevector_simulator&#39;)</span>
-<span class="sd">            job = execute(qc, backend).result()</span>
-<span class="sd">            plot_bloch_multivector(job.get_statevector(qc), title=&quot;New Bloch Multivector&quot;)</span>
+<span class="sd">            state = Statevector.from_instruction(qc)</span>
+<span class="sd">            plot_bloch_multivector(state, title=&quot;New Bloch Multivector&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &quot;pip install &#39;</span>
                           <span class="s1">&#39;matplotlib&quot;.&#39;</span><span class="p">)</span>
-    <span class="n">rho</span> <span class="o">=</span> <span class="n">_validate_input_state</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
-    <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rho</span><span class="p">)))</span>
+    <span class="c1"># Data</span>
+    <span class="n">bloch_data</span> <span class="o">=</span> <span class="n">_bloch_multivector_data</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bloch_data</span><span class="p">)</span>
     <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figaspect</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">num</span><span class="p">)</span>
     <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
-        <span class="n">pauli_singles</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">Pauli</span><span class="o">.</span><span class="n">pauli_single</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">),</span>
-            <span class="n">Pauli</span><span class="o">.</span><span class="n">pauli_single</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">),</span>
-            <span class="n">Pauli</span><span class="o">.</span><span class="n">pauli_single</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">)</span>
-        <span class="p">]</span>
-        <span class="n">bloch_state</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-            <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">(),</span> <span class="n">rho</span><span class="p">))),</span>
-                <span class="n">pauli_singles</span><span class="p">))</span>
-        <span class="n">plot_bloch_vector</span><span class="p">(</span><span class="n">bloch_state</span><span class="p">,</span> <span class="s2">&quot;qubit &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+        <span class="n">plot_bloch_vector</span><span class="p">(</span><span class="n">bloch_data</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s2">&quot;qubit &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
                           <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">get_backend</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;module://ipykernel.pylab.backend_inline&#39;</span><span class="p">,</span>
@@ -537,15 +540,16 @@
     <span class="k">return</span> <span class="n">fig</span></div>
 
 
-<div class="viewcode-block" id="plot_state_city"><a class="viewcode-back" href="../../../stubs/qiskit.visualization.plot_state_city.html#qiskit.visualization.plot_state_city">[documentos]</a><span class="k">def</span> <span class="nf">plot_state_city</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                    <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ax_real</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax_imag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="plot_state_city"><a class="viewcode-back" href="../../../stubs/qiskit.visualization.plot_state_city.html#qiskit.visualization.plot_state_city">[documentos]</a><span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="s1">&#39;state&#39;</span><span class="p">})</span>
+<span class="k">def</span> <span class="nf">plot_state_city</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ax_real</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax_imag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Plot the cityscape of quantum state.</span>
 
 <span class="sd">    Plot two 3d bar graphs (two dimensional) of the real and imaginary</span>
 <span class="sd">    part of the density matrix rho.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        rho (ndarray): Numpy array for state vector or density matrix.</span>
+<span class="sd">        state (Statevector or DensityMatrix or ndarray): an N-qubit quantum state.</span>
 <span class="sd">        title (str): a string that represents the plot title</span>
 <span class="sd">        figsize (tuple): Figure size in inches.</span>
 <span class="sd">        color (list): A list of len=2 giving colors for real and</span>
@@ -572,33 +576,35 @@
 <span class="sd">    Raises:</span>
 <span class="sd">        ImportError: Requires matplotlib.</span>
 <span class="sd">        ValueError: When &#39;color&#39; is not a list of len=2.</span>
+<span class="sd">        VisualizationError: if input is not a valid N-qubit state.</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        .. jupyter-execute::</span>
 
-<span class="sd">           from qiskit import QuantumCircuit, BasicAer, execute</span>
+<span class="sd">           from qiskit import QuantumCircuit</span>
+<span class="sd">           from qiskit.quantum_info import DensityMatrix</span>
 <span class="sd">           from qiskit.visualization import plot_state_city</span>
 <span class="sd">           %matplotlib inline</span>
 
-<span class="sd">           qc = QuantumCircuit(2, 2)</span>
+<span class="sd">           qc = QuantumCircuit(2)</span>
 <span class="sd">           qc.h(0)</span>
 <span class="sd">           qc.cx(0, 1)</span>
-<span class="sd">           qc.measure([0, 1], [0, 1])</span>
 
-<span class="sd">           backend = BasicAer.get_backend(&#39;statevector_simulator&#39;)</span>
-<span class="sd">           job = execute(qc, backend).result()</span>
-<span class="sd">           plot_state_city(job.get_statevector(qc), color=[&#39;midnightblue&#39;, &#39;midnightblue&#39;],</span>
+<span class="sd">           state = DensityMatrix.from_instruction(qc)</span>
+<span class="sd">           plot_state_city(state, color=[&#39;midnightblue&#39;, &#39;midnightblue&#39;],</span>
 <span class="sd">                title=&quot;New State City&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &quot;pip install &#39;</span>
                           <span class="s1">&#39;matplotlib&quot;.&#39;</span><span class="p">)</span>
-    <span class="n">rho</span> <span class="o">=</span> <span class="n">_validate_input_state</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">rho</span><span class="o">.</span><span class="n">num_qubits</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VisualizationError</span><span class="p">(</span><span class="s2">&quot;Input is not a multi-qubit quantum state.&quot;</span><span class="p">)</span>
 
-    <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rho</span><span class="p">)))</span>
     <span class="c1"># get the real and imag parts of rho</span>
-    <span class="n">datareal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
-    <span class="n">dataimag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+    <span class="n">datareal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">rho</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">dataimag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">rho</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 
     <span class="c1"># get the labels</span>
     <span class="n">column_names</span> <span class="o">=</span> <span class="p">[</span><span class="nb">bin</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">num</span><span class="p">)]</span>
@@ -745,13 +751,14 @@
         <span class="k">return</span> <span class="n">fig</span></div>
 
 
-<div class="viewcode-block" id="plot_state_paulivec"><a class="viewcode-back" href="../../../stubs/qiskit.visualization.plot_state_paulivec.html#qiskit.visualization.plot_state_paulivec">[documentos]</a><span class="k">def</span> <span class="nf">plot_state_paulivec</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="plot_state_paulivec"><a class="viewcode-back" href="../../../stubs/qiskit.visualization.plot_state_paulivec.html#qiskit.visualization.plot_state_paulivec">[documentos]</a><span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="s1">&#39;state&#39;</span><span class="p">})</span>
+<span class="k">def</span> <span class="nf">plot_state_paulivec</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Plot the paulivec representation of a quantum state.</span>
 
 <span class="sd">    Plot a bargraph of the mixed state rho over the pauli matrices</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        rho (ndarray): Numpy array for state vector or density matrix</span>
+<span class="sd">        state (Statevector or DensityMatrix or ndarray): an N-qubit quantum state.</span>
 <span class="sd">        title (str): a string that represents the plot title</span>
 <span class="sd">        figsize (tuple): Figure size in inches.</span>
 <span class="sd">        color (list or str): Color of the expectation value bars.</span>
@@ -767,35 +774,32 @@
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ImportError: Requires matplotlib.</span>
+<span class="sd">        VisualizationError: if input is not a valid N-qubit state.</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        .. jupyter-execute::</span>
 
-<span class="sd">           from qiskit import QuantumCircuit, BasicAer, execute</span>
+<span class="sd">           from qiskit import QuantumCircuit</span>
+<span class="sd">           from qiskit.quantum_info import Statevector</span>
 <span class="sd">           from qiskit.visualization import plot_state_paulivec</span>
 <span class="sd">           %matplotlib inline</span>
 
-<span class="sd">           qc = QuantumCircuit(2, 2)</span>
+<span class="sd">           qc = QuantumCircuit(2)</span>
 <span class="sd">           qc.h(0)</span>
 <span class="sd">           qc.cx(0, 1)</span>
-<span class="sd">           qc.measure([0, 1], [0, 1])</span>
 
-<span class="sd">           backend = BasicAer.get_backend(&#39;statevector_simulator&#39;)</span>
-<span class="sd">           job = execute(qc, backend).result()</span>
-<span class="sd">           plot_state_paulivec(job.get_statevector(qc), color=&#39;midnightblue&#39;,</span>
+<span class="sd">           state = Statevector.from_instruction(qc)</span>
+<span class="sd">           plot_state_paulivec(state, color=&#39;midnightblue&#39;,</span>
 <span class="sd">                title=&quot;New PauliVec plot&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &quot;pip install &#39;</span>
                           <span class="s1">&#39;matplotlib&quot;.&#39;</span><span class="p">)</span>
-    <span class="n">rho</span> <span class="o">=</span> <span class="n">_validate_input_state</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+    <span class="n">labels</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">_paulivec_data</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">numelem</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">figsize</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
-    <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rho</span><span class="p">)))</span>
-    <span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">to_label</span><span class="p">(),</span> <span class="n">pauli_group</span><span class="p">(</span><span class="n">num</span><span class="p">)))</span>
-    <span class="n">values</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">(),</span> <span class="n">rho</span><span class="p">))),</span>
-                      <span class="n">pauli_group</span><span class="p">(</span><span class="n">num</span><span class="p">)))</span>
-    <span class="n">numelem</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;#648fff&quot;</span>
 
@@ -887,42 +891,51 @@
     <span class="k">return</span> <span class="n">rgb</span>
 
 
-<div class="viewcode-block" id="plot_state_qsphere"><a class="viewcode-back" href="../../../stubs/qiskit.visualization.plot_state_qsphere.html#qiskit.visualization.plot_state_qsphere">[documentos]</a><span class="k">def</span> <span class="nf">plot_state_qsphere</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="plot_state_qsphere"><a class="viewcode-back" href="../../../stubs/qiskit.visualization.plot_state_qsphere.html#qiskit.visualization.plot_state_qsphere">[documentos]</a><span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="s1">&#39;state&#39;</span><span class="p">})</span>
+<span class="k">def</span> <span class="nf">plot_state_qsphere</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_state_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">show_state_phases</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_degrees</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Plot the qsphere representation of a quantum state.</span>
 <span class="sd">    Here, the size of the points is proportional to the probability</span>
 <span class="sd">    of the corresponding term in the state and the color represents</span>
 <span class="sd">    the phase.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        rho (ndarray): State vector or density matrix representation.</span>
-<span class="sd">            of quantum state.</span>
+<span class="sd">        state (Statevector or DensityMatrix or ndarray): an N-qubit quantum state.</span>
 <span class="sd">        figsize (tuple): Figure size in inches.</span>
 <span class="sd">        ax (matplotlib.axes.Axes): An optional Axes object to be used for</span>
 <span class="sd">            the visualization output. If none is specified a new matplotlib</span>
 <span class="sd">            Figure will be created and used. Additionally, if specified there</span>
 <span class="sd">            will be no returned Figure since it is redundant.</span>
+<span class="sd">        show_state_labels (bool): An optional boolean indicating whether to</span>
+<span class="sd">            show labels for each basis state.</span>
+<span class="sd">        show_state_phases (bool): An optional boolean indicating whether to</span>
+<span class="sd">            show the phase for each basis state.</span>
+<span class="sd">        use_degrees (bool): An optional boolean indicating whether to use</span>
+<span class="sd">            radians or degrees for the phase values in the plot.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Figure: A matplotlib figure instance if the ``ax`` kwag is not set</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ImportError: Requires matplotlib.</span>
+<span class="sd">        VisualizationError: if input is not a valid N-qubit state.</span>
+
+<span class="sd">        QiskitError: Input statevector does not have valid dimensions.</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        .. jupyter-execute::</span>
 
-<span class="sd">           from qiskit import QuantumCircuit, BasicAer, execute</span>
+<span class="sd">           from qiskit import QuantumCircuit</span>
+<span class="sd">           from qiskit.quantum_info import Statevector</span>
 <span class="sd">           from qiskit.visualization import plot_state_qsphere</span>
 <span class="sd">           %matplotlib inline</span>
 
-<span class="sd">           qc = QuantumCircuit(2, 2)</span>
+<span class="sd">           qc = QuantumCircuit(2)</span>
 <span class="sd">           qc.h(0)</span>
 <span class="sd">           qc.cx(0, 1)</span>
-<span class="sd">           qc.measure([0, 1], [0, 1])</span>
 
-<span class="sd">           backend = BasicAer.get_backend(&#39;statevector_simulator&#39;)</span>
-<span class="sd">           job = execute(qc, backend).result()</span>
-<span class="sd">           plot_state_qsphere(job.get_statevector(qc))</span>
+<span class="sd">           state = Statevector.from_instruction(qc)</span>
+<span class="sd">           plot_state_qsphere(state)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &quot;pip install &#39;</span>
@@ -932,13 +945,15 @@
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have seaborn installed to use &#39;</span>
                           <span class="s1">&#39;plot_state_qsphere. To install, run &quot;pip install seaborn&quot;.&#39;</span><span class="p">)</span>
-    <span class="n">rho</span> <span class="o">=</span> <span class="n">_validate_input_state</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">rho</span><span class="o">.</span><span class="n">num_qubits</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VisualizationError</span><span class="p">(</span><span class="s2">&quot;Input is not a multi-qubit quantum state.&quot;</span><span class="p">)</span>
+    <span class="c1"># get the eigenvectors and eigenvalues</span>
+    <span class="n">eigvals</span><span class="p">,</span> <span class="n">eigvecs</span> <span class="o">=</span> <span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">rho</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">figsize</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
-    <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rho</span><span class="p">)))</span>
-
-    <span class="c1"># get the eigenvectors and eigenvalues</span>
-    <span class="n">we</span><span class="p">,</span> <span class="n">stateall</span> <span class="o">=</span> <span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">return_fig</span> <span class="o">=</span> <span class="kc">True</span>
@@ -956,57 +971,44 @@
     <span class="n">ax</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="n">elev</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">azim</span><span class="o">=</span><span class="mi">275</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">num</span><span class="p">):</span>
-        <span class="c1"># start with the max</span>
-        <span class="n">probmix</span> <span class="o">=</span> <span class="n">we</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-        <span class="n">prob_location</span> <span class="o">=</span> <span class="n">we</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">probmix</span> <span class="o">&gt;</span> <span class="mf">0.001</span><span class="p">:</span>
+    <span class="c1"># start the plotting</span>
+    <span class="c1"># Plot semi-transparent sphere</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">u</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot_surface</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">rstride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cstride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>
+                    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Get rid of the panes</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">w_xaxis</span><span class="o">.</span><span class="n">set_pane_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">w_yaxis</span><span class="o">.</span><span class="n">set_pane_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">w_zaxis</span><span class="o">.</span><span class="n">set_pane_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+
+    <span class="c1"># Get rid of the spines</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">w_xaxis</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">set_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">w_yaxis</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">set_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">w_zaxis</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">set_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+
+    <span class="c1"># Get rid of the ticks</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_zticks</span><span class="p">([])</span>
+
+    <span class="c1"># traversing the eigvals/vecs backward as sorted low-&gt;high</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">eigvals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">eigvals</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.001</span><span class="p">:</span>
             <span class="c1"># get the max eigenvalue</span>
-            <span class="n">state</span> <span class="o">=</span> <span class="n">stateall</span><span class="p">[:,</span> <span class="n">prob_location</span><span class="p">]</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">eigvecs</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">]</span>
             <span class="n">loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">state</span><span class="p">)</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
-
-            <span class="c1"># get the element location closes to lowest bin representation.</span>
-            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">num</span><span class="p">):</span>
-                <span class="n">test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">-</span>
-                                   <span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="n">loc</span><span class="p">]))</span>
-                <span class="k">if</span> <span class="n">test</span> <span class="o">&lt;</span> <span class="mf">0.001</span><span class="p">:</span>
-                    <span class="n">loc</span> <span class="o">=</span> <span class="n">j</span>
-                    <span class="k">break</span>
-
-            <span class="c1"># remove the global phase</span>
+            <span class="c1"># remove the global phase from max element</span>
             <span class="n">angles</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="n">loc</span><span class="p">])</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
             <span class="n">angleset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">angles</span><span class="p">)</span>
             <span class="n">state</span> <span class="o">=</span> <span class="n">angleset</span> <span class="o">*</span> <span class="n">state</span>
-            <span class="n">state</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-
-            <span class="c1"># start the plotting</span>
-            <span class="c1"># Plot semi-transparent sphere</span>
-            <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
-            <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
-            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
-            <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">u</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">plot_surface</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">rstride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cstride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>
-                            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-            <span class="c1"># Get rid of the panes</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">w_xaxis</span><span class="o">.</span><span class="n">set_pane_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">w_yaxis</span><span class="o">.</span><span class="n">set_pane_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">w_zaxis</span><span class="o">.</span><span class="n">set_pane_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
-
-            <span class="c1"># Get rid of the spines</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">w_xaxis</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">set_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">w_yaxis</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">set_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">w_zaxis</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">set_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
-
-            <span class="c1"># Get rid of the ticks</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_zticks</span><span class="p">([])</span>
 
             <span class="n">d</span> <span class="o">=</span> <span class="n">num</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">num</span><span class="p">):</span>
-
                 <span class="c1"># get x,y,z points</span>
                 <span class="n">element</span> <span class="o">=</span> <span class="nb">bin</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
                 <span class="n">weight</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">)</span>
@@ -1031,6 +1033,23 @@
                 <span class="k">if</span> <span class="n">yvalue</span> <span class="o">&gt;=</span> <span class="mf">0.1</span><span class="p">:</span>
                     <span class="n">alfa</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">yvalue</span>
 
+                <span class="k">if</span> <span class="n">prob</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">show_state_labels</span><span class="p">:</span>
+                    <span class="n">rprime</span> <span class="o">=</span> <span class="mf">1.3</span>
+                    <span class="n">angle_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">zvalue</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span> <span class="n">zvalue</span><span class="p">)</span>
+                    <span class="n">xvalue_text</span> <span class="o">=</span> <span class="n">rprime</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle_theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+                    <span class="n">yvalue_text</span> <span class="o">=</span> <span class="n">rprime</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle_theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+                    <span class="n">zvalue_text</span> <span class="o">=</span> <span class="n">rprime</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle_theta</span><span class="p">)</span>
+                    <span class="n">element_text</span> <span class="o">=</span> <span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">vert&#39;</span> <span class="o">+</span> <span class="n">element</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">rangle$&#39;</span>
+                    <span class="k">if</span> <span class="n">show_state_phases</span><span class="p">:</span>
+                        <span class="n">element_angle</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mi">4</span><span class="p">))</span> <span class="o">%</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">use_degrees</span><span class="p">:</span>
+                            <span class="n">element_text</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">$</span><span class="si">%.1f</span><span class="s1">^</span><span class="se">\\</span><span class="s1">circ$&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">element_angle</span> <span class="o">*</span> <span class="mi">180</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">element_angle</span> <span class="o">=</span> <span class="n">pi_check</span><span class="p">(</span><span class="n">element_angle</span><span class="p">,</span> <span class="n">ndigits</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;pi&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">pi&#39;</span><span class="p">)</span>
+                            <span class="n">element_text</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">$</span><span class="si">%s</span><span class="s1">$&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">element_angle</span><span class="p">)</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">xvalue_text</span><span class="p">,</span> <span class="n">yvalue_text</span><span class="p">,</span> <span class="n">zvalue_text</span><span class="p">,</span> <span class="n">element_text</span><span class="p">,</span>
+                            <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
                 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">xvalue</span><span class="p">],</span> <span class="p">[</span><span class="n">yvalue</span><span class="p">],</span> <span class="p">[</span><span class="n">zvalue</span><span class="p">],</span>
                         <span class="n">markerfacecolor</span><span class="o">=</span><span class="n">colorstate</span><span class="p">,</span>
                         <span class="n">markeredgecolor</span><span class="o">=</span><span class="n">colorstate</span><span class="p">,</span>
@@ -1054,30 +1073,31 @@
             <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">markerfacecolor</span><span class="o">=</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">),</span>
                     <span class="n">markeredgecolor</span><span class="o">=</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">),</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
                     <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">we</span><span class="p">[</span><span class="n">prob_location</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">break</span>
 
-    <span class="n">n</span> <span class="o">=</span> <span class="mi">32</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">64</span>
     <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 
     <span class="n">ax2</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">2</span><span class="p">:,</span> <span class="mi">2</span><span class="p">:])</span>
     <span class="n">ax2</span><span class="o">.</span><span class="n">pie</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">sns</span><span class="o">.</span><span class="n">color_palette</span><span class="p">(</span><span class="s2">&quot;hls&quot;</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">radius</span><span class="o">=</span><span class="mf">0.75</span><span class="p">)</span>
     <span class="n">ax2</span><span class="o">.</span><span class="n">add_artist</span><span class="p">(</span><span class="n">Circle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
-    <span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Phase&#39;</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
-             <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
-
     <span class="n">offset</span> <span class="o">=</span> <span class="mf">0.95</span>  <span class="c1"># since radius of sphere is one.</span>
 
-    <span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;$0$&#39;</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
-             <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
-    <span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;$\pi/2$&#39;</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
-             <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">use_degrees</span><span class="p">:</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Phase</span><span class="se">\n</span><span class="s1">(Deg)&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;90&#39;</span><span class="p">,</span> <span class="s1">&#39;180   &#39;</span><span class="p">,</span> <span class="s1">&#39;270&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Phase&#39;</span><span class="p">,</span> <span class="s1">&#39;$0$&#39;</span><span class="p">,</span> <span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">pi/2$&#39;</span><span class="p">,</span> <span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">pi$&#39;</span><span class="p">,</span> <span class="s1">&#39;$3</span><span class="se">\\</span><span class="s1">pi/2$&#39;</span><span class="p">]</span>
 
-    <span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="o">-</span><span class="n">offset</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;$\pi$&#39;</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">labels</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
              <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
-
-    <span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">offset</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;$3\pi/2$&#39;</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">labels</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+             <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">labels</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+             <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="o">-</span><span class="n">offset</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">labels</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+             <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">offset</span><span class="p">,</span> <span class="n">labels</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
              <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">return_fig</span><span class="p">:</span>
