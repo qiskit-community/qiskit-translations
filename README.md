@@ -28,7 +28,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 
 | Role | Name | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
 | ---     | ---    | --- |
-| Qiskit Localization Lead | Yuri Kobayashi | @Yuri Kobayash |
+| Qiskit Localization Lead | Yuri Kobayashi | @Yuri Kobayashi |
 | Qiskit Localization Technical Lead | Soolu Thomas | @Soolu |
 
 
