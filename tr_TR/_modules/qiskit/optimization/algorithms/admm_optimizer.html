@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.optimization.algorithms.admm_optimizer &mdash; Qiskit 0.19.6 belgelendirmesi</title>
+  <title>qiskit.optimization.algorithms.admm_optimizer &mdash; Qiskit 0.20.0 belgelendirmesi</title>
   
 
   
@@ -273,16 +273,20 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">..exceptions</span> <span class="kn">import</span> <span class="n">QiskitOptimizationError</span>
-<span class="kn">from</span> <span class="nn">.cplex_optimizer</span> <span class="kn">import</span> <span class="n">CplexOptimizer</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">NumPyMinimumEigensolver</span>
+
+<span class="kn">from</span> <span class="nn">.minimum_eigen_optimizer</span> <span class="kn">import</span> <span class="n">MinimumEigenOptimizer</span>
 <span class="kn">from</span> <span class="nn">.optimization_algorithm</span> <span class="kn">import</span> <span class="n">OptimizationAlgorithm</span><span class="p">,</span> <span class="n">OptimizationResult</span>
-<span class="kn">from</span> <span class="nn">..problems.quadratic_program</span> <span class="kn">import</span> <span class="n">QuadraticProgram</span>
-<span class="kn">from</span> <span class="nn">..problems.variable</span> <span class="kn">import</span> <span class="n">Variable</span>
+<span class="kn">from</span> <span class="nn">.slsqp_optimizer</span> <span class="kn">import</span> <span class="n">SlsqpOptimizer</span>
 <span class="kn">from</span> <span class="nn">..problems.constraint</span> <span class="kn">import</span> <span class="n">Constraint</span>
+<span class="kn">from</span> <span class="nn">..problems.linear_constraint</span> <span class="kn">import</span> <span class="n">LinearConstraint</span>
 <span class="kn">from</span> <span class="nn">..problems.quadratic_objective</span> <span class="kn">import</span> <span class="n">QuadraticObjective</span>
+<span class="kn">from</span> <span class="nn">..problems.quadratic_program</span> <span class="kn">import</span> <span class="n">QuadraticProgram</span>
+<span class="kn">from</span> <span class="nn">..problems.variable</span> <span class="kn">import</span> <span class="n">VarType</span><span class="p">,</span> <span class="n">Variable</span>
 
 <span class="n">UPDATE_RHO_BY_TEN_PERCENT</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">UPDATE_RHO_BY_RESIDUALS</span> <span class="o">=</span> <span class="mi">1</span>
@@ -290,21 +294,30 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">ADMMParameters</span><span class="p">:</span>
+<div class="viewcode-block" id="ADMMParameters"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.ADMMParameters.html#qiskit.optimization.algorithms.ADMMParameters">[belgeler]</a><span class="k">class</span> <span class="nc">ADMMParameters</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Defines a set of parameters for ADMM optimizer.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rho_initial</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span> <span class="n">factor_c</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">,</span> <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
-                 <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.e-4</span><span class="p">,</span> <span class="n">max_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
-                 <span class="n">three_block</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">vary_rho</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">UPDATE_RHO_BY_TEN_PERCENT</span><span class="p">,</span>
-                 <span class="n">tau_incr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">tau_decr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">mu_res</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
-                 <span class="n">mu_merit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">rho_initial</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+                 <span class="n">factor_c</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">,</span>
+                 <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+                 <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+                 <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.e-4</span><span class="p">,</span>
+                 <span class="n">max_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                 <span class="n">three_block</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="n">vary_rho</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">UPDATE_RHO_BY_TEN_PERCENT</span><span class="p">,</span>
+                 <span class="n">tau_incr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+                 <span class="n">tau_decr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+                 <span class="n">mu_res</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+                 <span class="n">mu_merit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+                 <span class="n">max_iter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Defines parameters for ADMM optimizer and their default values.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            rho_initial: Initial value of rho parameter of ADMM.</span>
 <span class="sd">            factor_c: Penalizing factor for equality constraints, when mapping to QUBO.</span>
 <span class="sd">            beta: Penalization for y decision variables.</span>
-<span class="sd">            max_iter: Maximum number of iterations for ADMM.</span>
+<span class="sd">            maxiter: Maximum number of iterations for ADMM.</span>
 <span class="sd">            tol: Tolerance for the residual convergence.</span>
 <span class="sd">            max_time: Maximum running time (in seconds) for ADMM.</span>
 <span class="sd">            three_block: Boolean flag to select the 3-block ADMM implementation.</span>
@@ -320,8 +333,15 @@
 <span class="sd">            tau_decr: Parameter used in the rho update (UPDATE_RHO_BY_RESIDUALS).</span>
 <span class="sd">            mu_res: Parameter used in the rho update (UPDATE_RHO_BY_RESIDUALS).</span>
 <span class="sd">            mu_merit: Penalization for constraint residual. Used to compute the merit values.</span>
+<span class="sd">            max_iter: Deprecated, use maxiter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">max_iter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The max_iter parameter is deprecated as of &#39;</span>
+                          <span class="s1">&#39;0.8.0 and will be removed no sooner than 3 months after the release. &#39;</span>
+                          <span class="s1">&#39;You should use maxiter instead.&#39;</span><span class="p">,</span>
+                          <span class="ne">DeprecationWarning</span><span class="p">)</span>
+            <span class="n">maxiter</span> <span class="o">=</span> <span class="n">max_iter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mu_merit</span> <span class="o">=</span> <span class="n">mu_merit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mu_res</span> <span class="o">=</span> <span class="n">mu_res</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tau_decr</span> <span class="o">=</span> <span class="n">tau_decr</span>
@@ -330,13 +350,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">three_block</span> <span class="o">=</span> <span class="n">three_block</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_time</span> <span class="o">=</span> <span class="n">max_time</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tol</span> <span class="o">=</span> <span class="n">tol</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxiter</span> <span class="o">=</span> <span class="n">maxiter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">factor_c</span> <span class="o">=</span> <span class="n">factor_c</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rho_initial</span> <span class="o">=</span> <span class="n">rho_initial</span>
 
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">(</span><span class="si">{1}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">props</span><span class="p">)</span></div>
 
-<span class="k">class</span> <span class="nc">ADMMState</span><span class="p">:</span>
+
+<div class="viewcode-block" id="ADMMState"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.ADMMState.html#qiskit.optimization.algorithms.ADMMState">[belgeler]</a><span class="k">class</span> <span class="nc">ADMMState</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Internal computation state of the ADMM implementation.</span>
 
 <span class="sd">    The state keeps track of various variables are stored that are being updated during problem</span>
@@ -346,15 +370,10 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">op</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">,</span>
-                 <span class="n">binary_indices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
-                 <span class="n">continuous_indices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
                  <span class="n">rho_initial</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            op: The optimization problem being solved.</span>
-<span class="sd">            binary_indices: Indices of the binary decision variables of the original problem.</span>
-<span class="sd">            continuous_indices: Indices of the continuous decision variables of the original</span>
-<span class="sd">             problem.</span>
 <span class="sd">            rho_initial: Initial value of the rho parameter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -362,24 +381,26 @@
         <span class="c1"># Optimization problem itself</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">op</span> <span class="o">=</span> <span class="n">op</span>
         <span class="c1"># Indices of the variables</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">binary_indices</span> <span class="o">=</span> <span class="n">binary_indices</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">continuous_indices</span> <span class="o">=</span> <span class="n">continuous_indices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">binary_indices</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[List[int]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuous_indices</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[List[int]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">step1_absolute_indices</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[List[int]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">step1_relative_indices</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[List[int]]</span>
 
         <span class="c1"># define heavily used matrix, they are used at each iteration, so let&#39;s cache them,</span>
         <span class="c1"># they are np.ndarrays</span>
         <span class="c1"># pylint:disable=invalid-name</span>
         <span class="c1"># objective</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">q0</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">c0</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">q1</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">c1</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q0</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[np.ndarray]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c0</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[np.ndarray]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q1</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[np.ndarray]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c1</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[np.ndarray]</span>
         <span class="c1"># constraints</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">a0</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">b0</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a0</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[np.ndarray]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b0</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[np.ndarray]</span>
 
         <span class="c1"># These are the parameters that are updated in the ADMM iterations.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">continuous_indices</span><span class="p">))</span>
-        <span class="n">binary_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">binary_indices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">get_num_continuous_vars</span><span class="p">())</span>
+        <span class="n">binary_size</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">get_num_binary_vars</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">binary_size</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">binary_size</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">z_init</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span>
@@ -387,35 +408,44 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">lambda_mult</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">binary_size</span><span class="p">)</span>
 
         <span class="c1"># The following structures store quantities obtained in each ADMM iteration.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cost_iterates</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">residuals</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dual_residuals</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cons_r</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">merits</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lambdas</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">x0_saved</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">u_saved</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">z_saved</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">y_saved</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cost_iterates</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[float]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residuals</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[float]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dual_residuals</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[float]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cons_r</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[float]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">merits</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[float]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lambdas</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[float]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x0_saved</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[np.ndarray]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_saved</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[np.ndarray]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_saved</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[np.ndarray]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_saved</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[np.ndarray]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="n">rho_initial</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">binary_equality_constraints</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># lin. eq. constraints with bin. vars. only</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">equality_constraints</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># all equality constraints</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">inequality_constraints</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># all inequality constraints</span>
+        <span class="c1"># lin. eq. constraints with bin. vars. only</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">binary_equality_constraints</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[LinearConstraint]</span>
+        <span class="c1"># all equality constraints</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">equality_constraints</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[Constraint]</span>
+        <span class="c1"># all inequality constraints</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inequality_constraints</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[Constraint]</span></div>
 
 
-<span class="k">class</span> <span class="nc">ADMMOptimizationResult</span><span class="p">(</span><span class="n">OptimizationResult</span><span class="p">):</span>
+<div class="viewcode-block" id="ADMMOptimizationResult"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.ADMMOptimizationResult.html#qiskit.optimization.algorithms.ADMMOptimizationResult">[belgeler]</a><span class="k">class</span> <span class="nc">ADMMOptimizationResult</span><span class="p">(</span><span class="n">OptimizationResult</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; ADMMOptimization Result.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">fval</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                 <span class="n">state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ADMMState</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">results</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="p">,</span> <span class="n">results</span> <span class="ow">or</span> <span class="n">state</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">state</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">fval</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Variable</span><span class="p">],</span>
+                 <span class="n">state</span><span class="p">:</span> <span class="n">ADMMState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            x: the optimal value found by ADMM.</span>
+<span class="sd">            fval: the optimal function value.</span>
+<span class="sd">            variables: the list of variables of the optimization problem.</span>
+<span class="sd">            state: the internal computation state of ADMM.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">fval</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="n">variables</span><span class="p">,</span> <span class="n">raw_results</span><span class="o">=</span><span class="n">state</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ADMMState</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ADMMState</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot; returns state &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw_results</span></div>
 
 
 <div class="viewcode-block" id="ADMMOptimizer"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.ADMMOptimizer.html#qiskit.optimization.algorithms.ADMMOptimizer">[belgeler]</a><span class="k">class</span> <span class="nc">ADMMOptimizer</span><span class="p">(</span><span class="n">OptimizationAlgorithm</span><span class="p">):</span>
@@ -435,13 +465,11 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            qubo_optimizer: An instance of OptimizationAlgorithm that can effectively solve</span>
-<span class="sd">                QUBO problems.</span>
+<span class="sd">                QUBO problems. If not specified then :class:`MinimumEigenOptimizer` initialized</span>
+<span class="sd">                with an instance of :class:`NumPyMinimumEigensolver` will be used.</span>
 <span class="sd">            continuous_optimizer: An instance of OptimizationAlgorithm that can solve</span>
-<span class="sd">                continuous problems.</span>
+<span class="sd">                continuous problems. If not specified then :class:`SlsqpOptimizer` will be used.</span>
 <span class="sd">            params: An instance of ADMMParameters.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            NameError: CPLEX is not installed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -450,13 +478,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">params</span> <span class="ow">or</span> <span class="n">ADMMParameters</span><span class="p">()</span>
 
         <span class="c1"># create optimizers if not specified</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_optimizer</span> <span class="o">=</span> <span class="n">qubo_optimizer</span> <span class="ow">or</span> <span class="n">CplexOptimizer</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_continuous_optimizer</span> <span class="o">=</span> <span class="n">continuous_optimizer</span> <span class="ow">or</span> <span class="n">CplexOptimizer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_optimizer</span> <span class="o">=</span> <span class="n">qubo_optimizer</span> <span class="ow">or</span> <span class="n">MinimumEigenOptimizer</span><span class="p">(</span><span class="n">NumPyMinimumEigensolver</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_continuous_optimizer</span> <span class="o">=</span> <span class="n">continuous_optimizer</span> <span class="ow">or</span> <span class="n">SlsqpOptimizer</span><span class="p">()</span>
 
         <span class="c1"># internal state where we&#39;ll keep intermediate solution</span>
         <span class="c1"># here, we just declare the class variable, the variable is initialized in kept in</span>
         <span class="c1"># the solve method.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Optional[ADMMState]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[ADMMState]</span>
 
 <div class="viewcode-block" id="ADMMOptimizer.get_compatibility_msg"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.ADMMOptimizer.get_compatibility_msg.html#qiskit.optimization.algorithms.ADMMOptimizer.get_compatibility_msg">[belgeler]</a>    <span class="k">def</span> <span class="nf">get_compatibility_msg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Checks whether a given problem can be solved with the optimizer implementing this method.</span>
@@ -500,10 +528,7 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            QiskitOptimizationError: If the problem is not compatible with the ADMM optimizer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># check compatibility and raise exception if incompatible</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_compatibility_msg</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span><span class="s1">&#39;Incompatible problem: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verify_compatibility</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
 
         <span class="c1"># debug</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Initial problem: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">export_as_lp_string</span><span class="p">())</span>
@@ -511,18 +536,19 @@
         <span class="c1"># map integer variables to binary variables</span>
         <span class="kn">from</span> <span class="nn">..converters.integer_to_binary</span> <span class="kn">import</span> <span class="n">IntegerToBinary</span>
         <span class="n">int2bin</span> <span class="o">=</span> <span class="n">IntegerToBinary</span><span class="p">()</span>
-        <span class="n">problem</span> <span class="o">=</span> <span class="n">int2bin</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+        <span class="n">original_variables</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">variables</span>
+        <span class="n">problem</span> <span class="o">=</span> <span class="n">int2bin</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
 
         <span class="c1"># we deal with minimization in the optimizer, so turn the problem to minimization</span>
         <span class="n">problem</span><span class="p">,</span> <span class="n">sense</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_turn_to_minimization</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
 
-        <span class="c1"># parse problem and convert to an ADMM specific representation.</span>
-        <span class="n">binary_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_variable_indices</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">Variable</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">BINARY</span><span class="p">)</span>
-        <span class="n">continuous_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_variable_indices</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">Variable</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">CONTINUOUS</span><span class="p">)</span>
-
         <span class="c1"># create our computation state.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">ADMMState</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">binary_indices</span><span class="p">,</span>
-                                <span class="n">continuous_indices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">rho_initial</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">ADMMState</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">rho_initial</span><span class="p">)</span>
+
+        <span class="c1"># parse problem and convert to an ADMM specific representation.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_variable_indices</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">Variable</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">BINARY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">continuous_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_variable_indices</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span>
+                                                                    <span class="n">Variable</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">CONTINUOUS</span><span class="p">)</span>
 
         <span class="c1"># convert optimization problem to a set of matrices and vector that are used</span>
         <span class="c1"># at each iteration.</span>
@@ -530,13 +556,13 @@
 
         <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="c1"># we have not stated our computations yet, so elapsed time initialized as zero.</span>
-        <span class="n">elapsed_time</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">elapsed_time</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="n">iteration</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">residual</span> <span class="o">=</span> <span class="mf">1.e+2</span>
 
-        <span class="k">while</span> <span class="p">(</span><span class="n">iteration</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">max_iter</span> <span class="ow">and</span> <span class="n">residual</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">tol</span><span class="p">)</span> \
+        <span class="k">while</span> <span class="p">(</span><span class="n">iteration</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">maxiter</span> <span class="ow">and</span> <span class="n">residual</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">tol</span><span class="p">)</span> \
                 <span class="ow">and</span> <span class="p">(</span><span class="n">elapsed_time</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">max_time</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">binary_indices</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">step1_absolute_indices</span><span class="p">:</span>
                 <span class="n">op1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_step1_problem</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_x0</span><span class="p">(</span><span class="n">op1</span><span class="p">)</span>
                 <span class="c1"># debug</span>
@@ -553,7 +579,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;z=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">three_block</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">binary_indices</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">:</span>
                     <span class="n">op3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_step3_problem</span><span class="p">()</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_y</span><span class="p">(</span><span class="n">op3</span><span class="p">)</span>
                     <span class="c1"># debug</span>
@@ -597,18 +623,22 @@
         <span class="c1"># flip the objective sign again if required</span>
         <span class="n">objective_value</span> <span class="o">=</span> <span class="n">objective_value</span> <span class="o">*</span> <span class="n">sense</span>
 
-        <span class="c1"># third parameter is our internal state of computations.</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">ADMMOptimizationResult</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">objective_value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">)</span>
-
         <span class="c1"># convert back integer to binary</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">int2bin</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="n">base_result</span> <span class="o">=</span> <span class="n">OptimizationResult</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">objective_value</span><span class="p">,</span> <span class="n">original_variables</span><span class="p">)</span>
+        <span class="n">base_result</span> <span class="o">=</span> <span class="n">int2bin</span><span class="o">.</span><span class="n">interpret</span><span class="p">(</span><span class="n">base_result</span><span class="p">)</span>
+
+        <span class="c1"># third parameter is our internal state of computations.</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">ADMMOptimizationResult</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">base_result</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">base_result</span><span class="o">.</span><span class="n">fval</span><span class="p">,</span>
+                                        <span class="n">variables</span><span class="o">=</span><span class="n">base_result</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span>
+                                        <span class="n">state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">)</span>
+
         <span class="c1"># debug</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;solution=</span><span class="si">%s</span><span class="s2">, objective=</span><span class="si">%s</span><span class="s2"> at iteration=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
                         <span class="n">solution</span><span class="p">,</span> <span class="n">objective_value</span><span class="p">,</span> <span class="n">iteration</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span></div>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_turn_to_minimization</span><span class="p">(</span><span class="n">problem</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">QuadraticProgram</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_turn_to_minimization</span><span class="p">(</span><span class="n">problem</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">QuadraticProgram</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Turns the problem to `ObjSense.MINIMIZE` by flipping the sign of the objective function</span>
 <span class="sd">        if initially it is `ObjSense.MAXIMIZE`. Otherwise returns the original problem.</span>
@@ -630,7 +660,7 @@
         <span class="k">return</span> <span class="n">problem</span><span class="p">,</span> <span class="n">sense</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_get_variable_indices</span><span class="p">(</span><span class="n">op</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">,</span> <span class="n">var_type</span><span class="p">:</span> <span class="n">Variable</span><span class="o">.</span><span class="n">Type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">_get_variable_indices</span><span class="p">(</span><span class="n">op</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">,</span> <span class="n">var_type</span><span class="p">:</span> <span class="n">VarType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Returns a list of indices of the variables of the specified type.</span>
 
 <span class="sd">        Args:</span>
@@ -677,33 +707,102 @@
         <span class="sd">&quot;&quot;&quot;Converts problem representation into set of matrices and vectors.&quot;&quot;&quot;</span>
         <span class="n">binary_var_indices</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">)</span>
         <span class="c1"># separate constraints</span>
-        <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">linear_constraints</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">EQ</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">equality_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">l_constraint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">linear_constraints</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">l_constraint</span><span class="o">.</span><span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">EQ</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">equality_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l_constraint</span><span class="p">)</span>
 
                 <span class="c1"># verify that there are only binary variables in the constraint</span>
                 <span class="c1"># this is to build A0, b0 in step 1</span>
-                <span class="n">constraint_var_indices</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="n">constraint_var_indices</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">l_constraint</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
                 <span class="k">if</span> <span class="n">constraint_var_indices</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">binary_var_indices</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_equality_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_equality_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l_constraint</span><span class="p">)</span>
 
-            <span class="k">elif</span> <span class="n">constraint</span><span class="o">.</span><span class="n">sense</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">LE</span><span class="p">,</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">GE</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">inequality_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">l_constraint</span><span class="o">.</span><span class="n">sense</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">LE</span><span class="p">,</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">GE</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">inequality_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l_constraint</span><span class="p">)</span>
 
         <span class="c1"># separate quadratic constraints into eq and non-eq</span>
-        <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">quadratic_constraints</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">EQ</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">equality_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">constraint</span><span class="o">.</span><span class="n">sense</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">LE</span><span class="p">,</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">GE</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">inequality_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">q_constraint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">quadratic_constraints</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">q_constraint</span><span class="o">.</span><span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">EQ</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">equality_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">q_constraint</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">q_constraint</span><span class="o">.</span><span class="n">sense</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">LE</span><span class="p">,</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">GE</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">inequality_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">q_constraint</span><span class="p">)</span>
+
+        <span class="c1"># separately keep binary variables that are for step 1 only</span>
+        <span class="c1"># temp variables are due to limit of 100 chars per line</span>
+        <span class="n">step1_absolute_indices</span><span class="p">,</span> <span class="n">step1_relative_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_step1_indices</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">step1_absolute_indices</span> <span class="o">=</span> <span class="n">step1_absolute_indices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">step1_relative_indices</span> <span class="o">=</span> <span class="n">step1_relative_indices</span>
 
         <span class="c1"># objective</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">q0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">c0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_array</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">q0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">step1_absolute_indices</span><span class="p">)</span>
+        <span class="n">c0_vec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_array</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">step1_absolute_indices</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">c0</span> <span class="o">=</span> <span class="n">c0_vec</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">q1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">continuous_indices</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">c1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_array</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">continuous_indices</span><span class="p">]</span>
         <span class="c1"># equality constraints with binary vars only</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">a0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">b0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_a0_b0</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_get_step1_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs two arrays of absolute (pointing to the original problem) and relative (pointing</span>
+<span class="sd">        to the list of all binary variables) indices of the variables considered</span>
+<span class="sd">        to be included in the step1(QUBO) problem.</span>
+
+<span class="sd">        Returns: A tuple of lists with absolute and relative indices</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># here we keep binary indices from the original problem</span>
+        <span class="n">step1_absolute_indices</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># iterate over binary variables and put all binary variables mentioned in the objective</span>
+        <span class="c1"># to the array for the step1</span>
+        <span class="k">for</span> <span class="n">binary_index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">:</span>
+            <span class="c1"># here we check if this binary variable present in the objective</span>
+            <span class="c1"># either in the linear or quadratic terms</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">linear</span><span class="p">[</span><span class="n">binary_index</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">quadratic</span><span class="o">.</span><span class="n">coefficients</span><span class="p">[</span><span class="n">binary_index</span><span class="p">,</span> <span class="p">:])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># add the variable if it was not added before</span>
+                <span class="k">if</span> <span class="n">binary_index</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">step1_absolute_indices</span><span class="p">:</span>
+                    <span class="n">step1_absolute_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">binary_index</span><span class="p">)</span>
+
+        <span class="c1"># compute all unverified binary variables (the variables that are present in constraints</span>
+        <span class="c1"># but not in objective):</span>
+        <span class="c1">#   rest variables := all binary variables - already verified for step 1</span>
+        <span class="n">rest_binary</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">step1_absolute_indices</span><span class="p">)</span>
+
+        <span class="c1"># verify if an equality contains binary variables</span>
+        <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_equality_constraints</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">binary_index</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">rest_binary</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">linear</span><span class="p">[</span><span class="n">binary_index</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> \
+                        <span class="ow">and</span> <span class="n">binary_index</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">step1_absolute_indices</span><span class="p">:</span>
+                    <span class="c1"># a binary variable with the binary_index is present in this constraint</span>
+                    <span class="n">step1_absolute_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">binary_index</span><span class="p">)</span>
+
+        <span class="c1"># we want to preserve order of the variables but this order could be broken by adding</span>
+        <span class="c1"># a variable in the previous for loop.</span>
+        <span class="n">step1_absolute_indices</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="c1"># compute relative indices, these indices are used when we generate step1 and</span>
+        <span class="c1"># update variables on step1.</span>
+        <span class="c1"># on step1 we solve for a subset of all binary variables,</span>
+        <span class="c1"># so we want to operate only these indices</span>
+        <span class="n">step1_relative_indices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">relative_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># for each binary variable that comes from lin.eq/obj and which is denoted by abs_index</span>
+        <span class="k">for</span> <span class="n">abs_index</span> <span class="ow">in</span> <span class="n">step1_absolute_indices</span><span class="p">:</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="c1"># we want to find relative index of a variable the comes from linear constraints</span>
+            <span class="c1"># or objective across all binary variables</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">relative_index</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="n">abs_index</span><span class="p">:</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">relative_index</span> <span class="o">=</span> <span class="n">j</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
+                <span class="n">step1_relative_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">relative_index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No relative index found!&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">step1_absolute_indices</span><span class="p">,</span> <span class="n">step1_relative_indices</span>
 
     <span class="k">def</span> <span class="nf">_get_q</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_indices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Constructs a quadratic matrix for the variables with the specified indices</span>
@@ -719,14 +818,15 @@
         <span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="p">))</span>
         <span class="c1"># fill in the matrix</span>
         <span class="c1"># in fact we use re-indexed variables</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">var_index_i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">variable_indices</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">var_index_j</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">variable_indices</span><span class="p">):</span>
-                <span class="c1"># coefficients_as_array</span>
-                <span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">quadratic</span><span class="p">[</span><span class="n">var_index_i</span><span class="p">,</span> <span class="n">var_index_j</span><span class="p">]</span>
+        <span class="c1"># we build upper triangular matrix to avoid doubling of the coefficients</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+                <span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">quadratic</span><span class="p">[</span><span class="n">variable_indices</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">variable_indices</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span>
 
         <span class="k">return</span> <span class="n">q</span>
 
-    <span class="k">def</span> <span class="nf">_get_a0_b0</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_a0_b0</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Constructs a matrix and a vector from the constraints in a form of Ax = b, where</span>
 <span class="sd">        x is a vector of binary variables.</span>
 
@@ -740,7 +840,7 @@
         <span class="n">vector</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_equality_constraints</span><span class="p">:</span>
-            <span class="n">row</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_array</span><span class="p">()</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_array</span><span class="p">()</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">step1_absolute_indices</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
             <span class="n">matrix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
             <span class="n">vector</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">rhs</span><span class="p">)</span>
@@ -749,7 +849,7 @@
             <span class="n">np_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
             <span class="n">np_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">np_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">np_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">step1_absolute_indices</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
             <span class="n">np_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
 
         <span class="k">return</span> <span class="n">np_matrix</span><span class="p">,</span> <span class="n">np_vector</span>
@@ -762,13 +862,14 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">op1</span> <span class="o">=</span> <span class="n">QuadraticProgram</span><span class="p">()</span>
 
-        <span class="n">binary_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">)</span>
+        <span class="n">binary_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">step1_absolute_indices</span><span class="p">)</span>
         <span class="c1"># create the same binary variables.</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">binary_size</span><span class="p">):</span>
-            <span class="n">op1</span><span class="o">.</span><span class="n">binary_var</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;x0_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">step1_absolute_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">op1</span><span class="o">.</span><span class="n">binary_var</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
         <span class="c1"># prepare and set quadratic objective.</span>
-        <span class="n">quadratic_objective</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">q0</span> <span class="o">+</span>\
+        <span class="n">quadratic_objective</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">q0</span> <span class="o">+</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">factor_c</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">a0</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">a0</span><span class="p">)</span> <span class="o">+</span>\
             <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">rho</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">binary_size</span><span class="p">)</span>
         <span class="n">op1</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">quadratic</span> <span class="o">=</span> <span class="n">quadratic_objective</span>
@@ -776,8 +877,9 @@
         <span class="c1"># prepare and set linear objective.</span>
         <span class="n">linear_objective</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">c0</span> <span class="o">-</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">factor_c</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">b0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">a0</span><span class="p">)</span> <span class="o">+</span> \
-            <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">rho</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">z</span><span class="p">)</span> <span class="o">+</span> \
-            <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">lambda_mult</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">rho</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">step1_relative_indices</span><span class="p">]</span> <span class="o">-</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">step1_relative_indices</span><span class="p">])</span> <span class="o">+</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">lambda_mult</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">step1_relative_indices</span><span class="p">]</span>
 
         <span class="n">op1</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">linear_objective</span>
         <span class="k">return</span> <span class="n">op1</span>
@@ -819,7 +921,8 @@
         <span class="c1"># add y variables.</span>
         <span class="n">binary_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">binary_size</span><span class="p">):</span>
-            <span class="n">op3</span><span class="o">.</span><span class="n">continuous_var</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;y_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">lowerbound</span><span class="o">=-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">op3</span><span class="o">.</span><span class="n">continuous_var</span><span class="p">(</span><span class="n">lowerbound</span><span class="o">=-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
         <span class="c1"># set quadratic objective y</span>
         <span class="n">quadratic_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">beta</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">binary_size</span><span class="p">)</span> <span class="o">+</span> \
@@ -841,9 +944,12 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A solution of the Step1, as a numpy array.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qubo_optimizer</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">op1</span><span class="p">)</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x0_all_binaries</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">))</span>
+        <span class="n">x0_qubo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qubo_optimizer</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">op1</span><span class="p">)</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x0_all_binaries</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">step1_relative_indices</span><span class="p">]</span> <span class="o">=</span> <span class="n">x0_qubo</span>
+        <span class="k">return</span> <span class="n">x0_all_binaries</span>
 
-    <span class="k">def</span> <span class="nf">_update_x1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op2</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_update_x1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op2</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Solves the Step2 QuadraticProgram via the continuous optimizer.</span>
 
 <span class="sd">        Args:</span>
@@ -872,7 +978,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_continuous_optimizer</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">op3</span><span class="p">)</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_best_merit_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_best_merit_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The ADMM solution is that for which the merit value is the min</span>
 <span class="sd">            * sol: Iterate with the min merit value</span>
 <span class="sd">            * sol_val: Value of sol, according to the original objective</span>
@@ -935,10 +1041,10 @@
             <span class="n">cr_eq</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">solution</span><span class="p">)</span> <span class="o">-</span> <span class="n">constraint</span><span class="o">.</span><span class="n">rhs</span><span class="p">)</span>
 
         <span class="c1"># inequality constraints</span>
-        <span class="n">cr_ineq</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">cr_ineq</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">inequality_constraints</span><span class="p">:</span>
-            <span class="n">sense</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">GE</span> <span class="k">else</span> <span class="mi">1</span>
-            <span class="n">cr_ineq</span> <span class="o">+=</span> <span class="nb">max</span><span class="p">(</span><span class="n">sense</span> <span class="o">*</span> <span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">solution</span><span class="p">)</span> <span class="o">-</span> <span class="n">constraint</span><span class="o">.</span><span class="n">rhs</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">sense</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">GE</span> <span class="k">else</span> <span class="mf">1.0</span>
+            <span class="n">cr_ineq</span> <span class="o">+=</span> <span class="nb">max</span><span class="p">(</span><span class="n">sense</span> <span class="o">*</span> <span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">solution</span><span class="p">)</span> <span class="o">-</span> <span class="n">constraint</span><span class="o">.</span><span class="n">rhs</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">cr_eq</span> <span class="o">+</span> <span class="n">cr_ineq</span>
 
@@ -962,7 +1068,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_current_solution</span><span class="p">())</span>
 
-    <span class="k">def</span> <span class="nf">_get_solution_residuals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iteration</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_solution_residuals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iteration</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Compute primal and dual residual.</span>
 
 <span class="sd">        Args:</span>
@@ -979,7 +1085,25 @@
             <span class="n">elements_dual</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">z_init</span>
         <span class="n">dual_residual</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">rho</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">elements_dual</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">primal_residual</span><span class="p">,</span> <span class="n">dual_residual</span></div>
+        <span class="k">return</span> <span class="n">primal_residual</span><span class="p">,</span> <span class="n">dual_residual</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ADMMParameters</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns current parameters of the optimizer.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span>
+
+    <span class="nd">@parameters</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">ADMMParameters</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Sets the parameters of the optimizer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params: New parameters to set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">params</span></div>
 </pre></div>
 
            </div>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.quantum_info.states.statevector &mdash; Qiskit 0.19.6 belgelendirmesi</title>
+  <title>qiskit.quantum_info.states.statevector &mdash; Qiskit 0.20.0 belgelendirmesi</title>
   
 
   
@@ -273,6 +273,7 @@
 <span class="sd">Statevector quantum state class.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">numbers</span> <span class="kn">import</span> <span class="n">Number</span>
@@ -324,7 +325,7 @@
                 <span class="n">dims</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">_dims</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Operator</span><span class="p">):</span>
             <span class="c1"># We allow conversion of column-vector operators to Statevectors</span>
-            <span class="n">input_dim</span><span class="p">,</span> <span class="n">output_dim</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dim</span>
+            <span class="n">input_dim</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dim</span>
             <span class="k">if</span> <span class="n">input_dim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Input Operator is not a column-vector.&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
@@ -477,37 +478,27 @@
         <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">qargs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;qargs&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
+        <span class="c1"># Get return vector</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
         <span class="c1"># Evolution by a circuit or instruction</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">)):</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evolve_instruction</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Cannot apply QuantumCircuit to non-qubit Statevector.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evolve_instruction</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
+
         <span class="c1"># Evolution by an Operator</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Operator</span><span class="p">):</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Evolution on full statevector</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_input_dim</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                    <span class="s2">&quot;Operator input dimension is not equal to statevector dimension.&quot;</span>
-                <span class="p">)</span>
-            <span class="k">return</span> <span class="n">Statevector</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="n">other</span><span class="o">.</span><span class="n">output_dims</span><span class="p">())</span>
-        <span class="c1"># Otherwise we are applying an operator only to subsystems</span>
-        <span class="c1"># Check dimensions of subsystems match the operator</span>
+
+        <span class="c1"># check dimension</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">input_dims</span><span class="p">():</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
                 <span class="s2">&quot;Operator input dimensions are not equal to statevector subsystem dimensions.&quot;</span>
             <span class="p">)</span>
-        <span class="c1"># Reshape statevector and operator</span>
-        <span class="n">tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
-        <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
-        <span class="c1"># Construct list of tensor indices of statevector to be contracted</span>
-        <span class="n">num_indices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">())</span>
-        <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_indices</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">qubit</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">]</span>
-        <span class="n">tensor</span> <span class="o">=</span> <span class="n">Operator</span><span class="o">.</span><span class="n">_einsum_matmul</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
-        <span class="n">new_dims</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">())</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qargs</span><span class="p">):</span>
-            <span class="n">new_dims</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-        <span class="c1"># Replace evolved dimensions</span>
-        <span class="k">return</span> <span class="n">Statevector</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">new_dims</span><span class="p">)),</span> <span class="n">dims</span><span class="o">=</span><span class="n">new_dims</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">Statevector</span><span class="o">.</span><span class="n">_evolve_operator</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Statevector.equiv"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.Statevector.equiv.html#qiskit.quantum_info.Statevector.equiv">[belgeler]</a>    <span class="k">def</span> <span class="nf">equiv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return True if statevectors are equivalent up to global phase.</span>
@@ -533,6 +524,20 @@
             <span class="n">rtol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rtol</span>
         <span class="k">return</span> <span class="n">matrix_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">ignore_phase</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                             <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Statevector.expectation_value"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.Statevector.expectation_value.html#qiskit.quantum_info.Statevector.expectation_value">[belgeler]</a>    <span class="k">def</span> <span class="nf">expectation_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oper</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the expectation value of an operator.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            oper (Operator): an operator to evaluate expval of.</span>
+<span class="sd">            qargs (None or list): subsystems to apply operator on.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            complex: the expectation value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evolve</span><span class="p">(</span><span class="n">oper</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
+        <span class="n">conj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conjugate</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">conj</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">val</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Statevector.probabilities"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.Statevector.probabilities.html#qiskit.quantum_info.Statevector.probabilities">[belgeler]</a>    <span class="k">def</span> <span class="nf">probabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the subsystem measurement probability vector.</span>
@@ -780,8 +785,7 @@
         <span class="n">init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">instruction</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
         <span class="n">init</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
         <span class="n">vec</span> <span class="o">=</span> <span class="n">Statevector</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">instruction</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span><span class="p">,))</span>
-        <span class="n">vec</span><span class="o">.</span><span class="n">_append_instruction</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">vec</span></div>
+        <span class="k">return</span> <span class="n">Statevector</span><span class="o">.</span><span class="n">_evolve_instruction</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="n">instruction</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Statevector.to_dict"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.Statevector.to_dict.html#qiskit.quantum_info.Statevector.to_dict">[belgeler]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Convert the statevector to dictionary form.</span>
@@ -850,39 +854,100 @@
         <span class="sd">&quot;&quot;&quot;Return the tensor shape of the matrix operator&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">()))</span>
 
-    <span class="k">def</span> <span class="nf">_append_instruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_evolve_operator</span><span class="p">(</span><span class="n">statevec</span><span class="p">,</span> <span class="n">oper</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Evolve a qudit statevector&quot;&quot;&quot;</span>
+        <span class="n">is_qubit</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">statevec</span><span class="o">.</span><span class="n">num_qubits</span> <span class="ow">and</span> <span class="n">oper</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Full system evolution</span>
+            <span class="n">statevec</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">oper</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">statevec</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_qubit</span><span class="p">:</span>
+                <span class="n">statevec</span><span class="o">.</span><span class="n">_set_dims</span><span class="p">(</span><span class="n">oper</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">statevec</span>
+
+        <span class="c1"># Calculate contraction dimensions</span>
+        <span class="k">if</span> <span class="n">is_qubit</span><span class="p">:</span>
+            <span class="c1"># Qubit contraction</span>
+            <span class="n">new_dim</span> <span class="o">=</span> <span class="n">statevec</span><span class="o">.</span><span class="n">_dim</span>
+            <span class="n">num_qargs</span> <span class="o">=</span> <span class="n">statevec</span><span class="o">.</span><span class="n">num_qubits</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Qudit contraction</span>
+            <span class="n">new_dims</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">statevec</span><span class="o">.</span><span class="n">_dims</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qargs</span><span class="p">):</span>
+                <span class="n">new_dims</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="o">=</span> <span class="n">oper</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">new_dim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">new_dims</span><span class="p">)</span>
+            <span class="n">num_qargs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_dims</span><span class="p">)</span>
+
+        <span class="c1"># Get transpose axes</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_qargs</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">qargs</span><span class="p">)]</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="n">indices</span> <span class="o">+</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_qargs</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span>
+        <span class="n">axes_inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="c1"># Calculate contraction dimensions</span>
+        <span class="k">if</span> <span class="n">is_qubit</span><span class="p">:</span>
+            <span class="n">pre_tensor_shape</span> <span class="o">=</span> <span class="n">num_qargs</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span><span class="p">,)</span>
+            <span class="n">post_tensor_shape</span> <span class="o">=</span> <span class="n">pre_tensor_shape</span>
+            <span class="n">contract_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">oper</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">num_qargs</span> <span class="o">-</span> <span class="n">oper</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">contract_dim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">oper</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">)</span>
+            <span class="n">pre_tensor_shape</span> <span class="o">=</span> <span class="n">statevec</span><span class="o">.</span><span class="n">_shape</span>
+            <span class="n">contract_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">contract_dim</span><span class="p">,</span> <span class="n">statevec</span><span class="o">.</span><span class="n">_dim</span> <span class="o">//</span> <span class="n">contract_dim</span><span class="p">)</span>
+            <span class="n">post_tensor_shape</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">oper</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">))</span> <span class="o">+</span> <span class="p">[</span>
+                <span class="n">pre_tensor_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_qargs</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span>
+
+        <span class="c1"># reshape input for contraction</span>
+        <span class="n">statevec</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">statevec</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">pre_tensor_shape</span><span class="p">),</span> <span class="n">axes</span><span class="p">),</span> <span class="n">contract_shape</span><span class="p">)</span>
+        <span class="n">statevec</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">oper</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">statevec</span><span class="o">.</span><span class="n">_data</span><span class="p">),</span> <span class="n">post_tensor_shape</span><span class="p">)</span>
+        <span class="n">statevec</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">statevec</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">axes_inv</span><span class="p">),</span> <span class="n">new_dim</span><span class="p">)</span>
+
+        <span class="c1"># Update dimension</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_qubit</span><span class="p">:</span>
+            <span class="n">statevec</span><span class="o">.</span><span class="n">_set_dims</span><span class="p">(</span><span class="n">new_dims</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">statevec</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_evolve_instruction</span><span class="p">(</span><span class="n">statevec</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Update the current Statevector by applying an instruction.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">qiskit.circuit.reset</span> <span class="kn">import</span> <span class="n">Reset</span>
+        <span class="kn">from</span> <span class="nn">qiskit.circuit.barrier</span> <span class="kn">import</span> <span class="n">Barrier</span>
+
         <span class="n">mat</span> <span class="o">=</span> <span class="n">Operator</span><span class="o">.</span><span class="n">_instruction_to_matrix</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">mat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Perform the composition and inplace update the current state</span>
             <span class="c1"># of the operator</span>
-            <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evolve</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">data</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># If the instruction doesn&#39;t have a matrix defined we use its</span>
-            <span class="c1"># circuit decomposition definition if it exists, otherwise we</span>
-            <span class="c1"># cannot compose this gate and raise an error.</span>
-            <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;Cannot apply Instruction: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">qregs</span><span class="p">,</span> <span class="n">cregs</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">cregs</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                        <span class="s1">&#39;Cannot apply instruction with classical registers: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                            <span class="n">instr</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
-                <span class="c1"># Get the integer position of the flat register</span>
-                <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">new_qargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">new_qargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qargs</span><span class="p">[</span><span class="n">tup</span><span class="o">.</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">]</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_append_instruction</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">new_qargs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Statevector</span><span class="o">.</span><span class="n">_evolve_operator</span><span class="p">(</span><span class="n">statevec</span><span class="p">,</span> <span class="n">Operator</span><span class="p">(</span><span class="n">mat</span><span class="p">),</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_evolve_instruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return a new statevector by applying an instruction.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
-            <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
-        <span class="n">vec</span> <span class="o">=</span> <span class="n">Statevector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">())</span>
-        <span class="n">vec</span><span class="o">.</span><span class="n">_append_instruction</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">vec</span></div>
+        <span class="c1"># Special instruction types</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Reset</span><span class="p">):</span>
+            <span class="n">statevec</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">statevec</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span><span class="o">.</span><span class="n">_data</span>
+            <span class="k">return</span> <span class="n">statevec</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Barrier</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">statevec</span>
+
+        <span class="c1"># If the instruction doesn&#39;t have a matrix defined we use its</span>
+        <span class="c1"># circuit decomposition definition if it exists, otherwise we</span>
+        <span class="c1"># cannot compose this gate and raise an error.</span>
+        <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;Cannot apply Instruction: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1"> instruction definition is </span><span class="si">{1}</span><span class="s1">; expected QuantumCircuit&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">global_phase</span><span class="p">:</span>
+            <span class="n">statevec</span><span class="o">.</span><span class="n">_data</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">global_phase</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">qregs</span><span class="p">,</span> <span class="n">cregs</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cregs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                    <span class="s1">&#39;Cannot apply instruction with classical registers: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">instr</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="c1"># Get the integer position of the flat register</span>
+            <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">new_qargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_qargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qargs</span><span class="p">[</span><span class="n">tup</span><span class="o">.</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">]</span>
+            <span class="n">Statevector</span><span class="o">.</span><span class="n">_evolve_instruction</span><span class="p">(</span><span class="n">statevec</span><span class="p">,</span> <span class="n">instr</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">new_qargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">statevec</span></div>
 </pre></div>
 
            </div>

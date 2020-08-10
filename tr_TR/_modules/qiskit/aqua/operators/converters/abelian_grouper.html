@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.operators.converters.abelian_grouper &mdash; Qiskit 0.19.6 belgelendirmesi</title>
+  <title>qiskit.aqua.operators.converters.abelian_grouper &mdash; Qiskit 0.20.0 belgelendirmesi</title>
   
 
   
@@ -269,33 +269,36 @@
 <span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
 <span class="c1"># that they have been altered from the originals.</span>
 
-<span class="sd">&quot;&quot;&quot; AbelianGrouper Class &quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;AbelianGrouper Class&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">cast</span>
+
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">AquaError</span>
-<span class="kn">from</span> <span class="nn">..operator_base</span> <span class="kn">import</span> <span class="n">OperatorBase</span>
+<span class="kn">from</span> <span class="nn">.converter_base</span> <span class="kn">import</span> <span class="n">ConverterBase</span>
 <span class="kn">from</span> <span class="nn">..list_ops.list_op</span> <span class="kn">import</span> <span class="n">ListOp</span>
 <span class="kn">from</span> <span class="nn">..list_ops.summed_op</span> <span class="kn">import</span> <span class="n">SummedOp</span>
-<span class="kn">from</span> <span class="nn">..state_fns.operator_state_fn</span> <span class="kn">import</span> <span class="n">OperatorStateFn</span>
+<span class="kn">from</span> <span class="nn">..operator_base</span> <span class="kn">import</span> <span class="n">OperatorBase</span>
 <span class="kn">from</span> <span class="nn">..primitive_ops.pauli_op</span> <span class="kn">import</span> <span class="n">PauliOp</span>
-<span class="kn">from</span> <span class="nn">.converter_base</span> <span class="kn">import</span> <span class="n">ConverterBase</span>
-
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">..state_fns.operator_state_fn</span> <span class="kn">import</span> <span class="n">OperatorStateFn</span>
 
 
 <div class="viewcode-block" id="AbelianGrouper"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.converters.AbelianGrouper.html#qiskit.aqua.operators.converters.AbelianGrouper">[belgeler]</a><span class="k">class</span> <span class="nc">AbelianGrouper</span><span class="p">(</span><span class="n">ConverterBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    The AbelianGrouper converts SummedOps into a sum of Abelian sums. Meaning,</span>
-<span class="sd">    it will traverse the Operator, and when it finds a SummedOp, it will evaluate which of the</span>
-<span class="sd">    summed sub-Operators commute with one another. It will then convert each of the groups of</span>
+    <span class="sd">&quot;&quot;&quot;The AbelianGrouper converts SummedOps into a sum of Abelian sums.</span>
+
+<span class="sd">    Meaning, it will traverse the Operator, and when it finds a SummedOp, it will evaluate which of</span>
+<span class="sd">    the summed sub-Operators commute with one another. It will then convert each of the groups of</span>
 <span class="sd">    commuting Operators into their own SummedOps, and return the sum-of-commuting-SummedOps.</span>
 <span class="sd">    This is particularly useful for cases where mutually commuting groups can be handled</span>
 <span class="sd">    similarly, as in the case of Pauli Expectations, where commuting Paulis have the same</span>
 <span class="sd">    diagonalizing circuit rotation, or Pauli Evolutions, where commuting Paulis can be</span>
-<span class="sd">    diagonalized together. &quot;&quot;&quot;</span>
+<span class="sd">    diagonalized together.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">traverse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -305,7 +308,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_traverse</span> <span class="o">=</span> <span class="n">traverse</span>
 
 <div class="viewcode-block" id="AbelianGrouper.convert"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.converters.AbelianGrouper.convert.html#qiskit.aqua.operators.converters.AbelianGrouper.convert">[belgeler]</a>    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operator</span><span class="p">:</span> <span class="n">OperatorBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Check if operator is a SummedOp, in which case covert it into a sum of mutually</span>
+        <span class="sd">&quot;&quot;&quot;Check if operator is a SummedOp, in which case covert it into a sum of mutually</span>
 <span class="sd">        commuting sums, or if the Operator contains sub-Operators and ``traverse`` is True,</span>
 <span class="sd">        attempt to convert any sub-Operators.</span>
 
@@ -319,8 +322,8 @@
         <span class="kn">from</span> <span class="nn">..evolutions.evolved_op</span> <span class="kn">import</span> <span class="n">EvolvedOp</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="n">ListOp</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="n">SummedOp</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">PauliOp</span><span class="p">)</span>
-                                                       <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">operator</span><span class="o">.</span><span class="n">oplist</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="n">SummedOp</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">PauliOp</span><span class="p">)</span>
+                                                      <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">operator</span><span class="o">.</span><span class="n">oplist</span><span class="p">):</span>
                 <span class="c1"># For now, we only support graphs over Paulis.</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">group_subops</span><span class="p">(</span><span class="n">operator</span><span class="p">)</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traverse</span><span class="p">:</span>
@@ -332,15 +335,18 @@
                                    <span class="n">is_measurement</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">is_measurement</span><span class="p">,</span>
                                    <span class="n">coeff</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="n">EvolvedOp</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traverse</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">EvolvedOp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">primitive</span><span class="p">),</span> <span class="n">coeff</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">EvolvedOp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">primitive</span><span class="p">),</span> <span class="n">coeff</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">operator</span></div>
 
-<div class="viewcode-block" id="AbelianGrouper.group_subops"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.converters.AbelianGrouper.group_subops.html#qiskit.aqua.operators.converters.AbelianGrouper.group_subops">[belgeler]</a>    <span class="k">def</span> <span class="nf">group_subops</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_op</span><span class="p">:</span> <span class="n">ListOp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ListOp</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Given a ListOp, attempt to group into Abelian ListOps of the same type.</span>
+<div class="viewcode-block" id="AbelianGrouper.group_subops"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.converters.AbelianGrouper.group_subops.html#qiskit.aqua.operators.converters.AbelianGrouper.group_subops">[belgeler]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">group_subops</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">list_op</span><span class="p">:</span> <span class="n">ListOp</span><span class="p">,</span> <span class="n">fast</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">use_nx</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ListOp</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Given a ListOp, attempt to group into Abelian ListOps of the same type.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            list_op: The Operator to group into Abelian groups</span>
+<span class="sd">            fast: Enable the fast commutation graph generation if all operators are Pauli operators</span>
+<span class="sd">            use_nx: Enable networkx.coloring.greedy_color instead of the numpy-based coloring</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The grouped Operator.</span>
@@ -348,28 +354,96 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            AquaError: Any of list_op&#39;s sub-ops do not have a ``commutes`` method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="s1">&#39;commutes&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">list_op</span><span class="o">.</span><span class="n">oplist</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="s1">&#39;commutes&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">list_op</span><span class="o">.</span><span class="n">oplist</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s1">&#39;Cannot determine Abelian groups if an Operator in list_op does not &#39;</span>
                             <span class="s1">&#39;contain a `commutes` method&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">())</span>
 
-        <span class="n">commutation_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
-        <span class="n">commutation_graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">list_op</span><span class="o">.</span><span class="n">oplist</span><span class="p">)</span>
-        <span class="n">commutation_graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">ops</span><span class="p">:</span> <span class="ow">not</span> <span class="n">ops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">commutes</span><span class="p">(</span><span class="n">ops</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
-                                                <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">list_op</span><span class="o">.</span><span class="n">oplist</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">fast</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">PauliOp</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">list_op</span><span class="o">.</span><span class="n">oplist</span><span class="p">):</span>
+            <span class="n">edges</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_commutation_graph_fast</span><span class="p">(</span><span class="n">list_op</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edges</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_commutation_graph</span><span class="p">(</span><span class="n">list_op</span><span class="p">)</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">list_op</span><span class="p">))</span>
 
         <span class="c1"># Keys in coloring_dict are nodes, values are colors</span>
-        <span class="c1"># pylint: disable=no-member</span>
-        <span class="n">coloring_dict</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">coloring</span><span class="o">.</span><span class="n">greedy_color</span><span class="p">(</span><span class="n">commutation_graph</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;largest_first&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">use_nx</span><span class="p">:</span>
+            <span class="n">coloring_dict</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_networkx_coloring</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">coloring_dict</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_largest_degree_first_coloring</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">)</span>
 
-        <span class="n">groups</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">op</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">coloring_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">groups</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict</span>
+        <span class="c1"># sort items so that the output is consistent with all options (fast and use_nx)</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">coloring_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="n">groups</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">list_op</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
 
         <span class="n">group_ops</span> <span class="o">=</span> <span class="p">[</span><span class="n">list_op</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">abelian</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">group_ops</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">group_ops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">list_op</span><span class="o">.</span><span class="n">coeff</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">list_op</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">group_ops</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="n">list_op</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span></div></div>
+            <span class="k">return</span> <span class="n">group_ops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">list_op</span><span class="o">.</span><span class="n">coeff</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="n">list_op</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">group_ops</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="n">list_op</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_commutation_graph</span><span class="p">(</span><span class="n">list_op</span><span class="p">:</span> <span class="n">ListOp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;Create edges (i, j) if i and j are not commutable.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            list_op: list_op</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A list of pairs of indices of the operators that are not commutable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">list_op</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">list_op</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">commutes</span><span class="p">(</span><span class="n">list_op</span><span class="p">[</span><span class="n">j</span><span class="p">])]</span>  <span class="c1"># type: ignore</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_commutation_graph_fast</span><span class="p">(</span><span class="n">list_op</span><span class="p">:</span> <span class="n">ListOp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;Create edges (i, j) if i and j are not commutable.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            This method is applicable to only PauliOps.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            list_op: list_op</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A list of pairs of indices of the operators that are not commutable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># convert a Pauli operator into int vector where {I: 0, X: 2, Y: 3, Z: 1}</span>
+        <span class="n">mat1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">op</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">z</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">op</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">x</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">list_op</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+        <span class="n">mat2</span> <span class="o">=</span> <span class="n">mat1</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="c1"># mat3[i, j] is True if i and j are commutable with TPB</span>
+        <span class="n">mat3</span> <span class="o">=</span> <span class="p">(((</span><span class="n">mat1</span> <span class="o">*</span> <span class="n">mat2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">mat1</span> <span class="o">-</span> <span class="n">mat2</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="c1"># return [(i, j) if mat3[i, j] is False and i &lt; j]</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mat3</span><span class="p">),</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">))))</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_networkx_coloring</span><span class="p">(</span><span class="n">nodes</span><span class="p">:</span> <span class="nb">range</span><span class="p">,</span> <span class="n">edges</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;largest_first&#39;</span><span class="p">)</span> \
+            <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+        <span class="c1"># pylint: disable=no-member</span>
+        <span class="k">return</span> <span class="n">nx</span><span class="o">.</span><span class="n">coloring</span><span class="o">.</span><span class="n">greedy_color</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="n">strategy</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_largest_degree_first_coloring</span><span class="p">(</span><span class="n">nodes</span><span class="p">:</span> <span class="nb">range</span><span class="p">,</span> <span class="n">edges</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]])</span> \
+            <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="n">adj</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">:</span>
+            <span class="n">adj</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="n">adj</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">all_colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">adj</span><span class="p">[</span><span class="n">x</span><span class="p">]),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">neighbors</span> <span class="o">=</span> <span class="n">adj</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">color_neighbors</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="n">neighbors</span><span class="p">]</span>
+            <span class="n">color_neighbors</span> <span class="o">=</span> <span class="n">color_neighbors</span><span class="p">[</span><span class="n">color_neighbors</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+            <span class="n">mask</span><span class="p">[</span><span class="n">color_neighbors</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">color</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">all_colors</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">color</span><span class="p">[</span><span class="n">nodes</span><span class="p">])</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># never reach here if the input graph is valid</span>
+            <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s1">&#39;Uncolored nodes are left&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">color</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">}</span></div>
 </pre></div>
 
            </div>
