@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.components.optimizers.spsa &mdash; Qiskit 0.19.6 - dokumentacja</title>
+  <title>qiskit.aqua.components.optimizers.spsa &mdash; Qiskit 0.20.0 - dokumentacja</title>
   
 
   
@@ -271,6 +271,8 @@
 
 <span class="sd">&quot;&quot;&quot;Simultaneous Perturbation Stochastic Approximation optimizer.&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -319,7 +321,7 @@
 
     <span class="c1"># pylint: disable=unused-argument</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                 <span class="n">max_trials</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+                 <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
                  <span class="n">save_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
                  <span class="n">last_avg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
                  <span class="n">c0</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_C0</span><span class="p">,</span>
@@ -327,10 +329,11 @@
                  <span class="n">c2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.602</span><span class="p">,</span>
                  <span class="n">c3</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.101</span><span class="p">,</span>
                  <span class="n">c4</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-                 <span class="n">skip_calibration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                 <span class="n">skip_calibration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">max_trials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-<span class="sd">            max_trials: Maximum number of iterations to perform.</span>
+<span class="sd">            maxiter: Maximum number of iterations to perform.</span>
 <span class="sd">            save_steps: Save intermediate info every save_steps step. It has a min. value of 1.</span>
 <span class="sd">            last_avg: Averaged parameters over the last_avg iterations.</span>
 <span class="sd">                If last_avg = 1, only the last iteration is considered. It has a min. value of 1.</span>
@@ -340,14 +343,21 @@
 <span class="sd">            c3: The gamma in the paper, and it is used to adjust c (c1) at each iteration.</span>
 <span class="sd">            c4: The parameter used to control a as well.</span>
 <span class="sd">            skip_calibration: Skip calibration and use provided c(s) as is.</span>
+<span class="sd">            max_trials: Deprecated, use maxiter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">validate_min</span><span class="p">(</span><span class="s1">&#39;save_steps&#39;</span><span class="p">,</span> <span class="n">save_steps</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">validate_min</span><span class="p">(</span><span class="s1">&#39;last_avg&#39;</span><span class="p">,</span> <span class="n">last_avg</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">max_trials</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The max_trials parameter is deprecated as of &#39;</span>
+                          <span class="s1">&#39;0.8.0 and will be removed no sooner than 3 months after the release. &#39;</span>
+                          <span class="s1">&#39;You should use maxiter instead.&#39;</span><span class="p">,</span>
+                          <span class="ne">DeprecationWarning</span><span class="p">)</span>
+            <span class="n">maxiter</span> <span class="o">=</span> <span class="n">max_trials</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_OPTIONS</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_max_trials</span> <span class="o">=</span> <span class="n">max_trials</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxiter</span> <span class="o">=</span> <span class="n">maxiter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">c0</span><span class="p">,</span> <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">c3</span><span class="p">,</span> <span class="n">c4</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_skip_calibration</span> <span class="o">=</span> <span class="n">skip_calibration</span>
 
@@ -370,33 +380,37 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Parameters: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_skip_calibration</span><span class="p">:</span>
             <span class="c1"># at least one calibration, at most 25 calibrations</span>
-            <span class="n">num_steps_calibration</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_trials</span> <span class="o">//</span> <span class="mi">5</span><span class="p">))</span>
+            <span class="n">num_steps_calibration</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxiter</span> <span class="o">//</span> <span class="mi">5</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_calibration</span><span class="p">(</span><span class="n">objective_function</span><span class="p">,</span> <span class="n">initial_point</span><span class="p">,</span> <span class="n">num_steps_calibration</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Skipping calibration, parameters used as provided.&#39;</span><span class="p">)</span>
 
         <span class="n">opt</span><span class="p">,</span> <span class="n">sol</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimization</span><span class="p">(</span><span class="n">objective_function</span><span class="p">,</span>
                                                   <span class="n">initial_point</span><span class="p">,</span>
-                                                  <span class="n">max_trials</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_trials</span><span class="p">,</span>
+                                                  <span class="n">maxiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_maxiter</span><span class="p">,</span>
                                                   <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sol</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="kc">None</span></div>
 
-    <span class="k">def</span> <span class="nf">_optimization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj_fun</span><span class="p">,</span> <span class="n">initial_theta</span><span class="p">,</span> <span class="n">max_trials</span><span class="p">,</span> <span class="n">save_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">last_avg</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_optimization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                      <span class="n">obj_fun</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+                      <span class="n">initial_theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                      <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                      <span class="n">save_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+                      <span class="n">last_avg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Minimizes obj_fun(theta) with a simultaneous perturbation stochastic</span>
 <span class="sd">        approximation algorithm.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            obj_fun (callable): the function to minimize</span>
-<span class="sd">            initial_theta (numpy.array): initial value for the variables of</span>
-<span class="sd">                obj_fun</span>
-<span class="sd">            max_trials (int) : the maximum number of trial steps ( = function</span>
+<span class="sd">            obj_fun: the function to minimize</span>
+<span class="sd">            initial_theta: initial value for the variables of obj_fun</span>
+<span class="sd">            maxiter: the maximum number of trial steps ( = function</span>
 <span class="sd">                calls/2) in the optimization</span>
-<span class="sd">            save_steps (int) : stores optimization outcomes each &#39;save_steps&#39;</span>
+<span class="sd">            save_steps: stores optimization outcomes each &#39;save_steps&#39;</span>
 <span class="sd">                trial steps</span>
-<span class="sd">            last_avg (int) : number of last updates of the variables to average</span>
+<span class="sd">            last_avg: number of last updates of the variables to average</span>
 <span class="sd">                on for the final obj_fun</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            list: a list with the following elements:</span>
+<span class="sd">            a list with the following elements:</span>
 <span class="sd">                cost_final : final optimized value for obj_fun</span>
 <span class="sd">                theta_best : final values of the variables corresponding to</span>
 <span class="sd">                    cost_final</span>
@@ -416,12 +430,12 @@
         <span class="n">cost_minus_save</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">theta</span> <span class="o">=</span> <span class="n">initial_theta</span>
         <span class="n">theta_best</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">initial_theta</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_trials</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxiter</span><span class="p">):</span>
             <span class="c1"># SPSA Parameters</span>
             <span class="n">a_spsa</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
                                                            <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
             <span class="n">c_spsa</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
-            <span class="n">delta</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">aqua_globals</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">initial_theta</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">aqua_globals</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">initial_theta</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
             <span class="c1"># plus and minus directions</span>
             <span class="n">theta_plus</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">+</span> <span class="n">c_spsa</span> <span class="o">*</span> <span class="n">delta</span>
             <span class="n">theta_minus</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">-</span> <span class="n">c_spsa</span> <span class="o">*</span> <span class="n">delta</span>
@@ -444,7 +458,7 @@
                 <span class="n">cost_plus_save</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cost_plus</span><span class="p">)</span>
                 <span class="n">cost_minus_save</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cost_minus</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;=</span> <span class="n">max_trials</span> <span class="o">-</span> <span class="n">last_avg</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;=</span> <span class="n">maxiter</span> <span class="o">-</span> <span class="n">last_avg</span><span class="p">:</span>
                 <span class="n">theta_best</span> <span class="o">+=</span> <span class="n">theta</span> <span class="o">/</span> <span class="n">last_avg</span>
         <span class="c1"># final cost update</span>
         <span class="n">cost_final</span> <span class="o">=</span> <span class="n">obj_fun</span><span class="p">(</span><span class="n">theta_best</span><span class="p">)</span>
@@ -453,7 +467,10 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">cost_final</span><span class="p">,</span> <span class="n">theta_best</span><span class="p">,</span> <span class="n">cost_plus_save</span><span class="p">,</span> <span class="n">cost_minus_save</span><span class="p">,</span>
                 <span class="n">theta_plus_save</span><span class="p">,</span> <span class="n">theta_minus_save</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">_calibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj_fun</span><span class="p">,</span> <span class="n">initial_theta</span><span class="p">,</span> <span class="n">stat</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_calibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                     <span class="n">obj_fun</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+                     <span class="n">initial_theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                     <span class="n">stat</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Calibrates and stores the SPSA parameters back.</span>
 
 <span class="sd">        SPSA parameters are c0 through c5 stored in parameters array</span>
@@ -464,11 +481,9 @@
 <span class="sd">        c1 is initial_c and is first perturbation of initial_theta.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            obj_fun (callable): the function to minimize.</span>
-<span class="sd">            initial_theta (numpy.array): initial value for the variables of</span>
-<span class="sd">                obj_fun.</span>
-<span class="sd">            stat (int) : number of random gradient directions to average on in</span>
-<span class="sd">                the calibration.</span>
+<span class="sd">            obj_fun: the function to minimize.</span>
+<span class="sd">            initial_theta: initial value for the variables of obj_fun.</span>
+<span class="sd">            stat: number of random gradient directions to average on in the calibration.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">target_update</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -478,7 +493,7 @@
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">stat</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;calibration step # </span><span class="si">%s</span><span class="s1"> of </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">stat</span><span class="p">))</span>
-            <span class="n">delta</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">aqua_globals</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">initial_theta</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">aqua_globals</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">initial_theta</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
             <span class="n">theta_plus</span> <span class="o">=</span> <span class="n">initial_theta</span> <span class="o">+</span> <span class="n">initial_c</span> <span class="o">*</span> <span class="n">delta</span>
             <span class="n">theta_minus</span> <span class="o">=</span> <span class="n">initial_theta</span> <span class="o">-</span> <span class="n">initial_c</span> <span class="o">*</span> <span class="n">delta</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_evals_grouped</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>

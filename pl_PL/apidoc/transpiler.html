@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Transpiler (qiskit.transpiler) &mdash; Qiskit 0.19.6 - dokumentacja</title>
+  <title>Transpiler (qiskit.transpiler) &mdash; Qiskit 0.20.0 - dokumentacja</title>
   
 
   
@@ -199,26 +199,13 @@
 <li class="toctree-l2"><a class="reference internal" href="tools.html">Qiskit Tools (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit.tools</span></code>)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tools_jupyter.html">Jupyter Tools (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit.tools.jupyter</span></code>)</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Transpiler (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit.transpiler</span></code>)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#pass-management">Pass Management</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../stubs/qiskit.transpiler.PassManager.html">PassManager</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../stubs/qiskit.transpiler.PassManagerConfig.html">PassManagerConfig</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../stubs/qiskit.transpiler.PropertySet.html">PropertySet</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../stubs/qiskit.transpiler.FlowController.html">FlowController</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#layout-and-topology">Layout and Topology</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../stubs/qiskit.transpiler.Layout.html">Layout</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../stubs/qiskit.transpiler.CouplingMap.html">CouplingMap</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#fenced-objects">Fenced Objects</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../stubs/qiskit.transpiler.FencedDAGCircuit.html">FencedDAGCircuit</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../stubs/qiskit.transpiler.FencedPropertySet.html">FencedPropertySet</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#exceptions">Exceptions</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../stubs/qiskit.transpiler.TranspilerError.html">TranspilerError</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../stubs/qiskit.transpiler.TranspilerAccessError.html">TranspilerAccessError</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#supplementary-information">Supplementary Information</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#transpiler-api">Transpiler API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pass-manager-construction">Pass Manager Construction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#layout-and-topology">Layout and Topology</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fenced-objects">Fenced Objects</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#exceptions">Exceptions</a></li>
 </ul>
 </li>
 </ul>
@@ -330,8 +317,403 @@
 </style>
 <span class="target" id="module-qiskit.transpiler"><span id="qiskit-transpiler"></span></span><div class="section" id="transpiler-qiskit-transpiler">
 <h1>Transpiler (<a class="reference internal" href="#module-qiskit.transpiler" title="qiskit.transpiler"><code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit.transpiler</span></code></a>)<a class="headerlink" href="#transpiler-qiskit-transpiler" title="Stały odnośnik do tego nagłówka">¶</a></h1>
-<div class="section" id="pass-management">
-<h2>Pass Management<a class="headerlink" href="#pass-management" title="Stały odnośnik do tego nagłówka">¶</a></h2>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Stały odnośnik do tego nagłówka">¶</a></h2>
+<p>Transpilation is the process of rewriting a given input circuit to match
+the topoplogy of a specific quantum device, and/or to optimize the circuit
+for execution on present day noisy quantum systems.</p>
+<p>Most circuits must undergo a series of transformations that make them compatible with
+a given target device, and optimize them to reduce the effects of noise on the
+resulting outcomes.  Rewriting quantum circuits to match hardware constraints and
+optimizing for performance can be far from trivial.  The flow of logic in the rewriting
+tool chain need not be linear, and can often have iterative sub-loops, conditional
+branches, and other complex behaviors.  That being said, the basic building blocks
+follow the structure given below:</p>
+<img alt="../_images/transpiling_core_steps.png" src="../_images/transpiling_core_steps.png" />
+<br><p>Qiskit has four pre-built transpilation pipelines available here:
+<a class="reference internal" href="transpiler_preset.html#module-qiskit.transpiler.preset_passmanagers" title="qiskit.transpiler.preset_passmanagers"><code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit.transpiler.preset_passmanagers</span></code></a>.  Unless the reader is familiar with
+quantum circuit optimization methods and their usage, it is best to use one of
+these ready-made routines.</p>
+</div>
+<div class="section" id="supplementary-information">
+<h2>Supplementary Information<a class="headerlink" href="#supplementary-information" title="Stały odnośnik do tego nagłówka">¶</a></h2>
+<div class="toggle docutils container">
+<div class="header docutils container">
+<p><strong>Basis Gates</strong></p>
+</div>
+<p>When writing a quantum circuit you are free to use any quantum gate (unitary operator) that
+you like, along with a collection of non-gate operations such as qubit measurements and
+reset operations.  However, when running a circuit on a real quantum device one no longer
+has this flexibility.  Due to limitations in, for example, the physical interactions
+between qubits, difficulty in implementing multi-qubit gates, control electronics etc,
+a quantum computing device can only natively support a handful of quantum gates and non-gate
+operations. In the present case of IBM Q devices, the native gate set can be found by querying
+the devices themselves, and looking for the corresponding attribute in their configuration:</p>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+</div>
+</div>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">basis_gates</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>[&#39;id&#39;, &#39;u1&#39;, &#39;u2&#39;, &#39;u3&#39;, &#39;cx&#39;]
+</pre></div>
+</div>
+</div>
+</div>
+<p>Every quantum circuit run on an IBM Q device must be expressed using only these basis gates.
+For example, suppose one wants to run a simple phase estimation circuit:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">qc</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">qc</span><span class="o">.</span><span class="n">x</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">qc</span><span class="o">.</span><span class="n">cu1</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">qc</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">qc</span><span class="o">.</span><span class="n">measure</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">qc</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="s1">&#39;mpl&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/transpiler_2_0.png" src="../_images/transpiler_2_0.png" />
+</div>
+</div>
+<p>We have <span class="math notranslate nohighlight">\(H\)</span>, <span class="math notranslate nohighlight">\(X\)</span>, and controlled-<span class="math notranslate nohighlight">\(U_{1}\)</span> gates, all of which are
+not in our devices basis gate set, and must be expanded.  This expansion is taken
+care of for us in the <a class="reference internal" href="execute.html#module-qiskit.execute" title="qiskit.execute"><code class="xref py py-func docutils literal notranslate"><span class="pre">qiskit.execute()</span></code></a> function. However, we can
+decompose the circuit to show what it would look like in the native gate set of
+the IBM Quantum devices:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">qc_basis</span> <span class="o">=</span> <span class="n">qc</span><span class="o">.</span><span class="n">decompose</span><span class="p">()</span>
+<span class="n">qc_basis</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="s1">&#39;mpl&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/transpiler_3_0.png" src="../_images/transpiler_3_0.png" />
+</div>
+</div>
+<p>A few things to highlight.  First, the circuit has gotten longer with respect to the
+initial one.  This can be verified by checking the depth of the circuits:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Original depth:&#39;</span><span class="p">,</span> <span class="n">qc</span><span class="o">.</span><span class="n">depth</span><span class="p">(),</span> <span class="s1">&#39;Decomposed Depth:&#39;</span><span class="p">,</span> <span class="n">qc_basis</span><span class="o">.</span><span class="n">depth</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Original depth: 4 Decomposed Depth: 7
+</pre></div>
+</div>
+</div>
+</div>
+<p>Second, although we had a single controlled gate, the fact that it was not in the basis
+set means that, when expanded, it requires more than a single <cite>cx</cite> gate to implement.
+All said, unrolling to the basis set of gates leads to an increase in the depth of a
+quantum circuit and the number of gates.</p>
+<p>It is important to highlight two special cases:</p>
+<ol class="arabic">
+<li><p>A SWAP gate is not a native gate on the IBM Q devices, and must be decomposed into
+three CNOT gates:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">swap_circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">swap_circ</span><span class="o">.</span><span class="n">swap</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">swap_circ</span><span class="o">.</span><span class="n">decompose</span><span class="p">()</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="s1">&#39;mpl&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/transpiler_5_0.png" src="../_images/transpiler_5_0.png" />
+</div>
+</div>
+<p>As a product of three CNOT gates, SWAP gates are expensive operations to perform on a
+noisy quantum devices.  However, such operations are usually necessary for embedding a
+circuit into the limited entangling gate connectivities of actual devices.  Thus,
+minimizing the number of SWAP gates in a circuit is a primary goal in the
+transpilation process.</p>
+</li>
+<li><p>A Toffoli, or controlled-controlled-not gate (<cite>ccx</cite>), is a three-qubit gate.  Given
+that our basis gate set includes only single- and two-qubit gates, it is obvious that
+this gate must be decomposed.  This decomposition is quite costly:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ccx_circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">ccx_circ</span><span class="o">.</span><span class="n">ccx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">ccx_circ</span><span class="o">.</span><span class="n">decompose</span><span class="p">()</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="s1">&#39;mpl&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/transpiler_6_0.png" src="../_images/transpiler_6_0.png" />
+</div>
+</div>
+<p>For every Toffoli gate in a quantum circuit, the IBM Quantum hardware may execute up to
+six CNOT gates, and a handful of single-qubit gates.  From this example, it should be
+clear that any algorithm that makes use of multiple Toffoli gates will end up as a
+circuit with large depth and will therefore be appreciably affected by noise and gate
+errors.</p>
+</li>
+</ol>
+<br></div>
+<div class="toggle docutils container">
+<div class="header docutils container">
+<p><strong>Initial Layout</strong></p>
+</div>
+<p>Quantum circuits are abstract entities whose qubits are „virtual” representations of actual
+qubits used in computations.  We need to be able to map these virtual qubits in a one-to-one
+manner to the „physical” qubits in an actual quantum device.</p>
+<img alt="../_images/mapping.png" src="../_images/mapping.png" />
+<br><br><p>By default, qiskit will do this mapping for you.  The choice of mapping depends on the
+properties of the circuit, the particular device you are targeting, and the optimization
+level that is chosen.  The basic mapping strategies are the following:</p>
+<ul class="simple">
+<li><p><strong>Trivial layout</strong>: Map virtual qubits to the same numbered physical qubit on the device,
+i.e. <cite>[0,1,2,3,4]</cite> -&gt; <cite>[0,1,2,3,4]</cite> (default in <cite>optimization_level=0</cite> and
+<cite>optimization_level=1</cite>).</p></li>
+<li><p><strong>Dense layout</strong>: Find the sub-graph of the device with same number of qubits as the circuit
+with the greatest connectivity (default in <cite>optimization_level=2</cite> and <cite>optimization_level=3</cite>).</p></li>
+</ul>
+<p>The choice of initial layout is extremely important when:</p>
+<ol class="arabic simple">
+<li><p>Computing the number of SWAP operations needed to map the input circuit onto the device
+topology.</p></li>
+<li><p>Taking into account the noise properties of the device.</p></li>
+</ol>
+<p>The choice of <cite>initial_layout</cite> can mean the difference between getting a result,
+and getting nothing but noise.</p>
+<p>Lets see what layouts are automatically picked at various optimization levels.  The modified
+circuits returned by <a class="reference internal" href="../stubs/qiskit.compiler.transpile.html#qiskit.compiler.transpile" title="qiskit.compiler.transpile"><code class="xref py py-func docutils literal notranslate"><span class="pre">qiskit.compiler.transpile()</span></code></a> have this initial layout information
+in them, and we can view this layout selection graphically using
+<a class="reference internal" href="../stubs/qiskit.visualization.plot_circuit_layout.html#qiskit.visualization.plot_circuit_layout" title="qiskit.visualization.plot_circuit_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">qiskit.visualization.plot_circuit_layout()</span></code></a>:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">transpile</span>
+<span class="kn">from</span> <span class="nn">qiskit.visualization</span> <span class="kn">import</span> <span class="n">plot_circuit_layout</span>
+<span class="kn">from</span> <span class="nn">qiskit.test.mock</span> <span class="kn">import</span> <span class="n">FakeVigo</span>
+<span class="n">backend</span> <span class="o">=</span> <span class="n">FakeVigo</span><span class="p">()</span>
+
+<span class="n">ghz</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">ghz</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">ghz</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">ghz</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+<span class="n">ghz</span><span class="o">.</span><span class="n">measure</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">ghz</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="s1">&#39;mpl&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/transpiler_7_0.png" src="../_images/transpiler_7_0.png" />
+</div>
+</div>
+<ul>
+<li><p><strong>Layout Using Optimization Level 0</strong></p>
+<blockquote>
+<div><div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">new_circ_lv0</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">ghz</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">optimization_level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">plot_circuit_layout</span><span class="p">(</span><span class="n">new_circ_lv0</span><span class="p">,</span> <span class="n">backend</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/transpiler_8_0.png" src="../_images/transpiler_8_0.png" />
+</div>
+</div>
+</div></blockquote>
+</li>
+<li><p><strong>Layout Using Optimization Level 3</strong></p>
+<blockquote>
+<div><div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">new_circ_lv3</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">ghz</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">optimization_level</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">plot_circuit_layout</span><span class="p">(</span><span class="n">new_circ_lv3</span><span class="p">,</span> <span class="n">backend</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/transpiler_9_0.png" src="../_images/transpiler_9_0.png" />
+</div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+<p>It is completely possible to specify your own initial layout.  To do so we can
+pass a list of integers to <a class="reference internal" href="../stubs/qiskit.compiler.transpile.html#qiskit.compiler.transpile" title="qiskit.compiler.transpile"><code class="xref py py-func docutils literal notranslate"><span class="pre">qiskit.compiler.transpile()</span></code></a> via the <cite>initial_layout</cite>
+keyword argument, where the index labels the virtual qubit in the circuit and the
+corresponding value is the label for the physical qubit to map onto:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Virtual -&gt; physical</span>
+<span class="c1">#    0    -&gt;    3</span>
+<span class="c1">#    1    -&gt;    4</span>
+<span class="c1">#    2    -&gt;    2</span>
+
+<span class="n">my_ghz</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">ghz</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">initial_layout</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">plot_circuit_layout</span><span class="p">(</span><span class="n">my_ghz</span><span class="p">,</span> <span class="n">backend</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/transpiler_10_0.png" src="../_images/transpiler_10_0.png" />
+</div>
+</div>
+<br></div>
+<div class="toggle docutils container">
+<div class="header docutils container">
+<p><strong>Mapping Circuits to Hardware Topology</strong></p>
+</div>
+<p>In order to implement a CNOT gate between qubits in a quantum circuit that are not directly
+connected on a quantum device one or more SWAP gates must be inserted into the circuit to
+move the qubit states around until they are adjacent on the device gate map.  Each SWAP
+gate is decomposed into three CNOT gates on the IBM Quantum devices, and represents an
+expensive and noisy operation to perform.  Thus, finding the minimum number of SWAP gates
+needed to map a circuit onto a given device, is an important step (if not the most important)
+in the whole execution process.</p>
+<p>However, as with many important things in life, finding the optimal SWAP mapping is hard.
+In fact it is in a class of problems called NP-Hard, and is thus prohibitively expensive
+to compute for all but the smallest quantum devices and input circuits.  To get around this,
+by default Qiskit uses a stochastic heuristic algorithm called
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Qiskit.transpiler.passes.StochasticSwap</span></code> to compute a good, but not necessarily minimal
+SWAP count.  The use of a stochastic method means the circuits generated by
+<code class="xref py py-func docutils literal notranslate"><span class="pre">Qiskit.compiler.transpile()</span></code> (or <code class="xref py py-func docutils literal notranslate"><span class="pre">Qiskit.execute()</span></code> that calls <cite>transpile</cite> internally)
+are not guaranteed to be the same over repeated runs.  Indeed, running the same circuit
+repeatedly will in general result in a distribution of circuit depths and gate counts at the
+output.</p>
+<p>In order to highlight this, we run a GHZ circuit 100 times, using a „bad” (disconnected)
+<cite>initial_layout</cite>:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">transpile</span>
+<span class="kn">from</span> <span class="nn">qiskit.test.mock</span> <span class="kn">import</span> <span class="n">FakeBoeblingen</span>
+<span class="n">backend</span> <span class="o">=</span> <span class="n">FakeBoeblingen</span><span class="p">()</span>
+
+<span class="n">ghz</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">ghz</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">ghz</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">ghz</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="s1">&#39;mpl&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/transpiler_11_0.png" src="../_images/transpiler_11_0.png" />
+</div>
+</div>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">depths</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+   <span class="n">depths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">transpile</span><span class="p">(</span><span class="n">ghz</span><span class="p">,</span>
+                           <span class="n">backend</span><span class="p">,</span>
+                           <span class="n">initial_layout</span><span class="o">=</span><span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span>
+                          <span class="p">)</span><span class="o">.</span><span class="n">depth</span><span class="p">())</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">depths</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">36</span><span class="p">)),</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#AC557C&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Depth&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Counts&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/transpiler_12_0.png" src="../_images/transpiler_12_0.png" />
+</div>
+</div>
+<p>This distribution is quite wide, signaling the difficultly the SWAP mapper is having
+in computing the best mapping.  Most circuits will have a distribution of depths,
+perhaps not as wide as this one, due to the stochastic nature of the default SWAP
+mapper.  Of course, we want the best circuit we can get, especially in cases where
+the depth is critical to success or failure.  In cases like this, it is best to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">transpile()</span></code> a circuit several times, e.g. 10, and take the one with the
+lowest depth.  The <code class="xref py py-func docutils literal notranslate"><span class="pre">transpile()</span></code> function will automatically run in parallel
+mode, making this procedure relatively speedy in most cases.</p>
+<br></div>
+<div class="toggle docutils container">
+<div class="header docutils container">
+<p><strong>Gate Optimization</strong></p>
+</div>
+<p>Decomposing quantum circuits into the basis gate set of the IBM Quantum devices,
+and the addition of SWAP gates needed to match hardware topology, conspire to
+increase the depth and gate count of quantum circuits.  Fortunately many routines
+for optimizing circuits by combining or eliminating gates exist.  In some cases
+these methods are so effective the output circuits have lower depth than the inputs.
+In other cases, not much can be done, and the computation may be difficult to
+perform on noisy devices.  Different gate optimizations are turned on with
+different <cite>optimization_level</cite> values.  Below we show the benefits gained from
+setting the optimization level higher:</p>
+<div class="admonition important">
+<p class="admonition-title">Ważne</p>
+<p>The output from <code class="xref py py-func docutils literal notranslate"><span class="pre">transpile()</span></code> varies due to the stochastic swap mapper.
+So the numbers below will likely change each time you run the code.</p>
+</div>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">transpile</span>
+<span class="kn">from</span> <span class="nn">qiskit.test.mock</span> <span class="kn">import</span> <span class="n">FakeBoeblingen</span>
+<span class="n">backend</span> <span class="o">=</span> <span class="n">FakeBoeblingen</span><span class="p">()</span>
+
+<span class="n">ghz</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">ghz</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">ghz</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">ghz</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="s1">&#39;mpl&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/transpiler_13_0.png" src="../_images/transpiler_13_0.png" />
+</div>
+</div>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+   <span class="n">circ</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">ghz</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">optimization_level</span><span class="o">=</span><span class="n">kk</span><span class="p">)</span>
+   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Optimization Level </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kk</span><span class="p">))</span>
+   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Depth:&#39;</span><span class="p">,</span> <span class="n">circ</span><span class="o">.</span><span class="n">depth</span><span class="p">())</span>
+   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Gate counts:&#39;</span><span class="p">,</span> <span class="n">circ</span><span class="o">.</span><span class="n">count_ops</span><span class="p">())</span>
+   <span class="nb">print</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Optimization Level 0
+Depth: 14
+Gate counts: OrderedDict([(&#39;cx&#39;, 19), (&#39;u2&#39;, 1)])
+
+Optimization Level 1
+Depth: 12
+Gate counts: OrderedDict([(&#39;cx&#39;, 20), (&#39;u2&#39;, 1)])
+
+Optimization Level 2
+Depth: 14
+Gate counts: OrderedDict([(&#39;cx&#39;, 16), (&#39;u2&#39;, 1)])
+
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Optimization Level 3
+Depth: 15
+Gate counts: OrderedDict([(&#39;cx&#39;, 18), (&#39;u2&#39;, 12)])
+
+</pre></div>
+</div>
+</div>
+</div>
+<br></div>
+</div>
+<div class="section" id="transpiler-api">
+<h2>Transpiler API<a class="headerlink" href="#transpiler-api" title="Stały odnośnik do tego nagłówka">¶</a></h2>
+<div class="section" id="pass-manager-construction">
+<h3>Pass Manager Construction<a class="headerlink" href="#pass-manager-construction" title="Stały odnośnik do tego nagłówka">¶</a></h3>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -354,7 +736,7 @@
 </table>
 </div>
 <div class="section" id="layout-and-topology">
-<h2>Layout and Topology<a class="headerlink" href="#layout-and-topology" title="Stały odnośnik do tego nagłówka">¶</a></h2>
+<h3>Layout and Topology<a class="headerlink" href="#layout-and-topology" title="Stały odnośnik do tego nagłówka">¶</a></h3>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -371,7 +753,7 @@
 </table>
 </div>
 <div class="section" id="fenced-objects">
-<h2>Fenced Objects<a class="headerlink" href="#fenced-objects" title="Stały odnośnik do tego nagłówka">¶</a></h2>
+<h3>Fenced Objects<a class="headerlink" href="#fenced-objects" title="Stały odnośnik do tego nagłówka">¶</a></h3>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -388,7 +770,7 @@
 </table>
 </div>
 <div class="section" id="exceptions">
-<h2>Exceptions<a class="headerlink" href="#exceptions" title="Stały odnośnik do tego nagłówka">¶</a></h2>
+<h3>Exceptions<a class="headerlink" href="#exceptions" title="Stały odnośnik do tego nagłówka">¶</a></h3>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -403,6 +785,7 @@
 </tr>
 </tbody>
 </table>
+</div>
 </div>
 </div>
 

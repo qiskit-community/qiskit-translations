@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.providers.ibmq &mdash; Qiskit 0.19.6 - dokumentacja</title>
+  <title>qiskit.providers.ibmq &mdash; Qiskit 0.20.0 - dokumentacja</title>
   
 
   
@@ -338,7 +338,8 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 
 <span class="kn">from</span> <span class="nn">.ibmqfactory</span> <span class="kn">import</span> <span class="n">IBMQFactory</span>
 <span class="kn">from</span> <span class="nn">.ibmqbackend</span> <span class="kn">import</span> <span class="n">IBMQBackend</span><span class="p">,</span> <span class="n">BaseBackend</span>
@@ -368,7 +369,10 @@
 <span class="sd">&quot;&quot;&quot;The environment variable name that is used to set the file for the IBM Quantum logger.&quot;&quot;&quot;</span>
 
 
-<div class="viewcode-block" id="least_busy"><a class="viewcode-back" href="../../../stubs/qiskit.providers.ibmq.least_busy.html#qiskit.providers.ibmq.least_busy">[dokumentacja]</a><span class="k">def</span> <span class="nf">least_busy</span><span class="p">(</span><span class="n">backends</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BaseBackend</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BaseBackend</span><span class="p">:</span>
+<div class="viewcode-block" id="least_busy"><a class="viewcode-back" href="../../../stubs/qiskit.providers.ibmq.least_busy.html#qiskit.providers.ibmq.least_busy">[dokumentacja]</a><span class="k">def</span> <span class="nf">least_busy</span><span class="p">(</span>
+        <span class="n">backends</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BaseBackend</span><span class="p">],</span>
+        <span class="n">reservation_lookahead</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">60</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseBackend</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Return the least busy backend from a list.</span>
 
 <span class="sd">    Return the least busy available backend for those that</span>
@@ -377,20 +381,36 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        backends: The backends to choose from.</span>
+<span class="sd">        reservation_lookahead: A backend is considered unavailable if it</span>
+<span class="sd">            has reservations in the next ``n`` minutes, where ``n`` is</span>
+<span class="sd">            the value of ``reservation_lookahead``.</span>
+<span class="sd">            If ``None``, reservations are not taken into consideration.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        The backend with the fewest number of pending jobs.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        IBMQError: If the backends list is empty or if a backend in the list</span>
+<span class="sd">        IBMQError: If the backends list is empty, or if none of the backends</span>
+<span class="sd">            is available, or if a backend in the list</span>
 <span class="sd">            does not have the ``pending_jobs`` attribute in its status.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">min</span><span class="p">([</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">backends</span> <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">status</span><span class="p">()</span><span class="o">.</span><span class="n">operational</span><span class="p">],</span>
-                   <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">b</span><span class="p">:</span> <span class="n">b</span><span class="o">.</span><span class="n">status</span><span class="p">()</span><span class="o">.</span><span class="n">pending_jobs</span><span class="p">)</span>
-    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">backends</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">IBMQError</span><span class="p">(</span><span class="s1">&#39;Unable to find the least_busy &#39;</span>
                         <span class="s1">&#39;backend from an empty list.&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="bp">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">back</span> <span class="ow">in</span> <span class="n">backends</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">back</span><span class="o">.</span><span class="n">status</span><span class="p">()</span><span class="o">.</span><span class="n">operational</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">reservation_lookahead</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">IBMQBackend</span><span class="p">):</span>
+                <span class="n">end_time</span> <span class="o">=</span> <span class="n">now</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="n">reservation_lookahead</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">reservations</span><span class="p">(</span><span class="n">now</span><span class="p">,</span> <span class="n">end_time</span><span class="p">):</span>
+                    <span class="k">continue</span>
+            <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">back</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">candidates</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">IBMQError</span><span class="p">(</span><span class="s1">&#39;No backend matches the criteria.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">b</span><span class="p">:</span> <span class="n">b</span><span class="o">.</span><span class="n">status</span><span class="p">()</span><span class="o">.</span><span class="n">pending_jobs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">IBMQError</span><span class="p">(</span><span class="s1">&#39;A backend in the list does not have the `pending_jobs` &#39;</span>
                         <span class="s1">&#39;attribute in its status.&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span></div>
