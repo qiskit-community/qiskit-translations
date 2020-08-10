@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.compiler.transpile &mdash; Documentação Qiskit 0.19.6</title>
+  <title>qiskit.compiler.transpile &mdash; Documentação Qiskit 0.20.0</title>
   
 
   
@@ -278,6 +278,7 @@
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumcircuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">BaseBackend</span>
 <span class="kn">from</span> <span class="nn">qiskit.providers.models</span> <span class="kn">import</span> <span class="n">BackendProperties</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers.models.backendproperties</span> <span class="kn">import</span> <span class="n">Gate</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler</span> <span class="kn">import</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">CouplingMap</span><span class="p">,</span> <span class="n">PropertySet</span><span class="p">,</span> <span class="n">PassManager</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.basepasses</span> <span class="kn">import</span> <span class="n">BasePass</span>
 <span class="kn">from</span> <span class="nn">qiskit.dagcircuit</span> <span class="kn">import</span> <span class="n">DAGCircuit</span>
@@ -287,7 +288,8 @@
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumregister</span> <span class="kn">import</span> <span class="n">Qubit</span>
 <span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">user_config</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.exceptions</span> <span class="kn">import</span> <span class="n">TranspilerError</span>
-<span class="kn">from</span> <span class="nn">qiskit.converters</span> <span class="kn">import</span> <span class="n">isinstanceint</span><span class="p">,</span> <span class="n">isinstancelist</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">ApplyLayout</span>
+<span class="kn">from</span> <span class="nn">qiskit.converters</span> <span class="kn">import</span> <span class="n">isinstanceint</span><span class="p">,</span> <span class="n">isinstancelist</span><span class="p">,</span> <span class="n">dag_to_circuit</span><span class="p">,</span> <span class="n">circuit_to_dag</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes.basis.ms_basis_decomposer</span> <span class="kn">import</span> <span class="n">MSBasisDecomposer</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.preset_passmanagers</span> <span class="kn">import</span> <span class="p">(</span><span class="n">level_0_pass_manager</span><span class="p">,</span>
                                                    <span class="n">level_1_pass_manager</span><span class="p">,</span>
@@ -305,6 +307,7 @@
               <span class="n">initial_layout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Layout</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">layout_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">routing_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">translation_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">seed_transpiler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">optimization_level</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">pass_manager</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PassManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -373,10 +376,11 @@
 
 <span class="sd">                    [qr[0], None, None, qr[1], None, qr[2]]</span>
 
-<span class="sd">        layout_method: Name of layout selection pass (&#39;trivial&#39;, &#39;dense&#39;, &#39;noise_adaptive&#39;)</span>
+<span class="sd">        layout_method: Name of layout selection pass (&#39;trivial&#39;, &#39;dense&#39;, &#39;noise_adaptive&#39;, &#39;sabre&#39;)</span>
 <span class="sd">            Sometimes a perfect layout can be available in which case the layout_method</span>
 <span class="sd">            may not run.</span>
-<span class="sd">        routing_method: Name of routing pass (&#39;basic&#39;, &#39;lookahead&#39;, &#39;stochastic&#39;)</span>
+<span class="sd">        routing_method: Name of routing pass (&#39;basic&#39;, &#39;lookahead&#39;, &#39;stochastic&#39;, &#39;sabre&#39;)</span>
+<span class="sd">        translation_method: Name of translation pass (&#39;unroller&#39;, &#39;translator&#39;, &#39;synthesis&#39;)</span>
 <span class="sd">        seed_transpiler: Sets random seed for the stochastic parts of the transpiler</span>
 <span class="sd">        optimization_level: How much optimization to perform on the circuits.</span>
 <span class="sd">            Higher levels generate more optimized circuits,</span>
@@ -443,7 +447,9 @@
                                     <span class="n">coupling_map</span><span class="o">=</span><span class="n">coupling_map</span><span class="p">,</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed_transpiler</span><span class="p">,</span>
                                     <span class="n">backend_properties</span><span class="o">=</span><span class="n">backend_properties</span><span class="p">,</span>
                                     <span class="n">initial_layout</span><span class="o">=</span><span class="n">initial_layout</span><span class="p">,</span> <span class="n">layout_method</span><span class="o">=</span><span class="n">layout_method</span><span class="p">,</span>
-                                    <span class="n">routing_method</span><span class="o">=</span><span class="n">routing_method</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">)</span>
+                                    <span class="n">routing_method</span><span class="o">=</span><span class="n">routing_method</span><span class="p">,</span>
+                                    <span class="n">translation_method</span><span class="o">=</span><span class="n">translation_method</span><span class="p">,</span>
+                                    <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">)</span>
 
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The parameter pass_manager in transpile is being deprecated. &quot;</span>
                       <span class="s2">&quot;The preferred way to tranpile a circuit using a custom pass manager is&quot;</span>
@@ -458,7 +464,7 @@
     <span class="c1"># Get transpile_args to configure the circuit transpilation job(s)</span>
     <span class="n">transpile_args</span> <span class="o">=</span> <span class="n">_parse_transpile_args</span><span class="p">(</span><span class="n">circuits</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">basis_gates</span><span class="p">,</span> <span class="n">coupling_map</span><span class="p">,</span>
                                            <span class="n">backend_properties</span><span class="p">,</span> <span class="n">initial_layout</span><span class="p">,</span>
-                                           <span class="n">layout_method</span><span class="p">,</span> <span class="n">routing_method</span><span class="p">,</span>
+                                           <span class="n">layout_method</span><span class="p">,</span> <span class="n">routing_method</span><span class="p">,</span> <span class="n">translation_method</span><span class="p">,</span>
                                            <span class="n">seed_transpiler</span><span class="p">,</span> <span class="n">optimization_level</span><span class="p">,</span>
                                            <span class="n">callback</span><span class="p">,</span> <span class="n">output_name</span><span class="p">)</span>
 
@@ -518,7 +524,6 @@
 <span class="sd">            transpile_config (dict): configuration dictating how to transpile. The</span>
 <span class="sd">                dictionary has the following format:</span>
 <span class="sd">                {&#39;optimization_level&#39;: int,</span>
-<span class="sd">                 &#39;pass_manager&#39;: PassManager,</span>
 <span class="sd">                 &#39;output_name&#39;: string,</span>
 <span class="sd">                 &#39;callback&#39;: callable,</span>
 <span class="sd">                 &#39;pass_manager_config&#39;: PassManagerConfig}</span>
@@ -531,8 +536,13 @@
 
     <span class="n">pass_manager_config</span> <span class="o">=</span> <span class="n">transpile_config</span><span class="p">[</span><span class="s1">&#39;pass_manager_config&#39;</span><span class="p">]</span>
 
+    <span class="k">if</span> <span class="n">transpile_config</span><span class="p">[</span><span class="s1">&#39;faulty_qubits_map&#39;</span><span class="p">]:</span>
+        <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">initial_layout</span> <span class="o">=</span> <span class="n">_remap_layout_faulty_backend</span><span class="p">(</span>
+            <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">initial_layout</span><span class="p">,</span> <span class="n">transpile_config</span><span class="p">[</span><span class="s1">&#39;faulty_qubits_map&#39;</span><span class="p">])</span>
+
     <span class="n">ms_basis_swap</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">basis_gates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">pass_manager_config</span><span class="o">.</span><span class="n">translation_method</span> <span class="o">==</span> <span class="s1">&#39;unroller&#39;</span>
+            <span class="ow">and</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">basis_gates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Workaround for ion trap support: If basis gates includes</span>
         <span class="c1"># Mølmer-Sørensen (rxx) and the circuit includes gates outside the basis,</span>
         <span class="c1"># first unroll to u3, cx, then run MSBasisDecomposer to target basis.</span>
@@ -561,13 +571,73 @@
     <span class="k">if</span> <span class="n">ms_basis_swap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">pass_manager</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MSBasisDecomposer</span><span class="p">(</span><span class="n">ms_basis_swap</span><span class="p">))</span>
 
-    <span class="k">return</span> <span class="n">pass_manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">transpile_config</span><span class="p">[</span><span class="s1">&#39;callback&#39;</span><span class="p">],</span>
-                            <span class="n">output_name</span><span class="o">=</span><span class="n">transpile_config</span><span class="p">[</span><span class="s1">&#39;output_name&#39;</span><span class="p">])</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">pass_manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">transpile_config</span><span class="p">[</span><span class="s1">&#39;callback&#39;</span><span class="p">],</span>
+                              <span class="n">output_name</span><span class="o">=</span><span class="n">transpile_config</span><span class="p">[</span><span class="s1">&#39;output_name&#39;</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">transpile_config</span><span class="p">[</span><span class="s1">&#39;faulty_qubits_map&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">_remap_circuit_faulty_backend</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">transpile_config</span><span class="p">[</span><span class="s1">&#39;backend_num_qubits&#39;</span><span class="p">],</span>
+                                             <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">backend_properties</span><span class="p">,</span>
+                                             <span class="n">transpile_config</span><span class="p">[</span><span class="s1">&#39;faulty_qubits_map&#39;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">def</span> <span class="nf">_remap_circuit_faulty_backend</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">,</span> <span class="n">backend_prop</span><span class="p">,</span> <span class="n">faulty_qubits_map</span><span class="p">):</span>
+    <span class="n">faulty_qubits</span> <span class="o">=</span> <span class="n">backend_prop</span><span class="o">.</span><span class="n">faulty_qubits</span><span class="p">()</span> <span class="k">if</span> <span class="n">backend_prop</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="n">disconnected_qubits</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">faulty_qubits_map</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                           <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">}</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">faulty_qubits</span><span class="p">)</span>
+    <span class="n">faulty_qubits_map_reverse</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">faulty_qubits_map</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">if</span> <span class="n">faulty_qubits</span><span class="p">:</span>
+        <span class="n">faulty_qreg</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">_create_qreg</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">faulty_qubits</span><span class="p">),</span> <span class="s1">&#39;faulty&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">faulty_qreg</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">disconnected_qubits</span><span class="p">:</span>
+        <span class="n">disconnected_qreg</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">_create_qreg</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">disconnected_qubits</span><span class="p">),</span> <span class="s1">&#39;disconnected&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">disconnected_qreg</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">new_layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">()</span>
+    <span class="n">faulty_qubit</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">disconnected_qubit</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">real_qubit</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">faulty_qubits_map</span><span class="p">[</span><span class="n">real_qubit</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_layout</span><span class="p">[</span><span class="n">real_qubit</span><span class="p">]</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">_layout</span><span class="p">[</span><span class="n">faulty_qubits_map</span><span class="p">[</span><span class="n">real_qubit</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">real_qubit</span> <span class="ow">in</span> <span class="n">faulty_qubits</span><span class="p">:</span>
+                <span class="n">new_layout</span><span class="p">[</span><span class="n">real_qubit</span><span class="p">]</span> <span class="o">=</span> <span class="n">faulty_qreg</span><span class="p">[</span><span class="n">faulty_qubit</span><span class="p">]</span>
+                <span class="n">faulty_qubit</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_layout</span><span class="p">[</span><span class="n">real_qubit</span><span class="p">]</span> <span class="o">=</span> <span class="n">disconnected_qreg</span><span class="p">[</span><span class="n">disconnected_qubit</span><span class="p">]</span>
+                <span class="n">disconnected_qubit</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">physical_layout_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">circuit</span><span class="o">.</span><span class="n">qubits</span><span class="p">:</span>
+        <span class="n">physical_layout_dict</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="o">=</span> <span class="n">faulty_qubits_map_reverse</span><span class="p">[</span><span class="n">qubit</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">faulty_qreg</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">disconnected_qreg</span><span class="p">[:]:</span>
+        <span class="n">physical_layout_dict</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_layout</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span>
+    <span class="n">dag_circuit</span> <span class="o">=</span> <span class="n">circuit_to_dag</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+    <span class="n">apply_layout_pass</span> <span class="o">=</span> <span class="n">ApplyLayout</span><span class="p">()</span>
+    <span class="n">apply_layout_pass</span><span class="o">.</span><span class="n">property_set</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span><span class="n">physical_layout_dict</span><span class="p">)</span>
+    <span class="n">circuit</span> <span class="o">=</span> <span class="n">dag_to_circuit</span><span class="p">(</span><span class="n">apply_layout_pass</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">dag_circuit</span><span class="p">))</span>
+    <span class="n">circuit</span><span class="o">.</span><span class="n">_layout</span> <span class="o">=</span> <span class="n">new_layout</span>
+    <span class="k">return</span> <span class="n">circuit</span>
+
+
+<span class="k">def</span> <span class="nf">_remap_layout_faulty_backend</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">faulty_qubits_map</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">layout</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">layout</span>
+    <span class="n">new_layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">virtual</span><span class="p">,</span> <span class="n">physical</span> <span class="ow">in</span> <span class="n">layout</span><span class="o">.</span><span class="n">get_virtual_bits</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">faulty_qubits_map</span><span class="p">[</span><span class="n">physical</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s2">&quot;The initial_layout parameter refers to faulty&quot;</span>
+                                  <span class="s2">&quot; or disconnected qubits&quot;</span><span class="p">)</span>
+        <span class="n">new_layout</span><span class="p">[</span><span class="n">virtual</span><span class="p">]</span> <span class="o">=</span> <span class="n">faulty_qubits_map</span><span class="p">[</span><span class="n">physical</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">new_layout</span>
 
 
 <span class="k">def</span> <span class="nf">_parse_transpile_args</span><span class="p">(</span><span class="n">circuits</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span>
                           <span class="n">basis_gates</span><span class="p">,</span> <span class="n">coupling_map</span><span class="p">,</span> <span class="n">backend_properties</span><span class="p">,</span>
-                          <span class="n">initial_layout</span><span class="p">,</span> <span class="n">layout_method</span><span class="p">,</span> <span class="n">routing_method</span><span class="p">,</span>
+                          <span class="n">initial_layout</span><span class="p">,</span> <span class="n">layout_method</span><span class="p">,</span> <span class="n">routing_method</span><span class="p">,</span> <span class="n">translation_method</span><span class="p">,</span>
                           <span class="n">seed_transpiler</span><span class="p">,</span> <span class="n">optimization_level</span><span class="p">,</span>
                           <span class="n">callback</span><span class="p">,</span> <span class="n">output_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Resolve the various types of args allowed to the transpile() function through</span>
@@ -589,11 +659,14 @@
     <span class="n">num_circuits</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">circuits</span><span class="p">)</span>
 
     <span class="n">basis_gates</span> <span class="o">=</span> <span class="n">_parse_basis_gates</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">circuits</span><span class="p">)</span>
+    <span class="n">faulty_qubits_map</span> <span class="o">=</span> <span class="n">_parse_faulty_qubits_map</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
     <span class="n">coupling_map</span> <span class="o">=</span> <span class="n">_parse_coupling_map</span><span class="p">(</span><span class="n">coupling_map</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
     <span class="n">backend_properties</span> <span class="o">=</span> <span class="n">_parse_backend_properties</span><span class="p">(</span><span class="n">backend_properties</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
+    <span class="n">backend_num_qubits</span> <span class="o">=</span> <span class="n">_parse_backend_num_qubits</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
     <span class="n">initial_layout</span> <span class="o">=</span> <span class="n">_parse_initial_layout</span><span class="p">(</span><span class="n">initial_layout</span><span class="p">,</span> <span class="n">circuits</span><span class="p">)</span>
     <span class="n">layout_method</span> <span class="o">=</span> <span class="n">_parse_layout_method</span><span class="p">(</span><span class="n">layout_method</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
     <span class="n">routing_method</span> <span class="o">=</span> <span class="n">_parse_routing_method</span><span class="p">(</span><span class="n">routing_method</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
+    <span class="n">translation_method</span> <span class="o">=</span> <span class="n">_parse_translation_method</span><span class="p">(</span><span class="n">translation_method</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
     <span class="n">seed_transpiler</span> <span class="o">=</span> <span class="n">_parse_seed_transpiler</span><span class="p">(</span><span class="n">seed_transpiler</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
     <span class="n">optimization_level</span> <span class="o">=</span> <span class="n">_parse_optimization_level</span><span class="p">(</span><span class="n">optimization_level</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
     <span class="n">output_name</span> <span class="o">=</span> <span class="n">_parse_output_name</span><span class="p">(</span><span class="n">output_name</span><span class="p">,</span> <span class="n">circuits</span><span class="p">)</span>
@@ -601,22 +674,56 @@
 
     <span class="n">list_transpile_args</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">,</span> <span class="n">coupling_map</span><span class="p">,</span> <span class="n">backend_properties</span><span class="p">,</span>
-                    <span class="n">initial_layout</span><span class="p">,</span> <span class="n">layout_method</span><span class="p">,</span> <span class="n">routing_method</span><span class="p">,</span>
+                    <span class="n">initial_layout</span><span class="p">,</span> <span class="n">layout_method</span><span class="p">,</span> <span class="n">routing_method</span><span class="p">,</span> <span class="n">translation_method</span><span class="p">,</span>
                     <span class="n">seed_transpiler</span><span class="p">,</span> <span class="n">optimization_level</span><span class="p">,</span>
-                    <span class="n">output_name</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+                    <span class="n">output_name</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">backend_num_qubits</span><span class="p">,</span> <span class="n">faulty_qubits_map</span><span class="p">):</span>
         <span class="n">transpile_args</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;pass_manager_config&#39;</span><span class="p">:</span> <span class="n">PassManagerConfig</span><span class="p">(</span><span class="n">basis_gates</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                                                                    <span class="n">coupling_map</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                                                                    <span class="n">backend_properties</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
                                                                    <span class="n">initial_layout</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
                                                                    <span class="n">layout_method</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
                                                                    <span class="n">routing_method</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span>
-                                                                   <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">6</span><span class="p">]),</span>
-                          <span class="s1">&#39;optimization_level&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span>
-                          <span class="s1">&#39;output_name&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span>
-                          <span class="s1">&#39;callback&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">9</span><span class="p">]}</span>
+                                                                   <span class="n">translation_method</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span>
+                                                                   <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">7</span><span class="p">]),</span>
+                          <span class="s1">&#39;optimization_level&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span>
+                          <span class="s1">&#39;output_name&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span>
+                          <span class="s1">&#39;callback&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">10</span><span class="p">],</span>
+                          <span class="s1">&#39;backend_num_qubits&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">11</span><span class="p">],</span>
+                          <span class="s1">&#39;faulty_qubits_map&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">12</span><span class="p">]}</span>
         <span class="n">list_transpile_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">transpile_args</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">list_transpile_args</span>
+
+
+<span class="k">def</span> <span class="nf">_create_faulty_qubits_map</span><span class="p">(</span><span class="n">backend</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;If the backend has faulty qubits, those should be excluded. A faulty_qubit_map is a map</span>
+<span class="sd">       from working qubit in the backend to dumnmy qubits that are consecutive and connected.&quot;&quot;&quot;</span>
+    <span class="n">faulty_qubits_map</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">backend</span><span class="o">.</span><span class="n">properties</span><span class="p">():</span>
+            <span class="n">faulty_qubits</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">properties</span><span class="p">()</span><span class="o">.</span><span class="n">faulty_qubits</span><span class="p">()</span>
+            <span class="n">faulty_edges</span> <span class="o">=</span> <span class="p">[</span><span class="n">gates</span><span class="o">.</span><span class="n">qubits</span> <span class="k">for</span> <span class="n">gates</span> <span class="ow">in</span> <span class="n">backend</span><span class="o">.</span><span class="n">properties</span><span class="p">()</span><span class="o">.</span><span class="n">faulty_gates</span><span class="p">()]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">faulty_qubits</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">faulty_edges</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">faulty_qubits</span> <span class="ow">or</span> <span class="n">faulty_edges</span><span class="p">:</span>
+            <span class="n">faulty_qubits_map</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">configuration</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span>
+            <span class="n">full_coupling_map</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">coupling_map</span>
+            <span class="n">functional_cm_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">edge</span> <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">full_coupling_map</span>
+                                  <span class="k">if</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span><span class="o">.</span><span class="n">isdisjoint</span><span class="p">(</span><span class="n">faulty_qubits</span><span class="p">)</span> <span class="ow">and</span>
+                                      <span class="n">edge</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">faulty_edges</span><span class="p">)]</span>
+
+            <span class="n">connected_working_qubits</span> <span class="o">=</span> <span class="n">CouplingMap</span><span class="p">(</span><span class="n">functional_cm_list</span><span class="p">)</span><span class="o">.</span><span class="n">largest_connected_component</span><span class="p">()</span>
+            <span class="n">dummy_qubit_counter</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">configuration</span><span class="o">.</span><span class="n">n_qubits</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">connected_working_qubits</span><span class="p">:</span>
+                    <span class="n">faulty_qubits_map</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="o">=</span> <span class="n">dummy_qubit_counter</span>
+                    <span class="n">dummy_qubit_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">faulty_qubits_map</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">faulty_qubits_map</span>
 
 
 <span class="k">def</span> <span class="nf">_parse_basis_gates</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">circuits</span><span class="p">):</span>
@@ -638,7 +745,14 @@
         <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s1">&#39;configuration&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
             <span class="n">configuration</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">configuration</span><span class="p">,</span> <span class="s1">&#39;coupling_map&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">configuration</span><span class="o">.</span><span class="n">coupling_map</span><span class="p">:</span>
-                <span class="n">coupling_map</span> <span class="o">=</span> <span class="n">CouplingMap</span><span class="p">(</span><span class="n">configuration</span><span class="o">.</span><span class="n">coupling_map</span><span class="p">)</span>
+                <span class="n">faulty_map</span> <span class="o">=</span> <span class="n">_create_faulty_qubits_map</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">faulty_map</span><span class="p">:</span>
+                    <span class="n">coupling_map</span> <span class="o">=</span> <span class="n">CouplingMap</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">qubit1</span><span class="p">,</span> <span class="n">qubit2</span> <span class="ow">in</span> <span class="n">configuration</span><span class="o">.</span><span class="n">coupling_map</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">faulty_map</span><span class="p">[</span><span class="n">qubit1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">faulty_map</span><span class="p">[</span><span class="n">qubit2</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">coupling_map</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">faulty_map</span><span class="p">[</span><span class="n">qubit1</span><span class="p">],</span> <span class="n">faulty_map</span><span class="p">[</span><span class="n">qubit2</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">coupling_map</span> <span class="o">=</span> <span class="n">CouplingMap</span><span class="p">(</span><span class="n">configuration</span><span class="o">.</span><span class="n">coupling_map</span><span class="p">)</span>
 
     <span class="c1"># coupling_map could be None, or a list of lists, e.g. [[0, 1], [2, 1]]</span>
     <span class="k">if</span> <span class="n">coupling_map</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coupling_map</span><span class="p">,</span> <span class="n">CouplingMap</span><span class="p">):</span>
@@ -657,9 +771,44 @@
     <span class="k">if</span> <span class="n">backend_properties</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s1">&#39;properties&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
             <span class="n">backend_properties</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">properties</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">backend_properties</span> <span class="ow">and</span> \
+                    <span class="p">(</span><span class="n">backend_properties</span><span class="o">.</span><span class="n">faulty_qubits</span><span class="p">()</span> <span class="ow">or</span> <span class="n">backend_properties</span><span class="o">.</span><span class="n">faulty_gates</span><span class="p">()):</span>
+                <span class="n">faulty_qubits</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">backend_properties</span><span class="o">.</span><span class="n">faulty_qubits</span><span class="p">(),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">faulty_edges</span> <span class="o">=</span> <span class="p">[</span><span class="n">gates</span><span class="o">.</span><span class="n">qubits</span> <span class="k">for</span> <span class="n">gates</span> <span class="ow">in</span> <span class="n">backend_properties</span><span class="o">.</span><span class="n">faulty_gates</span><span class="p">()]</span>
+                <span class="c1"># remove faulty qubits in backend_properties.qubits</span>
+                <span class="k">for</span> <span class="n">faulty_qubit</span> <span class="ow">in</span> <span class="n">faulty_qubits</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="n">backend_properties</span><span class="o">.</span><span class="n">qubits</span><span class="p">[</span><span class="n">faulty_qubit</span><span class="p">]</span>
+
+                <span class="n">gates</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">gate</span> <span class="ow">in</span> <span class="n">backend_properties</span><span class="o">.</span><span class="n">gates</span><span class="p">:</span>
+                    <span class="c1"># remove gates using faulty edges or with faulty qubits (and remap the</span>
+                    <span class="c1"># gates in terms of faulty_qubits_map)</span>
+                    <span class="n">faulty_qubits_map</span> <span class="o">=</span> <span class="n">_create_faulty_qubits_map</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">faulty_qubits_map</span><span class="p">[</span><span class="n">qubits</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">qubits</span> <span class="ow">in</span> <span class="n">gate</span><span class="o">.</span><span class="n">qubits</span><span class="p">])</span> <span class="ow">or</span> \
+                            <span class="n">gate</span><span class="o">.</span><span class="n">qubits</span> <span class="ow">in</span> <span class="n">faulty_edges</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">gate_dict</span> <span class="o">=</span> <span class="n">gate</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+                    <span class="n">replacement_gate</span> <span class="o">=</span> <span class="n">Gate</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">gate_dict</span><span class="p">)</span>
+                    <span class="n">gate_dict</span><span class="p">[</span><span class="s1">&#39;qubits&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">faulty_qubits_map</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">gate</span><span class="o">.</span><span class="n">qubits</span><span class="p">]</span>
+                    <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">qubit</span><span class="p">)</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">gate_dict</span><span class="p">[</span><span class="s1">&#39;qubits&#39;</span><span class="p">]])</span>
+                    <span class="n">gate_dict</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gate_dict</span><span class="p">[</span><span class="s1">&#39;gate&#39;</span><span class="p">],</span> <span class="n">args</span><span class="p">)</span>
+                    <span class="n">gates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">replacement_gate</span><span class="p">)</span>
+
+                <span class="n">backend_properties</span><span class="o">.</span><span class="n">gates</span> <span class="o">=</span> <span class="n">gates</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">backend_properties</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
         <span class="n">backend_properties</span> <span class="o">=</span> <span class="p">[</span><span class="n">backend_properties</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_circuits</span>
     <span class="k">return</span> <span class="n">backend_properties</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_backend_num_qubits</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_circuits</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">n_qubits</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_circuits</span>
+    <span class="n">backend_num_qubits</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">a_backend</span> <span class="ow">in</span> <span class="n">backend</span><span class="p">:</span>
+        <span class="n">backend_num_qubits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a_backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">n_qubits</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">backend_num_qubits</span>
 
 
 <span class="k">def</span> <span class="nf">_parse_initial_layout</span><span class="p">(</span><span class="n">initial_layout</span><span class="p">,</span> <span class="n">circuits</span><span class="p">):</span>
@@ -687,8 +836,10 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># even if one layout, but multiple circuits, the layout needs to be adapted for each</span>
         <span class="n">initial_layout</span> <span class="o">=</span> <span class="p">[</span><span class="n">_layout_from_raw</span><span class="p">(</span><span class="n">initial_layout</span><span class="p">,</span> <span class="n">circ</span><span class="p">)</span> <span class="k">for</span> <span class="n">circ</span> <span class="ow">in</span> <span class="n">circuits</span><span class="p">]</span>
+
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">initial_layout</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
         <span class="n">initial_layout</span> <span class="o">=</span> <span class="p">[</span><span class="n">initial_layout</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">circuits</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">initial_layout</span>
 
 
@@ -702,6 +853,12 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">routing_method</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
         <span class="n">routing_method</span> <span class="o">=</span> <span class="p">[</span><span class="n">routing_method</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_circuits</span>
     <span class="k">return</span> <span class="n">routing_method</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_translation_method</span><span class="p">(</span><span class="n">translation_method</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">translation_method</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">translation_method</span> <span class="o">=</span> <span class="p">[</span><span class="n">translation_method</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_circuits</span>
+    <span class="k">return</span> <span class="n">translation_method</span>
 
 
 <span class="k">def</span> <span class="nf">_parse_seed_transpiler</span><span class="p">(</span><span class="n">seed_transpiler</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">):</span>
@@ -726,6 +883,17 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
         <span class="n">callback</span> <span class="o">=</span> <span class="p">[</span><span class="n">callback</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_circuits</span>
     <span class="k">return</span> <span class="n">callback</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_faulty_qubits_map</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_circuits</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">_create_faulty_qubits_map</span><span class="p">(</span><span class="n">backend</span><span class="p">)]</span> <span class="o">*</span> <span class="n">num_circuits</span>
+    <span class="n">faulty_qubits_map</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">a_backend</span> <span class="ow">in</span> <span class="n">backend</span><span class="p">:</span>
+        <span class="n">faulty_qubits_map</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_create_faulty_qubits_map</span><span class="p">(</span><span class="n">a_backend</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">faulty_qubits_map</span>
 
 
 <span class="k">def</span> <span class="nf">_parse_output_name</span><span class="p">(</span><span class="n">output_name</span><span class="p">,</span> <span class="n">circuits</span><span class="p">):</span>

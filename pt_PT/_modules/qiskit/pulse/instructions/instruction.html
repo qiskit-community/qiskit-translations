@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.pulse.instructions.instruction &mdash; Documentação Qiskit 0.19.6</title>
+  <title>qiskit.pulse.instructions.instruction &mdash; Documentação Qiskit 0.20.0</title>
   
 
   
@@ -285,14 +285,13 @@
 
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">..channels</span> <span class="kn">import</span> <span class="n">Channel</span>
 <span class="kn">from</span> <span class="nn">..exceptions</span> <span class="kn">import</span> <span class="n">PulseError</span>
 <span class="kn">from</span> <span class="nn">..interfaces</span> <span class="kn">import</span> <span class="n">ScheduleComponent</span>
 <span class="kn">from</span> <span class="nn">..schedule</span> <span class="kn">import</span> <span class="n">Schedule</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">commands</span>  <span class="c1"># pylint: disable=unused-import</span>
 
 <span class="c1"># pylint: disable=missing-return-doc</span>
 
@@ -304,7 +303,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">operands</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">,</span>
-                 <span class="n">duration</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s1">&#39;commands.Command&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+                 <span class="n">duration</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                  <span class="n">channels</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Channel</span><span class="p">],</span>
                  <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Instruction initializer.</span>
@@ -312,29 +311,26 @@
 <span class="sd">        Args:</span>
 <span class="sd">            operands: The argument list.</span>
 <span class="sd">            duration: Length of time taken by the instruction in terms of dt.</span>
-<span class="sd">                      Deprecated: the first argument used to be the Command.</span>
 <span class="sd">            channels: Tuple of pulse channels that this instruction operates on.</span>
 <span class="sd">            name: Optional display name for this instruction.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            PulseError: If duration is negative.</span>
+<span class="sd">            PulseError: If the input ``channels`` are not all of</span>
+<span class="sd">                type :class:`Channel`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_command</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)):</span>
-            <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;Instruction duration was passed as a float. &quot;</span>
-                             <span class="s2">&quot;Please replace with an integer.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Commands have been deprecated. Use `qiskit.pulse.instructions` instead.&quot;</span><span class="p">,</span>
-                          <span class="ne">DeprecationWarning</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_command</span> <span class="o">=</span> <span class="n">duration</span>
-            <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">name</span>
-            <span class="n">duration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">duration</span>
-
+            <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;Instruction duration must be an integer, &quot;</span>
+                             <span class="s2">&quot;got </span><span class="si">{}</span><span class="s2"> instead.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">duration</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">duration</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> duration of </span><span class="si">{}</span><span class="s2"> is invalid: must be nonnegative.&quot;</span>
                              <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">duration</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_duration</span> <span class="o">=</span> <span class="n">duration</span>
+
+        <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">Channel</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;Expected a channel, got </span><span class="si">{}</span><span class="s2"> instead.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">))</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span> <span class="o">=</span> <span class="n">channels</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_timeslots</span> <span class="o">=</span> <span class="p">{</span><span class="n">channel</span><span class="p">:</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="p">)]</span> <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_operands</span> <span class="o">=</span> <span class="n">operands</span>
@@ -347,11 +343,15 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">command</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;commands.Command&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">command</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The associated command. Commands are deprecated, so this method will be deprecated</span>
 <span class="sd">        shortly.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Command: The deprecated command if available.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_command</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The `command` method is deprecated. Commands have been removed and this &quot;</span>
+                      <span class="s2">&quot;method returns None.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>  <span class="c1"># pylint: disable=invalid-name</span>
@@ -361,9 +361,6 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">operands</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return instruction operands.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;This is a deprecated instruction with a ``Command``, and it does &quot;</span>
-                          <span class="s2">&quot;not populate its `operands`.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operands</span>
 
     <span class="nd">@property</span>
@@ -444,19 +441,6 @@
         <span class="sd">&quot;&quot;&quot;Return itself as already single instruction.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="Instruction.union"><a class="viewcode-back" href="../../../../stubs/qiskit.pulse.instructions.Instruction.union.html#qiskit.pulse.Instruction.union">[documentos]</a>    <span class="k">def</span> <span class="nf">union</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">schedules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ScheduleComponent</span><span class="p">],</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schedule</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return a new schedule which is the union of `self` and `schedule`.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            *schedules: Schedules to be take the union with this Instruction.</span>
-<span class="sd">            name: Name of the new schedule. Defaults to name of self</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The union method is deprecated. Use insert with start_time=0.&quot;</span><span class="p">,</span>
-                      <span class="ne">DeprecationWarning</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
-        <span class="k">return</span> <span class="n">Schedule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">schedules</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span></div>
-
 <div class="viewcode-block" id="Instruction.shift"><a class="viewcode-back" href="../../../../stubs/qiskit.pulse.instructions.Instruction.shift.html#qiskit.pulse.Instruction.shift">[documentos]</a>    <span class="k">def</span> <span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">ScheduleComponent</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schedule</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return a new schedule shifted forward by `time`.</span>
 
@@ -497,11 +481,10 @@
 
 <div class="viewcode-block" id="Instruction.draw"><a class="viewcode-back" href="../../../../stubs/qiskit.pulse.instructions.Instruction.draw.html#qiskit.pulse.Instruction.draw">[documentos]</a>    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
              <span class="n">filename</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">interp_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-             <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">channels_to_plot</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Channel</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-             <span class="n">plot_all</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">plot_range</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">plot_all</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="n">plot_range</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">interactive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
              <span class="n">label</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">framechange</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-             <span class="n">scaling</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">channels</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Channel</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Plot the instruction.</span>
 
@@ -511,7 +494,6 @@
 <span class="sd">            filename: Name required to save pulse image</span>
 <span class="sd">            interp_method: A function for interpolation</span>
 <span class="sd">            scale: Relative visual scaling of waveform amplitudes</span>
-<span class="sd">            channels_to_plot: Deprecated, see `channels`</span>
 <span class="sd">            plot_all: Plot empty channels</span>
 <span class="sd">            plot_range: A tuple of time range to plot</span>
 <span class="sd">            interactive: When set true show the circuit in a new window</span>
@@ -519,24 +501,13 @@
 <span class="sd">            table: Draw event table for supported instructions</span>
 <span class="sd">            label: Label individual instructions</span>
 <span class="sd">            framechange: Add framechange indicators</span>
-<span class="sd">            scaling: Deprecated, see `scale`</span>
 <span class="sd">            channels: A list of channel names to plot</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            matplotlib.figure: A matplotlib figure object of the pulse schedule</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># pylint: disable=invalid-name, cyclic-import</span>
-        <span class="k">if</span> <span class="n">scaling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The parameter &quot;scaling&quot; is being replaced by &quot;scale&quot;&#39;</span><span class="p">,</span>
-                          <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-            <span class="n">scale</span> <span class="o">=</span> <span class="n">scaling</span>
-
         <span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">visualization</span>
-
-        <span class="k">if</span> <span class="n">channels_to_plot</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The parameter &quot;channels_to_plot&quot; is being replaced by &quot;channels&quot;&#39;</span><span class="p">,</span>
-                          <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-            <span class="n">channels</span> <span class="o">=</span> <span class="n">channels_to_plot</span>
 
         <span class="k">return</span> <span class="n">visualization</span><span class="o">.</span><span class="n">pulse_drawer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span>
                                           <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">interp_method</span><span class="o">=</span><span class="n">interp_method</span><span class="p">,</span>
@@ -551,16 +522,10 @@
 
 <span class="sd">        Equality is determined by the instruction sharing the same operands and channels.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">:</span>
-            <span class="c1"># Backwards compatibility for Instructions with Commands</span>
-            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">command</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">channels</span><span class="p">))</span>
         <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">operands</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">operands</span>
 
     <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">:</span>
-                <span class="c1"># Backwards compatibility for Instructions with Commands</span>
-                <span class="k">return</span> <span class="nb">hash</span><span class="p">(((</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="fm">__hash__</span><span class="p">()))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">((</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">operands</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span>
 
@@ -577,10 +542,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">operands</span><span class="p">:</span>
-            <span class="n">operands</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">operands</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">operands</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">))</span>
+        <span class="n">operands</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">operands</span><span class="p">)</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(</span><span class="si">{}{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">operands</span><span class="p">,</span>
                                  <span class="s2">&quot;, name=&#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
 </pre></div>

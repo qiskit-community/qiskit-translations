@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.providers.ibmq.accountprovider &mdash; Documentação Qiskit 0.19.6</title>
+  <title>qiskit.providers.ibmq.accountprovider &mdash; Documentação Qiskit 0.20.0</title>
   
 
   
@@ -342,12 +342,9 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span> <span class="o">=</span> <span class="n">credentials</span>
-        <span class="c1"># set the client.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_api</span> <span class="o">=</span> <span class="n">AccountClient</span><span class="p">(</span><span class="n">access_token</span><span class="p">,</span>
-                                  <span class="n">credentials</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
-                                  <span class="n">credentials</span><span class="o">.</span><span class="n">websockets_url</span><span class="p">,</span>
-                                  <span class="n">use_websockets</span><span class="o">=</span><span class="p">(</span><span class="ow">not</span> <span class="n">credentials</span><span class="o">.</span><span class="n">proxies</span><span class="p">),</span>
-                                  <span class="o">**</span><span class="n">credentials</span><span class="o">.</span><span class="n">connection_parameters</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span> <span class="o">=</span> <span class="n">AccountClient</span><span class="p">(</span><span class="n">access_token</span><span class="p">,</span>
+                                         <span class="n">credentials</span><span class="p">,</span>
+                                         <span class="o">**</span><span class="n">credentials</span><span class="o">.</span><span class="n">connection_parameters</span><span class="p">())</span>
 
         <span class="c1"># Initialize the internal list of backends.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_backends</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_discover_remote_backends</span><span class="p">()</span>
@@ -372,7 +369,7 @@
 <span class="sd">            A dict of the remote backend instances, keyed by backend name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>  <span class="c1"># type: ignore[var-annotated]</span>
-        <span class="n">configs_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">list_backends</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+        <span class="n">configs_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">list_backends</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">raw_config</span> <span class="ow">in</span> <span class="n">configs_list</span><span class="p">:</span>
             <span class="c1"># Make sure the raw_config is of proper type</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw_config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
@@ -391,14 +388,13 @@
                     <span class="n">configuration</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
                     <span class="n">provider</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
                     <span class="n">credentials</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials</span><span class="p">,</span>
-                    <span class="n">api</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                    <span class="n">api_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                     <span class="s1">&#39;Remote backend &quot;</span><span class="si">%s</span><span class="s1">&quot; could not be instantiated due to an &#39;</span>
-                    <span class="s1">&#39;invalid config: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
-                    <span class="n">raw_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;backend_name&#39;</span><span class="p">,</span>
-                                   <span class="n">raw_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)),</span>
-                    <span class="n">ex</span><span class="p">)</span>
+                    <span class="s1">&#39;invalid config: </span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">raw_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;backend_name&#39;</span><span class="p">,</span> <span class="n">raw_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)),</span>
+                    <span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">ex</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">ret</span>
 
