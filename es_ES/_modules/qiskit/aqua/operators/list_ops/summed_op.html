@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.operators.list_ops.summed_op &mdash; documentación de Qiskit - 0.19.6</title>
+  <title>qiskit.aqua.operators.list_ops.summed_op &mdash; documentación de Qiskit - 0.20.0</title>
   
 
   
@@ -271,17 +271,17 @@
 
 <span class="sd">&quot;&quot;&quot; SummedOp Class &quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">ParameterExpression</span>
-
-<span class="kn">from</span> <span class="nn">..operator_base</span> <span class="kn">import</span> <span class="n">OperatorBase</span>
 <span class="kn">from</span> <span class="nn">.list_op</span> <span class="kn">import</span> <span class="n">ListOp</span>
 <span class="kn">from</span> <span class="nn">..legacy.base_operator</span> <span class="kn">import</span> <span class="n">LegacyBaseOperator</span>
 <span class="kn">from</span> <span class="nn">..legacy.weighted_pauli_operator</span> <span class="kn">import</span> <span class="n">WeightedPauliOperator</span>
+<span class="kn">from</span> <span class="nn">..operator_base</span> <span class="kn">import</span> <span class="n">OperatorBase</span>
+<span class="kn">from</span> <span class="nn">..primitive_ops.primitive_op</span> <span class="kn">import</span> <span class="n">PrimitiveOp</span>
 
 
 <div class="viewcode-block" id="SummedOp"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.SummedOp.html#qiskit.aqua.operators.list_ops.SummedOp">[documentos]</a><span class="k">class</span> <span class="nc">SummedOp</span><span class="p">(</span><span class="n">ListOp</span><span class="p">):</span>
@@ -290,6 +290,7 @@
 <span class="sd">    later. This class holds logic to indicate that the Operators in ``oplist`` are meant to</span>
 <span class="sd">    be added together, and therefore if they reach a point in which they can be, such as after</span>
 <span class="sd">    evaluation or conversion to matrices, they can be reduced by addition. &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">oplist</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">],</span>
                  <span class="n">coeff</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
@@ -314,34 +315,94 @@
         <span class="k">return</span> <span class="kc">True</span>
 
 <div class="viewcode-block" id="SummedOp.add"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.SummedOp.add.html#qiskit.aqua.operators.list_ops.SummedOp.add">[documentos]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">OperatorBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SummedOp</span><span class="p">):</span>
-            <span class="n">self_new_ops</span> <span class="o">=</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">]</span>
-            <span class="n">other_new_ops</span> <span class="o">=</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">oplist</span><span class="p">]</span>
-            <span class="k">return</span> <span class="n">SummedOp</span><span class="p">(</span><span class="n">self_new_ops</span> <span class="o">+</span> <span class="n">other_new_ops</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">other</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">:</span>
-            <span class="n">new_oplist</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">)</span>
-            <span class="n">other_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-            <span class="n">new_oplist</span><span class="p">[</span><span class="n">other_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_oplist</span><span class="p">[</span><span class="n">other_index</span><span class="p">]</span> <span class="o">+</span> <span class="n">other</span>
-            <span class="k">return</span> <span class="n">SummedOp</span><span class="p">(</span><span class="n">new_oplist</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">SummedOp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oplist</span> <span class="o">+</span> <span class="p">[</span><span class="n">other</span><span class="p">],</span> <span class="n">coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span></div>
+        <span class="sd">&quot;&quot;&quot;Return Operator addition of ``self`` and ``other``, overloaded by ``+``.</span>
 
-    <span class="c1"># Try collapsing list or trees of Sums.</span>
+<span class="sd">        Note:</span>
+<span class="sd">            This appends ``other`` to ``self.oplist`` without checking ``other`` is already</span>
+<span class="sd">            included or not. If you want to simplify them, please use :meth:`simplify`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other: An ``OperatorBase`` with the same number of qubits as self, and in the same</span>
+<span class="sd">                &#39;Operator&#39;, &#39;State function&#39;, or &#39;Measurement&#39; category as self (i.e. the same type</span>
+<span class="sd">                of underlying function).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A ``SummedOp`` equivalent to the sum of self and other.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">self_new_ops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span> <span class="o">==</span> <span class="mi">1</span> \
+            <span class="k">else</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SummedOp</span><span class="p">):</span>
+            <span class="n">other_new_ops</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">oplist</span> <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">coeff</span> <span class="o">==</span> <span class="mi">1</span> \
+                <span class="k">else</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">oplist</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">other_new_ops</span> <span class="o">=</span> <span class="p">[</span><span class="n">other</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">SummedOp</span><span class="p">(</span><span class="n">self_new_ops</span> <span class="o">+</span> <span class="n">other_new_ops</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SummedOp.collapse_summands"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.SummedOp.collapse_summands.html#qiskit.aqua.operators.list_ops.SummedOp.collapse_summands">[documentos]</a>    <span class="k">def</span> <span class="nf">collapse_summands</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SummedOp&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return Operator by simplifying duplicate operators.</span>
+
+<span class="sd">        E.g., ``SummedOp([2 * X ^ Y, X ^ Y]).collapse_summands() -&gt; SummedOp([3 * X ^ Y])``.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A simplified ``SummedOp`` equivalent to self.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">oplist</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[OperatorBase]</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[Union[int, float, complex, ParameterExpression]]</span>
+        <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">PrimitiveOp</span><span class="p">):</span>
+                <span class="n">new_op</span> <span class="o">=</span> <span class="n">PrimitiveOp</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">primitive</span><span class="p">)</span>
+                <span class="n">new_coeff</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">coeff</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span>
+                <span class="k">if</span> <span class="n">new_op</span> <span class="ow">in</span> <span class="n">oplist</span><span class="p">:</span>
+                    <span class="n">index</span> <span class="o">=</span> <span class="n">oplist</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">new_op</span><span class="p">)</span>
+                    <span class="n">coeffs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">+=</span> <span class="n">new_coeff</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">oplist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_op</span><span class="p">)</span>
+                    <span class="n">coeffs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_coeff</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">oplist</span><span class="p">:</span>
+                    <span class="n">index</span> <span class="o">=</span> <span class="n">oplist</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+                    <span class="n">coeffs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">oplist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+                    <span class="n">coeffs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">SummedOp</span><span class="p">([</span><span class="n">op</span> <span class="o">*</span> <span class="n">coeff</span> <span class="k">for</span> <span class="n">op</span><span class="p">,</span> <span class="n">coeff</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">oplist</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">)])</span>  <span class="c1"># type: ignore</span></div>
+
     <span class="c1"># TODO be smarter about the fact that any two ops in oplist could be evaluated for sum.</span>
 <div class="viewcode-block" id="SummedOp.reduce"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.SummedOp.reduce.html#qiskit.aqua.operators.list_ops.SummedOp.reduce">[documentos]</a>    <span class="k">def</span> <span class="nf">reduce</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
-        <span class="n">reduced_ops</span> <span class="o">=</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">reduce</span><span class="p">()</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">]</span>
-        <span class="n">reduced_ops</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">reduced_ops</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span>
+        <span class="sd">&quot;&quot;&quot;Try collapsing list or trees of sums.</span>
+
+<span class="sd">        Tries to sum up duplicate operators and reduces the operators</span>
+<span class="sd">        in the sum.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A collapsed version of self, if possible.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># reduce constituents</span>
+        <span class="n">reduced_ops</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">reduce</span><span class="p">()</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span>
+
+        <span class="c1"># group duplicate operators</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reduced_ops</span><span class="p">,</span> <span class="n">SummedOp</span><span class="p">):</span>
+            <span class="n">reduced_ops</span> <span class="o">=</span> <span class="n">reduced_ops</span><span class="o">.</span><span class="n">collapse_summands</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reduced_ops</span><span class="p">,</span> <span class="n">SummedOp</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">reduced_ops</span><span class="o">.</span><span class="n">oplist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">reduced_ops</span><span class="o">.</span><span class="n">oplist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">reduced_ops</span></div>
+            <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="n">reduced_ops</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SummedOp.to_matrix_op"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.SummedOp.to_matrix_op.html#qiskit.aqua.operators.list_ops.SummedOp.to_matrix_op">[documentos]</a>    <span class="k">def</span> <span class="nf">to_matrix_op</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">massive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Returns an equivalent Operator composed of only NumPy-based primitives, such as</span>
+<span class="sd">        ``MatrixOp`` and ``VectorStateFn``. &quot;&quot;&quot;</span>
+        <span class="n">accum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to_matrix_op</span><span class="p">(</span><span class="n">massive</span><span class="o">=</span><span class="n">massive</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">)):</span>
+            <span class="n">accum</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">to_matrix_op</span><span class="p">(</span><span class="n">massive</span><span class="o">=</span><span class="n">massive</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+
+        <span class="k">return</span> <span class="n">accum</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span></div>
 
 <div class="viewcode-block" id="SummedOp.to_legacy_op"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.SummedOp.to_legacy_op.html#qiskit.aqua.operators.list_ops.SummedOp.to_legacy_op">[documentos]</a>    <span class="k">def</span> <span class="nf">to_legacy_op</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">massive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LegacyBaseOperator</span><span class="p">:</span>
         <span class="c1"># We do this recursively in case there are SummedOps of PauliOps in oplist.</span>
         <span class="n">legacy_ops</span> <span class="o">=</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">to_legacy_op</span><span class="p">(</span><span class="n">massive</span><span class="o">=</span><span class="n">massive</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">WeightedPauliOperator</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">legacy_ops</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">WeightedPauliOperator</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">legacy_ops</span><span class="p">):</span>
             <span class="c1"># If any Operators in oplist cannot be represented by Legacy Operators, the error</span>
             <span class="c1"># will be raised in the offending matrix-converted result (e.g. StateFn or ListOp)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_matrix_op</span><span class="p">(</span><span class="n">massive</span><span class="o">=</span><span class="n">massive</span><span class="p">)</span><span class="o">.</span><span class="n">to_legacy_op</span><span class="p">(</span><span class="n">massive</span><span class="o">=</span><span class="n">massive</span><span class="p">)</span>
@@ -353,9 +414,68 @@
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Cannot convert Operator with unbound parameter </span><span class="si">{}</span><span class="s1"> to Legacy &#39;</span>
                                 <span class="s1">&#39;Operator&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">coeff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">combo_fn</span><span class="p">(</span><span class="n">legacy_ops</span><span class="p">)</span> <span class="o">*</span> <span class="n">coeff</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">combo_fn</span><span class="p">(</span><span class="n">legacy_ops</span><span class="p">)</span> <span class="o">*</span> <span class="n">coeff</span></div>
+
+<div class="viewcode-block" id="SummedOp.print_details"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.SummedOp.print_details.html#qiskit.aqua.operators.list_ops.SummedOp.print_details">[documentos]</a>    <span class="k">def</span> <span class="nf">print_details</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print out the operator in details.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: a formatted string describes the operator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;print_details() is deprecated and will be removed in &quot;</span>
+                      <span class="s2">&quot;a future release. Instead you can use .to_legacy_op() &quot;</span>
+                      <span class="s2">&quot;and call print_details() on it&#39;s output&quot;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_legacy_op</span><span class="p">()</span><span class="o">.</span><span class="n">print_details</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+<div class="viewcode-block" id="SummedOp.equals"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.SummedOp.equals.html#qiskit.aqua.operators.list_ops.SummedOp.equals">[documentos]</a>    <span class="k">def</span> <span class="nf">equals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">OperatorBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Check if other is equal to self.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            This is not a mathematical check for equality.</span>
+<span class="sd">            If ``self`` and ``other`` implement the same operation but differ</span>
+<span class="sd">            in the representation (e.g. different type of summands)</span>
+<span class="sd">            ``equals`` will evaluate to ``False``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other: The other operator to check for equality.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True, if other and self are equal, otherwise False.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; from qiskit.aqua.operators import X, Z</span>
+<span class="sd">            &gt;&gt;&gt; 2 * X == X + X</span>
+<span class="sd">            True</span>
+<span class="sd">            &gt;&gt;&gt; X + Z == Z + X</span>
+<span class="sd">            True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">self_reduced</span><span class="p">,</span> <span class="n">other_reduced</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">reduce</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other_reduced</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">self_reduced</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># check if reduced op is still a SummedOp</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">self_reduced</span><span class="p">,</span> <span class="n">SummedOp</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">self_reduced</span> <span class="o">==</span> <span class="n">other_reduced</span>
+
+        <span class="n">self_reduced</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">SummedOp</span><span class="p">,</span> <span class="n">self_reduced</span><span class="p">)</span>
+        <span class="n">other_reduced</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">SummedOp</span><span class="p">,</span> <span class="n">other_reduced</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">self_reduced</span><span class="o">.</span><span class="n">oplist</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">other_reduced</span><span class="o">.</span><span class="n">oplist</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># absorb coeffs into the operators</span>
+        <span class="k">if</span> <span class="n">self_reduced</span><span class="o">.</span><span class="n">coeff</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">self_reduced</span> <span class="o">=</span> <span class="n">SummedOp</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">op</span> <span class="o">*</span> <span class="n">self_reduced</span><span class="o">.</span><span class="n">coeff</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">self_reduced</span><span class="o">.</span><span class="n">oplist</span><span class="p">])</span>  <span class="c1"># type: ignore</span>
+        <span class="k">if</span> <span class="n">other_reduced</span><span class="o">.</span><span class="n">coeff</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">other_reduced</span> <span class="o">=</span> <span class="n">SummedOp</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">op</span> <span class="o">*</span> <span class="n">other_reduced</span><span class="o">.</span><span class="n">coeff</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">other_reduced</span><span class="o">.</span><span class="n">oplist</span><span class="p">])</span>  <span class="c1"># type: ignore</span>
+
+        <span class="c1"># compare independent of order</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">self_reduced</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">other_reduced</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.compiler.assemble &mdash; documentación de Qiskit - 0.19.6</title>
+  <title>qiskit.compiler.assemble &mdash; documentación de Qiskit - 0.20.0</title>
   
 
   
@@ -273,8 +273,8 @@
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
-
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Qubit</span><span class="p">,</span> <span class="n">Parameter</span>
 <span class="kn">from</span> <span class="nn">qiskit.exceptions</span> <span class="kn">import</span> <span class="n">QiskitError</span>
@@ -314,9 +314,11 @@
              <span class="n">meas_return</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MeasReturnType</span><span class="p">]</span> <span class="o">=</span> <span class="n">MeasReturnType</span><span class="o">.</span><span class="n">AVERAGE</span><span class="p">,</span>
              <span class="n">meas_map</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Qubit</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">memory_slot_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
-             <span class="n">rep_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="n">rep_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="n">rep_delay</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">parameter_binds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">Parameter</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">parametric_pulses</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="n">init_qubits</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
              <span class="o">**</span><span class="n">run_config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Qobj</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Assemble a list of circuits or pulse schedules into a ``Qobj``.</span>
 
@@ -359,9 +361,13 @@
 <span class="sd">                * ``avg`` returns average measurement output (averaged over number of shots).</span>
 <span class="sd">        meas_map: List of lists, containing qubits that must be measured together.</span>
 <span class="sd">        memory_slot_size: Size of each memory slot if the output is Level 0.</span>
-<span class="sd">        rep_time: Repetition time of the experiment in s.</span>
-<span class="sd">            The delay between experiments will be ``rep_time``.</span>
-<span class="sd">            Must be from the list provided by the device.</span>
+<span class="sd">        rep_time (int): Time per program execution in seconds. Must be from the list provided</span>
+<span class="sd">            by the backend (``backend.configuration().rep_times``). Defaults to the first entry.</span>
+<span class="sd">        rep_delay (float): Delay between programs in seconds. Only supported on certain</span>
+<span class="sd">            backends (if ``backend.configuration().dynamic_reprate_enabled=True``). If supported,</span>
+<span class="sd">            ``rep_delay`` will be used instead of ``rep_time`` and must be from the range supplied</span>
+<span class="sd">            by the backend (``backend.configuration().rep_delay_range``). Default is given by</span>
+<span class="sd">            ``backend.configuration().default_rep_delay``.</span>
 <span class="sd">        parameter_binds: List of Parameter bindings over which the set of experiments will be</span>
 <span class="sd">            executed. Each list element (bind) should be of the form</span>
 <span class="sd">            {Parameter1: value1, Parameter2: value2, ...}. All binds will be</span>
@@ -372,6 +378,8 @@
 <span class="sd">            Example::</span>
 
 <span class="sd">            [&#39;gaussian&#39;, &#39;constant&#39;]</span>
+<span class="sd">        init_qubits: Whether to reset the qubits to the ground state for each shot.</span>
+<span class="sd">                     Default: ``True``.</span>
 <span class="sd">        **run_config: Extra arguments used to configure the run (e.g., for Aer configurable</span>
 <span class="sd">            backends). Refer to the backend documentation for details on these</span>
 <span class="sd">            arguments.</span>
@@ -387,7 +395,8 @@
     <span class="n">experiments</span> <span class="o">=</span> <span class="n">experiments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">experiments</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="n">experiments</span><span class="p">]</span>
     <span class="n">qobj_id</span><span class="p">,</span> <span class="n">qobj_header</span><span class="p">,</span> <span class="n">run_config_common_dict</span> <span class="o">=</span> <span class="n">_parse_common_args</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">qobj_id</span><span class="p">,</span> <span class="n">qobj_header</span><span class="p">,</span>
                                                                       <span class="n">shots</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">max_credits</span><span class="p">,</span>
-                                                                      <span class="n">seed_simulator</span><span class="p">,</span> <span class="o">**</span><span class="n">run_config</span><span class="p">)</span>
+                                                                      <span class="n">seed_simulator</span><span class="p">,</span> <span class="n">init_qubits</span><span class="p">,</span>
+                                                                      <span class="o">**</span><span class="n">run_config</span><span class="p">)</span>
 
     <span class="c1"># assemble either circuits or schedules</span>
     <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">)</span> <span class="k">for</span> <span class="n">exp</span> <span class="ow">in</span> <span class="n">experiments</span><span class="p">):</span>
@@ -405,7 +414,8 @@
         <span class="n">run_config</span> <span class="o">=</span> <span class="n">_parse_pulse_args</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">qubit_lo_freq</span><span class="p">,</span> <span class="n">meas_lo_freq</span><span class="p">,</span>
                                        <span class="n">qubit_lo_range</span><span class="p">,</span> <span class="n">meas_lo_range</span><span class="p">,</span>
                                        <span class="n">schedule_los</span><span class="p">,</span> <span class="n">meas_level</span><span class="p">,</span> <span class="n">meas_return</span><span class="p">,</span>
-                                       <span class="n">meas_map</span><span class="p">,</span> <span class="n">memory_slot_size</span><span class="p">,</span> <span class="n">rep_time</span><span class="p">,</span>
+                                       <span class="n">meas_map</span><span class="p">,</span> <span class="n">memory_slot_size</span><span class="p">,</span>
+                                       <span class="n">rep_time</span><span class="p">,</span> <span class="n">rep_delay</span><span class="p">,</span>
                                        <span class="n">parametric_pulses</span><span class="p">,</span>
                                        <span class="o">**</span><span class="n">run_config_common_dict</span><span class="p">)</span>
 
@@ -421,7 +431,7 @@
 
 <span class="c1"># TODO: rework to return a list of RunConfigs (one for each experiments), and a global one</span>
 <span class="k">def</span> <span class="nf">_parse_common_args</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">qobj_id</span><span class="p">,</span> <span class="n">qobj_header</span><span class="p">,</span> <span class="n">shots</span><span class="p">,</span>
-                       <span class="n">memory</span><span class="p">,</span> <span class="n">max_credits</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="p">,</span>
+                       <span class="n">memory</span><span class="p">,</span> <span class="n">max_credits</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="p">,</span> <span class="n">init_qubits</span><span class="p">,</span>
                        <span class="o">**</span><span class="n">run_config</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Resolve the various types of args allowed to the assemble() function through</span>
 <span class="sd">    duck typing, overriding args, etc. Refer to the assemble() docstring for details on</span>
@@ -437,7 +447,7 @@
 
 <span class="sd">    Raises:</span>
 <span class="sd">        QiskitError: if the memory arg is True and the backend does not support</span>
-<span class="sd">        memory. Also if shots exceeds max_shots for the configured backend.</span>
+<span class="sd">            memory. Also if shots exceeds max_shots for the configured backend.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># grab relevant info from backend if it exists</span>
     <span class="n">backend_config</span> <span class="o">=</span> <span class="kc">None</span>
@@ -478,6 +488,7 @@
                            <span class="n">memory</span><span class="o">=</span><span class="n">memory</span><span class="p">,</span>
                            <span class="n">max_credits</span><span class="o">=</span><span class="n">max_credits</span><span class="p">,</span>
                            <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed_simulator</span><span class="p">,</span>
+                           <span class="n">init_qubits</span><span class="o">=</span><span class="n">init_qubits</span><span class="p">,</span>
                            <span class="o">**</span><span class="n">run_config</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">qobj_id</span><span class="p">,</span> <span class="n">qobj_header</span><span class="p">,</span> <span class="n">run_config_dict</span>
@@ -486,7 +497,8 @@
 <span class="k">def</span> <span class="nf">_parse_pulse_args</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">qubit_lo_freq</span><span class="p">,</span> <span class="n">meas_lo_freq</span><span class="p">,</span> <span class="n">qubit_lo_range</span><span class="p">,</span>
                       <span class="n">meas_lo_range</span><span class="p">,</span> <span class="n">schedule_los</span><span class="p">,</span> <span class="n">meas_level</span><span class="p">,</span>
                       <span class="n">meas_return</span><span class="p">,</span> <span class="n">meas_map</span><span class="p">,</span>
-                      <span class="n">memory_slot_size</span><span class="p">,</span> <span class="n">rep_time</span><span class="p">,</span>
+                      <span class="n">memory_slot_size</span><span class="p">,</span>
+                      <span class="n">rep_time</span><span class="p">,</span> <span class="n">rep_delay</span><span class="p">,</span>
                       <span class="n">parametric_pulses</span><span class="p">,</span>
                       <span class="o">**</span><span class="n">run_config</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Build a pulse RunConfig replacing unset arguments with defaults derived from the `backend`.</span>
@@ -496,7 +508,8 @@
 <span class="sd">        RunConfig: a run config, which is a standardized object that configures the qobj</span>
 <span class="sd">            and determines the runtime environment.</span>
 <span class="sd">    Raises:</span>
-<span class="sd">        SchemaValidationError: if the given meas_level is not allowed for the given `backend`.</span>
+<span class="sd">        SchemaValidationError: If the given meas_level is not allowed for the given `backend`. If</span>
+<span class="sd">            rep_delay is not in the backend rep_delay_range.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># grab relevant info from backend if it exists</span>
     <span class="n">backend_config</span> <span class="o">=</span> <span class="kc">None</span>
@@ -528,13 +541,44 @@
 
     <span class="n">qubit_lo_range</span> <span class="o">=</span> <span class="n">qubit_lo_range</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend_config</span><span class="p">,</span> <span class="s1">&#39;qubit_lo_range&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">meas_lo_range</span> <span class="o">=</span> <span class="n">meas_lo_range</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend_config</span><span class="p">,</span> <span class="s1">&#39;meas_lo_range&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">dynamic_reprate_enabled</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend_config</span><span class="p">,</span> <span class="s1">&#39;dynamic_reprate_enabled&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
     <span class="n">rep_time</span> <span class="o">=</span> <span class="n">rep_time</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend_config</span><span class="p">,</span> <span class="s1">&#39;rep_times&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rep_time</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="n">rep_time</span> <span class="o">=</span> <span class="n">rep_time</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
     <span class="k">if</span> <span class="n">rep_time</span><span class="p">:</span>
-        <span class="n">rep_time</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rep_time</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dynamic_reprate_enabled</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Dynamic rep rates are supported on this backend. &#39;rep_delay&#39; will be &quot;</span>
+                          <span class="s2">&quot;used instead of &#39;rep_time&#39;.&quot;</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rep_time</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">rep_time</span> <span class="o">=</span> <span class="n">rep_time</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">rep_time</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rep_time</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">)</span>  <span class="c1"># convert sec to μs</span>
+
+    <span class="k">if</span> <span class="n">dynamic_reprate_enabled</span><span class="p">:</span>
+        <span class="n">rep_delay</span> <span class="o">=</span> <span class="n">rep_delay</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend_config</span><span class="p">,</span> <span class="s2">&quot;default_rep_delay&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rep_delay</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rep_delay_range</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend_config</span><span class="p">,</span> <span class="s2">&quot;rep_delay_range&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="c1"># check that rep_delay is in rep_delay_range</span>
+            <span class="k">if</span> <span class="n">rep_delay_range</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rep_delay_range</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="c1">#  pylint: disable=E1136</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rep_delay_range</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                        <span class="s2">&quot;Backend rep_delay_range </span><span class="si">{}</span><span class="s2"> must be a list with two entries.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">rep_delay_range</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">rep_delay_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">rep_delay</span> <span class="o">&lt;=</span> <span class="n">rep_delay_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="k">raise</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                        <span class="s2">&quot;Supplied rep delay </span><span class="si">{}</span><span class="s2"> not in the supported &quot;</span>
+                        <span class="s2">&quot;backend range </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rep_delay</span><span class="p">,</span> <span class="n">rep_delay_range</span><span class="p">)</span>
+                    <span class="p">)</span>
+            <span class="n">rep_delay</span> <span class="o">=</span> <span class="n">rep_delay</span> <span class="o">*</span> <span class="mf">1e6</span>  <span class="c1"># convert sec to μs</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rep_delay</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Dynamic rep rates not supported on this backend. rep_time will be &quot;</span>
+            <span class="s2">&quot;used instead of rep_delay.&quot;</span><span class="p">,</span>
+            <span class="ne">RuntimeWarning</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="n">parametric_pulses</span> <span class="o">=</span> <span class="n">parametric_pulses</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend_config</span><span class="p">,</span> <span class="s1">&#39;parametric_pulses&#39;</span><span class="p">,</span> <span class="p">[])</span>
 
@@ -549,6 +593,7 @@
                            <span class="n">meas_map</span><span class="o">=</span><span class="n">meas_map</span><span class="p">,</span>
                            <span class="n">memory_slot_size</span><span class="o">=</span><span class="n">memory_slot_size</span><span class="p">,</span>
                            <span class="n">rep_time</span><span class="o">=</span><span class="n">rep_time</span><span class="p">,</span>
+                           <span class="n">rep_delay</span><span class="o">=</span><span class="n">rep_delay</span><span class="p">,</span>
                            <span class="n">parametric_pulses</span><span class="o">=</span><span class="n">parametric_pulses</span><span class="p">,</span>
                            <span class="o">**</span><span class="n">run_config</span><span class="p">)</span>
     <span class="n">run_config</span> <span class="o">=</span> <span class="n">RunConfig</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">run_config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">})</span>
