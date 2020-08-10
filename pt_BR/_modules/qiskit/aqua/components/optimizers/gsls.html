@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.components.optimizers.gsls &mdash; documentação Qiskit 0.19.6</title>
+  <title>qiskit.aqua.components.optimizers.gsls &mdash; documentação Qiskit 0.20.0</title>
   
 
   
@@ -272,7 +272,8 @@
 
 <span class="sd">&quot;&quot;&quot;Line search with Gaussian-smoothed samples on a sphere.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -290,14 +291,14 @@
 <span class="sd">    based on Gaussian-smoothed samples on a sphere.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_OPTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;max_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;max_eval&#39;</span><span class="p">,</span> <span class="s1">&#39;disp&#39;</span><span class="p">,</span> <span class="s1">&#39;sampling_radius&#39;</span><span class="p">,</span>
+    <span class="n">_OPTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;maxiter&#39;</span><span class="p">,</span> <span class="s1">&#39;max_eval&#39;</span><span class="p">,</span> <span class="s1">&#39;disp&#39;</span><span class="p">,</span> <span class="s1">&#39;sampling_radius&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;sample_size_factor&#39;</span><span class="p">,</span> <span class="s1">&#39;initial_step_size&#39;</span><span class="p">,</span> <span class="s1">&#39;min_step_size&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;step_size_multiplier&#39;</span><span class="p">,</span> <span class="s1">&#39;armijo_parameter&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;min_gradient_norm&#39;</span><span class="p">,</span> <span class="s1">&#39;max_failed_rejection_sampling&#39;</span><span class="p">]</span>
 
     <span class="c1"># pylint:disable=unused-argument</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                 <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+                 <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
                  <span class="n">max_eval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
                  <span class="n">disp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                  <span class="n">sampling_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0e-6</span><span class="p">,</span>
@@ -307,10 +308,11 @@
                  <span class="n">step_size_multiplier</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.4</span><span class="p">,</span>
                  <span class="n">armijo_parameter</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0e-1</span><span class="p">,</span>
                  <span class="n">min_gradient_norm</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">,</span>
-                 <span class="n">max_failed_rejection_sampling</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                 <span class="n">max_failed_rejection_sampling</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
+                 <span class="n">max_iter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-<span class="sd">            max_iter: Maximum number of iterations.</span>
+<span class="sd">            maxiter: Maximum number of iterations.</span>
 <span class="sd">            max_eval: Maximum number of evaluations.</span>
 <span class="sd">            disp: Set to True to display convergence messages.</span>
 <span class="sd">            sampling_radius: Sampling radius to determine gradient estimate.</span>
@@ -325,8 +327,15 @@
 <span class="sd">            min_gradient_norm: If the gradient norm is below this threshold, the algorithm stops.</span>
 <span class="sd">            max_failed_rejection_sampling: Maximum number of attempts to sample points within</span>
 <span class="sd">                bounds.</span>
+<span class="sd">            max_iter: Deprecated, use maxiter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">max_iter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The max_iter parameter is deprecated as of &#39;</span>
+                          <span class="s1">&#39;0.8.0 and will be removed no sooner than 3 months after the release. &#39;</span>
+                          <span class="s1">&#39;You should use maxiter instead.&#39;</span><span class="p">,</span>
+                          <span class="ne">DeprecationWarning</span><span class="p">)</span>
+            <span class="n">maxiter</span> <span class="o">=</span> <span class="n">max_iter</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_OPTIONS</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
@@ -344,8 +353,8 @@
         <span class="p">}</span></div>
 
 <div class="viewcode-block" id="GSLS.optimize"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.optimizers.GSLS.optimize.html#qiskit.aqua.components.optimizers.GSLS.optimize">[documentos]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_vars</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-                 <span class="n">objective_function</span><span class="p">:</span> <span class="n">callable</span><span class="p">,</span>
-                 <span class="n">gradient_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">objective_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+                 <span class="n">gradient_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">variable_bounds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">initial_point</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">num_vars</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">,</span> <span class="n">gradient_function</span><span class="p">,</span>
@@ -369,7 +378,7 @@
 
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_value</span><span class="p">,</span> <span class="n">n_evals</span></div>
 
-<div class="viewcode-block" id="GSLS.ls_optimize"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.optimizers.GSLS.ls_optimize.html#qiskit.aqua.components.optimizers.GSLS.ls_optimize">[documentos]</a>    <span class="k">def</span> <span class="nf">ls_optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">obj_fun</span><span class="p">:</span> <span class="n">callable</span><span class="p">,</span> <span class="n">initial_point</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">var_lb</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+<div class="viewcode-block" id="GSLS.ls_optimize"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.optimizers.GSLS.ls_optimize.html#qiskit.aqua.components.optimizers.GSLS.ls_optimize">[documentos]</a>    <span class="k">def</span> <span class="nf">ls_optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">obj_fun</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">initial_point</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">var_lb</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
                     <span class="n">var_ub</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Run the line search optimization.</span>
 
@@ -411,7 +420,7 @@
         <span class="n">x</span> <span class="o">=</span> <span class="n">initial_point</span>
         <span class="n">x_value</span> <span class="o">=</span> <span class="n">obj_fun</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">n_evals</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">while</span> <span class="n">iter_count</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="s1">&#39;max_iter&#39;</span><span class="p">]</span> \
+        <span class="k">while</span> <span class="n">iter_count</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="s1">&#39;maxiter&#39;</span><span class="p">]</span> \
                 <span class="ow">and</span> <span class="n">n_evals</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="s1">&#39;max_eval&#39;</span><span class="p">]:</span>
 
             <span class="c1"># Determine set of sample points</span>

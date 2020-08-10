@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.optimization.converters.quadratic_program_to_ising &mdash; documentação Qiskit 0.19.6</title>
+  <title>qiskit.optimization.converters.quadratic_program_to_ising &mdash; documentação Qiskit 0.20.0</title>
   
 
   
@@ -270,18 +270,13 @@
 <span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
 <span class="c1"># that they have been altered from the originals.</span>
 
-
 <span class="sd">&quot;&quot;&quot;The converter from an ```QuadraticProgram``` to ``Operator``.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">Pauli</span>
-
-<span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">WeightedPauliOperator</span>
-
+<span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">OperatorBase</span>
 <span class="kn">from</span> <span class="nn">..problems.quadratic_program</span> <span class="kn">import</span> <span class="n">QuadraticProgram</span>
-<span class="kn">from</span> <span class="nn">..exceptions</span> <span class="kn">import</span> <span class="n">QiskitOptimizationError</span>
 
 
 <div class="viewcode-block" id="QuadraticProgramToIsing"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.converters.QuadraticProgramToIsing.html#qiskit.optimization.converters.QuadraticProgramToIsing">[documentos]</a><span class="k">class</span> <span class="nc">QuadraticProgramToIsing</span><span class="p">:</span>
@@ -289,92 +284,27 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Initialize the internal data structure.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_src</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_src</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[QuadraticProgram]</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The QuadraticProgramToIsing class is deprecated and &quot;</span>
+                      <span class="s2">&quot;will be removed in a future release. Use the &quot;</span>
+                      <span class="s2">&quot;.to_ising() method on a QuadraticProgram object &quot;</span>
+                      <span class="s2">&quot;instead.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
 
-<div class="viewcode-block" id="QuadraticProgramToIsing.encode"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.converters.QuadraticProgramToIsing.encode.html#qiskit.optimization.converters.QuadraticProgramToIsing.encode">[documentos]</a>    <span class="k">def</span> <span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">WeightedPauliOperator</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<div class="viewcode-block" id="QuadraticProgramToIsing.encode"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.converters.QuadraticProgramToIsing.encode.html#qiskit.optimization.converters.QuadraticProgramToIsing.encode">[documentos]</a>    <span class="k">def</span> <span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Convert a problem into a qubit operator</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            op: The optimization problem to be converted. Must be an unconstrained problem with</span>
 <span class="sd">                binary variables only.</span>
-
 <span class="sd">        Returns:</span>
 <span class="sd">            The qubit operator of the problem and the shift value.</span>
-
 <span class="sd">        Raises:</span>
 <span class="sd">            QiskitOptimizationError: If a variable type is not binary.</span>
 <span class="sd">            QiskitOptimizationError: If constraints exist in the problem.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_src</span> <span class="o">=</span> <span class="n">op</span>
-        <span class="c1"># if op has variables that are not binary, raise an error</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">get_num_vars</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">get_num_binary_vars</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span><span class="s1">&#39;The type of variable must be a binary variable.&#39;</span><span class="p">)</span>
-
-        <span class="c1"># if constraints exist, raise an error</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">linear_constraints</span> \
-                <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">quadratic_constraints</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span><span class="s1">&#39;An constraint exists. &#39;</span>
-                                          <span class="s1">&#39;The method supports only model with no constraints.&#39;</span><span class="p">)</span>
-
-        <span class="c1"># initialize Hamiltonian.</span>
-        <span class="n">num_nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">get_num_vars</span><span class="p">()</span>
-        <span class="n">pauli_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">shift</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">zero</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
-
-        <span class="c1"># set a sign corresponding to a maximized or minimized problem.</span>
-        <span class="c1"># sign == 1 is for minimized problem. sign == -1 is for maximized problem.</span>
-        <span class="n">sense</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">sense</span><span class="o">.</span><span class="n">value</span>
-
-        <span class="c1"># convert a constant part of the object function into Hamiltonian.</span>
-        <span class="n">shift</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">constant</span> <span class="o">*</span> <span class="n">sense</span>
-
-        <span class="c1"># convert linear parts of the object function into Hamiltonian.</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">coef</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
-            <span class="n">weight</span> <span class="o">=</span> <span class="n">coef</span> <span class="o">*</span> <span class="n">sense</span> <span class="o">/</span> <span class="mi">2</span>
-            <span class="n">z_p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-
-            <span class="n">pauli_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="n">weight</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">(</span><span class="n">z_p</span><span class="p">,</span> <span class="n">zero</span><span class="p">)])</span>
-            <span class="n">shift</span> <span class="o">+=</span> <span class="n">weight</span>
-
-        <span class="c1"># convert quadratic parts of the object function into Hamiltonian.</span>
-        <span class="c1"># first merge coefficients (i, j) and (j, i)</span>
-        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">coeff</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">quadratic</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">i</span><span class="p">:</span>
-                <span class="n">coeffs</span><span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">coeffs</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">coeff</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">coeffs</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span> <span class="o">=</span> <span class="n">coeffs</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">coeff</span>
-
-        <span class="c1"># create Pauli terms</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">coeff</span> <span class="ow">in</span> <span class="n">coeffs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-
-            <span class="n">weight</span> <span class="o">=</span> <span class="n">coeff</span> <span class="o">*</span> <span class="n">sense</span> <span class="o">/</span> <span class="mi">4</span>
-
-            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">j</span><span class="p">:</span>
-                <span class="n">shift</span> <span class="o">+=</span> <span class="n">weight</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
-                <span class="n">z_p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="n">z_p</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="n">pauli_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">weight</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">(</span><span class="n">z_p</span><span class="p">,</span> <span class="n">zero</span><span class="p">)])</span>
-
-            <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
-            <span class="n">z_p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="n">pauli_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="n">weight</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">(</span><span class="n">z_p</span><span class="p">,</span> <span class="n">zero</span><span class="p">)])</span>
-
-            <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
-            <span class="n">z_p</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="n">pauli_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="n">weight</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">(</span><span class="n">z_p</span><span class="p">,</span> <span class="n">zero</span><span class="p">)])</span>
-
-            <span class="n">shift</span> <span class="o">+=</span> <span class="n">weight</span>
-
-        <span class="c1"># Remove paulis whose coefficients are zeros.</span>
-        <span class="n">qubit_op</span> <span class="o">=</span> <span class="n">WeightedPauliOperator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="n">pauli_list</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">qubit_op</span><span class="p">,</span> <span class="n">shift</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">to_ising</span><span class="p">()</span></div></div>
 </pre></div>
 
            </div>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.quantum_info.operators.channel.superop &mdash; documentação Qiskit 0.19.6</title>
+  <title>qiskit.quantum_info.operators.channel.superop &mdash; documentação Qiskit 0.20.0</title>
   
 
   
@@ -636,12 +636,16 @@
 
     <span class="k">def</span> <span class="nf">_append_instruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Update the current Operator by apply an instruction.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">qiskit.circuit.barrier</span> <span class="kn">import</span> <span class="n">Barrier</span>
+
         <span class="n">chan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instruction_to_superop</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">chan</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Perform the composition and inplace update the current state</span>
             <span class="c1"># of the operator</span>
             <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Barrier</span><span class="p">):</span>
+            <span class="k">return</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># If the instruction doesn&#39;t have a matrix defined we use its</span>
             <span class="c1"># circuit decomposition definition if it exists, otherwise we</span>
@@ -649,7 +653,11 @@
             <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;Cannot apply Instruction: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">qregs</span><span class="p">,</span> <span class="n">cregs</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1"> instruction definition is </span><span class="si">{1}</span><span class="s1">; &#39;</span>
+                                  <span class="s1">&#39;expected QuantumCircuit&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                      <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="p">)))</span>
+            <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">qregs</span><span class="p">,</span> <span class="n">cregs</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">cregs</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
                         <span class="s1">&#39;Cannot apply instruction with classical registers: </span><span class="si">{}</span><span class="s1">&#39;</span>
