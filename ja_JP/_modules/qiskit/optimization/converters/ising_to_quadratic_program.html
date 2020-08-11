@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.optimization.converters.ising_to_quadratic_program &mdash; Qiskit 0.19.6 ドキュメント</title>
+  <title>qiskit.optimization.converters.ising_to_quadratic_program &mdash; Qiskit 0.20.0 ドキュメント</title>
   
 
   
@@ -272,13 +272,13 @@
 
 <span class="sd">&quot;&quot;&quot;The converter from a ```Operator``` to ``QuadraticProgram``.&quot;&quot;&quot;</span>
 
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>  <span class="c1"># pylint: disable=unused-import</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
-<span class="kn">from</span> <span class="nn">qiskit.aqua.operators.legacy</span> <span class="kn">import</span> <span class="n">WeightedPauliOperator</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">OperatorBase</span><span class="p">,</span> <span class="n">WeightedPauliOperator</span>
 <span class="kn">from</span> <span class="nn">..problems.quadratic_program</span> <span class="kn">import</span> <span class="n">QuadraticProgram</span>
-<span class="kn">from</span> <span class="nn">..exceptions</span> <span class="kn">import</span> <span class="n">QiskitOptimizationError</span>
 
 
 <div class="viewcode-block" id="IsingToQuadraticProgram"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.converters.IsingToQuadraticProgram.html#qiskit.optimization.converters.IsingToQuadraticProgram">[ドキュメント]</a><span class="k">class</span> <span class="nc">IsingToQuadraticProgram</span><span class="p">:</span>
@@ -286,7 +286,6 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">linear</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-
 <span class="sd">        Args:</span>
 <span class="sd">            linear: If linear is True, :math:`x^2` is treated as a linear term</span>
 <span class="sd">                since :math:`x^2 = x` for :math:`x \in \{0,1\}`.</span>
@@ -294,123 +293,38 @@
 <span class="sd">                The default value is False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qubit_op</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_matrix</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_qp</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_matrix</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[np.ndarray]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qp</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[QuadraticProgram]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_linear</span> <span class="o">=</span> <span class="n">linear</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The IsingToQuadraticProgram class is deprecated and &quot;</span>
+                      <span class="s2">&quot;will be removed in a future release. Use the &quot;</span>
+                      <span class="s2">&quot;.from_ising() method on the QuadraticProgram class &quot;</span>
+                      <span class="s2">&quot;instead.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
 
-<div class="viewcode-block" id="IsingToQuadraticProgram.encode"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.converters.IsingToQuadraticProgram.encode.html#qiskit.optimization.converters.IsingToQuadraticProgram.encode">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit_op</span><span class="p">:</span> <span class="n">WeightedPauliOperator</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuadraticProgram</span><span class="p">:</span>
+<div class="viewcode-block" id="IsingToQuadraticProgram.encode"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.converters.IsingToQuadraticProgram.encode.html#qiskit.optimization.converters.IsingToQuadraticProgram.encode">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit_op</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="n">WeightedPauliOperator</span><span class="p">],</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+               <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuadraticProgram</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Convert a qubit operator and a shift value into a quadratic program</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            qubit_op: The qubit operator to be converted into a</span>
 <span class="sd">                :class:`~qiskit.optimization.problems.quadratic_program.QuadraticProgram`</span>
 <span class="sd">            offset: The shift value of the qubit operator</span>
-
 <span class="sd">        Returns:</span>
 <span class="sd">            QuadraticProgram converted from the input qubit operator and the shift value</span>
-
 <span class="sd">        Raises:</span>
 <span class="sd">            QiskitOptimizationError: If there are Pauli Xs in any Pauli term</span>
 <span class="sd">            QiskitOptimizationError: If there are more than 2 Pauli Zs in any Pauli term</span>
+<span class="sd">            NotImplementedError: If the input operator is a ListOp</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Set properties</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qubit_op</span> <span class="o">=</span> <span class="n">qubit_op</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">=</span> <span class="n">qubit_op</span><span class="o">.</span><span class="n">num_qubits</span>
-
-        <span class="c1"># Create `QuadraticProgram`</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qp</span> <span class="o">=</span> <span class="n">QuadraticProgram</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_qp</span><span class="o">.</span><span class="n">binary_var</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;x_</span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
-        <span class="c1"># Create QUBO matrix</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_create_qubo_matrix</span><span class="p">()</span>
-
-        <span class="c1"># Initialize dicts for linear terms and quadratic terms</span>
-        <span class="n">linear_terms</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">quadratic_terms</span> <span class="o">=</span> <span class="p">{}</span>
-
-        <span class="c1"># For quadratic pauli terms of operator</span>
-        <span class="c1"># x_i * x_ j = (1 - Z_i - Z_j + Z_i * Z_j)/4</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qubo_matrix</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
-                <span class="c1"># Focus on the upper triangular matrix</span>
-                <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;=</span> <span class="n">i</span><span class="p">:</span>
-                    <span class="k">continue</span>
-                <span class="c1"># Add a quadratic term to the object function of `QuadraticProgram`</span>
-                <span class="c1"># The coefficient of the quadratic term in `QuadraticProgram` is</span>
-                <span class="c1"># 4 * weight of the pauli</span>
-                <span class="n">coef</span> <span class="o">=</span> <span class="n">weight</span> <span class="o">*</span> <span class="mi">4</span>
-                <span class="n">quadratic_terms</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">coef</span>
-                <span class="c1"># Sub the weight of the quadratic pauli term from the QUBO matrix</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">-=</span> <span class="n">weight</span>
-                <span class="c1"># Sub the weight of the linear pauli term from the QUBO matrix</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weight</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_matrix</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weight</span>
-                <span class="c1"># Sub the weight from offset</span>
-                <span class="n">offset</span> <span class="o">-=</span> <span class="n">weight</span>
-
-        <span class="c1"># After processing quadratic pauli terms, only linear paulis are left</span>
-        <span class="c1"># x_i = (1 - Z_i)/2</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">):</span>
-            <span class="n">weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
-            <span class="c1"># Add a linear term to the object function of `QuadraticProgram`</span>
-            <span class="c1"># The coefficient of the linear term in `QuadraticProgram` is</span>
-            <span class="c1"># 2 * weight of the pauli</span>
-            <span class="n">coef</span> <span class="o">=</span> <span class="n">weight</span> <span class="o">*</span> <span class="mi">2</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linear</span><span class="p">:</span>
-                <span class="c1"># If the linear option is True, add it into linear_terms</span>
-                <span class="n">linear_terms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">coef</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># Else, add it into quadratic_terms as a diagonal element.</span>
-                <span class="n">quadratic_terms</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">coef</span>
-            <span class="c1"># Sub the weight of the linear pauli term from the QUBO matrix</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">-=</span> <span class="n">weight</span>
-            <span class="n">offset</span> <span class="o">+=</span> <span class="n">weight</span>
-
-        <span class="c1"># Set the objective function</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_qp</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">constant</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span> <span class="n">linear</span><span class="o">=</span><span class="n">linear_terms</span><span class="p">,</span> <span class="n">quadratic</span><span class="o">=</span><span class="n">quadratic_terms</span><span class="p">)</span>
-
-        <span class="n">offset</span> <span class="o">-=</span> <span class="n">offset</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qp</span></div>
-
-    <span class="k">def</span> <span class="nf">_create_qubo_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a QUBO matrix from the qubit operator</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitOptimizationError: If there are Pauli Xs in any Pauli term</span>
-<span class="sd">            QiskitOptimizationError: If there are more than 2 Pauli Zs in any Pauli term</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Set properties</span>
-        <span class="c1"># The Qubo matrix is an upper triangular matrix.</span>
-        <span class="c1"># Diagonal elements in the QUBO matrix is for linear terms of the qubit operator</span>
-        <span class="c1"># The other elements in the QUBO matrix is for quadratic terms of the qubit operator</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">))</span>
-
-        <span class="k">for</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qubit_op</span><span class="o">.</span><span class="n">paulis</span><span class="p">:</span>
-            <span class="c1"># Count the number of Pauli Zs in a Pauli term</span>
-            <span class="n">lst_z</span> <span class="o">=</span> <span class="n">pauli</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-            <span class="n">z_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lst_z</span><span class="p">)</span> <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">]</span>
-            <span class="n">num_z</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">z_index</span><span class="p">)</span>
-
-            <span class="c1"># Add its weight of the Pauli term to the corresponding element of QUBO matrix</span>
-            <span class="k">if</span> <span class="n">num_z</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_matrix</span><span class="p">[</span><span class="n">z_index</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">z_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">pauli</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">real</span>
-            <span class="k">elif</span> <span class="n">num_z</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_matrix</span><span class="p">[</span><span class="n">z_index</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">z_index</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">pauli</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">real</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span>
-                    <span class="s1">&#39;There are more than 2 Pauli Zs in the Pauli term </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pauli</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
-                <span class="p">)</span>
-
-            <span class="c1"># If there are Pauli Xs in the Pauli term, raise an error</span>
-            <span class="n">lst_x</span> <span class="o">=</span> <span class="n">pauli</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-            <span class="n">x_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lst_x</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_index</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span><span class="s1">&#39;Pauli Xs exist in the Pauli </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pauli</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="p">))</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qp</span><span class="o">.</span><span class="n">from_ising</span><span class="p">(</span><span class="n">qubit_op</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span>
+                            <span class="n">linear</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_linear</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qp</span></div></div>
 </pre></div>
 
            </div>
@@ -426,7 +340,7 @@
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/08/07
+        最終更新: 2020/08/11
       </span>
 
     </p>

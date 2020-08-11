@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.providers.ibmq.ibmqbackend &mdash; Qiskit 0.19.6 ドキュメント</title>
+  <title>qiskit.providers.ibmq.ibmqbackend &mdash; Qiskit 0.20.0 ドキュメント</title>
   
 
   
@@ -294,13 +294,16 @@
 <span class="kn">from</span> <span class="nn">.api.clients</span> <span class="kn">import</span> <span class="n">AccountClient</span>
 <span class="kn">from</span> <span class="nn">.api.exceptions</span> <span class="kn">import</span> <span class="n">ApiError</span>
 <span class="kn">from</span> <span class="nn">.backendjoblimit</span> <span class="kn">import</span> <span class="n">BackendJobLimit</span>
+<span class="kn">from</span> <span class="nn">.backendreservation</span> <span class="kn">import</span> <span class="n">BackendReservation</span>
 <span class="kn">from</span> <span class="nn">.credentials</span> <span class="kn">import</span> <span class="n">Credentials</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">IBMQBackendError</span><span class="p">,</span> <span class="n">IBMQBackendValueError</span><span class="p">,</span>
                          <span class="n">IBMQBackendApiError</span><span class="p">,</span> <span class="n">IBMQBackendApiProtocolError</span><span class="p">,</span>
                          <span class="n">IBMQBackendJobLimitError</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.job</span> <span class="kn">import</span> <span class="n">IBMQJob</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">update_qobj_config</span><span class="p">,</span> <span class="n">validate_job_tags</span>
+<span class="kn">from</span> <span class="nn">.utils.converters</span> <span class="kn">import</span> <span class="n">utc_to_local_all</span><span class="p">,</span> <span class="n">local_to_utc</span>
 <span class="kn">from</span> <span class="nn">.utils.json_decoder</span> <span class="kn">import</span> <span class="n">decode_pulse_defaults</span><span class="p">,</span> <span class="n">decode_backend_properties</span>
+<span class="kn">from</span> <span class="nn">.utils.backend</span> <span class="kn">import</span> <span class="n">convert_reservation_data</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -351,7 +354,7 @@
             <span class="n">configuration</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QasmBackendConfiguration</span><span class="p">,</span> <span class="n">PulseBackendConfiguration</span><span class="p">],</span>
             <span class="n">provider</span><span class="p">:</span> <span class="s1">&#39;accountprovider.AccountProvider&#39;</span><span class="p">,</span>
             <span class="n">credentials</span><span class="p">:</span> <span class="n">Credentials</span><span class="p">,</span>
-            <span class="n">api</span><span class="p">:</span> <span class="n">AccountClient</span>
+            <span class="n">api_client</span><span class="p">:</span> <span class="n">AccountClient</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;IBMQBackend constructor.</span>
 
@@ -359,11 +362,11 @@
 <span class="sd">            configuration: Backend configuration.</span>
 <span class="sd">            provider: IBM Quantum Experience account provider</span>
 <span class="sd">            credentials: IBM Quantum Experience credentials.</span>
-<span class="sd">            api: IBM Quantum Experience client used to communicate with the server.</span>
+<span class="sd">            api_client: IBM Quantum Experience client used to communicate with the server.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="n">provider</span><span class="p">,</span> <span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_api</span> <span class="o">=</span> <span class="n">api</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span> <span class="o">=</span> <span class="n">api_client</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_credentials</span> <span class="o">=</span> <span class="n">credentials</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hub</span> <span class="o">=</span> <span class="n">credentials</span><span class="o">.</span><span class="n">hub</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">group</span> <span class="o">=</span> <span class="n">credentials</span><span class="o">.</span><span class="n">group</span>
@@ -468,7 +471,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">qobj_dict</span> <span class="o">=</span> <span class="n">qobj</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-            <span class="n">submit_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">job_submit</span><span class="p">(</span>
+            <span class="n">submit_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">job_submit</span><span class="p">(</span>
                 <span class="n">backend_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span>
                 <span class="n">qobj_dict</span><span class="o">=</span><span class="n">qobj_dict</span><span class="p">,</span>
                 <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span><span class="p">,</span>
@@ -487,9 +490,10 @@
 
         <span class="c1"># Submission success.</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">job</span> <span class="o">=</span> <span class="n">IBMQJob</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="p">,</span> <span class="n">qobj</span><span class="o">=</span><span class="n">qobj</span><span class="p">,</span> <span class="o">**</span><span class="n">submit_info</span><span class="p">)</span>
+            <span class="n">job</span> <span class="o">=</span> <span class="n">IBMQJob</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">api_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="p">,</span> <span class="n">qobj</span><span class="o">=</span><span class="n">qobj</span><span class="p">,</span> <span class="o">**</span><span class="n">submit_info</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Job </span><span class="si">%s</span><span class="s1"> was successfully submitted.&#39;</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">job_id</span><span class="p">())</span>
         <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Invalid job data received: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">submit_info</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">IBMQBackendApiProtocolError</span><span class="p">(</span><span class="s1">&#39;Unexpected return value received from the server &#39;</span>
                                               <span class="s1">&#39;when submitting job: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)))</span> <span class="kn">from</span> <span class="nn">err</span>
         <span class="n">Publisher</span><span class="p">()</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s2">&quot;ibmq.job.start&quot;</span><span class="p">,</span> <span class="n">job</span><span class="p">)</span>
@@ -512,21 +516,32 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            The backend properties or ``None`` if the backend properties are not</span>
 <span class="sd">            currently available.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            TypeError: If an input argument is not of the correct type.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># pylint: disable=arguments-differ</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">refresh</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The &#39;refresh&#39; argument needs to be a boolean. &quot;</span>
+                            <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> is of type </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">refresh</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">refresh</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">datetime</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="n">python_datetime</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;</span><span class="si">{}</span><span class="s2">&#39; is not of type &#39;datetime&#39;.&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">datetime</span><span class="p">:</span>
-            <span class="c1"># Do not use cache for specific datetime properties.</span>
-            <span class="n">api_properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">backend_properties</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span> <span class="n">datetime</span><span class="o">=</span><span class="n">datetime</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Unless a UTC timezone information is present, the parameter `datetime`&#39;</span>
+                          <span class="s1">&#39;is now expected to be in local time instead of UTC.&#39;</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">datetime</span> <span class="o">=</span> <span class="n">local_to_utc</span><span class="p">(</span><span class="n">datetime</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">datetime</span> <span class="ow">or</span> <span class="n">refresh</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">api_properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">backend_properties</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span> <span class="n">datetime</span><span class="o">=</span><span class="n">datetime</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">api_properties</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">None</span>
             <span class="n">decode_backend_properties</span><span class="p">(</span><span class="n">api_properties</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">BackendProperties</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">api_properties</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">refresh</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">api_properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">backend_properties</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">())</span>
-            <span class="n">decode_backend_properties</span><span class="p">(</span><span class="n">api_properties</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span> <span class="o">=</span> <span class="n">BackendProperties</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">api_properties</span><span class="p">)</span>
-
+            <span class="n">api_properties</span> <span class="o">=</span> <span class="n">utc_to_local_all</span><span class="p">(</span><span class="n">api_properties</span><span class="p">)</span>
+            <span class="n">backend_properties</span> <span class="o">=</span> <span class="n">BackendProperties</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">api_properties</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">datetime</span><span class="p">:</span>    <span class="c1"># Don&#39;t cache result.</span>
+                <span class="k">return</span> <span class="n">backend_properties</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span> <span class="o">=</span> <span class="n">backend_properties</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span></div>
 
 <div class="viewcode-block" id="IBMQBackend.status"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.IBMQBackend.status.html#qiskit.providers.ibmq.IBMQBackend.status">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BackendStatus</span><span class="p">:</span>
@@ -538,7 +553,7 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            IBMQBackendApiProtocolError: If the status for the backend cannot be formatted properly.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">api_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">backend_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">())</span>
+        <span class="n">api_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">backend_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">())</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">BackendStatus</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">api_status</span><span class="p">)</span>
@@ -561,7 +576,7 @@
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="n">refresh</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">api_defaults</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">backend_pulse_defaults</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">())</span>
+            <span class="n">api_defaults</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">backend_pulse_defaults</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">())</span>
             <span class="k">if</span> <span class="n">api_defaults</span><span class="p">:</span>
                 <span class="n">decode_pulse_defaults</span><span class="p">(</span><span class="n">api_defaults</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span> <span class="o">=</span> <span class="n">PulseDefaults</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">api_defaults</span><span class="p">)</span>
@@ -601,7 +616,7 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            IBMQBackendApiProtocolError: If an unexpected value is received from the server.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">api_job_limit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">backend_job_limit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">())</span>
+        <span class="n">api_job_limit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">backend_job_limit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">())</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">job_limit</span> <span class="o">=</span> <span class="n">BackendJobLimit</span><span class="p">(</span><span class="o">**</span><span class="n">api_job_limit</span><span class="p">)</span>
@@ -760,6 +775,32 @@
 
         <span class="k">return</span> <span class="n">job</span></div>
 
+<div class="viewcode-block" id="IBMQBackend.reservations"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.IBMQBackend.reservations.html#qiskit.providers.ibmq.IBMQBackend.reservations">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">reservations</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">start_datetime</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">python_datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">end_datetime</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">python_datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">BackendReservation</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return backend reservations.</span>
+
+<span class="sd">        If start_datetime and/or end_datetime is specified, reservations with</span>
+<span class="sd">        time slots that overlap with the specified time window will be returned.</span>
+
+<span class="sd">        Some of the reservation information, such as scheduling mode, is only</span>
+<span class="sd">        available if you are the owner of the reservation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            start_datetime: Filter by the given start date/time, in local timezone.</span>
+<span class="sd">            end_datetime: Filter by the given end date/time, in local timezone.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A list of reservations that match the criteria.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start_datetime</span> <span class="o">=</span> <span class="n">local_to_utc</span><span class="p">(</span><span class="n">start_datetime</span><span class="p">)</span> <span class="k">if</span> <span class="n">start_datetime</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">end_datetime</span> <span class="o">=</span> <span class="n">local_to_utc</span><span class="p">(</span><span class="n">end_datetime</span><span class="p">)</span> <span class="k">if</span> <span class="n">end_datetime</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">raw_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">backend_reservations</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span> <span class="n">start_datetime</span><span class="p">,</span> <span class="n">end_datetime</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">convert_reservation_data</span><span class="p">(</span><span class="n">raw_response</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">())</span></div>
+
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">credentials_info</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hub</span><span class="p">:</span>
@@ -823,7 +864,7 @@
             <span class="n">configuration</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QasmBackendConfiguration</span><span class="p">,</span> <span class="n">PulseBackendConfiguration</span><span class="p">],</span>
             <span class="n">provider</span><span class="p">:</span> <span class="s1">&#39;accountprovider.AccountProvider&#39;</span><span class="p">,</span>
             <span class="n">credentials</span><span class="p">:</span> <span class="n">Credentials</span><span class="p">,</span>
-            <span class="n">api</span><span class="p">:</span> <span class="n">AccountClient</span>
+            <span class="n">api_client</span><span class="p">:</span> <span class="n">AccountClient</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;IBMQRetiredBackend constructor.</span>
 
@@ -831,9 +872,9 @@
 <span class="sd">            configuration: Backend configuration.</span>
 <span class="sd">            provider: IBM Quantum Experience account provider</span>
 <span class="sd">            credentials: IBM Quantum Experience credentials.</span>
-<span class="sd">            api: IBM Quantum Experience client used to communicate with the server.</span>
+<span class="sd">            api_client: IBM Quantum Experience client used to communicate with the server.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">configuration</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span> <span class="n">credentials</span><span class="p">,</span> <span class="n">api</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">configuration</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span> <span class="n">credentials</span><span class="p">,</span> <span class="n">api_client</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">BackendStatus</span><span class="p">(</span>
             <span class="n">backend_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span>
             <span class="n">backend_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">backend_version</span><span class="p">,</span>
@@ -868,6 +909,13 @@
     <span class="k">def</span> <span class="nf">active_jobs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the unfinished jobs submitted to this backend.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">reservations</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">start_datetime</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">python_datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">end_datetime</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">python_datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">BackendReservation</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[]</span>
 
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -919,7 +967,7 @@
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/08/07
+        最終更新: 2020/08/11
       </span>
 
     </p>

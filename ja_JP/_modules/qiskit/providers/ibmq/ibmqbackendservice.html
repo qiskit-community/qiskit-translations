@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.providers.ibmq.ibmqbackendservice &mdash; Qiskit 0.19.6 ドキュメント</title>
+  <title>qiskit.providers.ibmq.ibmqbackendservice &mdash; Qiskit 0.20.0 ドキュメント</title>
   
 
   
@@ -275,10 +275,10 @@
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">copy</span>
 
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span>
-<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">SimpleNamespace</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">JobStatus</span><span class="p">,</span> <span class="n">QiskitBackendNotFoundError</span>  <span class="c1"># type: ignore[attr-defined]</span>
 <span class="kn">from</span> <span class="nn">qiskit.providers.providerutils</span> <span class="kn">import</span> <span class="n">filter_backends</span>
@@ -288,14 +288,16 @@
 <span class="kn">from</span> <span class="nn">.apiconstants</span> <span class="kn">import</span> <span class="n">ApiJobStatus</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">IBMQBackendValueError</span><span class="p">,</span> <span class="n">IBMQBackendApiError</span><span class="p">,</span> <span class="n">IBMQBackendApiProtocolError</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.ibmqbackend</span> <span class="kn">import</span> <span class="n">IBMQBackend</span><span class="p">,</span> <span class="n">IBMQRetiredBackend</span>
+<span class="kn">from</span> <span class="nn">.backendreservation</span> <span class="kn">import</span> <span class="n">BackendReservation</span>
 <span class="kn">from</span> <span class="nn">.job</span> <span class="kn">import</span> <span class="n">IBMQJob</span>
 <span class="kn">from</span> <span class="nn">.utils.utils</span> <span class="kn">import</span> <span class="n">to_python_identifier</span><span class="p">,</span> <span class="n">validate_job_tags</span><span class="p">,</span> <span class="n">filter_data</span>
 <span class="kn">from</span> <span class="nn">.utils.converters</span> <span class="kn">import</span> <span class="n">local_to_utc</span>
+<span class="kn">from</span> <span class="nn">.utils.backend</span> <span class="kn">import</span> <span class="n">convert_reservation_data</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="IBMQBackendService"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.IBMQBackendService.html#qiskit.providers.ibmq.IBMQBackendService">[ドキュメント]</a><span class="k">class</span> <span class="nc">IBMQBackendService</span><span class="p">(</span><span class="n">SimpleNamespace</span><span class="p">):</span>
+<div class="viewcode-block" id="IBMQBackendService"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.IBMQBackendService.html#qiskit.providers.ibmq.IBMQBackendService">[ドキュメント]</a><span class="k">class</span> <span class="nc">IBMQBackendService</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Backend namespace for an IBM Quantum Experience account provider.</span>
 
 <span class="sd">    Represent a namespace that provides backend related services for the IBM</span>
@@ -397,8 +399,7 @@
 <span class="sd">        Retrieve jobs that match the given filters and paginate the results</span>
 <span class="sd">        if desired. Note that the server has a limit for the number of jobs</span>
 <span class="sd">        returned in a single call. As a result, this function might involve</span>
-<span class="sd">        making several calls to the server. See the `skip` parameter for</span>
-<span class="sd">        more control over pagination.</span>
+<span class="sd">        making several calls to the server.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            limit: Number of jobs to retrieve.</span>
@@ -468,24 +469,10 @@
                           <span class="s1">&#39;`start_datetime` and `end_datetime` are now expected to be in &#39;</span>
                           <span class="s1">&#39;local time instead of UTC.&#39;</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
-            <span class="c1"># If the datetime timezone info is not UTC, then convert the datetime into UTC.</span>
-            <span class="c1"># Note: datetime objects whose `utcoffset()` is `None`, or not equal to `timedelta(0)`,</span>
-            <span class="c1"># are considered to be in local time.</span>
-            <span class="k">if</span> <span class="n">start_datetime</span> <span class="ow">and</span> <span class="p">(</span><span class="n">start_datetime</span><span class="o">.</span><span class="n">utcoffset</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span>
-                                   <span class="ow">or</span> <span class="n">start_datetime</span><span class="o">.</span><span class="n">utcoffset</span><span class="p">()</span> <span class="o">!=</span> <span class="n">timedelta</span><span class="p">(</span><span class="mi">0</span><span class="p">)):</span>
-                <span class="n">start_datetime</span> <span class="o">=</span> <span class="n">local_to_utc</span><span class="p">(</span><span class="n">start_datetime</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">end_datetime</span> <span class="ow">and</span> <span class="p">(</span><span class="n">end_datetime</span><span class="o">.</span><span class="n">utcoffset</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span>
-                                 <span class="ow">or</span> <span class="n">end_datetime</span><span class="o">.</span><span class="n">utcoffset</span><span class="p">()</span> <span class="o">!=</span> <span class="n">timedelta</span><span class="p">(</span><span class="mi">0</span><span class="p">)):</span>
-                <span class="n">end_datetime</span> <span class="o">=</span> <span class="n">local_to_utc</span><span class="p">(</span><span class="n">end_datetime</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">start_datetime</span> <span class="ow">and</span> <span class="n">end_datetime</span><span class="p">:</span>
-                <span class="n">api_filter</span><span class="p">[</span><span class="s1">&#39;creationDate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="s1">&#39;between&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">start_datetime</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span> <span class="n">end_datetime</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()]</span>
-                <span class="p">}</span>
-            <span class="k">elif</span> <span class="n">start_datetime</span><span class="p">:</span>
-                <span class="n">api_filter</span><span class="p">[</span><span class="s1">&#39;creationDate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;gte&#39;</span><span class="p">:</span> <span class="n">start_datetime</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()}</span>
-            <span class="k">elif</span> <span class="n">end_datetime</span><span class="p">:</span>
-                <span class="n">api_filter</span><span class="p">[</span><span class="s1">&#39;creationDate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;lte&#39;</span><span class="p">:</span> <span class="n">end_datetime</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()}</span>
+            <span class="n">api_filter</span><span class="p">[</span><span class="s1">&#39;creationDate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_creation_date_filter</span><span class="p">(</span>
+                <span class="n">cur_dt_filter</span><span class="o">=</span><span class="p">{},</span>
+                <span class="n">gte_dt</span><span class="o">=</span><span class="n">local_to_utc</span><span class="p">(</span><span class="n">start_datetime</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span> <span class="k">if</span> <span class="n">start_datetime</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">lte_dt</span><span class="o">=</span><span class="n">local_to_utc</span><span class="p">(</span><span class="n">end_datetime</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span> <span class="k">if</span> <span class="n">end_datetime</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">job_tags</span><span class="p">:</span>
             <span class="n">validate_job_tags</span><span class="p">(</span><span class="n">job_tags</span><span class="p">,</span> <span class="n">IBMQBackendValueError</span><span class="p">)</span>
@@ -506,11 +493,7 @@
             <span class="c1"># Rather than overriding the logical operators `and`/`or`, first</span>
             <span class="c1"># check to see if the `api_filter` query should be extended with the</span>
             <span class="c1"># `api_filter` query for the same keys instead.</span>
-            <span class="n">logical_operators_to_expand</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;or&#39;</span><span class="p">,</span> <span class="s1">&#39;and&#39;</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">db_filter</span><span class="p">:</span>
-                <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">logical_operators_to_expand</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">api_filter</span><span class="p">:</span>
-                    <span class="n">api_filter</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">db_filter</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_merge_logical_filters</span><span class="p">(</span><span class="n">api_filter</span><span class="p">,</span> <span class="n">db_filter</span><span class="p">)</span>
 
             <span class="c1"># Argument filters takes precedence over db_filter for same keys</span>
             <span class="n">api_filter</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">db_filter</span><span class="p">,</span> <span class="o">**</span><span class="n">api_filter</span><span class="p">}</span>
@@ -518,17 +501,17 @@
         <span class="c1"># Retrieve the requested number of jobs, using pagination. The server</span>
         <span class="c1"># might limit the number of jobs per request.</span>
         <span class="n">job_responses</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[Dict[str, Any]]</span>
-        <span class="n">current_page_limit</span> <span class="o">=</span> <span class="n">limit</span>
+        <span class="n">current_page_limit</span> <span class="o">=</span> <span class="n">limit</span> <span class="ow">or</span> <span class="mi">20</span>
+        <span class="n">initial_filter</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">api_filter</span><span class="p">)</span>
 
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="n">job_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">list_jobs_statuses</span><span class="p">(</span>
+            <span class="n">job_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">list_jobs_statuses</span><span class="p">(</span>
                 <span class="n">limit</span><span class="o">=</span><span class="n">current_page_limit</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">skip</span><span class="p">,</span> <span class="n">descending</span><span class="o">=</span><span class="n">descending</span><span class="p">,</span>
                 <span class="n">extra_filter</span><span class="o">=</span><span class="n">api_filter</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">logger</span><span class="o">.</span><span class="n">getEffectiveLevel</span><span class="p">()</span> <span class="ow">is</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
                 <span class="n">filtered_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">filter_data</span><span class="p">(</span><span class="n">job</span><span class="p">)</span> <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">job_page</span><span class="p">]</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;jobs() response data is </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">filtered_data</span><span class="p">)</span>
             <span class="n">job_responses</span> <span class="o">+=</span> <span class="n">job_page</span>
-            <span class="n">skip</span> <span class="o">=</span> <span class="n">skip</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">job_page</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">job_page</span><span class="p">:</span>
                 <span class="c1"># Stop if there are no more jobs returned by the server.</span>
@@ -540,7 +523,31 @@
                     <span class="k">break</span>
                 <span class="n">current_page_limit</span> <span class="o">=</span> <span class="n">limit</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">job_responses</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">current_page_limit</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">current_page_limit</span> <span class="o">=</span> <span class="mi">20</span>
+
+            <span class="c1"># Use the last received job for pagination.</span>
+            <span class="n">skip</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">last_job</span> <span class="o">=</span> <span class="n">job_page</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">api_filter</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">initial_filter</span><span class="p">)</span>
+            <span class="n">cur_dt_filter</span> <span class="o">=</span> <span class="n">api_filter</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;creationDate&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="k">if</span> <span class="n">descending</span><span class="p">:</span>
+                <span class="n">new_dt_filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_creation_date_filter</span><span class="p">(</span>
+                    <span class="n">cur_dt_filter</span><span class="o">=</span><span class="n">cur_dt_filter</span><span class="p">,</span> <span class="n">lte_dt</span><span class="o">=</span><span class="n">last_job</span><span class="p">[</span><span class="s1">&#39;creation_date&#39;</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_dt_filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_creation_date_filter</span><span class="p">(</span>
+                    <span class="n">cur_dt_filter</span><span class="o">=</span><span class="n">cur_dt_filter</span><span class="p">,</span> <span class="n">gte_dt</span><span class="o">=</span><span class="n">last_job</span><span class="p">[</span><span class="s1">&#39;creation_date&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">cur_dt_filter</span><span class="p">:</span>
+                <span class="n">api_filter</span><span class="p">[</span><span class="s1">&#39;creationDate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_dt_filter</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_merge_logical_filters</span><span class="p">(</span>
+                    <span class="n">api_filter</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;and&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;creationDate&#39;</span><span class="p">:</span> <span class="n">new_dt_filter</span><span class="p">},</span> <span class="n">cur_dt_filter</span><span class="p">]})</span>
+
+            <span class="k">if</span> <span class="s1">&#39;id&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">api_filter</span><span class="p">:</span>
+                <span class="n">api_filter</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;nin&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">last_job</span><span class="p">[</span><span class="s1">&#39;job_id&#39;</span><span class="p">]]}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_id_filter</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;and&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;nin&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">last_job</span><span class="p">[</span><span class="s1">&#39;job_id&#39;</span><span class="p">]]}},</span>
+                                         <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">api_filter</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)}]}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_merge_logical_filters</span><span class="p">(</span><span class="n">api_filter</span><span class="p">,</span> <span class="n">new_id_filter</span><span class="p">)</span>
 
         <span class="n">job_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">job_info</span> <span class="ow">in</span> <span class="n">job_responses</span><span class="p">:</span>
@@ -553,9 +560,9 @@
                 <span class="n">backend</span> <span class="o">=</span> <span class="n">IBMQRetiredBackend</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">backend_name</span><span class="p">,</span>
                                                        <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="p">,</span>
                                                        <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">credentials</span><span class="p">,</span>
-                                                       <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_api</span><span class="p">)</span>
+                                                       <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_api_client</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">job</span> <span class="o">=</span> <span class="n">IBMQJob</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">api</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_api</span><span class="p">,</span> <span class="o">**</span><span class="n">job_info</span><span class="p">)</span>
+                <span class="n">job</span> <span class="o">=</span> <span class="n">IBMQJob</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">api_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_api_client</span><span class="p">,</span> <span class="o">**</span><span class="n">job_info</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Discarding job &quot;</span><span class="si">%s</span><span class="s1">&quot; because it contains invalid data.&#39;</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
                 <span class="k">continue</span>
@@ -563,6 +570,63 @@
             <span class="n">job_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">job_list</span></div>
+
+    <span class="k">def</span> <span class="nf">_merge_logical_filters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cur_filter</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">new_filter</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Merge the logical operators in the input filters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cur_filter: Current filter.</span>
+<span class="sd">            new_filter: New filter to be merged into ``cur_filter``.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ``cur_filter`` with ``new_filter``&#39;s logical operators merged into it.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logical_operators_to_expand</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;or&#39;</span><span class="p">,</span> <span class="s1">&#39;and&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">logical_operators_to_expand</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">new_filter</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cur_filter</span><span class="p">:</span>
+                    <span class="n">cur_filter</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">new_filter</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">cur_filter</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_filter</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_update_creation_date_filter</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">cur_dt_filter</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+            <span class="n">gte_dt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">lte_dt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Use the new start and end datetime in the creation date filter.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cur_dt_filter: Current creation date filter.</span>
+<span class="sd">            gte_dt: New start datetime.</span>
+<span class="sd">            lte_dt: New end datetime.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Updated creation date filter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">gte_dt</span><span class="p">:</span>
+            <span class="n">gt_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cur_dt_filter</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">gt_op</span><span class="p">)</span> <span class="k">for</span> <span class="n">gt_op</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;gt&#39;</span><span class="p">,</span> <span class="s1">&#39;gte&#39;</span><span class="p">]</span>
+                       <span class="k">if</span> <span class="n">gt_op</span> <span class="ow">in</span> <span class="n">cur_dt_filter</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;between&#39;</span> <span class="ow">in</span> <span class="n">cur_dt_filter</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_dt_filter</span><span class="p">[</span><span class="s1">&#39;between&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">gt_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_dt_filter</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;between&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">gte_dt</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">gt_list</span><span class="p">)</span> <span class="k">if</span> <span class="n">gt_list</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lte_dt</span><span class="p">:</span>
+            <span class="n">lt_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cur_dt_filter</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">lt_op</span><span class="p">)</span> <span class="k">for</span> <span class="n">lt_op</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;lt&#39;</span><span class="p">,</span> <span class="s1">&#39;lte&#39;</span><span class="p">]</span>
+                       <span class="k">if</span> <span class="n">lt_op</span> <span class="ow">in</span> <span class="n">cur_dt_filter</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;between&#39;</span> <span class="ow">in</span> <span class="n">cur_dt_filter</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_dt_filter</span><span class="p">[</span><span class="s1">&#39;between&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">lt_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_dt_filter</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;between&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">lte_dt</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">lt_list</span><span class="p">)</span> <span class="k">if</span> <span class="n">lt_list</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="n">new_dt_filter</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">gte_dt</span> <span class="ow">and</span> <span class="n">lte_dt</span><span class="p">:</span>
+            <span class="n">new_dt_filter</span><span class="p">[</span><span class="s1">&#39;between&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">gte_dt</span><span class="p">,</span> <span class="n">lte_dt</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">gte_dt</span><span class="p">:</span>
+            <span class="n">new_dt_filter</span><span class="p">[</span><span class="s1">&#39;gte&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gte_dt</span>  <span class="c1"># type: ignore[assignment]</span>
+        <span class="k">elif</span> <span class="n">lte_dt</span><span class="p">:</span>
+            <span class="n">new_dt_filter</span><span class="p">[</span><span class="s1">&#39;lte&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lte_dt</span>  <span class="c1"># type: ignore[assignment]</span>
+
+        <span class="k">return</span> <span class="n">new_dt_filter</span>
 
     <span class="k">def</span> <span class="nf">_get_status_db_filter</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -650,7 +714,7 @@
 <span class="sd">                 from the server.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">job_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_api</span><span class="o">.</span><span class="n">job_get</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
+            <span class="n">job_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">job_get</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">ApiError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">IBMQBackendApiError</span><span class="p">(</span><span class="s1">&#39;Failed to get job </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span>
                                       <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">job_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">)))</span> <span class="kn">from</span> <span class="nn">ex</span>
@@ -663,15 +727,24 @@
             <span class="n">backend</span> <span class="o">=</span> <span class="n">IBMQRetiredBackend</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">backend_name</span><span class="p">,</span>
                                                    <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="p">,</span>
                                                    <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">credentials</span><span class="p">,</span>
-                                                   <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_api</span><span class="p">)</span>
+                                                   <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_api_client</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">job</span> <span class="o">=</span> <span class="n">IBMQJob</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">api</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_api</span><span class="p">,</span> <span class="o">**</span><span class="n">job_info</span><span class="p">)</span>
+            <span class="n">job</span> <span class="o">=</span> <span class="n">IBMQJob</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">api_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_api_client</span><span class="p">,</span> <span class="o">**</span><span class="n">job_info</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">IBMQBackendApiProtocolError</span><span class="p">(</span>
                 <span class="s1">&#39;Unexpected return value received from the server &#39;</span>
                 <span class="s1">&#39;when retrieving job </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">job_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">)))</span> <span class="kn">from</span> <span class="nn">ex</span>
 
         <span class="k">return</span> <span class="n">job</span></div>
+
+<div class="viewcode-block" id="IBMQBackendService.my_reservations"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.IBMQBackendService.my_reservations.html#qiskit.providers.ibmq.IBMQBackendService.my_reservations">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">my_reservations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">BackendReservation</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return your upcoming reservations.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A list of your upcoming reservations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">raw_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_api_client</span><span class="o">.</span><span class="n">my_reservations</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">convert_reservation_data</span><span class="p">(</span><span class="n">raw_response</span><span class="p">)</span></div>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_deprecated_backend_names</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
@@ -706,7 +779,7 @@
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/08/07
+        最終更新: 2020/08/11
       </span>
 
     </p>

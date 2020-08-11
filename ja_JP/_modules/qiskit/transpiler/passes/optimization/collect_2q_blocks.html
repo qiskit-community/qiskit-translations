@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.passes.optimization.collect_2q_blocks &mdash; Qiskit 0.19.6 ドキュメント</title>
+  <title>qiskit.transpiler.passes.optimization.collect_2q_blocks &mdash; Qiskit 0.20.0 ドキュメント</title>
   
 
   
@@ -273,6 +273,7 @@
 
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 
+<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">Gate</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.basepasses</span> <span class="kn">import</span> <span class="n">AnalysisPass</span>
 
 
@@ -298,8 +299,8 @@
 <span class="sd">        The blocks contain &quot;op&quot; nodes in topological sort order</span>
 <span class="sd">        such that all gates in a block act on the same pair of</span>
 <span class="sd">        qubits and are adjacent in the circuit. the blocks are built</span>
-<span class="sd">        by examining predecessors and successors of &quot;cx&quot; gates in</span>
-<span class="sd">        the circuit. u1, u2, u3, cx, id gates will be included.</span>
+<span class="sd">        by examining predecessors and successors of 2q gates in</span>
+<span class="sd">        the circuit.</span>
 
 <span class="sd">        After the execution, ``property_set[&#39;block_list&#39;]`` is set to</span>
 <span class="sd">        a list of tuples of &quot;op&quot; node labels.</span>
@@ -307,17 +308,23 @@
         <span class="c1"># Initiate the commutation set</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">property_set</span><span class="p">[</span><span class="s1">&#39;commutation_set&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
 
-        <span class="n">good_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;cx&quot;</span><span class="p">,</span> <span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u2&quot;</span><span class="p">,</span> <span class="s2">&quot;u3&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">]</span>
         <span class="n">block_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dag</span><span class="o">.</span><span class="n">topological_nodes</span><span class="p">())</span>
         <span class="n">nodes_seen</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)))</span>
         <span class="k">for</span> <span class="n">nd</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">topological_op_nodes</span><span class="p">():</span>
 
             <span class="n">group</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="c1"># Explore predecessors and successors of cx gates</span>
-            <span class="k">if</span> <span class="n">nd</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;cx&quot;</span> <span class="ow">and</span> <span class="n">nd</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">nodes_seen</span><span class="p">[</span><span class="n">nd</span><span class="p">]:</span>
+            <span class="c1"># Explore predecessors and successors of 2q gates</span>
+            <span class="k">if</span> <span class="p">(</span>  <span class="c1"># pylint: disable=too-many-boolean-expressions</span>
+                    <span class="n">nd</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;op&#39;</span>
+                    <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">Gate</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+                    <span class="ow">and</span> <span class="ow">not</span> <span class="n">nodes_seen</span><span class="p">[</span><span class="n">nd</span><span class="p">]</span>
+                    <span class="ow">and</span> <span class="n">nd</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="kc">None</span>
+                    <span class="ow">and</span> <span class="ow">not</span> <span class="n">nd</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">()</span>
+            <span class="p">):</span>
                 <span class="n">these_qubits</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span>
-                <span class="c1"># Explore predecessors of the &quot;cx&quot; node</span>
+                <span class="c1"># Explore predecessors of the 2q node</span>
                 <span class="n">pred</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dag</span><span class="o">.</span><span class="n">quantum_predecessors</span><span class="p">(</span><span class="n">nd</span><span class="p">))</span>
                 <span class="n">explore</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">while</span> <span class="n">explore</span><span class="p">:</span>
@@ -325,9 +332,15 @@
                     <span class="c1"># If there is one predecessor, add it if it&#39;s on the right qubits</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">nodes_seen</span><span class="p">[</span><span class="n">pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]]:</span>
                         <span class="n">pnd</span> <span class="o">=</span> <span class="n">pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                        <span class="k">if</span> <span class="n">pnd</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">good_names</span> <span class="ow">and</span> <span class="n">pnd</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                            <span class="k">if</span> <span class="p">(</span><span class="n">pnd</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;cx&quot;</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">pnd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="n">these_qubits</span><span class="p">)</span> <span class="ow">or</span> \
-                                    <span class="n">pnd</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;cx&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pnd</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="p">(</span>
+                                <span class="n">pnd</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;op&#39;</span>
+                                <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pnd</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">Gate</span><span class="p">)</span>
+                                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pnd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span>
+                                <span class="ow">and</span> <span class="n">pnd</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="kc">None</span>
+                                <span class="ow">and</span> <span class="ow">not</span> <span class="n">pnd</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">()</span>
+                        <span class="p">):</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pnd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">pnd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="n">these_qubits</span><span class="p">)</span> \
+                               <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">pnd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                                 <span class="n">group</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pnd</span><span class="p">)</span>
                                 <span class="n">nodes_seen</span><span class="p">[</span><span class="n">pnd</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                                 <span class="n">pred_next</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">dag</span><span class="o">.</span><span class="n">quantum_predecessors</span><span class="p">(</span><span class="n">pnd</span><span class="p">))</span>
@@ -339,36 +352,47 @@
                         <span class="k">elif</span> <span class="n">pred</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">predecessors</span><span class="p">(</span><span class="n">pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
                             <span class="n">sorted_pred</span> <span class="o">=</span> <span class="p">[</span><span class="n">pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>   <span class="c1"># was [pred[0], pred[1]]</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="c1"># We need to avoid accidentally adding a cx on these_qubits</span>
+                            <span class="c1"># We need to avoid accidentally adding a 2q gate on these_qubits</span>
                             <span class="c1"># since these must have a dependency through the other predecessor</span>
                             <span class="c1"># in this case</span>
-                            <span class="k">if</span> <span class="n">pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;cx&quot;</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="n">these_qubits</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="n">these_qubits</span><span class="p">:</span>
                                 <span class="n">sorted_pred</span> <span class="o">=</span> <span class="p">[</span><span class="n">pred</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
-                            <span class="k">elif</span> <span class="n">pred</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;cx&quot;</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">pred</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="n">these_qubits</span><span class="p">:</span>
+                            <span class="k">elif</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pred</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+                                  <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">pred</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="n">these_qubits</span><span class="p">):</span>
                                 <span class="n">sorted_pred</span> <span class="o">=</span> <span class="p">[</span><span class="n">pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
                             <span class="k">else</span><span class="p">:</span>
                                 <span class="n">sorted_pred</span> <span class="o">=</span> <span class="n">pred</span>
-                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_pred</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">sorted_pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;cx&quot;</span> <span class="ow">and</span> \
-                           <span class="n">sorted_pred</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span>
-                            <span class="k">break</span>  <span class="c1"># stop immediately if we hit a pair of cx</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_pred</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> \
+                           <span class="nb">len</span><span class="p">(</span><span class="n">sorted_pred</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                            <span class="k">break</span>  <span class="c1"># stop immediately if we hit a pair of 2q gates</span>
                         <span class="c1"># Examine each predecessor</span>
                         <span class="k">for</span> <span class="n">pnd</span> <span class="ow">in</span> <span class="n">sorted_pred</span><span class="p">:</span>
-                            <span class="k">if</span> <span class="n">pnd</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">good_names</span> <span class="ow">or</span> <span class="n">pnd</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="p">(</span>
+                                    <span class="n">pnd</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span> <span class="s1">&#39;op&#39;</span>
+                                    <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pnd</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">Gate</span><span class="p">)</span>
+                                    <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">pnd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span>
+                                    <span class="ow">or</span> <span class="n">pnd</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                                    <span class="ow">or</span> <span class="n">pnd</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">()</span>
+                            <span class="p">):</span>
                                 <span class="c1"># remove any qubits that are interrupted by a gate</span>
                                 <span class="c1"># e.g. a measure in the middle of the circuit</span>
                                 <span class="n">these_qubits</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">these_qubits</span><span class="p">)</span> <span class="o">-</span>
                                                     <span class="nb">set</span><span class="p">(</span><span class="n">pnd</span><span class="o">.</span><span class="n">qargs</span><span class="p">))</span>
                                 <span class="k">continue</span>
                             <span class="c1"># If a predecessor is a single qubit gate, add it</span>
-                            <span class="k">if</span> <span class="n">pnd</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;cx&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pnd</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">():</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pnd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pnd</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">():</span>
                                 <span class="k">if</span> <span class="ow">not</span> <span class="n">nodes_seen</span><span class="p">[</span><span class="n">pnd</span><span class="p">]:</span>
                                     <span class="n">group</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pnd</span><span class="p">)</span>
                                     <span class="n">nodes_seen</span><span class="p">[</span><span class="n">pnd</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                                     <span class="n">pred_next</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">dag</span><span class="o">.</span><span class="n">quantum_predecessors</span><span class="p">(</span><span class="n">pnd</span><span class="p">))</span>
-                            <span class="c1"># If cx, check qubits</span>
+                            <span class="c1"># If 2q, check qubits</span>
                             <span class="k">else</span><span class="p">:</span>
                                 <span class="n">pred_qubits</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pnd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span>
-                                <span class="k">if</span> <span class="n">pred_qubits</span> <span class="o">==</span> <span class="n">these_qubits</span> <span class="ow">and</span> <span class="n">pnd</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="p">(</span>
+                                        <span class="n">pred_qubits</span> <span class="o">==</span> <span class="n">these_qubits</span>
+                                        <span class="ow">and</span> <span class="n">pnd</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="kc">None</span>
+                                        <span class="ow">and</span> <span class="ow">not</span> <span class="n">pnd</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">()</span>
+                                <span class="p">):</span>
                                     <span class="c1"># add if on same qubits</span>
                                     <span class="k">if</span> <span class="ow">not</span> <span class="n">nodes_seen</span><span class="p">[</span><span class="n">pnd</span><span class="p">]:</span>
                                         <span class="n">group</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pnd</span><span class="p">)</span>
@@ -383,13 +407,13 @@
                     <span class="n">pred</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pred_next</span><span class="p">))</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">pred</span><span class="p">:</span>
                         <span class="n">explore</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="c1"># Reverse the predecessor list and append the &quot;cx&quot; node</span>
+                <span class="c1"># Reverse the predecessor list and append the 2q node</span>
                 <span class="n">group</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
                 <span class="n">group</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nd</span><span class="p">)</span>
                 <span class="n">nodes_seen</span><span class="p">[</span><span class="n">nd</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="c1"># Reset these_qubits</span>
                 <span class="n">these_qubits</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span>
-                <span class="c1"># Explore successors of the &quot;cx&quot; node</span>
+                <span class="c1"># Explore successors of the 2q node</span>
                 <span class="n">succ</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dag</span><span class="o">.</span><span class="n">quantum_successors</span><span class="p">(</span><span class="n">nd</span><span class="p">))</span>
                 <span class="n">explore</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">while</span> <span class="n">explore</span><span class="p">:</span>
@@ -397,9 +421,15 @@
                     <span class="c1"># If there is one successor, add it if its on the right qubits</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">succ</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">nodes_seen</span><span class="p">[</span><span class="n">succ</span><span class="p">[</span><span class="mi">0</span><span class="p">]]:</span>
                         <span class="n">snd</span> <span class="o">=</span> <span class="n">succ</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                        <span class="k">if</span> <span class="n">snd</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">good_names</span> <span class="ow">and</span> <span class="n">snd</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                            <span class="k">if</span> <span class="p">(</span><span class="n">snd</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;cx&quot;</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">snd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="n">these_qubits</span><span class="p">)</span> <span class="ow">or</span> \
-                                    <span class="n">snd</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;cx&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">snd</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="p">(</span>
+                                <span class="n">snd</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;op&#39;</span>
+                                <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">snd</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">Gate</span><span class="p">)</span>
+                                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">snd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span>
+                                <span class="ow">and</span> <span class="n">snd</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="kc">None</span>
+                                <span class="ow">and</span> <span class="ow">not</span> <span class="n">snd</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">()</span>
+                        <span class="p">):</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">snd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">snd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="n">these_qubits</span><span class="p">)</span> <span class="ow">or</span> \
+                                    <span class="nb">len</span><span class="p">(</span><span class="n">snd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                                 <span class="n">group</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">snd</span><span class="p">)</span>
                                 <span class="n">nodes_seen</span><span class="p">[</span><span class="n">snd</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                                 <span class="n">succ_next</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">dag</span><span class="o">.</span><span class="n">quantum_successors</span><span class="p">(</span><span class="n">snd</span><span class="p">))</span>
@@ -411,22 +441,30 @@
                         <span class="k">elif</span> <span class="n">succ</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">successors</span><span class="p">(</span><span class="n">succ</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
                             <span class="n">sorted_succ</span> <span class="o">=</span> <span class="p">[</span><span class="n">succ</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>  <span class="c1"># was [succ[0], succ[1]]</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="c1"># We need to avoid accidentally adding a cx on these_qubits</span>
+                            <span class="c1"># We need to avoid accidentally adding a 2q gate on these_qubits</span>
                             <span class="c1"># since these must have a dependency through the other successor</span>
                             <span class="c1"># in this case</span>
-                            <span class="k">if</span> <span class="n">succ</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;cx&quot;</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">succ</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="n">these_qubits</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">succ</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+                                    <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">succ</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="n">these_qubits</span><span class="p">):</span>
                                 <span class="n">sorted_succ</span> <span class="o">=</span> <span class="p">[</span><span class="n">succ</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
-                            <span class="k">elif</span> <span class="n">succ</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;cx&quot;</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">succ</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="n">these_qubits</span><span class="p">:</span>
+                            <span class="k">elif</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">succ</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+                                  <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">succ</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="n">these_qubits</span><span class="p">):</span>
                                 <span class="n">sorted_succ</span> <span class="o">=</span> <span class="p">[</span><span class="n">succ</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
                             <span class="k">else</span><span class="p">:</span>
                                 <span class="n">sorted_succ</span> <span class="o">=</span> <span class="n">succ</span>
                         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_succ</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> \
-                           <span class="n">sorted_succ</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;cx&quot;</span> <span class="ow">and</span> \
-                           <span class="n">sorted_succ</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span>
-                            <span class="k">break</span>  <span class="c1"># stop immediately if we hit a pair of cx</span>
+                           <span class="nb">len</span><span class="p">(</span><span class="n">sorted_succ</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> \
+                           <span class="nb">len</span><span class="p">(</span><span class="n">sorted_succ</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                            <span class="k">break</span>  <span class="c1"># stop immediately if we hit a pair of 2q gates</span>
                         <span class="c1"># Examine each successor</span>
                         <span class="k">for</span> <span class="n">snd</span> <span class="ow">in</span> <span class="n">sorted_succ</span><span class="p">:</span>
-                            <span class="k">if</span> <span class="n">snd</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">good_names</span> <span class="ow">or</span> <span class="n">snd</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="p">(</span>
+                                    <span class="n">snd</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span> <span class="s1">&#39;op&#39;</span>
+                                    <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">snd</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">Gate</span><span class="p">)</span>
+                                    <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">snd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span>
+                                    <span class="ow">or</span> <span class="n">snd</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                                    <span class="ow">or</span> <span class="n">snd</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">()</span>
+                            <span class="p">):</span>
                                 <span class="c1"># remove qubits from consideration if interrupted</span>
                                 <span class="c1"># by a gate e.g. a measure in the middle of the circuit</span>
                                 <span class="n">these_qubits</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">these_qubits</span><span class="p">)</span> <span class="o">-</span>
@@ -436,15 +474,19 @@
                             <span class="c1"># If a successor is a single qubit gate, add it</span>
                             <span class="c1"># NB as we have eliminated all gates with names not in</span>
                             <span class="c1"># good_names, this check guarantees they are single qubit</span>
-                            <span class="k">if</span> <span class="n">snd</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;cx&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">snd</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">():</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">snd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">snd</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">():</span>
                                 <span class="k">if</span> <span class="ow">not</span> <span class="n">nodes_seen</span><span class="p">[</span><span class="n">snd</span><span class="p">]:</span>
                                     <span class="n">group</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">snd</span><span class="p">)</span>
                                     <span class="n">nodes_seen</span><span class="p">[</span><span class="n">snd</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                                     <span class="n">succ_next</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">dag</span><span class="o">.</span><span class="n">quantum_successors</span><span class="p">(</span><span class="n">snd</span><span class="p">))</span>
                             <span class="k">else</span><span class="p">:</span>
-                                <span class="c1"># If cx, check qubits</span>
+                                <span class="c1"># If 2q, check qubits</span>
                                 <span class="n">succ_qubits</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">snd</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span>
-                                <span class="k">if</span> <span class="n">succ_qubits</span> <span class="o">==</span> <span class="n">these_qubits</span> <span class="ow">and</span> <span class="n">snd</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="p">(</span>
+                                        <span class="n">succ_qubits</span> <span class="o">==</span> <span class="n">these_qubits</span>
+                                        <span class="ow">and</span> <span class="n">snd</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="kc">None</span>
+                                        <span class="ow">and</span> <span class="ow">not</span> <span class="n">snd</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">()</span>
+                                <span class="p">):</span>
                                     <span class="c1"># add if on same qubits</span>
                                     <span class="k">if</span> <span class="ow">not</span> <span class="n">nodes_seen</span><span class="p">[</span><span class="n">snd</span><span class="p">]:</span>
                                         <span class="n">group</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">snd</span><span class="p">)</span>
@@ -480,7 +522,7 @@
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/08/07
+        最終更新: 2020/08/11
       </span>
 
     </p>

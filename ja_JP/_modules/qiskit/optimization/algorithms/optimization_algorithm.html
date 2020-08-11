@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.optimization.algorithms.optimization_algorithm &mdash; Qiskit 0.19.6 ドキュメント</title>
+  <title>qiskit.optimization.algorithms.optimization_algorithm &mdash; Qiskit 0.20.0 ドキュメント</title>
   
 
   
@@ -273,9 +273,12 @@
 
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span>
 
-<span class="kn">from</span> <span class="nn">..problems.quadratic_program</span> <span class="kn">import</span> <span class="n">QuadraticProgram</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">QiskitOptimizationError</span>
+<span class="kn">from</span> <span class="nn">..problems.quadratic_program</span> <span class="kn">import</span> <span class="n">QuadraticProgram</span><span class="p">,</span> <span class="n">Variable</span>
 
 
 <div class="viewcode-block" id="OptimizationAlgorithm"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.OptimizationAlgorithm.html#qiskit.optimization.algorithms.OptimizationAlgorithm">[ドキュメント]</a><span class="k">class</span> <span class="nc">OptimizationAlgorithm</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
@@ -318,58 +321,154 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            QiskitOptimizationError: If the problem is incompatible with the optimizer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="k">def</span> <span class="nf">_verify_compatibility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Verifies that the problem is suitable for this optimizer. If the problem is not</span>
+<span class="sd">        compatible then an exception is raised. This method is for convenience for concrete</span>
+<span class="sd">        optimizers and is not intended to be used by end user.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            problem: Problem to verify.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitOptimizationError: If the problem is incompatible with the optimizer.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># check compatibility and raise exception if incompatible</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_compatibility_msg</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">msg</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span><span class="s1">&#39;Incompatible problem: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span></div>
 
 
-<span class="k">class</span> <span class="nc">OptimizationResultStatus</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Feasible values for the termination status of an optimization algorithm.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="OptimizationResultStatus"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.OptimizationResultStatus.html#qiskit.optimization.algorithms.OptimizationResultStatus">[ドキュメント]</a><span class="k">class</span> <span class="nc">OptimizationResultStatus</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Termination status of an optimization algorithm.&quot;&quot;&quot;</span>
+
     <span class="n">SUCCESS</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="sd">&quot;&quot;&quot;the optimization algorithm succeeded to find an optimal solution.&quot;&quot;&quot;</span>
+
     <span class="n">FAILURE</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="sd">&quot;&quot;&quot;the optimization algorithm ended in a failure.&quot;&quot;&quot;</span>
+
     <span class="n">INFEASIBLE</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="sd">&quot;&quot;&quot;the optimization algorithm obtained an infeasible solution.&quot;&quot;&quot;</span></div>
 
 
-<span class="k">class</span> <span class="nc">OptimizationResult</span><span class="p">:</span>
+<div class="viewcode-block" id="OptimizationResult"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.OptimizationResult.html#qiskit.optimization.algorithms.OptimizationResult">[ドキュメント]</a><span class="k">class</span> <span class="nc">OptimizationResult</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;The optimization result class.</span>
 
-<span class="sd">    The optimization algorithms return an object of the type `OptimizationResult`, which enforces</span>
-<span class="sd">    providing the following attributes.</span>
+<span class="sd">    The optimization algorithms return an object of the type ``OptimizationResult``</span>
+<span class="sd">    with the information about the solution obtained.</span>
 
-<span class="sd">    Attributes:</span>
-<span class="sd">        x: The optimal value found in the optimization algorithm.</span>
-<span class="sd">        fval: The function value corresponding to the optimal value.</span>
-<span class="sd">        results: The original results object returned from the optimization algorithm. This can</span>
-<span class="sd">            contain more information than only the optimal value and function value.</span>
-<span class="sd">        status: The termination status of the algorithm.</span>
+<span class="sd">    ``OptimizationResult`` allows users to get the value of a variable by specifying an index or</span>
+<span class="sd">    a name as follows.</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; from qiskit.optimization import QuadraticProgram</span>
+<span class="sd">        &gt;&gt;&gt; from qiskit.optimization.algorithms import CplexOptimizer</span>
+<span class="sd">        &gt;&gt;&gt; problem = QuadraticProgram()</span>
+<span class="sd">        &gt;&gt;&gt; _ = problem.binary_var(&#39;x1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; _ = problem.binary_var(&#39;x2&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; _ = problem.binary_var(&#39;x3&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; problem.minimize(linear={&#39;x1&#39;: 1, &#39;x2&#39;: -2, &#39;x3&#39;: 3})</span>
+<span class="sd">        &gt;&gt;&gt; print([var.name for var in problem.variables])</span>
+<span class="sd">        [&#39;x1&#39;, &#39;x2&#39;, &#39;x3&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; optimizer = CplexOptimizer()</span>
+<span class="sd">        &gt;&gt;&gt; result = optimizer.solve(problem)</span>
+<span class="sd">        &gt;&gt;&gt; print(result.variable_names)</span>
+<span class="sd">        [&#39;x1&#39;, &#39;x2&#39;, &#39;x3&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; print(result.x)</span>
+<span class="sd">        [0. 1. 0.]</span>
+<span class="sd">        &gt;&gt;&gt; print(result[1])</span>
+<span class="sd">        1.0</span>
+<span class="sd">        &gt;&gt;&gt; print(result[&#39;x1&#39;])</span>
+<span class="sd">        0.0</span>
+<span class="sd">        &gt;&gt;&gt; print(result.fval)</span>
+<span class="sd">        -2.0</span>
+<span class="sd">        &gt;&gt;&gt; print(result.variables_dict)</span>
+<span class="sd">        {&#39;x1&#39;: 0.0, &#39;x2&#39;: 1.0, &#39;x3&#39;: 0.0}</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        The order of variables should be equal to that of the problem solved by</span>
+<span class="sd">        optimization algorithms. Optimization algorithms and converters of ``QuadraticProgram``</span>
+<span class="sd">        should maintain the order when generating a new ``OptimizationResult`` object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">Status</span> <span class="o">=</span> <span class="n">OptimizationResultStatus</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">fval</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                 <span class="n">results</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">fval</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Variable</span><span class="p">],</span>
+                 <span class="n">raw_results</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">status</span><span class="p">:</span> <span class="n">OptimizationResultStatus</span> <span class="o">=</span> <span class="n">OptimizationResultStatus</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            x: the optimal value found in the optimization.</span>
+<span class="sd">            fval: the optimal function value.</span>
+<span class="sd">            variables: the list of variables of the optimization problem.</span>
+<span class="sd">            raw_results: the original results object from the optimization algorithm.</span>
+<span class="sd">            status: the termination status of the optimization algorithm.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitOptimizationError: if sizes of ``x`` and ``variables`` do not match.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">variables</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span>
+                <span class="s1">&#39;Inconsistent size of optimal value and variables. x: size </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">, &#39;</span>
+                <span class="s1">&#39;variables: size </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">x</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">variables</span><span class="p">),</span>
+                                               <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="n">x</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_fval</span> <span class="o">=</span> <span class="n">fval</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="n">results</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_raw_results</span> <span class="o">=</span> <span class="n">raw_results</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">status</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variables</span> <span class="o">=</span> <span class="n">variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variable_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">var</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variables</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variables_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variable_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;([</span><span class="si">{}</span><span class="s1">] / </span><span class="si">{}</span><span class="s1"> / </span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x_</span><span class="p">)</span> <span class="k">for</span> <span class="n">x_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">fval</span><span class="p">,</span>
-                                         <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;optimal function value: </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span> \
+               <span class="s1">&#39;optimal value: </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span> \
+               <span class="s1">&#39;status: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fval</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;x=[</span><span class="si">{}</span><span class="s1">], fval=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x_</span><span class="p">)</span> <span class="k">for</span> <span class="n">x_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">fval</span><span class="p">)</span>
+<div class="viewcode-block" id="OptimizationResult.__getitem__"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.OptimizationResult.__getitem__.html#qiskit.optimization.algorithms.OptimizationResult.__getitem__">[ドキュメント]</a>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the value of the variable whose index or name is equal to ``key``.</span>
+
+<span class="sd">        The key can be an integer or a string.</span>
+<span class="sd">        If the key is an integer, this methods returns the value of the variable</span>
+<span class="sd">        whose index is equal to ``key``.</span>
+<span class="sd">        If the key is a string, this methods return the value of the variable</span>
+<span class="sd">        whose name is equal to ``key``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            key: an integer or a string.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The value of a variable whose index or name is equal to ``key``.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            IndexError: if ``key`` is an integer and is out of range of the variables.</span>
+<span class="sd">            KeyError: if ``key`` is a string and none of the variables has ``key`` as name.</span>
+<span class="sd">            TypeError: if ``key`` is neither an integer nor a string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variables_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">&quot;Integer or string key required,&quot;</span>
+            <span class="s2">&quot;instead </span><span class="si">{}</span><span class="s2">(</span><span class="si">{}</span><span class="s2">) provided.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">key</span><span class="p">))</span></div>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Returns the optimal value found in the optimization.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The optimal value found in the optimization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">fval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">fval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Returns the optimal function value.</span>
 
 <span class="sd">        Returns:</span>
@@ -378,60 +477,51 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fval</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the original results object from the algorithm.</span>
+    <span class="k">def</span> <span class="nf">raw_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the original results object from the optimization algorithm.</span>
 
 <span class="sd">        Currently a dump for any leftovers.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Additional result information of the optimization algorithm.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw_results</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OptimizationResultStatus</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the termination status of the algorithm.</span>
+        <span class="sd">&quot;&quot;&quot;Returns the termination status of the optimization algorithm.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The termination status of the algorithm.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span>
 
-    <span class="nd">@x</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Set a new optimal value.</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Variable</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the list of variables of the optimization problem.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            x: The new optimal value.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            The list of variables.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variables</span>
 
-    <span class="nd">@fval</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">fval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fval</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Set a new optimal function value.</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">variables_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the optimal value as a dictionary of the variable name and corresponding value.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            fval: The new optimal function value.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            The optimal value as a dictionary of the variable name and corresponding value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_fval</span> <span class="o">=</span> <span class="n">fval</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variables_dict</span>
 
-    <span class="nd">@results</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Set results.</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">variable_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the list of variable names of the optimization problem.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            results: The new additional results of the optimization.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            The list of variable names of the optimization problem.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="n">results</span>
-
-    <span class="nd">@status</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="n">OptimizationResultStatus</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Set a new termination status.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            status: The new termination status.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">status</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_names</span></div>
 </pre></div>
 
            </div>
@@ -447,7 +537,7 @@
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/08/07
+        最終更新: 2020/08/11
       </span>
 
     </p>

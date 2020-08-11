@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.converters.circuit_to_instruction &mdash; Qiskit 0.19.6 ドキュメント</title>
+  <title>qiskit.converters.circuit_to_instruction &mdash; Qiskit 0.20.0 ドキュメント</title>
   
 
   
@@ -317,6 +317,8 @@
 <span class="sd">            circ.rz(0.5, q[1]).c_if(c, 2)</span>
 <span class="sd">            circuit_to_instruction(circ)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># pylint: disable=cyclic-import</span>
+    <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumcircuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
 
     <span class="k">if</span> <span class="n">parameter_map</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">parameter_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">circuit</span><span class="o">.</span><span class="n">parameters</span><span class="p">}</span>
@@ -352,16 +354,37 @@
 
     <span class="n">definition</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">data</span>
 
+    <span class="n">regs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">q</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">instruction</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s1">&#39;q&#39;</span><span class="p">)</span>
+        <span class="n">regs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">num_clbits</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">c</span> <span class="o">=</span> <span class="n">ClassicalRegister</span><span class="p">(</span><span class="n">instruction</span><span class="o">.</span><span class="n">num_clbits</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">)</span>
+        <span class="n">regs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 
     <span class="n">definition</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span>
                           <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                            <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">q</span><span class="p">[</span><span class="n">find_bit_position</span><span class="p">(</span><span class="n">y</span><span class="p">)],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span>
                            <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">c</span><span class="p">[</span><span class="n">find_bit_position</span><span class="p">(</span><span class="n">y</span><span class="p">)],</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]))),</span> <span class="n">definition</span><span class="p">))</span>
-    <span class="n">instruction</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">definition</span>
+
+    <span class="c1"># fix condition</span>
+    <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">definition</span><span class="p">:</span>
+        <span class="n">condition</span> <span class="o">=</span> <span class="n">rule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">condition</span>
+        <span class="k">if</span> <span class="n">condition</span><span class="p">:</span>
+            <span class="n">reg</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">condition</span>
+            <span class="k">if</span> <span class="n">reg</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">c</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+                <span class="n">rule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">condition</span> <span class="o">=</span> <span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;Cannot convert condition in circuit with &#39;</span>
+                                  <span class="s1">&#39;multiple classical registers to instruction&#39;</span><span class="p">)</span>
+
+    <span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="o">*</span><span class="n">regs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">instruction</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">qc</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">definition</span>
+    <span class="k">if</span> <span class="n">circuit</span><span class="o">.</span><span class="n">global_phase</span><span class="p">:</span>
+        <span class="n">qc</span><span class="o">.</span><span class="n">global_phase</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">global_phase</span>
+
+    <span class="n">instruction</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">qc</span>
 
     <span class="k">return</span> <span class="n">instruction</span></div>
 </pre></div>
@@ -379,7 +402,7 @@
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/08/07
+        最終更新: 2020/08/11
       </span>
 
     </p>

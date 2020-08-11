@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.circuit.parameterexpression &mdash; Qiskit 0.19.6 ドキュメント</title>
+  <title>qiskit.circuit.parameterexpression &mdash; Qiskit 0.20.0 ドキュメント</title>
   
 
   
@@ -302,6 +302,10 @@
         <span class="sd">&quot;&quot;&quot;Returns a set of the unbound Parameters in the expression.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_symbols</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
+<div class="viewcode-block" id="ParameterExpression.conjugate"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.ParameterExpression.conjugate.html#qiskit.circuit.ParameterExpression.conjugate">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">conjugate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the conjugate, which is the ParameterExpression itself, since it is real.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
 <div class="viewcode-block" id="ParameterExpression.bind"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.ParameterExpression.bind.html#qiskit.circuit.ParameterExpression.bind">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">bind</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_values</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Binds the provided set of parameters to their corresponding values.</span>
 
@@ -350,8 +354,8 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            parameter_map (dict): Mapping from Parameters in self to the</span>
-<span class="sd">                                  Parameter instances with which they should be</span>
-<span class="sd">                                  replaced.</span>
+<span class="sd">                                  ParameterExpression instances with which they</span>
+<span class="sd">                                  should be replaced.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            CircuitError:</span>
@@ -364,21 +368,27 @@
 <span class="sd">                                 replaced.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="n">inbound_parameters</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span>
+                              <span class="k">for</span> <span class="n">replacement_expr</span> <span class="ow">in</span> <span class="n">parameter_map</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                              <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">replacement_expr</span><span class="o">.</span><span class="n">parameters</span><span class="p">}</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_raise_if_passed_unknown_parameters</span><span class="p">(</span><span class="n">parameter_map</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_raise_if_parameter_names_conflict</span><span class="p">(</span><span class="n">parameter_map</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>
-                                                <span class="n">parameter_map</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_raise_if_parameter_names_conflict</span><span class="p">(</span><span class="n">inbound_parameters</span><span class="p">,</span> <span class="n">parameter_map</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
         <span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="n">Symbol</span>
         <span class="n">new_parameter_symbols</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">Symbol</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-                                 <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameter_map</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
+                                 <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">inbound_parameters</span><span class="p">}</span>
 
         <span class="c1"># Include existing parameters in self not set to be replaced.</span>
         <span class="n">new_parameter_symbols</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">p</span><span class="p">:</span> <span class="n">s</span>
                                       <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_symbols</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
                                       <span class="k">if</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">parameter_map</span><span class="p">})</span>
 
+        <span class="c1"># If new_param is an expr, we&#39;ll need to construct a matching sympy expr</span>
+        <span class="c1"># but with our sympy symbols instead of theirs.</span>
+
         <span class="n">symbol_map</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_symbols</span><span class="p">[</span><span class="n">old_param</span><span class="p">]:</span> <span class="n">new_parameter_symbols</span><span class="p">[</span><span class="n">new_param</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_symbols</span><span class="p">[</span><span class="n">old_param</span><span class="p">]:</span> <span class="n">new_param</span><span class="o">.</span><span class="n">_symbol_expr</span>
             <span class="k">for</span> <span class="n">old_param</span><span class="p">,</span> <span class="n">new_param</span> <span class="ow">in</span> <span class="n">parameter_map</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">}</span>
 
@@ -524,7 +534,7 @@
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/08/07
+        最終更新: 2020/08/11
       </span>
 
     </p>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.circuit.library.quantum_volume &mdash; Qiskit 0.19.6 ドキュメント</title>
+  <title>qiskit.circuit.library.quantum_volume &mdash; Qiskit 0.20.0 ドキュメント</title>
   
 
   
@@ -271,7 +271,7 @@
 
 <span class="sd">&quot;&quot;&quot;Quantum Volume model circuit.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.random</span> <span class="kn">import</span> <span class="n">random_unitary</span>
@@ -319,30 +319,37 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">num_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                  <span class="n">depth</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                 <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">classical_permutation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Create quantum volume model circuit of size num_qubits x depth.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            num_qubits: number of active qubits in model circuit.</span>
 <span class="sd">            depth: layers of SU(4) operations in model circuit.</span>
-<span class="sd">            seed: randomization seed.</span>
+<span class="sd">            seed: Random number generator or generator seed.</span>
 <span class="sd">            classical_permutation: use classical permutations at every layer,</span>
 <span class="sd">                rather than quantum.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">depth</span> <span class="o">=</span> <span class="n">depth</span> <span class="ow">or</span> <span class="n">num_qubits</span>  <span class="c1"># how many layers of SU(4)</span>
-        <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">num_qubits</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>  <span class="c1"># how many SU(4)s fit in each layer</span>
-
+        <span class="c1"># Initialize RNG</span>
         <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">rng_set</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
             <span class="n">seed</span> <span class="o">=</span> <span class="n">rng_set</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span><span class="p">):</span>
+            <span class="n">rng</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
 
+        <span class="c1"># Parameters</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="n">depth</span> <span class="ow">or</span> <span class="n">num_qubits</span>  <span class="c1"># how many layers of SU(4)</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">num_qubits</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>  <span class="c1"># how many SU(4)s fit in each layer</span>
         <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;quantum_volume_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">([</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">seed</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
-        <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
-
+        <span class="c1"># Generator random unitary seeds in advance.</span>
+        <span class="c1"># Note that this means we are constructing multiple new generator</span>
+        <span class="c1"># objects from low-entropy integer seeds rather than pass the shared</span>
+        <span class="c1"># generator object to the random_unitary function. This is done so</span>
+        <span class="c1"># that we can use the integer seed as a label for the generated gates.</span>
         <span class="n">unitary_seeds</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">[</span><span class="n">depth</span><span class="p">,</span> <span class="n">width</span><span class="p">])</span>
 
         <span class="c1"># For each layer, generate a permutation of qubits</span>
@@ -380,7 +387,7 @@
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/08/07
+        最終更新: 2020/08/11
       </span>
 
     </p>
