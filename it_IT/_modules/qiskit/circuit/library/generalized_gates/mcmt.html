@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.circuit.library.generalized_gates.mcmt &mdash; Qiskit 0.19.6 documentazione</title>
+  <title>qiskit.circuit.library.generalized_gates.mcmt &mdash; Qiskit 0.20.0 documentazione</title>
   
 
   
@@ -271,7 +271,7 @@
 
 <span class="sd">&quot;&quot;&quot;Multiple-Control, Multiple-Target Gate.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">ControlledGate</span><span class="p">,</span> <span class="n">Gate</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">,</span> <span class="n">Qubit</span><span class="p">,</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">QuantumCircuit</span>
@@ -285,6 +285,21 @@
 <div class="viewcode-block" id="MCMT"><a class="viewcode-back" href="../../../../../stubs/qiskit.circuit.library.MCMT.html#qiskit.circuit.MCMT">[documenti]</a><span class="k">class</span> <span class="nc">MCMT</span><span class="p">(</span><span class="n">QuantumCircuit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;The multi-controlled multi-target gate, for an arbitrary singly controlled target gate.</span>
 
+<span class="sd">    For example, the H gate controlled on 3 qubits and acting on 2 target qubit is represented as:</span>
+
+<span class="sd">    .. parsed-literal::</span>
+
+<span class="sd">        ───■────</span>
+<span class="sd">           │</span>
+<span class="sd">        ───■────</span>
+<span class="sd">           │</span>
+<span class="sd">        ───■────</span>
+<span class="sd">        ┌──┴───┐</span>
+<span class="sd">        ┤0     ├</span>
+<span class="sd">        │  2-H │</span>
+<span class="sd">        ┤1     ├</span>
+<span class="sd">        └──────┘</span>
+
 <span class="sd">    This default implementations requires no ancilla qubits, by broadcasting the target gate</span>
 <span class="sd">    to the number of target qubits and using Qiskit&#39;s generic control routine to control the</span>
 <span class="sd">    broadcasted target on the control qubits. If ancilla qubits are available, a more efficient</span>
@@ -294,7 +309,8 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gate</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Gate</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Qubit</span><span class="p">,</span> <span class="n">Qubit</span><span class="p">],</span> <span class="n">Instruction</span><span class="p">]],</span>
                  <span class="n">num_ctrl_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-                 <span class="n">num_target_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                 <span class="n">num_target_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Create a new multi-control multi-target gate.</span>
 
 <span class="sd">        Args:</span>
@@ -303,6 +319,8 @@
 <span class="sd">                If it is a callable, it will be casted to a Gate.</span>
 <span class="sd">            num_ctrl_qubits: The number of control qubits.</span>
 <span class="sd">            num_target_qubits: The number of target qubits.</span>
+<span class="sd">            label: The name for the controlled circuit block. If None, set to `C-name` where</span>
+<span class="sd">                `name` is `gate.name`.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            AttributeError: If the gate cannot be casted to a controlled gate.</span>
@@ -320,6 +338,11 @@
         <span class="c1"># initialize the circuit object</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;mcmt&#39;</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_target_qubits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gate</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">capitalize</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+
         <span class="c1"># build the circuit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">()</span>
 
@@ -329,7 +352,7 @@
             <span class="c1"># no broadcasting needed (makes for better circuit diagrams)</span>
             <span class="n">broadcasted_gate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gate</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">broadcasted</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">)</span>
+            <span class="n">broadcasted</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">)):</span>
                 <span class="n">broadcasted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gate</span><span class="p">,</span> <span class="p">[</span><span class="n">target</span><span class="p">],</span> <span class="p">[])</span>
             <span class="n">broadcasted_gate</span> <span class="o">=</span> <span class="n">broadcasted</span><span class="o">.</span><span class="n">to_gate</span><span class="p">()</span>
@@ -380,11 +403,14 @@
 
         <span class="k">return</span> <span class="n">base_gate</span>
 
-<div class="viewcode-block" id="MCMT.control"><a class="viewcode-back" href="../../../../../stubs/qiskit.circuit.library.MCMT.control.html#qiskit.circuit.MCMT.control">[documenti]</a>    <span class="k">def</span> <span class="nf">control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_ctrl_qubits</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="MCMT.control"><a class="viewcode-back" href="../../../../../stubs/qiskit.circuit.library.MCMT.control.html#qiskit.circuit.MCMT.control">[documenti]</a>    <span class="k">def</span> <span class="nf">control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_ctrl_qubits</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the controlled version of the MCMT circuit.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">MCMT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gate</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">num_ctrl_qubits</span> <span class="o">+</span> <span class="n">num_ctrl_qubits</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="n">ctrl_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># TODO add ctrl state implementation by adding X gates</span>
+            <span class="k">return</span> <span class="n">MCMT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gate</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">num_ctrl_qubits</span> <span class="o">+</span> <span class="n">num_ctrl_qubits</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">,</span>
+                        <span class="n">label</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">control</span><span class="p">(</span><span class="n">num_ctrl_qubits</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MCMT.inverse"><a class="viewcode-back" href="../../../../../stubs/qiskit.circuit.library.MCMT.inverse.html#qiskit.circuit.MCMT.inverse">[documenti]</a>    <span class="k">def</span> <span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the inverse MCMT circuit, which is itself.&quot;&quot;&quot;</span>
@@ -392,7 +418,41 @@
 
 
 <div class="viewcode-block" id="MCMTVChain"><a class="viewcode-back" href="../../../../../stubs/qiskit.circuit.library.MCMTVChain.html#qiskit.circuit.MCMTVChain">[documenti]</a><span class="k">class</span> <span class="nc">MCMTVChain</span><span class="p">(</span><span class="n">MCMT</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;The MCMT implementation using the CCX V-chain.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;The MCMT implementation using the CCX V-chain.</span>
+
+<span class="sd">    This implementation requires ancillas but is decomposed into a much shallower circuit</span>
+<span class="sd">    than the default implementation in :class:`~qiskit.circuit.library.MCMT`.</span>
+
+<span class="sd">    **Expanded Circuit:**</span>
+
+<span class="sd">    .. jupyter-execute::</span>
+<span class="sd">        :hide-code:</span>
+
+<span class="sd">        from qiskit.circuit.library import MCMTVChain, ZGate</span>
+<span class="sd">        import qiskit.tools.jupyter</span>
+<span class="sd">        circuit = MCMTVChain(ZGate(), 2, 2)</span>
+<span class="sd">        %circuit_library_info circuit.decompose()</span>
+
+<span class="sd">    **Examples:**</span>
+
+<span class="sd">        &gt;&gt;&gt; from qiskit.circuit.library import HGate</span>
+<span class="sd">        &gt;&gt;&gt; MCMTVChain(HGate(), 3, 2).draw()</span>
+
+<span class="sd">        q_0: ──■────────────────────────■──</span>
+<span class="sd">               │                        │</span>
+<span class="sd">        q_1: ──■────────────────────────■──</span>
+<span class="sd">               │                        │</span>
+<span class="sd">        q_2: ──┼────■──────────────■────┼──</span>
+<span class="sd">               │    │  ┌───┐       │    │</span>
+<span class="sd">        q_3: ──┼────┼──┤ H ├───────┼────┼──</span>
+<span class="sd">               │    │  └─┬─┘┌───┐  │    │</span>
+<span class="sd">        q_4: ──┼────┼────┼──┤ H ├──┼────┼──</span>
+<span class="sd">             ┌─┴─┐  │    │  └─┬─┘  │  ┌─┴─┐</span>
+<span class="sd">        q_5: ┤ X ├──■────┼────┼────■──┤ X ├</span>
+<span class="sd">             └───┘┌─┴─┐  │    │  ┌─┴─┐└───┘</span>
+<span class="sd">        q_6: ─────┤ X ├──■────■──┤ X ├─────</span>
+<span class="sd">                  └───┘          └───┘</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">_build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Define the MCMT gate.&quot;&quot;&quot;</span>
@@ -460,7 +520,7 @@
                       <span class="s1">&#39;q_controls&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubits&#39;</span><span class="p">,</span>
                       <span class="s1">&#39;q_ancillae&#39;</span><span class="p">:</span> <span class="s1">&#39;ancilla_qubits&#39;</span><span class="p">,</span>
                       <span class="s1">&#39;q_targets&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubits&#39;</span><span class="p">})</span>
-<span class="k">def</span> <span class="nf">mcmt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gate</span><span class="p">,</span> <span class="n">control_qubits</span><span class="p">,</span> <span class="n">target_qubits</span><span class="p">,</span> <span class="n">ancilla_qubits</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;no-ancilla&#39;</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">mcmt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gate</span><span class="p">,</span> <span class="n">control_qubits</span><span class="p">,</span> <span class="n">target_qubits</span><span class="p">,</span> <span class="n">ancilla_qubits</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;noancilla&#39;</span><span class="p">,</span>
          <span class="o">*</span><span class="p">,</span> <span class="n">single_control_gate_fun</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q_controls</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q_ancillae</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q_targets</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Apply a multi-control, multi-target using a generic gate.</span>
 
@@ -473,6 +533,15 @@
                   <span class="s1">&#39;You should create the qiskit.circuit.library.MCMT or MCMTVChain circuits and &#39;</span>
                   <span class="s1">&#39;add then to your circuit using append, extend, or compose.&#39;</span><span class="p">,</span>
                   <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">deprecated_modes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;no-ancilla&#39;</span><span class="p">:</span> <span class="s1">&#39;noancilla&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;basic&#39;</span><span class="p">:</span> <span class="s1">&#39;v-chain&#39;</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="n">deprecated_modes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The mode supplied mode for ``QuantumCircuit.mcmt`` is deprecated, use &#39;</span>
+                      <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> instead of </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">deprecated_modes</span><span class="p">[</span><span class="n">mode</span><span class="p">],</span> <span class="n">mode</span><span class="p">))</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="n">deprecated_modes</span><span class="p">[</span><span class="n">mode</span><span class="p">]</span>
+
     <span class="c1"># for backward compatibility; the previous signature was</span>
     <span class="c1"># `def mcmt(self, q_controls, q_ancillae, single_control_gate_fun, q_targets, mode=&quot;basic&quot;)`</span>
     <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">target_qubits</span><span class="p">):</span>
@@ -488,7 +557,7 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_qubits</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">Qubit</span><span class="p">)):</span>
         <span class="n">target_qubits</span> <span class="o">=</span> <span class="p">[</span><span class="n">target_qubits</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;no-ancilla&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;noancilla&#39;</span><span class="p">:</span>
         <span class="n">mcmt_gate</span> <span class="o">=</span> <span class="n">MCMT</span><span class="p">(</span><span class="n">gate</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">control_qubits</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_qubits</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mcmt_gate</span><span class="p">,</span> <span class="n">control_qubits</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">target_qubits</span><span class="p">[:],</span> <span class="p">[])</span>
 
@@ -505,7 +574,7 @@
                            <span class="n">control_qubits</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">target_qubits</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">ancilla_qubits</span><span class="p">[:</span><span class="n">num_ancillas</span><span class="p">],</span>
                            <span class="p">[])</span>
 
-    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;Invalid mode specified.&#39;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;Invalid mode specified: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
 
 
 <span class="n">QuantumCircuit</span><span class="o">.</span><span class="n">mcmt</span> <span class="o">=</span> <span class="n">mcmt</span>
@@ -524,7 +593,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Ultimo aggiornamento 2020/08/10.
+        Ultimo aggiornamento 2020/08/11.
       </span>
 
     </p>

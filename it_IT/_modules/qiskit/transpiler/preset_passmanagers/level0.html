@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.preset_passmanagers.level0 &mdash; Qiskit 0.19.6 documentazione</title>
+  <title>qiskit.transpiler.preset_passmanagers.level0 &mdash; Qiskit 0.20.0 documentazione</title>
   
 
   
@@ -278,6 +278,8 @@
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passmanager</span> <span class="kn">import</span> <span class="n">PassManager</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">Unroller</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">BasisTranslator</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">UnrollCustomDefinitions</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">Unroll3qOrMore</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">CheckMap</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">CXDirection</span>
@@ -285,15 +287,19 @@
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">TrivialLayout</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">DenseLayout</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">NoiseAdaptiveLayout</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">SabreLayout</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">BarrierBeforeFinalMeasurements</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">BasicSwap</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">LookaheadSwap</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">StochasticSwap</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">SabreSwap</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">FullAncillaAllocation</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">EnlargeWithAncilla</span>
-<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">RemoveResetInZeroState</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">ApplyLayout</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">CheckCXDirection</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">Collect2qBlocks</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">ConsolidateBlocks</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">UnitarySynthesis</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.transpiler</span> <span class="kn">import</span> <span class="n">TranspilerError</span>
 
@@ -306,7 +312,7 @@
 <span class="sd">    Any unused physical qubit is allocated as ancilla space.</span>
 
 <span class="sd">    The pass manager then unrolls the circuit to the desired basis, and transforms the</span>
-<span class="sd">    circuit to match the coupling map. Finally, extra resets are removed.</span>
+<span class="sd">    circuit to match the coupling map.</span>
 
 <span class="sd">    Note:</span>
 <span class="sd">        In simulators where ``coupling_map=None``, only the unrolling and</span>
@@ -326,6 +332,7 @@
     <span class="n">initial_layout</span> <span class="o">=</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">initial_layout</span>
     <span class="n">layout_method</span> <span class="o">=</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">layout_method</span> <span class="ow">or</span> <span class="s1">&#39;trivial&#39;</span>
     <span class="n">routing_method</span> <span class="o">=</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">routing_method</span> <span class="ow">or</span> <span class="s1">&#39;stochastic&#39;</span>
+    <span class="n">translation_method</span> <span class="o">=</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">translation_method</span> <span class="ow">or</span> <span class="s1">&#39;translator&#39;</span>
     <span class="n">seed_transpiler</span> <span class="o">=</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">seed_transpiler</span>
     <span class="n">backend_properties</span> <span class="o">=</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">backend_properties</span>
 
@@ -341,6 +348,8 @@
         <span class="n">_choose_layout</span> <span class="o">=</span> <span class="n">DenseLayout</span><span class="p">(</span><span class="n">coupling_map</span><span class="p">,</span> <span class="n">backend_properties</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">layout_method</span> <span class="o">==</span> <span class="s1">&#39;noise_adaptive&#39;</span><span class="p">:</span>
         <span class="n">_choose_layout</span> <span class="o">=</span> <span class="n">NoiseAdaptiveLayout</span><span class="p">(</span><span class="n">backend_properties</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">layout_method</span> <span class="o">==</span> <span class="s1">&#39;sabre&#39;</span><span class="p">:</span>
+        <span class="n">_choose_layout</span> <span class="o">=</span> <span class="n">SabreLayout</span><span class="p">(</span><span class="n">coupling_map</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed_transpiler</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s2">&quot;Invalid layout method </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">layout_method</span><span class="p">)</span>
 
@@ -363,11 +372,27 @@
         <span class="n">_swap</span> <span class="o">+=</span> <span class="p">[</span><span class="n">StochasticSwap</span><span class="p">(</span><span class="n">coupling_map</span><span class="p">,</span> <span class="n">trials</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed_transpiler</span><span class="p">)]</span>
     <span class="k">elif</span> <span class="n">routing_method</span> <span class="o">==</span> <span class="s1">&#39;lookahead&#39;</span><span class="p">:</span>
         <span class="n">_swap</span> <span class="o">+=</span> <span class="p">[</span><span class="n">LookaheadSwap</span><span class="p">(</span><span class="n">coupling_map</span><span class="p">,</span> <span class="n">search_depth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">search_width</span><span class="o">=</span><span class="mi">2</span><span class="p">)]</span>
+    <span class="k">elif</span> <span class="n">routing_method</span> <span class="o">==</span> <span class="s1">&#39;sabre&#39;</span><span class="p">:</span>
+        <span class="n">_swap</span> <span class="o">+=</span> <span class="p">[</span><span class="n">SabreSwap</span><span class="p">(</span><span class="n">coupling_map</span><span class="p">,</span> <span class="n">heuristic</span><span class="o">=</span><span class="s1">&#39;basic&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed_transpiler</span><span class="p">)]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s2">&quot;Invalid routing method </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">routing_method</span><span class="p">)</span>
 
     <span class="c1"># 5. Unroll to the basis</span>
-    <span class="n">_unroll</span> <span class="o">=</span> <span class="n">Unroller</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">translation_method</span> <span class="o">==</span> <span class="s1">&#39;unroller&#39;</span><span class="p">:</span>
+        <span class="n">_unroll</span> <span class="o">=</span> <span class="p">[</span><span class="n">Unroller</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">)]</span>
+    <span class="k">elif</span> <span class="n">translation_method</span> <span class="o">==</span> <span class="s1">&#39;translator&#39;</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">qiskit.circuit.equivalence_library</span> <span class="kn">import</span> <span class="n">SessionEquivalenceLibrary</span> <span class="k">as</span> <span class="n">sel</span>
+        <span class="n">_unroll</span> <span class="o">=</span> <span class="p">[</span><span class="n">UnrollCustomDefinitions</span><span class="p">(</span><span class="n">sel</span><span class="p">,</span> <span class="n">basis_gates</span><span class="p">),</span>
+                   <span class="n">BasisTranslator</span><span class="p">(</span><span class="n">sel</span><span class="p">,</span> <span class="n">basis_gates</span><span class="p">)]</span>
+    <span class="k">elif</span> <span class="n">translation_method</span> <span class="o">==</span> <span class="s1">&#39;synthesis&#39;</span><span class="p">:</span>
+        <span class="n">_unroll</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">Unroll3qOrMore</span><span class="p">(),</span>
+            <span class="n">Collect2qBlocks</span><span class="p">(),</span>
+            <span class="n">ConsolidateBlocks</span><span class="p">(</span><span class="n">basis_gates</span><span class="o">=</span><span class="n">basis_gates</span><span class="p">),</span>
+            <span class="n">UnitarySynthesis</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s2">&quot;Invalid translation method </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">translation_method</span><span class="p">)</span>
 
     <span class="c1"># 6. Fix any bad CX directions</span>
     <span class="n">_direction_check</span> <span class="o">=</span> <span class="p">[</span><span class="n">CheckCXDirection</span><span class="p">(</span><span class="n">coupling_map</span><span class="p">)]</span>
@@ -376,9 +401,6 @@
         <span class="k">return</span> <span class="ow">not</span> <span class="n">property_set</span><span class="p">[</span><span class="s1">&#39;is_direction_mapped&#39;</span><span class="p">]</span>
 
     <span class="n">_direction</span> <span class="o">=</span> <span class="p">[</span><span class="n">CXDirection</span><span class="p">(</span><span class="n">coupling_map</span><span class="p">)]</span>
-
-    <span class="c1"># 7. Remove zero-state reset</span>
-    <span class="n">_reset</span> <span class="o">=</span> <span class="n">RemoveResetInZeroState</span><span class="p">()</span>
 
     <span class="c1"># Build pass manager</span>
     <span class="n">pm0</span> <span class="o">=</span> <span class="n">PassManager</span><span class="p">()</span>
@@ -393,7 +415,6 @@
     <span class="k">if</span> <span class="n">coupling_map</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">coupling_map</span><span class="o">.</span><span class="n">is_symmetric</span><span class="p">:</span>
         <span class="n">pm0</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_direction_check</span><span class="p">)</span>
         <span class="n">pm0</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_direction</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="n">_direction_condition</span><span class="p">)</span>
-    <span class="n">pm0</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_reset</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">pm0</span></div>
 </pre></div>
@@ -411,7 +432,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Ultimo aggiornamento 2020/08/10.
+        Ultimo aggiornamento 2020/08/11.
       </span>
 
     </p>
