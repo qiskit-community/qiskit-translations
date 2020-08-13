@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Transpiler Passes and Pass Manager &mdash; Qiskit 0.20.0 문서</title>
+  <title>트랜스파일러 패스 및 패스 매니저 &mdash; Qiskit 0.20.0 문서</title>
   
 
   
@@ -168,11 +168,11 @@
 <li class="toctree-l2"><a class="reference internal" href="1_advanced_circuits.html">고급 회로</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_operators_overview.html">연산자</a></li>
 <li class="toctree-l2"><a class="reference internal" href="3_advanced_circuit_visualization.html">양자 회로를 시각화 하기</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Transpiler Passes and Pass Manager</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#Introduction">Introduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#PassManager-object">PassManager object</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Different-Variants-of-the-Same-Pass">Different Variants of the Same Pass</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Preset-Pass-Managers">Preset Pass Managers</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">트랜스파일러 패스 및 패스 매니저</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#소개">소개</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#PassManager-객체">PassManager 객체</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#동일한-패스의-다양한-변형">동일한 패스의 다양한 변형</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#사전-설정-패스-매니저">사전 설정 패스 매니저</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Introducing-the-DAG">Introducing the DAG</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Implementing-a-BasicMapper-Pass">Implementing a BasicMapper Pass</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Transpiler-Logging">Transpiler Logging</a><ul>
@@ -255,7 +255,7 @@
         
           <li><a href="index.html">고급 회로 사용 지침서</a> &raquo;</li>
         
-      <li>Transpiler Passes and Pass Manager</li>
+      <li>트랜스파일러 패스 및 패스 매니저</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -531,15 +531,14 @@ div.rendered_html tbody tr:hover {
 </style>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>This page was generated from <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/circuits_advanced/4_transpiler_passes_and_passmanager.ipynb">tutorials/circuits_advanced/4_transpiler_passes_and_passmanager.ipynb</a>.</p>
+<p>이 페이지는 <a href="#id1"><span class="problematic" id="id2">`</span></a>tutorials/circuits_advanced/4_transpiler_passes_and_passmanager.ipynb`__로부터 생성되었다.</p>
 </div>
-<div class="section" id="Transpiler-Passes-and-Pass-Manager">
-<h1>Transpiler Passes and Pass Manager<a class="headerlink" href="#Transpiler-Passes-and-Pass-Manager" title="제목 주소">¶</a></h1>
-<div class="section" id="Introduction">
-<h2>Introduction<a class="headerlink" href="#Introduction" title="제목 주소">¶</a></h2>
-<p>A central component of Qiskit Terra is the transpiler, which is designed for modularity and extensibility. The goal is to be able to easily write new circuit transformations (known as transpiler <strong>passes</strong>), and combine them with other existing passes. Which passes are chained together and in which order has a major effect on the final outcome. This pipeline is determined by a <strong>pass manager</strong>, which schedules the passes and also allows passes to communicate with each other by providing a shared
-space. In this way, the transpiler opens up the door for research into aggressive optimization of quantum circuits.</p>
-<p>In this notebook, we look at the built-in passes, how to use the pass manager, and develop a simple custom transpiler pass. In order to do the latter, we first need to introduce the internal representation of quantum circuits in Qiskit, in the form of a Directed Acyclic Graph, or <strong>DAG</strong>. Then, we illustrate a simple swap mapper pass, which transforms an input circuit to be compatible with a limited-connectivity quantum device.</p>
+<div class="section" id="트랜스파일러-패스-및-패스-매니저">
+<h1>트랜스파일러 패스 및 패스 매니저<a class="headerlink" href="#트랜스파일러-패스-및-패스-매니저" title="제목 주소">¶</a></h1>
+<div class="section" id="소개">
+<h2>소개<a class="headerlink" href="#소개" title="제목 주소">¶</a></h2>
+<p>키스킷 테라의 중심 구성요소는 모듈성과 확장성을 위해 설계된 트랜스파일러다. 새로운 회로 변환(트랜스파일러 <a href="#id1"><span class="problematic" id="id2">**</span></a>passes**로 알려져 있음)을 쉽게 작성할 수 있고, 이를 다른 기존 패스와 결합하는 것이 목표다. 어떤 패스가 체인으로 묶여 있고 어떤 순서가 최종 결과에 큰 영향을 미치는가. 이 파이프라인은 <a href="#id3"><span class="problematic" id="id4">**</span></a>pass manager**에 의해 결정되는데, 이 관리자는 패스를 예약하고 공유 공간을 제공하여 패스가 서로 통신할 수 있도록 한다. 이런 식으로 트랜스파일러는 적극적으로 양자 회로의 최적화에 대한 연구의 문을 연다.</p>
+<p>이 노트북에서는 내장된 패스, 패스 매니저 사용법 등을 살펴보고, 간단한 맞춤형 트랜스파일러 패스를 개발한다. 후자를 하기 위해서는 우선 <a href="#id1"><span class="problematic" id="id2">**</span></a>DAG**(Directed Acyclic Graph) 의 형태로 키스킷으로 양자 회로의 내부를 표현한다. 그런 다음 입력 회로를 제한된 연결 양자 장치와 호환되도록 변환하는 간단한 스왑 매퍼 패스를 설명한다.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -553,9 +552,9 @@ space. In this way, the transpiler opens up the door for research into aggressiv
 </div>
 </div>
 </div>
-<div class="section" id="PassManager-object">
-<h2>PassManager object<a class="headerlink" href="#PassManager-object" title="제목 주소">¶</a></h2>
-<p>Lets you specify the set of passes you want.</p>
+<div class="section" id="PassManager-객체">
+<h2>PassManager 객체<a class="headerlink" href="#PassManager-객체" title="제목 주소">¶</a></h2>
+<p>원하는 패스 세트를 지정한다.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -596,7 +595,7 @@ space. In this way, the transpiler opens up the door for research into aggressiv
 <img alt="../../_images/tutorials_circuits_advanced_4_transpiler_passes_and_passmanager_6_0.png" src="../../_images/tutorials_circuits_advanced_4_transpiler_passes_and_passmanager_6_0.png" />
 </div>
 </div>
-<p>All of Qiskit’s transpiler passes are accessible from <code class="docutils literal notranslate"><span class="pre">qiskit.transpiler.passes</span></code>.</p>
+<p>모든 키스킷의 트랜스파일러 패스는 <a href="#id1"><span class="problematic" id="id2">``</span></a>qiskit.transpiler.passes``로 부터 불러올 수 있다.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -659,10 +658,10 @@ space. In this way, the transpiler opens up the door for research into aggressiv
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Different-Variants-of-the-Same-Pass">
-<h2>Different Variants of the Same Pass<a class="headerlink" href="#Different-Variants-of-the-Same-Pass" title="제목 주소">¶</a></h2>
-<p>There can be passes that do the same job, but in different ways. For example, the <code class="docutils literal notranslate"><span class="pre">TrivialLayout</span></code>, <code class="docutils literal notranslate"><span class="pre">DenseLayout</span></code> and <code class="docutils literal notranslate"><span class="pre">NoiseAdaptiveLayout</span></code> all choose a layout (binding of virtual qubits to physical qubits), but use different algorithms and objectives. Similarly, the <code class="docutils literal notranslate"><span class="pre">BasicSwap</span></code>, <code class="docutils literal notranslate"><span class="pre">LookaheadSwap</span></code> and <code class="docutils literal notranslate"><span class="pre">StochasticSwap</span></code> all insert swaps to make the circuit compatible with the coupling map. The modularity of the transpiler allows plug-and-play replacements for each pass.</p>
-<p>Below, we show the swapper passes all applied to the same circuit, to transform it to match a linear chain topology. You can see differences in performance, where the <code class="docutils literal notranslate"><span class="pre">StochasticSwap</span></code> is clearly the best. However, this can vary depending on the input circuit.</p>
+<div class="section" id="동일한-패스의-다양한-변형">
+<h2>동일한 패스의 다양한 변형<a class="headerlink" href="#동일한-패스의-다양한-변형" title="제목 주소">¶</a></h2>
+<p>동일한 기능을 제공하지만 다른 방법으로 구성되는 패스가 있을 수 있다. 예를 들어 <code class="docutils literal notranslate"><span class="pre">TrivialLayout</span></code>, <code class="docutils literal notranslate"><span class="pre">DenseLayout</span></code>》과 <code class="docutils literal notranslate"><span class="pre">NoiseAdaptiveLayout``은</span> <span class="pre">모두</span> <span class="pre">레이아웃(가상</span> <span class="pre">큐비트를</span> <span class="pre">물리적</span> <span class="pre">큐비트에</span> <span class="pre">바인딩)</span> <span class="pre">을</span> <span class="pre">선택하지만</span> <span class="pre">다른</span> <span class="pre">알고리즘과</span> <span class="pre">목표를</span> <span class="pre">사용한다.</span> <span class="pre">마찬가지로</span> <span class="pre">```BasicSwap</span></code>, <code class="docutils literal notranslate"><span class="pre">LookaheadSwap</span></code>, <a href="#id1"><span class="problematic" id="id2">``</span></a>StochasticSwap``등도 회로가 커플링 맵과 호환되도록 스왑을 삽입한다. 트랜스파일러의 모듈화는 각 패스마다 플러그 앤 플레이 교체를 허용한다.</p>
+<p>아래에서는 동일한 회로에 적용된 모든 스왑퍼의 패스를 보여 주며, 선형 체인 토폴로지와 일치하도록 변환한다. <a href="#id1"><span class="problematic" id="id2">``</span></a>StochasticSwap``이 최고의 성능을 보여주는 것을 포함해 스왑퍼 패스 간의 성능 차이를 확인할 수 있다. 그러나 이것은 입력 회로에 따라 다를 수 있다.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
@@ -766,15 +765,15 @@ space. In this way, the transpiler opens up the door for research into aggressiv
 </div>
 </div>
 </div>
-<div class="section" id="Preset-Pass-Managers">
-<h2>Preset Pass Managers<a class="headerlink" href="#Preset-Pass-Managers" title="제목 주소">¶</a></h2>
-<p>Qiskit comes with several pre-defined pass managers, corresponding to various levels of optimization achieved through different pipelines of passes. Currently <code class="docutils literal notranslate"><span class="pre">optimization_level</span></code> 0 through 3 are supported; the higher the number, the more optimized it is, at the expense of more time. Choosing a good pass manager may take trial and error, as it depends heavily on the circuit being transpiled and the backend being targeted.</p>
-<p>Here we illustrate the different levels by looking at a state synthesis circuit. We initialize four qubits to an arbitrary state, and then try to optimize the circuit that achieves this.</p>
+<div class="section" id="사전-설정-패스-매니저">
+<h2>사전 설정 패스 매니저<a class="headerlink" href="#사전-설정-패스-매니저" title="제목 주소">¶</a></h2>
+<p>키스킷에는 여러 개의 사전 정의된 패스 매니저가 함께 제공되며, 이는 서로 다른 패스 파이프라인을 통해 달성되는 다양한 수준의 최적화에 대응한다. 현재 <code class="docutils literal notranslate"><span class="pre">optimization_level</span></code> 0에서 3까지 지원되고 있는데 숫자가 높을수록 최적화에 더 많은 시간이 소요된다. 좋은 패스 매니저를 선택하는 것은 시행착오를 동반하며, 이는 트랜스파일링되는 회로와 목표가 되는 백엔드에 크게 좌우되기 때문이다.</p>
+<p>여기에서는 상태를 인위적으로 조작한 회로를 사용해 다양한 트랜스파일 수준을 설명한다. 네 개의 큐비트를 임의의 상태로 초기화한 다음, 이 상태를 만들어낼 수 있도록 회로를 최적화 한다.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=0</span></code>: just maps the circuit to the backend, with no explicit optimization (except whatever optimizations the mapper does).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=1</span></code>: maps the circuit, but also does light-weight optimizations by collapsing adjacent gates.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=2</span></code>: medium-weight optimization, including a noise-adaptive layout and a gate-cancellation procedure based on gate commutation relationships.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=3</span></code>: heavy-weight optimization, which in addition to previous steps, does resynthesis of two-qubit blocks of gates in the circuit.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=0</span></code>: 눈에 띄는 최적화 없이 회로를 백엔드에 매핑하기만 한다.(매퍼의 최적화 작업은 제외).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=1</span></code>: 회로를 매핑하며 인접한 게이트를 한데 묶어서 가벼운 최적화를 수행한다.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=2</span></code>: 노이즈-적용 레이아웃을 포함하는 중간-가중치 최적화 및 게이트 명령어 관계에 기초한 게이트-취소 절차를 포함한다.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=3</span></code>: 이전의 단계의 최적화에 덧붙여 회로 내 두 개의 큐비트 블록에 대한 게이트의 재조합(resynthesis)을 수행하는 중량 최적화.</p></li>
 </ul>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
@@ -1732,7 +1731,7 @@ qiskit.compiler.transpile - MainProcess - INFO: Total Transpile Time - 176.69606
         
         &copy; 저작권 2020, Qiskit Development Team
       <span class="lastupdated">
-        최종 업데이트: 2020/08/12
+        최종 업데이트: 2020/08/13
       </span>
 
     </p>
