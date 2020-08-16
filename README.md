@@ -37,6 +37,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Language | Translation Leads | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
 | ---     | ---    | --- |
 | Brazilian Portuguese | Jose Gilberto Biondo Junior | @Gilberto Biondo |
+| Hindi | Anupama Ray | @anupamar |
 | French | Olivier Hess | @Olivier Hess |
 | German | Joachim Schaefer | @Joachim Schwarm |
 | Italian | Eleonora Picca | @Eleonora Picca |
