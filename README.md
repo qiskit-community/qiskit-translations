@@ -40,6 +40,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Hindi | Anupama Ray | @anupamar |
 | French | Olivier Hess | @Olivier Hess |
 | German | Joachim Schaefer | @Joachim Schwarm |
+| Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
 | Japanese | Takehiko Amano | @Takehiko Amano |
 | Korean | Jinho Hwang | @Jinho Hwang |
