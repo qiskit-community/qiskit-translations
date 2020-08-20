@@ -3,7 +3,7 @@
 > :warning: **This repository is not a package.**: The [setup.py](https://github.com/qiskit-community/qiskit-translations/blob/master/setup.py) file is only in this repository as a requirement for building docs. If you'd like to install Qiskit, follow the [link](https://github.com/Qiskit/qiskit).
 
 
-# Qiskit Documentation Localization
+# Qiskit Documentation Localization [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs)
 
 First of all, **thank you** for showing your interest in translating (localizing) Qiskit Documentation! This helps make the documentation more accessible and available to our global community.
 
