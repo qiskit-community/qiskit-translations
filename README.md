@@ -1,4 +1,7 @@
 ![Image](images/qiskit_header.png?raw=true)
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 > :warning: **This repository is not a package.**: The [setup.py](https://github.com/qiskit-community/qiskit-translations/blob/master/setup.py) file is only in this repository as a requirement for building docs. If you'd like to install Qiskit, follow the [link](https://github.com/Qiskit/qiskit).
 
@@ -79,3 +82,22 @@ If you want to add a new language and become a translation lead, you can open a 
 3. Among the group of contributors, a **translation lead must be identified** to serve as a liaison with the administrators of the localization project. The lead must contact Yuri Kobayashi (yurik@jp.ibm.com) by email for the language to be officially listed under this project. <br/><br/>
 
 These are general guidelines for joining translation efforts and adding new languages. If you have further questions, please feel free to contact [Yuri Kobayashi](mailto:yurik@jp.ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation). Thank you.
+
+## Contributors ✨
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/veenaiyuri"><img src="https://avatars1.githubusercontent.com/u/24409087?v=4" width="100px;" alt=""/><br /><sub><b>Yuri Kobayashi</b></sub></a><br /><a href="#projectManagement-veenaiyuri" title="Project Management">📆</a></td>
+  </tr>
+</table>
+
+<!-- markdownlint-enable -->
+<!-- prettier-ignore-end -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
