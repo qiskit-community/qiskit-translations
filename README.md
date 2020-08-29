@@ -36,6 +36,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 
 | Language | Translation Leads | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
 | ---     | ---    | --- |
+| Bengali | Omar Shehab, Sristy Sangskriti |  @Shehab @Sristy Sangskriti   |
 | Brazilian Portuguese | Jose Gilberto Biondo Junior | @Gilberto Biondo |
 | Hindi | Anupama Ray | @anupamar |
 | French | Olivier Hess | @Olivier Hess |
