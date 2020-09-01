@@ -3,7 +3,7 @@
 > :warning: **This repository is not a package.**: The [setup.py](https://github.com/qiskit-community/qiskit-translations/blob/master/setup.py) file is only in this repository as a requirement for building docs. If you'd like to install Qiskit, follow the [link](https://github.com/Qiskit/qiskit).
 
 
-# Qiskit Documentation Localization
+# Qiskit Documentation Localization [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs)
 
 First of all, **thank you** for showing your interest in translating (localizing) Qiskit Documentation! This helps make the documentation more accessible and available to our global community.
 
@@ -24,15 +24,26 @@ If you are interested in contributing to translations, please follow the instruc
 Failing to do so will result in a delay in approving your request in Crowdin and your Pull Request in GitHub. The administrators of the Crowdin project will review your request and give you access as quickly as they can.<br/>
 6. For questions regarding onboarding or strategy, to connect with other translators and receive updates regarding the project please join #qiskit-localization channel in the [Qiskit workspace](http://ibm.co/joinqiskitslack) or make an issue in this repo.
 
+### Project Leads (as of Aug, 2020)
+
+| Role | Name | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
+| ---     | ---    | --- |
+| Qiskit Localization Lead | Yuri Kobayashi | @Yuri Kobayashi |
+| Qiskit Localization Technical Lead | Soolu Thomas | @Soolu |
+
+
 ### Translation Leads (as of Aug, 2020)
 
 | Language | Translation Leads | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
 | ---     | ---    | --- |
+| Bengali | Omar Shehab, Sristy Sangskriti |  @Shehab @Sristy Sangskriti   |
 | Brazilian Portuguese | Jose Gilberto Biondo Junior | @Gilberto Biondo |
+| Hindi | Anupama Ray | @anupamar |
 | French | Olivier Hess | @Olivier Hess |
 | German | Joachim Schaefer | @Joachim Schwarm |
+| Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
-| Japanese | Yuri Kobayashi | @Yuri Kobayashi |
+| Japanese | Takehiko Amano | @Takehiko Amano |
 | Korean | Jinho Hwang | @Jinho Hwang |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese | Omar Costa Hamido | @OCH |
@@ -69,3 +80,4 @@ If you want to add a new language and become a translation lead, you can open a 
 3. Among the group of contributors, a **translation lead must be identified** to serve as a liaison with the administrators of the localization project. The lead must contact Yuri Kobayashi (yurik@jp.ibm.com) by email for the language to be officially listed under this project. <br/><br/>
 
 These are general guidelines for joining translation efforts and adding new languages. If you have further questions, please feel free to contact [Yuri Kobayashi](mailto:yurik@jp.ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation). Thank you.
+
