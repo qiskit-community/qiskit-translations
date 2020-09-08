@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Repetition Codes &mdash; documentação Qiskit 0.20.0</title>
+  <title>Códigos De Repetição &mdash; documentação Qiskit 0.20.0</title>
   
 
   
@@ -176,12 +176,12 @@
 <li class="toctree-l2"><a class="reference internal" href="3_measurement_error_mitigation.html">Mitigação de Erros de Medição</a></li>
 <li class="toctree-l2"><a class="reference internal" href="4_randomized_benchmarking.html">Randomized Benchmarking</a></li>
 <li class="toctree-l2"><a class="reference internal" href="5_quantum_volume.html">Volume Quântico</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Repetition Codes</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#Introduction">Introduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Creating-a-repetition-code">Creating a repetition code</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Building-a-custom-repetition-code">Building a custom repetition code</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Running-a-repetition-code">Running a repetition code</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Decoding-a-repetition-code">Decoding a repetition code</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Códigos De Repetição</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Introdução">Introdução</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Criando-um-código-de-repetição">Criando um código de repetição</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Gerando-um-código-de-repetição-personalizado">Gerando um código de repetição personalizado</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Executando-um-código-de-repetição">Executando um código de repetição</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Decodificando-um-código-de-repetição">Decodificando um código de repetição</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="7_accreditation.html">Accreditation protocol</a></li>
@@ -261,7 +261,7 @@
         
           <li><a href="index.html">Tutoriais de Análise de Erro do Sistema Quântico</a> &raquo;</li>
         
-      <li>Repetition Codes</li>
+      <li>Códigos De Repetição</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -537,21 +537,19 @@ div.rendered_html tbody tr:hover {
 </style>
 <div class="admonition note">
 <p class="admonition-title">Nota</p>
-<p>This page was generated from <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/noise/6_repetition_code.ipynb">tutorials/noise/6_repetition_code.ipynb</a>.</p>
+<p>Esta página foi gerada a partir do <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/noise/6_repetition_code.ipynb">tutorials/noise/6_repetition_code.ipynb</a>.</p>
 </div>
-<div class="section" id="Repetition-Codes">
-<h1>Repetition Codes<a class="headerlink" href="#Repetition-Codes" title="Link permanente para este título">¶</a></h1>
-<div class="section" id="Introduction">
-<h2>Introduction<a class="headerlink" href="#Introduction" title="Link permanente para este título">¶</a></h2>
-<p>In quantum error correction we take many noisy qubits (which we call <em>physical qubits</em>) and use them to store a smaller number of <em>logical qubits</em>. The error correction procedure is designed to detect and correct for the effects of noise. This makes the logical qubits much less noisy and more reliable than the physical ones from which they are built.</p>
-<p>The repetition code is a simple example of quantum error correction, in which a logical <em>bit</em> is stored rather than a logical <em>qubit</em>. A given instance of the repetition code is defined by two numbers, which we call <span class="math notranslate nohighlight">\(d\)</span> and <span class="math notranslate nohighlight">\(T\)</span>.</p>
-<p>The <span class="math notranslate nohighlight">\(d\)</span> parameter determines how many physical qubits are used. The actual information about the logical bit is stored in <span class="math notranslate nohighlight">\(d\)</span> qubits (which we’ll call <em>code qubits</em>). The encoding is done in a very simple way: to encode a <code class="docutils literal notranslate"><span class="pre">0</span></code>, all these qubits are set in the state <span class="math notranslate nohighlight">\(|0\rangle\)</span>, to encode a <code class="docutils literal notranslate"><span class="pre">1</span></code> they are set to <span class="math notranslate nohighlight">\(|1\rangle\)</span>. To readout the value, you can just look at any qubit. To read it out in a way that protects against single qubit errors, you can read out all the
-qubits and take a majority vote.</p>
-<p>It is not only at readout that we can extract useful information that will help us correct errors. We can also extract information while the logical bit sits idle, or even while it is involved in computation.</p>
-<p>Since this is an exercise in quantum error correction, we will do this in a way that would also work for logical <em>qubits</em>. Specifically, our method of extracting information about errors must not extract any information regarding the stored logical information. In the quantum case, this is required so that we do not disturb superposition states of the stored qubits.</p>
-<p>We will extract information over <span class="math notranslate nohighlight">\(T\)</span> rounds of <em>syndrome measurements</em>. For the repetition code, these are based on the fact that all code qubits should be in the same state (all <span class="math notranslate nohighlight">\(|0\rangle\)</span> or all <span class="math notranslate nohighlight">\(|1\rangle\)</span>). Any departure from this is therefore a signature of error. Specifically, we imagine our <span class="math notranslate nohighlight">\(d\)</span> code qubits sitting along a line. We will then perform a measurement on each pair of neighboring code qubits. This will tell us whether they are the same or different,
-without extracting any information on what their values are.</p>
-<p>The implementation of these measurements requires <span class="math notranslate nohighlight">\(d-1\)</span> additional qubits, which we will call <em>link qubits</em> for the repetition code. By pefforming two CNOTs between the pair of code qubits and a corresponding link qubit, the required information (and only the required information) is placed on the link qubit and can then be measured.</p>
+<div class="section" id="Códigos-De-Repetição">
+<h1>Códigos De Repetição<a class="headerlink" href="#Códigos-De-Repetição" title="Link permanente para este título">¶</a></h1>
+<div class="section" id="Introdução">
+<h2>Introdução<a class="headerlink" href="#Introdução" title="Link permanente para este título">¶</a></h2>
+<p>Na correção de erros quânticos nós pegamos muitos qubits ruidosos (que chamamos de <em>qubits físicos</em>) e utilizamos eles para armazenar um número menor de <em>qubits lógicos</em>. O procedimento de correção de erros é projetado para detectar e corrigir os efeitos do ruído. Isso faz com que os qubits lógicos sejam muito menos ruidosos e mais confiáveis do que os físicos dos quais são construídos.</p>
+<p>O código de repetição é um exemplo simples de correção de erro quântico, no qual um <em>bit</em> lógico é armazenado em vez de um <em>qubit</em> lógico. Uma dada instância do código de repetição é definida por dois números, os quais chamamos de <span class="math notranslate nohighlight">\(d\)</span> e <span class="math notranslate nohighlight">\(T\)</span>.</p>
+<p>O parâmetro <span class="math notranslate nohighlight">\(d\)</span> determina quantos qubits físicos são usados. As informações reais sobre o bit lógico são armazenadas em <span class="math notranslate nohighlight">\(d\)</span> qubits (que chamaremos de <em>code qubits</em>). A codificação é feita de uma forma muito simples: para codificar um <code class="docutils literal notranslate"><span class="pre">0</span></code>, todos estes qubits são configurados no estado <span class="math notranslate nohighlight">\(|0\rangle\)</span>, para codificar um <code class="docutils literal notranslate"><span class="pre">1</span></code> eles são configurados para <span class="math notranslate nohighlight">\(|1\rangle\)</span>. Para ler o valor, você pode simplesmente olhar para qualquer qubit. Para lê-lo de uma maneira que o proteja contra erros em um único qubit, você pode ler todos os qubits e escolher o valor que mais aparece.</p>
+<p>Não é somente na leitura que podemos extrair informações úteis que nos ajudarão a corrigir erros. Também podemos extrair informações enquanto o bit lógico fica ocioso, ou mesmo enquanto ele está envolvido em uma computação.</p>
+<p>Uma vez que este é um exercício de correção de erros quânticos, faremos isso de uma maneira que também funcionaria para os <em>qubits</em> lógicos. Especificamente, nosso método de extração de informações sobre erros não deve extrair nenhuma informação a respeito das informações lógicas armazenadas. No caso quântico, isso é necessário para que não perturbemos estados de superposição dos qubits armazenados.</p>
+<p>Extrairemos informações ao longo de <span class="math notranslate nohighlight">\(T\)</span> rodadas de <em>medições da síndrome</em>. Para o código de repetição, estes baseiam-se no fato de que todos os qubits de código devem estar no mesmo estado (todos <span class="math notranslate nohighlight">\(|0\rangle\)</span> ou todos <span class="math notranslate nohighlight">\(|1\rangle\)</span>). Qualquer desvio disso é, portanto, um sinal de erro. Especificamente, imaginamos que nossos <span class="math notranslate nohighlight">\(d\)</span> qubits de código estão posicionados ao longo de uma linha. Em seguida, realizamos uma medição em cada par de qubits de código vizinhos. Isso nos dirá se eles são iguais ou diferentes, sem extrair nenhuma informação sobre quais são os seus valores.</p>
+<p>A implementação dessas medições requer <span class="math notranslate nohighlight">\(d-1\)</span> qubits adicionais, que chamaremos <em>link qubits</em> para o código de repetição. Ao executar dois CNOTs entre o par de code qubits e um link qubit correspondente, as informações necessárias (e apenas as informações necessárias) são colocadas no link qubit e podem, então, ser medidas.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -581,7 +579,7 @@ link_qubit_0: |0&gt;┤ X ├┤ X ├
                  └───┘└───┘
 </pre></div></div>
 </div>
-<p>Here we provide tools for creating and testing repetition codes. The first thing we need to do is import them.</p>
+<p>Aqui fornecemos ferramentas para a criação e o teste de códigos de repetição. A primeira coisa que precisamos fazer é importá-las.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -594,9 +592,9 @@ link_qubit_0: |0&gt;┤ X ├┤ X ├
 </div>
 </div>
 </div>
-<div class="section" id="Creating-a-repetition-code">
-<h2>Creating a repetition code<a class="headerlink" href="#Creating-a-repetition-code" title="Link permanente para este título">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">repetition_code</span></code> class creates a code for given values of <span class="math notranslate nohighlight">\(d\)</span> and <span class="math notranslate nohighlight">\(T\)</span>.</p>
+<div class="section" id="Criando-um-código-de-repetição">
+<h2>Criando um código de repetição<a class="headerlink" href="#Criando-um-código-de-repetição" title="Link permanente para este título">¶</a></h2>
+<p>A classe <code class="docutils literal notranslate"><span class="pre">repetition_code</span></code> cria um código para os valores indicados de <span class="math notranslate nohighlight">\(d\)</span> e <span class="math notranslate nohighlight">\(T\)</span>.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -608,7 +606,7 @@ link_qubit_0: |0&gt;┤ X ├┤ X ├
 </pre></div>
 </div>
 </div>
-<p>With this we can inspect various properties of the code, such as the names of the qubit registers used for the code and ancilla qubits.</p>
+<p>Com isso podemos inspecionar várias propriedades do código, como os nomes dos registradores de qubits utilizados para o código e para os qubits auxiliares.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -627,7 +625,7 @@ link_qubit_0: |0&gt;┤ X ├┤ X ├
 {&#39;code_qubit&#39;, &#39;link_qubit&#39;}
 </pre></div></div>
 </div>
-<p>These registers are also attributes of the <code class="docutils literal notranslate"><span class="pre">repetition_code</span></code> object.</p>
+<p>Estes registradores são também atributos do objeto <code class="docutils literal notranslate"><span class="pre">repetition_code</span></code>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
@@ -646,7 +644,7 @@ link_qubit_0: |0&gt;┤ X ├┤ X ├
 QuantumRegister(3, &#39;code_qubit&#39;)
 </pre></div></div>
 </div>
-<p>You can also access the quantum circuits that implement the code. Two of these are produced: one for each of the two possible logical bit values.</p>
+<p>Você também pode acessar os circuitos quânticos que implementam o código. Dois destes são produzidos: um para cada um dos dois valores de bits lógicos possíveis.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
@@ -772,9 +770,9 @@ round_1_link_bit_1: 0 ═══════════════════�
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Building-a-custom-repetition-code">
-<h2>Building a custom repetition code<a class="headerlink" href="#Building-a-custom-repetition-code" title="Link permanente para este título">¶</a></h2>
-<p>You can also implement measurement rounds and logical <code class="docutils literal notranslate"><span class="pre">X</span></code> gates yourself. For example, let’s set up a code with no syndrome measurement rounds.</p>
+<div class="section" id="Gerando-um-código-de-repetição-personalizado">
+<h2>Gerando um código de repetição personalizado<a class="headerlink" href="#Gerando-um-código-de-repetição-personalizado" title="Link permanente para este título">¶</a></h2>
+<p>Você também pode implementar rodadas de medição e portas <code class="docutils literal notranslate"><span class="pre">X</span></code> lógicas. Por exemplo, vamos configurar um código sem rodadas de medição da síndrome.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
@@ -784,7 +782,7 @@ round_1_link_bit_1: 0 ═══════════════════�
 </pre></div>
 </div>
 </div>
-<p>This does nothing but set up two circuits for the two logical encoded states. There are no syndrome measurement rounds, and no final readout.</p>
+<p>Isso não faz nada além de configurar dois circuitos para os dois estados codificados lógicos. Não há rodadas de medição da síndrome, e nenhuma leitura final.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
@@ -834,7 +832,7 @@ code_qubit_2: |0&gt;┤ X ├─░─
                  └───┘ ░
 </pre></div></div>
 </div>
-<p>We can add a round using the <code class="docutils literal notranslate"><span class="pre">syndrome_measurement()</span></code> method.</p>
+<p>Podemos adicionar uma rodada usando o método <code class="docutils literal notranslate"><span class="pre">syndrome_measurement()</span></code>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
@@ -888,7 +886,7 @@ round_0_link_bit_1: 0 ═══════════════════�
 
 </pre></div></div>
 </div>
-<p>A logical <code class="docutils literal notranslate"><span class="pre">X</span></code> operation can be added using the <code class="docutils literal notranslate"><span class="pre">x()</span></code> method.</p>
+<p>Uma operação <code class="docutils literal notranslate"><span class="pre">X</span></code> lógica pode ser adicionada utilizando o método <code class="docutils literal notranslate"><span class="pre">x()</span></code>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
@@ -942,8 +940,8 @@ round_0_link_bit_1: 0 ═══════════════════�
 
 </pre></div></div>
 </div>
-<p>This also has a <code class="docutils literal notranslate"><span class="pre">logs</span></code> kwarg, which is a list of the circuits for which <code class="docutils literal notranslate"><span class="pre">X</span></code> is applied. This is <code class="docutils literal notranslate"><span class="pre">['0','1']</span></code> by default.</p>
-<p>Final readout is then done with the <code class="docutils literal notranslate"><span class="pre">readout()</span></code> method.</p>
+<p>Este também possui um kwarg <code class="docutils literal notranslate"><span class="pre">logs</span></code>, que é uma lista dos circuitos para os quais <code class="docutils literal notranslate"><span class="pre">X</span></code> é aplicado. Ele é <code class="docutils literal notranslate"><span class="pre">['0','1']</span></code> por padrão.</p>
+<p>A leitura final é então feita com o método <code class="docutils literal notranslate"><span class="pre">readout()</span></code>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
@@ -1031,10 +1029,10 @@ round_0_link_bit_1: 0 ═══════════════════�
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Running-a-repetition-code">
-<h2>Running a repetition code<a class="headerlink" href="#Running-a-repetition-code" title="Link permanente para este título">¶</a></h2>
-<p>The code object produces the circuits required for the code. The user can then run them using any method they prefer, allowing full control over compilation, backends, noise models and so on.</p>
-<p>For example, here we run them without noise on the <code class="docutils literal notranslate"><span class="pre">qasm_simulator</span></code>.</p>
+<div class="section" id="Executando-um-código-de-repetição">
+<h2>Executando um código de repetição<a class="headerlink" href="#Executando-um-código-de-repetição" title="Link permanente para este título">¶</a></h2>
+<p>O objeto code produz os circuitos necessários para o código. O usuário pode, então, executá-los usando qualquer método que preferira, permitindo o controle total sobre compilação, backends, modelos de ruído e assim por diante.</p>
+<p>Por exemplo, aqui os executamos sem ruído no <code class="docutils literal notranslate"><span class="pre">qasm_simulator</span></code>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
@@ -1065,8 +1063,8 @@ round_0_link_bit_1: 0 ═══════════════════�
 {&#39;111 00 00&#39;: 1024}
 </pre></div></div>
 </div>
-<p>Here the strings from right to left represent the outputs of the syndrome measurement rounds, followed by the final measurement of the code qubits.</p>
-<p>These results need to be rewritten in a different form in order to be decoded. To do this we can use the <code class="docutils literal notranslate"><span class="pre">process_results</span></code> method of the code object.</p>
+<p>Aqui as strings da direita para a esquerda representam as saídas das rodadas de medição da síndrome, seguidas da medição final dos qubits de código.</p>
+<p>Estes resultados precisam ser reescritos de uma forma diferente para serem decodificados. Para fazer isso podemos utilizar o método <code class="docutils literal notranslate"><span class="pre">process_results</span></code> do objeto.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
@@ -1085,23 +1083,19 @@ round_0_link_bit_1: 0 ═══════════════════�
 {&#39;0&#39;: {&#39;0 0  00 00 00&#39;: 1024}, &#39;1&#39;: {&#39;1 1  00 00 00&#39;: 1024}}
 </pre></div></div>
 </div>
-<p>The result is a dictionary whose keys are bit strings that represent outputs of the circuit, and the values represent the number of shots for which this output occurred.</p>
-<p>The strings are not the direct output from the circuits. They have been processed to take the form that helps us correct errors. Here’s a short guided tour.</p>
+<p>O resultado é um dicionário cujas chaves são strings de bits que representam saídas do circuito, e os valores representam o número de execuções (shots) para os quais essa saída ocorreu.</p>
+<p>As strings não são a saída direta dos circuitos. Elas foram processados para assumir a forma que nos ajuda a corrigir erros. Aqui está uma curta visita guiada.</p>
 <ul class="simple">
-<li><p>The <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">0</span></code> to the far left for the logical <code class="docutils literal notranslate"><span class="pre">0</span></code> result, and the <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">1</span></code> to the far left of the logical <code class="docutils literal notranslate"><span class="pre">1</span></code>, are the logical readout. Any code qubit could be used for this readout, since they should (without errors) all be equal. So we could have just one result here, for one arbitrarily chosen code qubit. Or we could have <span class="math notranslate nohighlight">\(d\)</span>, one for each qubit. Instead we have two, from the two qubits at either end of the line. This is because it works best with the decoder (which we’ll use
-later). In the absence of errors, these two values will always be equal.</p></li>
-<li><p>The following <code class="docutils literal notranslate"><span class="pre">0000</span></code> is the <span class="math notranslate nohighlight">\(d-1\)</span> results of the syndrome measurements for the first round.A <code class="docutils literal notranslate"><span class="pre">0</span></code> implies that the corresponding pair of qubits where the same, and <code class="docutils literal notranslate"><span class="pre">1</span></code> implies different. There are <span class="math notranslate nohighlight">\(d-1\)</span> results because the line of <span class="math notranslate nohighlight">\(d\)</span> code qubits has <span class="math notranslate nohighlight">\(d-1\)</span> possible neighboring pairs. In the absence of errors, they will all be <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
-<li><p>The <code class="docutils literal notranslate"><span class="pre">0000</span></code> that follows that is the syndrome change between the first and second rounds. It is therefore the bitwise <code class="docutils literal notranslate"><span class="pre">OR</span></code> of the syndrome measurement results from the second round with those from the first. In the absence of errors, they will all be <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
-<li><p>Subsequent blocks follow the same formula, though the last requires some comment. This is not measured using the standard method (with a link qubit). Instead it is calculated from the final readout measurement of all code qubits. Again it is presented as a syndrome change, and will be all <code class="docutils literal notranslate"><span class="pre">0</span></code> in the absence of errors. This is the <span class="math notranslate nohighlight">\(T+1\)</span>-th block of syndrome measurements since, as it is not done in the same way as the others, it is not counted among the <span class="math notranslate nohighlight">\(T\)</span> syndrome measurement
-rounds.</p></li>
+<li><p>Os <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">0</span></code> mais à esquerda para o resultado <code class="docutils literal notranslate"><span class="pre">0</span></code> lógico, e o <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">1</span></code> mais à esquerda do <code class="docutils literal notranslate"><span class="pre">1</span></code> lógico, são a leitura lógica. Qualquer qubit de código poderia ser usado para esta leitura, uma vez que eles devem (sem erros) serem todos iguais. Assim, poderíamos ter apenas um resultado aqui, para um qubit de código arbitrariamente escolhido. Ou poderíamos ter <span class="math notranslate nohighlight">\(d\)</span>, um para cada qubit. Em vez disso temos dois, dos dois qubits em qualquer extremidade da linha. Isso porque funciona melhor com o decodificador (que usaremos depois). Na ausência de erros, esses dois valores serão sempre iguais.</p></li>
+<li><p>Os <code class="docutils literal notranslate"><span class="pre">0000</span></code> seguintes são os <span class="math notranslate nohighlight">\(d-1\)</span> resultados das medições da síndrome para a primeira rodada. Um <code class="docutils literal notranslate"><span class="pre">0</span></code> implica que o par correspondente de qubits era igual, e <code class="docutils literal notranslate"><span class="pre">1</span></code> implica que era diferente. Existem <span class="math notranslate nohighlight">\(d-1\)</span> resultados porque a linha de <span class="math notranslate nohighlight">\(d\)</span> qubits de código tem <span class="math notranslate nohighlight">\(d-1\)</span> possíveis pares vizinhos. Na ausência de erros, todos serão <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
+<li><p>O <code class="docutils literal notranslate"><span class="pre">0000</span></code> que se segue a isso é a mudança da síndrome entre a primeira e a segunda rodadas. É, portanto, o <code class="docutils literal notranslate"><span class="pre">OR</span></code> bitwise dos resultados da medição da síndrome da segunda rodada com aqueles da primeira. Na ausência de erros, todos serão <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
+<li><p>Os blocos subsequentes seguem a mesma fórmula, embora o último exija algum comentário. Este não é medido usando o método padrão (com um link qubit). Em vez disso, é calculado a partir da medição da leitura final de todos os qubits de código. Novamente ela é apresentada como uma mudança da síndrome, e serão todos <code class="docutils literal notranslate"><span class="pre">0</span></code> na ausência de erros. Este é o <span class="math notranslate nohighlight">\(T+1\)</span>-ésimo bloco de medições da síndrome, uma vez que, como não é feito da mesma forma que os outros, não é contado entre as <span class="math notranslate nohighlight">\(T\)</span> rodadas de medição da síndrome.</p></li>
 </ul>
-<p><strong>Example 1:</strong> <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">0</span>&#160; <span class="pre">0110</span> <span class="pre">0000</span> <span class="pre">0000</span></code> would represent a <span class="math notranslate nohighlight">\(d=5\)</span>, <span class="math notranslate nohighlight">\(T=2\)</span> repetition code with encoded <code class="docutils literal notranslate"><span class="pre">0</span></code>. The syndrome shows that (most likely) the middle code qubit was flipped by an error before the first measurement round. This causes it to disagree with both neighboring code qubits for the rest of the circuit. This is shown by the syndrome in the first round, but the blocks for subsequent rounds do not report it as it no longer represents a change. Other sets of errors could also
-have caused this syndrome, but they would need to be more complex and so presumably less likely.</p>
-<p><strong>Example 2:</strong> <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">0</span>&#160; <span class="pre">0010</span> <span class="pre">0010</span> <span class="pre">0000</span></code> would represent a <span class="math notranslate nohighlight">\(d=5\)</span>, <span class="math notranslate nohighlight">\(T=2\)</span> repetition code with encoded <code class="docutils literal notranslate"><span class="pre">0</span></code>. Here one of the syndrome measurements reported a difference between two code qubits in the first round, leading to a <code class="docutils literal notranslate"><span class="pre">1</span></code>. The next round did not see the same effect, and so resulted in a <code class="docutils literal notranslate"><span class="pre">0</span></code>. However, since this disagreed with the previous result for the same syndrome measurement, and since we track syndrome changes, this change results in another <code class="docutils literal notranslate"><span class="pre">1</span></code>. Subsequent rounds
-also do not detect anything, but this no longer represents a change and hence results in a <code class="docutils literal notranslate"><span class="pre">0</span></code> in the same position. Most likely the measurement result leading to the first <code class="docutils literal notranslate"><span class="pre">1</span></code> was an error.</p>
-<p><strong>Example 3:</strong> <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">1</span>&#160; <span class="pre">0000</span> <span class="pre">0001</span> <span class="pre">0000</span></code> would represent a <span class="math notranslate nohighlight">\(d=5\)</span>, <span class="math notranslate nohighlight">\(T=2\)</span> repetition code with encoded <code class="docutils literal notranslate"><span class="pre">1</span></code>. A code qubit on the end of the line is flipped before the second round of syndrome measurements. This is detected by only a single syndrome measurement, because it is on the end of the line. For the same reason, it also disturbs one of the logical readouts.</p>
-<p>Note that in all these examples, a single error causes exactly two characters in the string to change from the value it would have with no errors. This is, in fact, the reason why the logical output consists of both endpoints. It is a property that will be used by the decoder.</p>
-<p>To see the effects of noise, we need to specify a noise model. For example, let’s set up a simple noise model with gate and measurement errors.</p>
+<p><strong>Exemplo 1:</strong> <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">0</span>&#160; <span class="pre">0110</span> <span class="pre">0000</span> <span class="pre">0000</span></code> representaria um código de repetição com <span class="math notranslate nohighlight">\(d=5\)</span> e <span class="math notranslate nohighlight">\(T=2\)</span>, tendo um <code class="docutils literal notranslate"><span class="pre">0</span></code> codificado. A síndrome mostra que (muito provavelmente) o qubit de código do meio foi invertido por conta de um erro antes da primeira rodada de medição. Isso faz com que ele discorde de ambos os qubits de código vizinhos durante o restante do circuito. Isso é mostrado pela síndrome na primeira rodada, mas os blocos para rodadas subsequentes não o reportam, já que ele não representa mais uma mudança. Outros conjuntos de erros também poderiam ter causado essa síndrome, mas precisariam ser mais complexos e, por consequência, presumivelmente menos prováveis.</p>
+<p><strong>Exemplo 2:</strong> <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">0</span>&#160; <span class="pre">0010</span> <span class="pre">0010</span> <span class="pre">0000</span></code> representaria um código de repetição com :math:` d=5 ` e :math:` T=2 <cite>, tendo um ``0`</cite> codificado. Aqui uma das medições da síndrome relatou uma diferença entre dois qubits de código na primeira rodada, levando a um <code class="docutils literal notranslate"><span class="pre">1</span></code>. A rodada seguinte não viu o mesmo efeito, e assim resultou em um <code class="docutils literal notranslate"><span class="pre">0</span></code>. No entanto, uma vez que isso discorda do resultado anterior para a mesma medição da síndrome, e já que acompanhamos alterações da síndrome, esta alteração resulta em outro <code class="docutils literal notranslate"><span class="pre">1</span></code>. As rodadas subsequentes também não detectam nada, mas isso não representa mais uma mudança e, portanto, resulta em um <code class="docutils literal notranslate"><span class="pre">0</span></code> na mesma posição. Muito provavelmente o resultado da medição relacionado ao primeiro <code class="docutils literal notranslate"><span class="pre">1</span></code> foi um erro.</p>
+<p><strong>Exemplo 3:</strong> <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">1</span>&#160; <span class="pre">0000</span> <span class="pre">0001</span> <span class="pre">0000</span></code> representaria um código de repetição com <span class="math notranslate nohighlight">\(d=5\)</span> e <span class="math notranslate nohighlight">\(T=2\)</span>, com um <code class="docutils literal notranslate"><span class="pre">1</span></code> codificado. Um qubit de código no final da linha é invertido antes da segunda rodada de medições da síndrome. Isso é detectado por apenas uma única medição da síndrome, pois ele está no fim da linha. Pela mesma razão, isso também perturba uma das leituras lógicas.</p>
+<p>Note que em todos esses exemplos, um único erro faz com que exatamente dois caracteres na string mudem do valor que teriam sem erros. Isso é, na verdade, a razão pela qual a saída lógica consiste em ambos os pontos finais. É uma propriedade que será utilizada pelo decodificador.</p>
+<p>Para ver os efeitos do ruído, precisamos especificar um modelo de ruído. Por exemplo, vamos configurar um modelo de ruído simples com erros de porta e de medição.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
@@ -1134,7 +1128,7 @@ also do not detect anything, but this no longer represents a change and hence re
 </pre></div>
 </div>
 </div>
-<p>This can then be run to generate noisy results. Let’s make a quick function to do this, and then run it.</p>
+<p>Isso pode, então, ser executado para gerar resultados ruidosos. Vamos criar uma função rápida para fazer isso, e depois executá-la.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
@@ -1271,11 +1265,11 @@ also do not detect anything, but this no longer represents a change and hence re
   &#39;1 0  10 10 01&#39;: 3}}
 </pre></div></div>
 </div>
-<p>Here the non-noisy results are the most likely. The rest of the samples are distributed among other possibilities with non-trivial syndromes.</p>
+<p>Aqui os resultados sem ruído são os mais prováveis. O restante das amostras estão distribuídas entre outras possibilidades com síndromes não triviais.</p>
 </div>
-<div class="section" id="Decoding-a-repetition-code">
-<h2>Decoding a repetition code<a class="headerlink" href="#Decoding-a-repetition-code" title="Link permanente para este título">¶</a></h2>
-<p>Noisy results can change the logical value at readout, and so affect our ability to read out the logical qubit. This can be mitigated by looking at the syndrome values. These can tell us whether or not the logical values are most likely to have changed, and so allow us to correct for the errors. The process of analyzing the syndrome to correct for the errors is called ‘decoding’. We do this by building a decoding object for our code.</p>
+<div class="section" id="Decodificando-um-código-de-repetição">
+<h2>Decodificando um código de repetição<a class="headerlink" href="#Decodificando-um-código-de-repetição" title="Link permanente para este título">¶</a></h2>
+<p>Resultados com ruído podem alterar o valor lógico na leitura, e assim afetar nossa capacidade de ler o qubit lógico. Isso pode ser mitigado olhando para os valores da síndrome. Estes podem dizer-nos se os valores lógicos são ou não mais propensos a ter mudado, e assim nos permitem corrigir os erros. O processo de análise da síndrome para corrigir os erros é chamado de ‘decodificação’. Fazemos isso construindo um objeto decodificador para o nosso código.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
@@ -1285,8 +1279,8 @@ also do not detect anything, but this no longer represents a change and hence re
 </pre></div>
 </div>
 </div>
-<p>This analyzes the code by seeing how different kinds of error change the output. With this information, along with a decoding algorithm, we can determine what the logical value is most likely to have been.</p>
-<p>For example, let’s use the ‘matching’ algorithm to decode, which is based on minimum weight perfect matching. This takes specific output strings as input. We’ll give it the simple example string <code class="docutils literal notranslate"><span class="pre">'1</span> <span class="pre">0</span>&#160; <span class="pre">001</span> <span class="pre">100</span> <span class="pre">100'</span></code>, for a logical <code class="docutils literal notranslate"><span class="pre">1</span></code> that has suffered two errors.</p>
+<p>Isso analisa o código ao ver como diferentes tipos de erro alteram a saída. Com essas informações, juntamente com um algoritmo de decodificação, podemos determinar qual o valor lógico mais provável de ter sido.</p>
+<p>Por exemplo, vamos usar o algoritmo de  ‘matching’ (correspondência) para decodificar, que é baseado na correspondência perfeita de peso mínimo. Ele recebe strings de saída específicas como entrada. Daremos para ele a simples string de exemplo <code class="docutils literal notranslate"><span class="pre">'1</span> <span class="pre">0</span>&#160; <span class="pre">001</span> <span class="pre">100</span> <span class="pre">100'</span></code>, para um <code class="docutils literal notranslate"><span class="pre">1</span></code> lógico que tenha sofrido dois erros.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
@@ -1305,8 +1299,8 @@ also do not detect anything, but this no longer represents a change and hence re
 &#39;1 1&#39;
 </pre></div></div>
 </div>
-<p>The output is what the logical part should have been. As you can see, the decoder correctly determined that the readout should have been of a logical <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
-<p>When we take many samples, we can determine the probability with which the decoder is incorrect. This should decrease exponentially as the code size is increased, since the configurations of noise that fool the decoder become less likely. The probability of a logical error is calculated using the <code class="docutils literal notranslate"><span class="pre">logical_prob()</span></code> method. This runs matching by default, but other algorithms can be specified by the <code class="docutils literal notranslate"><span class="pre">algorithm</span></code> kwarg.</p>
+<p>A saída é o que a parte lógica deveria ter sido. Como se pode ver, o decodificador determinou corretamente que a leitura deveria ter sido de um <code class="docutils literal notranslate"><span class="pre">1</span></code> lógico.</p>
+<p>Quando pegamos muitas amostras, podemos determinar a probabilidade com a qual o decodificador está incorreto. Isso deve diminuir exponencialmente à medida que o tamanho do código é aumentado, uma vez que as configurações de ruído que enganam o decodificador tornam-se menos prováveis. A probabilidade de um erro lógico é calculada utilizando o método <code class="docutils literal notranslate"><span class="pre">logical_prob()</span></code>. Isto executa a correspondência por padrão, mas outros algoritmos podem ser especificados pelo kwarg <code class="docutils literal notranslate"><span class="pre">algorithm</span></code>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
