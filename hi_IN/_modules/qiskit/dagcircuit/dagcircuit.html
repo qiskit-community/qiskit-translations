@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.dagcircuit.dagcircuit &mdash; Qiskit 0.20.0 दिग्दर्शिका</title>
+  <title>qiskit.dagcircuit.dagcircuit &mdash; Qiskit 0.20.1 दिग्दर्शिका</title>
   
 
   
@@ -292,7 +292,7 @@
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumregister</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">Qubit</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit.classicalregister</span> <span class="kn">import</span> <span class="n">ClassicalRegister</span><span class="p">,</span> <span class="n">Clbit</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.classicalregister</span> <span class="kn">import</span> <span class="n">ClassicalRegister</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.gate</span> <span class="kn">import</span> <span class="n">Gate</span>
 <span class="kn">from</span> <span class="nn">qiskit.dagcircuit.exceptions</span> <span class="kn">import</span> <span class="n">DAGCircuitError</span>
 <span class="kn">from</span> <span class="nn">qiskit.dagcircuit.dagnode</span> <span class="kn">import</span> <span class="n">DAGNode</span>
@@ -742,19 +742,29 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            tuple(ClassicalRegister,int): new condition</span>
 <span class="sd">        Raises:</span>
-<span class="sd">            DAGCircuitError: if condition register not in wire_map</span>
+<span class="sd">            DAGCircuitError: if condition register not in wire_map, or if</span>
+<span class="sd">                wire_map maps condition onto more than one creg</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">if</span> <span class="n">condition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">new_condition</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># if there is a condition, map the condition bits to the</span>
             <span class="c1"># composed cregs based on the wire_map</span>
+            <span class="n">creg</span> <span class="o">=</span> <span class="n">condition</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">cond_val</span> <span class="o">=</span> <span class="n">condition</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="n">new_cond_val</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">new_creg</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">for</span> <span class="n">bit</span> <span class="ow">in</span> <span class="n">wire_map</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bit</span><span class="p">,</span> <span class="n">Clbit</span><span class="p">):</span>
-                    <span class="n">new_creg</span> <span class="o">=</span> <span class="n">wire_map</span><span class="p">[</span><span class="n">bit</span><span class="p">]</span><span class="o">.</span><span class="n">register</span>
+                <span class="k">if</span> <span class="n">bit</span> <span class="ow">in</span> <span class="n">creg</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">new_creg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">new_creg</span> <span class="o">=</span> <span class="n">wire_map</span><span class="p">[</span><span class="n">bit</span><span class="p">]</span><span class="o">.</span><span class="n">register</span>
+                    <span class="k">elif</span> <span class="n">new_creg</span> <span class="o">!=</span> <span class="n">wire_map</span><span class="p">[</span><span class="n">bit</span><span class="p">]</span><span class="o">.</span><span class="n">register</span><span class="p">:</span>
+                        <span class="c1"># Raise if wire_map maps condition creg on to more than one</span>
+                        <span class="c1"># creg in target DAG.</span>
+                        <span class="k">raise</span> <span class="n">DAGCircuitError</span><span class="p">(</span><span class="s1">&#39;wire_map maps conditional &#39;</span>
+                                              <span class="s1">&#39;register onto more than one creg.&#39;</span><span class="p">)</span>
+
                     <span class="k">if</span> <span class="mi">2</span><span class="o">**</span><span class="p">(</span><span class="n">bit</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">cond_val</span><span class="p">:</span>
                         <span class="n">new_cond_val</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">**</span><span class="p">(</span><span class="n">wire_map</span><span class="p">[</span><span class="n">bit</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">new_creg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
