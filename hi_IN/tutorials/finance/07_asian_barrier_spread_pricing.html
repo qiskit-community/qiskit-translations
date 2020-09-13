@@ -578,11 +578,35 @@ div.rendered_html tbody tr:hover {
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Aer</span><span class="p">,</span> <span class="n">execute</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">IntegerComparator</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">IterativeAmplitudeEstimation</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.circuits</span> <span class="kn">import</span> <span class="n">WeightedSumOperator</span><span class="p">,</span> <span class="n">FixedValueComparator</span> <span class="k">as</span> <span class="n">Comparator</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua.circuits</span> <span class="kn">import</span> <span class="n">WeightedSumOperator</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_problems</span> <span class="kn">import</span> <span class="n">UnivariatePiecewiseLinearObjective</span> <span class="k">as</span> <span class="n">PwlObjective</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_problems</span> <span class="kn">import</span> <span class="n">MultivariateProblem</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_models</span> <span class="kn">import</span> <span class="n">MultivariateLogNormalDistribution</span>
+
+<span class="c1"># MultivariateProblem internally still needs the methods in the Comparator custom class below.</span>
+<span class="c1"># The code will be changed so that an IntegerComparator can be passed directly without the need</span>
+<span class="c1"># of a custom class. Until it happens the custom class is necessary.</span>
+
+<span class="k">class</span> <span class="nc">Comparator</span><span class="p">(</span><span class="n">IntegerComparator</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">required_ancillas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ancilla_qubits</span>
+
+    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qc</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q_ancillas</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">i_state</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span><span class="p">)</span>
+        <span class="n">i_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span>
+        <span class="n">instr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
+        <span class="n">qr</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">i_state</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">i_target</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">q_ancillas</span><span class="p">:</span>
+            <span class="n">qr</span> <span class="o">+=</span> <span class="p">[</span><span class="n">qi</span> <span class="k">for</span> <span class="n">qi</span> <span class="ow">in</span> <span class="n">q_ancillas</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">required_ancillas</span><span class="p">()]]</span>
+        <span class="n">qc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">qr</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">build_inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qc</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q_ancillas</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">qc_</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="o">*</span><span class="n">qc</span><span class="o">.</span><span class="n">qregs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">qc_</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q_ancillas</span><span class="p">)</span>
+        <span class="n">qc</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">qc_</span><span class="o">.</span><span class="n">inverse</span><span class="p">())</span>
 </pre></div>
 </div>
 </div>
@@ -724,7 +748,7 @@ register, and then uses a comparator, that flips an ancilla qubit from <span cla
 </pre></div>
 </div>
 </div>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
@@ -737,15 +761,6 @@ register, and then uses a comparator, that flips an ancilla qubit from <span cla
     <span class="n">conditions</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">Comparator</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">mapped_barrier</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">geq</span><span class="o">=</span><span class="kc">False</span><span class="p">))]</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/Applications/anaconda3/lib/python3.7/site-packages/ipykernel_launcher.py:6: DeprecationWarning: The qiskit.aqua.circuits.FixedValueComparator object is deprecated and will be removed no earlier than 3 months after the 0.7.0 release of Qiskit Aqua. You should use qiskit.circuit.library.IntegerComparator instead.
-
-</pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
@@ -891,7 +906,7 @@ exact expected value:   0.8023
 <div class="highlight"><pre>
 state qubits:  5
 circuit width: 15
-circuit depth: 1182
+circuit depth: 1137
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -979,8 +994,8 @@ Exact Expected Payoff: 0.8023
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Exact value:            0.8023
-Estimated value:        0.8315
-Confidence interval:    [0.8246, 0.8385]
+Estimated value:        0.8305
+Confidence interval:    [0.8235, 0.8374]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -998,8 +1013,8 @@ Confidence interval:    [0.8246, 0.8385]
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.19.1</td></tr><tr><td>Terra</td><td>0.14.1</td></tr><tr><td>Aer</td><td>0.5.1</td></tr><tr><td>Ignis</td><td>0.3.0</td></tr><tr><td>Aqua</td><td>0.7.0</td></tr><tr><td>IBM Q Provider</td><td>0.7.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.4 (default, Aug 13 2019, 15:17:50)
-[Clang 4.0.1 (tags/RELEASE_401/final)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>6</td></tr><tr><td>Memory (Gb)</td><td>16.0</td></tr><tr><td colspan='2'>Fri Jul 17 17:30:01 2020 CEST</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.16.0.dev0+1c89cc5</td></tr><tr><td>Aer</td><td>0.7.0.dev0+88fddc3</td></tr><tr><td>Ignis</td><td>0.5.0.dev0+5bdc29b</td></tr><tr><td>Aqua</td><td>0.8.0.dev0+99394e5</td></tr><tr><td>IBM Q Provider</td><td>0.9.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.4 (default, Aug 13 2019, 15:17:50)
+[Clang 4.0.1 (tags/RELEASE_401/final)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>2</td></tr><tr><td>Memory (Gb)</td><td>12.0</td></tr><tr><td colspan='2'>Fri Sep 11 11:00:45 2020 EDT</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -1042,7 +1057,7 @@ Confidence interval:    [0.8246, 0.8385]
         
         &copy; सर्वाधिकार 2020, Qiskit Development Team
       <span class="lastupdated">
-        अंतिम बार सम्पादित 2020/09/11.
+        अंतिम बार सम्पादित 2020/09/13.
       </span>
 
     </p>
