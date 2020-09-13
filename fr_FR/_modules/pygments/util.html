@@ -264,7 +264,7 @@
 
 <span class="sd">    Utility functions.</span>
 
-<span class="sd">    :copyright: Copyright 2006-2019 by the Pygments team, see AUTHORS.</span>
+<span class="sd">    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.</span>
 <span class="sd">    :license: BSD, see LICENSE for details.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
@@ -464,53 +464,13 @@
         <span class="k">return</span> <span class="n">rv</span>
 
 
-<span class="c1"># Python narrow build compatibility</span>
-
-<span class="k">def</span> <span class="nf">_surrogatepair</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
-    <span class="c1"># Given a unicode character code</span>
-    <span class="c1"># with length greater than 16 bits,</span>
-    <span class="c1"># return the two 16 bit surrogate pair.</span>
+<span class="k">def</span> <span class="nf">surrogatepair</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given a unicode character code with length greater than 16 bits,</span>
+<span class="sd">    return the two 16 bit surrogate pair.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># From example D28 of:</span>
     <span class="c1"># http://www.unicode.org/book/ch03.pdf</span>
     <span class="k">return</span> <span class="p">(</span><span class="mh">0xd7c0</span> <span class="o">+</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;&gt;</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mh">0xdc00</span> <span class="o">+</span> <span class="p">(</span><span class="n">c</span> <span class="o">&amp;</span> <span class="mh">0x3ff</span><span class="p">)))</span>
-
-
-<span class="k">def</span> <span class="nf">unirange</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Returns a regular expression string to match the given non-BMP range.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">b</span> <span class="o">&lt;</span> <span class="n">a</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Bad character range&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="mh">0x10000</span> <span class="ow">or</span> <span class="n">b</span> <span class="o">&lt;</span> <span class="mh">0x10000</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unirange is only defined for non-BMP ranges&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxunicode</span> <span class="o">&gt;</span> <span class="mh">0xffff</span><span class="p">:</span>
-        <span class="c1"># wide build</span>
-        <span class="k">return</span> <span class="sa">u</span><span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">chr</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="nb">chr</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># narrow build stores surrogates, and the &#39;re&#39; module handles them</span>
-        <span class="c1"># (incorrectly) as characters.  Since there is still ordering among</span>
-        <span class="c1"># these characters, expand the range to one that it understands.  Some</span>
-        <span class="c1"># background in http://bugs.python.org/issue3665 and</span>
-        <span class="c1"># http://bugs.python.org/issue12749</span>
-        <span class="c1">#</span>
-        <span class="c1"># Additionally, the lower constants are using chr rather than</span>
-        <span class="c1"># literals because jython [which uses the wide path] can&#39;t load this</span>
-        <span class="c1"># file if they are literals.</span>
-        <span class="n">ah</span><span class="p">,</span> <span class="n">al</span> <span class="o">=</span> <span class="n">_surrogatepair</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-        <span class="n">bh</span><span class="p">,</span> <span class="n">bl</span> <span class="o">=</span> <span class="n">_surrogatepair</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">ah</span> <span class="o">==</span> <span class="n">bh</span><span class="p">:</span>
-            <span class="k">return</span> <span class="sa">u</span><span class="s1">&#39;(?:</span><span class="si">%s</span><span class="s1">[</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">])&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">chr</span><span class="p">(</span><span class="n">ah</span><span class="p">),</span> <span class="nb">chr</span><span class="p">(</span><span class="n">al</span><span class="p">),</span> <span class="nb">chr</span><span class="p">(</span><span class="n">bl</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">buf</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">buf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">[</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">chr</span><span class="p">(</span><span class="n">ah</span><span class="p">),</span> <span class="nb">chr</span><span class="p">(</span><span class="n">al</span><span class="p">),</span>
-                                       <span class="n">ah</span> <span class="o">==</span> <span class="n">bh</span> <span class="ow">and</span> <span class="nb">chr</span><span class="p">(</span><span class="n">bl</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">chr</span><span class="p">(</span><span class="mh">0xdfff</span><span class="p">)))</span>
-            <span class="k">if</span> <span class="n">ah</span> <span class="o">-</span> <span class="n">bh</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">buf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">][</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span>
-                           <span class="nb">chr</span><span class="p">(</span><span class="n">ah</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="nb">chr</span><span class="p">(</span><span class="n">bh</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="nb">chr</span><span class="p">(</span><span class="mh">0xdc00</span><span class="p">),</span> <span class="nb">chr</span><span class="p">(</span><span class="mh">0xdfff</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">ah</span> <span class="o">!=</span> <span class="n">bh</span><span class="p">:</span>
-                <span class="n">buf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">[</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span>
-                           <span class="p">(</span><span class="nb">chr</span><span class="p">(</span><span class="n">bh</span><span class="p">),</span> <span class="nb">chr</span><span class="p">(</span><span class="mh">0xdc00</span><span class="p">),</span> <span class="nb">chr</span><span class="p">(</span><span class="n">bl</span><span class="p">)))</span>
-
-            <span class="k">return</span> <span class="sa">u</span><span class="s1">&#39;(?:&#39;</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;)&#39;</span>
 
 
 <span class="k">def</span> <span class="nf">format_lines</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">indent_level</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -623,7 +583,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Mis à jour le 2020/09/11.
+        Mis à jour le 2020/09/13.
       </span>
 
     </p>
