@@ -180,7 +180,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">ノイズ変換</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#はじめに">はじめに</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#概要">概要</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Example:-Approximating-amplitude-damping-noise-with-reset-noise.">Example: Approximating amplitude damping noise with reset noise.</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#例:-リセットノイズを用いた振幅減衰ノイズの近似">例: リセットノイズを用いた振幅減衰ノイズの近似</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#異なる入力タイプ">異なる入力タイプ</a></li>
 </ul>
 </li>
@@ -538,8 +538,8 @@ div.rendered_html tbody tr:hover {
 <h1>ノイズ変換<a class="headerlink" href="#ノイズ変換" title="このヘッドラインへのパーマリンク">¶</a></h1>
 <div class="section" id="はじめに">
 <h2>はじめに<a class="headerlink" href="#はじめに" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>This notebook shows how to use the Qiskit Aer utility functions <code class="docutils literal notranslate"><span class="pre">approximate_quantum_error</span></code> and <code class="docutils literal notranslate"><span class="pre">approximate_noise_model</span></code> to transform quantum noise channels into a different, more suitable, noise channel.</p>
-<p>Our guiding example is Clifford simulation. A Clifford simulator can efficiently simulate quantum computations which include gates only from a limited, non-universal set of gates (the Clifford gates). Not all quantum noises can be added to such simulations; hence, we aim to find a 「close」 noise channel which can be simulated in a Clifford simulator.</p>
+<p>このノートブックは、量子ノイズチャネルを、他のより適切なノイズチャネルに変換するために Qiskit Aer ユーティリティ関数 <code class="docutils literal notranslate"><span class="pre">approximate_quantum_error</span></code> と <code class="docutils literal notranslate"><span class="pre">approximate_noise_model</span></code> を使用する方法を示します。</p>
+<p>私たちのガイド例はCliffordシミュレーションです。 Cliffordシミュレーターは、制限された非普遍的なゲート(Cliffordゲート) からのみゲートを含む量子計算を効率的にシミュレートすることができます。 すべての量子ノイズをシミュレーションに追加できるわけではありません。 そこで、Cliffordシミュレーターでシミュレーションできる「近い」ノイズチャネルを見つけることを目指しています。</p>
 <p>まず、Aer プロバイダーユーティリティから変換関数をインポートします。</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -551,8 +551,8 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-<p>The name 「approximate」 suggests that these functions generate the closest (in the Hilbert-Schmidt metric) error possible to the given one.</p>
-<p>We demonstrate the approximation using several standard error channels defined in Qiskit.</p>
+<p>「approximate」 という名前は、これらの関数が与えられた関数に最も近い(Hilbert-Schmidtメトリックで) エラーを生成することを示唆しています。</p>
+<p>Qiskitで定義された、いくつかの標準エラーチャネルを使用した近似値を示します。</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -570,17 +570,17 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="section" id="概要">
 <h2>概要<a class="headerlink" href="#概要" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>A 1-qubit quantum channel is a function <span class="math notranslate nohighlight">\(\mathcal{C}:\mathbb{C}^{2\times2}\to\mathbb{C}^{2\times2}\)</span> mapping density operators to density operators (to ensure the image is a density operator <span class="math notranslate nohighlight">\(\mathcal{C}\)</span> is required to be completely positive and trace preserving, <strong>CPTP</strong>).</p>
-<p>Given quantum channels <span class="math notranslate nohighlight">\(\mathcal{E}_{1},\dots,\mathcal{E}_{r}\)</span>, and probabilities <span class="math notranslate nohighlight">\(p_1, p_2, \dots, p_r\)</span> such that <span class="math notranslate nohighlight">\(0\le p_i \le 1\)</span> and <span class="math notranslate nohighlight">\(p_1+\dots +p_r = 1\)</span>, a new quantum channel <span class="math notranslate nohighlight">\(\mathcal{C}_\mathcal{E}\)</span> can be constructed such that <span class="math notranslate nohighlight">\(\mathcal{C}_\mathcal{E}(\rho)\)</span> has the effect of choosing the channel <span class="math notranslate nohighlight">\(\mathcal{E}_i\)</span> with probability <span class="math notranslate nohighlight">\(p_i\)</span> and applying it to <span class="math notranslate nohighlight">\(\rho\)</span>.</p>
-<p>The noise transformation function solves the following optimization problem: Given a channel <span class="math notranslate nohighlight">\(\mathcal{C}\)</span> (「goal」) and a list of channels <span class="math notranslate nohighlight">\(\mathcal{E}_{1},\dots,\mathcal{E}_{r}\)</span>, find the probabilities <span class="math notranslate nohighlight">\(p_1, p_2, \dots, p_r\)</span> minimizing <span class="math notranslate nohighlight">\(D(\mathcal{C}, \mathcal{C}_\mathcal{E})\)</span> according to some distance metric <span class="math notranslate nohighlight">\(D\)</span> (the Hilbert-Schmidt metric is currently used).</p>
-<p>To ensure the approximation is honest, in the sense that the approximate error channel serves as an 「upper bound」 for the actual error channel, we add the additional honesty constraint:</p>
+<p>1量子ビットの量子チャネルは関数 <span class="math notranslate nohighlight">\(\mathcal{C}:\mathbb{C}^{2\times2}\to\mathbb{C}^{2\times2}\)</span> 密度演算子を密度演算子にマッピングします (像が密度演算子 <span class="math notranslate nohighlight">\(\mathcal{C}\)</span> であるためには、完全正値でトレース保存である必要があります。 <strong>CPTP</strong>).</p>
+<p>量子チャネル <span class="math notranslate nohighlight">\(\mathcal{E}_{1},\dots,\mathcal{E}_{r}\)</span> と、 <span class="math notranslate nohighlight">\(0\le p_i \le 1\)</span> と <span class="math notranslate nohighlight">\(p_1+\dots +p_r = 1\)</span> である確率 <span class="math notranslate nohighlight">\(p_1, p_2, \dots, p_r\)</span> に対して、<span class="math notranslate nohighlight">\(\mathcal{C}_\mathcal{E}(\rho)\)</span> がチャネル <span class="math notranslate nohighlight">\(\mathcal{E}_i\)</span> を確率 <span class="math notranslate nohighlight">\(p_i\)</span> で選択し状態 <span class="math notranslate nohighlight">\(\rho\)</span> に適用するのと同じ効果をもつような新しい量子チャネル <span class="math notranslate nohighlight">\(\mathcal{C}_\mathcal{E}\)</span> を構成することができます。</p>
+<p>ノイズ変換関数は次の最適化問題を解決します: チャネル <span class="math notranslate nohighlight">\(\mathcal{C}\)</span> (「ゴール」) とチャネル <span class="math notranslate nohighlight">\(\mathcal{E}_{1}, dots,\mathcal{E}_{r}\)</span> のリストが与えられている時、 <span class="math notranslate nohighlight">\(p_1, p_2, \dots, p_r\)</span> の確率を発見し、距離メトリック <span class="math notranslate nohighlight">\(D\)</span> に従って <span class="math notranslate nohighlight">\(D(\mathcal{C}, \mathcal{C}_\mathcal{E})\)</span> を最小化します（ヒルベルト-シュミットメトリックが現在使用されています）。</p>
+<p>近似が Honest であること、つまりおおよそのエラーチャネルが実際のエラーチャネルの「上限」として機能するように、追加の Honesty 制約を加えます</p>
 <div class="math notranslate nohighlight">
 \[\text{F}(I,\mathcal{C})\ge F(I,\mathcal{C}_\mathcal{E})\]</div>
-<p>Where <span class="math notranslate nohighlight">\(\text{F}\)</span> is a fidelity measure and <span class="math notranslate nohighlight">\(I\)</span> is the identity channel.</p>
+<p><span class="math notranslate nohighlight">\(\text{F}\)</span> が忠実度の尺度で、 <span class="math notranslate nohighlight">\(I\)</span> がアイデンティティチャネルです。</p>
 </div>
-<div class="section" id="Example:-Approximating-amplitude-damping-noise-with-reset-noise.">
-<h2>Example: Approximating amplitude damping noise with reset noise.<a class="headerlink" href="#Example:-Approximating-amplitude-damping-noise-with-reset-noise." title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p><strong>Amplitude damping</strong> noise is described by a single parameter <span class="math notranslate nohighlight">\(0\le \gamma \le 1\)</span> and given by the Kraus operators:</p>
+<div class="section" id="例:-リセットノイズを用いた振幅減衰ノイズの近似">
+<h2>例: リセットノイズを用いた振幅減衰ノイズの近似<a class="headerlink" href="#例:-リセットノイズを用いた振幅減衰ノイズの近似" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p><strong>振幅減衰</strong> ノイズは <span class="math notranslate nohighlight">\(0\le \gamma \le 1\)</span> で記述され、Kraus演算子によって与えられます。</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\left(\begin{array}{cc}
 1 &amp; 0\\
@@ -589,7 +589,7 @@ div.rendered_html tbody tr:hover {
 0 &amp; \sqrt{\gamma}\\
 0 &amp; 0
 \end{array}\right)\end{split}\]</div>
-<p><strong>Reset</strong> error is described by probabilities <span class="math notranslate nohighlight">\(0\le p, q\le 1\)</span> such that <span class="math notranslate nohighlight">\(p+q\le 1\)</span> and given by the Kraus operators:</p>
+<p><strong>リセット</strong> エラーは、 <span class="math notranslate nohighlight">\(0\le p, q\le 1\)</span> によって記述されています。これは <span class="math notranslate nohighlight">\(p+q\le 1\)</span> と Kraus 演算子によって与えられます。</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\left(\begin{array}{cc}
 \sqrt{p} &amp; 0\\
@@ -605,7 +605,7 @@ div.rendered_html tbody tr:hover {
 0 &amp; \sqrt{q}
 \end{array}\right)\end{split}\]</div>
 <p>これは影響を受けた量子ビットの量子状態を確率 <span class="math notranslate nohighlight">\(p\)</span> で <span class="math notranslate nohighlight">\(\left|0\right\rangle\)</span> に、確率 <span class="math notranslate nohighlight">\(q\)</span> で <span class="math notranslate nohighlight">\(\left|1\right\rangle\)</span> に、確率 <span class="math notranslate nohighlight">\(1-(p+q)\)</span> で何もしないという「リセット」だと思うことができます。</p>
-<p>It is not too difficult to determine analytically the best values of <span class="math notranslate nohighlight">\(p,q\)</span> to approximate a <span class="math notranslate nohighlight">\(\gamma\)</span> amplitude damping channel, see the details <strong>`here &lt;https://arxiv.org/abs/1207.0046&gt;`__</strong>. The best approximation is:</p>
+<p><span class="math notranslate nohighlight">\(\gamma\)</span> 振幅減衰チャネルを近似する最良の値 <span class="math notranslate nohighlight">\(p,q\)</span> を解析的に決めるのはそんなに難しくはありません。 詳細は <a class="reference external" href="https://arxiv.org/abs/1207.0046">こちら</a> を見てください。最良の近似値は：</p>
 <div class="math notranslate nohighlight">
 \[p=\frac{1}{2}\left(1+\gamma-\sqrt{1-\gamma}\right), q=0\]</div>
 <div class="nbinput nblast docutils container">
@@ -657,8 +657,8 @@ P(2) = 0
 </div>
 <div class="section" id="異なる入力タイプ">
 <h2>異なる入力タイプ<a class="headerlink" href="#異なる入力タイプ" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>The approximation function is given two inputs: The error channel to approximate, and a set of error channels that can be used in constructing the approximation.</p>
-<p>The <strong>error channel</strong> to approximate can be given as any input that can be converted to the <code class="docutils literal notranslate"><span class="pre">QuantumError</span></code> object.</p>
+<p>近似関数には、次の 2 つの入力が与えられます: 近似するエラーチャネルと 近似を構築するのに使えるエラーチャネルの集まりです</p>
+<p>近似する <strong>エラーチャネル</strong> は、<code class="docutils literal notranslate"><span class="pre">QuantumError</span></code> オブジェクトに変換できる任意の入力として与えることができます。</p>
 <p>例として、振幅減衰のKraus行列を明示的に構築し、以前と同じ近似関数に渡します。</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
@@ -683,7 +683,7 @@ QuantumError on 1 qubits. Noise circuits:
   P(1) = 0.1762517806955383, QasmQobjInstructions = [[{&#39;name&#39;: &#39;reset&#39;, &#39;qubits&#39;: [0]}]
 </pre></div></div>
 </div>
-<p>The <strong>error operators</strong> that are used to construct the approximating channel can be either given as a list, a dictionary or a string indicating hard-coded channels.</p>
+<p>近似チャネルを構築するために使用される <strong>error operators</strong> はリスト、辞書またはハードコードされたチャネルを示す文字列として与えられます。</p>
 <p>任意のチャンネルは Kraus 演算子のリストまたは 『QuantumError』 オブジェクトのいずれかになります。</p>
 <p>ID チャンネルは直接渡す必要はありません。常に暗黙的に使用されます。</p>
 <p>一例として、リセットノイズの明示的なKraus表現を使用して振幅減衰を近似します。</p>
