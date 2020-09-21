@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
 from qiskit import QuantumCircuit, execute, BasicAer
 
 backend = BasicAer.get_backend('qasm_simulator')
@@ -8,3 +14,4 @@ qc.cx(0, range(1, 5))
 qc.measure_all()
 
 job = execute(qc, backend, shots=4321)
+

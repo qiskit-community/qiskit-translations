@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
 import numpy as np
 from qiskit.ignis.characterization.coherence import t1_circuits
 
@@ -9,9 +15,12 @@ qubits = [0, 2]
 
 t1_circs, t1_xdata = t1_circuits(num_of_gates, gate_time, qubits)
 
+
+# In[2]:
+
+
 import qiskit
-from qiskit.providers.aer.noise.errors.standard_errors \
-            import thermal_relaxation_error
+from qiskit.providers.aer.noise.errors.standard_errors             import thermal_relaxation_error
 from qiskit.providers.aer.noise import NoiseModel
 
 backend = qiskit.Aer.get_backend('qasm_simulator')
@@ -35,6 +44,10 @@ t1_backend_result = qiskit.execute(t1_circs, backend, shots=shots,
                                    noise_model=t1_noise_model,
                                    optimization_level=0).result()
 
+
+# In[3]:
+
+
 import matplotlib.pyplot as plt
 from qiskit.ignis.characterization.coherence import T1Fitter
 
@@ -53,6 +66,10 @@ for i in range(2):
     t1_fit.plot(i, ax=ax)
 plt.show()
 
+
+# In[4]:
+
+
 t1_backend_result_new = qiskit.execute(t1_circs, backend,
                                        shots=shots,
                                        noise_model=t1_noise_model,
@@ -64,3 +81,4 @@ for i in range(2):
     ax = plt.subplot(1, 2, i+1)
     t1_fit.plot(i, ax=ax)
 plt.show()
+

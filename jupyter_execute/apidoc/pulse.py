@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
 from qiskit import pulse
 from qiskit.visualization import SchedStyle
 
@@ -14,6 +20,10 @@ with pulse.build(name='pulse_programming_in') as pulse_prog:
 style = SchedStyle(figsize=(3, 2), title_font_size=10, axis_font_size=8)
 pulse_prog.draw(style=style)
 
+
+# In[2]:
+
+
 from qiskit import pulse
 from qiskit.test.mock import FakeArmonk
 
@@ -22,6 +32,10 @@ backend = FakeArmonk()
 with pulse.build(backend) as drive_sched:
     d0 = pulse.drive_channel(0)
     print(d0)
+
+
+# In[3]:
+
 
 from qiskit import pulse
 from qiskit.test.mock import FakeArmonk
@@ -50,6 +64,10 @@ with pulse.build(backend) as drive_sched:
 style = SchedStyle(figsize=(3, 2), title_font_size=10, axis_font_size=8)
 drive_sched.draw(style=style)
 
+
+# In[4]:
+
+
 from qiskit import pulse
 from qiskit.visualization import SchedStyle
 
@@ -66,6 +84,10 @@ with pulse.build() as pulse_prog:
 style = SchedStyle(figsize=(3, 2), title_font_size=10, axis_font_size=8)
 pulse_prog.draw(style=style)
 
+
+# In[5]:
+
+
 from qiskit import pulse
 from qiskit.test.mock import FakeArmonk
 
@@ -74,6 +96,10 @@ backend = FakeArmonk()
 with pulse.build(backend) as measure_sched:
     mem_slot = pulse.measure(0)
     print(mem_slot)
+
+
+# In[6]:
+
 
 import math
 
@@ -84,6 +110,10 @@ backend = FakeArmonk()
 
 with pulse.build(backend) as u3_sched:
     pulse.u3(math.pi, 0, math.pi, 0)
+
+
+# In[7]:
+
 
 from qiskit import pulse
 
@@ -101,3 +131,4 @@ with pulse.build(backend) as u3_sched:
     seconds = 1e-6
     print('There are {} seconds in {} samples.'.format(
         seconds, pulse.seconds_to_samples(1e-6)))
+

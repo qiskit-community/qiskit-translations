@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
 import numpy as np
 from qiskit import(
   QuantumCircuit,
@@ -33,10 +39,22 @@ print("\nTotal count for 00 and 11 are:",counts)
 # Draw the circuit
 circuit.draw()
 
+
+# In[2]:
+
+
 # Plot a histogram
 plot_histogram(counts)
 
+
+# In[3]:
+
+
 circuit.draw()
+
+
+# In[4]:
+
 
 simulator = Aer.get_backend('qasm_simulator')
 job = execute(circuit, simulator, shots=1000)
@@ -44,4 +62,9 @@ result = job.result()
 counts = result.get_counts(circuit)
 print("\nTotal count for 00 and 11 are:",counts)
 
+
+# In[5]:
+
+
 plot_histogram(counts)
+

@@ -183,22 +183,22 @@
 <li class="toctree-l2"><a class="reference internal" href="5_admm_optimizer.html">Otimizador ADMM</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">** Max-Cut e o Problema do Caixeiro Viajante**</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#Introdução">Introdução</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#Weighted-Max-Cut">Weighted Max-Cut</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#Approximate-Universal-Quantum-Computing-for-Optimization-Problems">Approximate Universal Quantum Computing for Optimization Problems</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Max-Cut-ponderado">Max-Cut ponderado</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Computação-Quântica-Universal-Aproximada-para-Problemas-de-Otimização">Computação Quântica Universal Aproximada para Problemas de Otimização</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#Max-Cut-problem">Max-Cut problem</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#Brute-force-approach">Brute force approach</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#Mapping-to-the-Ising-problem">Mapping to the Ising problem</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#Checking-that-the-full-Hamiltonian-gives-the-right-cost">Checking that the full Hamiltonian gives the right cost</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#Running-it-on-quantum-computer">Running it on quantum computer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Problema-de-Max-Cut">Problema de Max-Cut</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Abordagem-de-força-bruta">Abordagem de força bruta</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Mapeamento-para-o-problema-Ising">Mapeamento para o problema Ising</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Verificando-se-o-Hamiltoniano-completo-oferece-o-custo-certo">Verificando se o Hamiltoniano completo oferece o custo certo</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Executando-o-em-um-computador-quântico">Executando-o em um computador quântico</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#Traveling-Salesman-Problem">Traveling Salesman Problem</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id2">Brute force approach</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id3">Mapping to the Ising problem</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id4">Checking that the full Hamiltonian gives the right cost</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id5">Running it on quantum computer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Problema-do-Caixeiro-Viajante">Problema do Caixeiro Viajante</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id2">Abordagem de força bruta</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3">Mapeamento para o problema Ising</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4">Verificando se o Hamiltoniano completo oferece o custo certo</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">Executando-o em um computador quântico</a></li>
 </ul>
 </li>
 </ul>
@@ -555,45 +555,50 @@ div.rendered_html tbody tr:hover {
 <div class="section" id="Introdução">
 <h2>Introdução<a class="headerlink" href="#Introdução" title="Link permanente para este título">¶</a></h2>
 <p>Muitos problemas em domínios quantitativos como o financiamento e a engenharia são problemas de otimização. Os problemas de optimização estão no cerne da complexa tomada de decisões e da definição de estratégias.</p>
-<p>Optimization (or combinatorial optimization) means searching for an optimal solution in a finite or countably infinite set of potential solutions. Optimality is defined with respect to some criterion function, which is to be minimized or maximized. This is typically called cost function or objective function.</p>
-<p><strong>Typical optimization problems</strong></p>
-<p>Minimization: cost, distance, length of a traversal, weight, processing time, material, energy consumption, number of objects</p>
-<p>Maximization: profit, value, output, return, yield, utility, efficiency, capacity, number of objects</p>
-<p>We consider here max-cut problems of practical interest in many fields, and show how they can be mapped on quantum computers manually and how Qiskit’s optimization module supports this.</p>
-<div class="section" id="Weighted-Max-Cut">
-<h3>Weighted Max-Cut<a class="headerlink" href="#Weighted-Max-Cut" title="Link permanente para este título">¶</a></h3>
-<p>Max-Cut is an NP-complete problem, with applications in clustering, network science, and statistical physics. To grasp how practical applications are mapped into given Max-Cut instances, consider a system of many people that can interact and influence each other. Individuals can be represented by vertices of a graph, and their interactions seen as pairwise connections between vertices of the graph, or edges. With this representation in mind, it is easy to model typical marketing problems. For
-example, suppose that it is assumed that individuals will influence each other’s buying decisions, and knowledge is given about how strong they will influence each other. The influence can be modeled by weights assigned on each edge of the graph. It is possible then to predict the outcome of a marketing strategy in which products are offered for free to some individuals, and then ask which is the optimal subset of individuals that should get the free products, in order to maximize revenues.</p>
-<p>The formal definition of this problem is the following:</p>
-<p>Consider an <span class="math notranslate nohighlight">\(n\)</span>-node undirected graph <em>G = (V, E)</em> where <em>|V| = n</em> with edge weights <span class="math notranslate nohighlight">\(w_{ij}&gt;0\)</span>, <span class="math notranslate nohighlight">\(w_{ij}=w_{ji}\)</span>, for <span class="math notranslate nohighlight">\((i, j)\in E\)</span>. A cut is defined as a partition of the original set V into two subsets. The cost function to be optimized is in this case the sum of weights of edges connecting points in the two different subsets, <em>crossing</em> the cut. By assigning <span class="math notranslate nohighlight">\(x_i=0\)</span> or <span class="math notranslate nohighlight">\(x_i=1\)</span> to each node <span class="math notranslate nohighlight">\(i\)</span>, one tries to maximize the global profit function (here
-and in the following summations run over indices 0,1,…n-1)</p>
+<p>Otimização (ou otimização combinatória) significa procurar uma solução ideal em um conjunto finito ou contávelmente infinito de possíveis soluções. A solução ótima é definida no que se refere a alguma função de critério, que deve ser minimizada ou maximizada. Isso é normalmente chamado função de custo ou função objetiva.</p>
+<p><strong>Problemas típicos de otimização</strong></p>
+<p>Minimização: custo, distância, comprimento de um transversal, peso, tempo de processamento, material, consumo de energia, número de objetos</p>
+<p>Maximização: lucro, valor, saída, retorno, renda, utilidade, eficiência, capacidade, número de objetos</p>
+<p>Consideramos aqui problemas de “max-cut” de interesse prático em muitos domínios, e mostraremos como eles podem ser mapeados em computadores quânticos manualmente e como o módulo de otimização do Qiskit suporta isso.</p>
+<div class="section" id="Max-Cut-ponderado">
+<h3>Max-Cut ponderado<a class="headerlink" href="#Max-Cut-ponderado" title="Link permanente para este título">¶</a></h3>
+<p>Max-Cut é um problema de NP completo, com aplicação para agrupamento, ciência da rede e física estatística. Para compreender como as aplicações práticas são mapeadas para instâncias do Max-Cut, considere um sistema de muitas pessoas que podem interagir e influenciar umas às outras. Indivíduos podem ser representados por vértices de um gráfico e suas interações podem ser vistas como conexões paralelas entre vértices do gráfico, ou bordas. Com esta representação em mente, é fácil modelar problemas típicos de Marketing. Por exemplo, suponhamos que se parte do princípio de que os indivíduos influenciarão as decisões de compra uns dos outros, e é dado conhecimento do grau de influência recíproca. A influência pode ser modelizada por pesos atribuídos em cada borda do gráfico. É então possível prever o resultado de uma estratégia de comercialização em que os produtos são oferecidos gratuitamente a alguns indivíduos. e depois perguntar qual é o subconjunto ideal de indivíduos que devem obter os produtos grátis, a fim de maximizar as receitas.</p>
+<p>A definição formal deste problema é a seguinte:</p>
+<p>Considere um <span class="math notranslate nohighlight">\(n\)</span>-node undirected graph <em>G = (V, E)</em> onde <em>├V├= n</em> com pesos nas bordas <span class="math notranslate nohighlight">\(w_{ij}&gt;0\)</span>, <span class="math notranslate nohighlight">\(w_{ij}=w_{ji}\)</span>, for <span class="math notranslate nohighlight">\((i, j)\in E\)</span>. Um corte é definido como uma partição do conjunto original V em dois subconjuntos. A função de custo a ser otimizada é neste caso a soma dos pesos das bordas conectando pontos nos dois subconjuntos diferentes, <em>cruzando</em> o corte. Atribuindo <span class="math notranslate nohighlight">\(x_i=0\)</span> ou <span class="math notranslate nohighlight">\(x_i=1\)</span> a cada nó <span class="math notranslate nohighlight">\(i\)</span>, um tenta maximizar a função global de lucro (aqui e nas somas seguintes são executadas sobre índices 0,1. .n-1)</p>
 <div class="math notranslate nohighlight">
 \[\tilde{C}(\textbf{x}) = \sum_{i,j} w_{ij} x_i (1-x_j).\]</div>
-<p>In our simple marketing model, <span class="math notranslate nohighlight">\(w_{ij}\)</span> represents the probability that the person <span class="math notranslate nohighlight">\(j\)</span> will buy a product after <span class="math notranslate nohighlight">\(i\)</span> gets a free one. Note that the weights <span class="math notranslate nohighlight">\(w_{ij}\)</span> can in principle be greater than <span class="math notranslate nohighlight">\(1\)</span> (or even negative), corresponding to the case where the individual <span class="math notranslate nohighlight">\(j\)</span> will buy more than one product. Maximizing the total buying probability corresponds to maximizing the total future revenues. In the case where the profit probability will be greater than the
-cost of the initial free samples, the strategy is a convenient one. An extension to this model has the nodes themselves carry weights, which can be regarded, in our marketing model, as the likelihood that a person granted with a free sample of the product will buy it again in the future. With this additional information in our model, the objective function to maximize becomes</p>
+<p>Em nosso modelo de marketing simples, <span class="math notranslate nohighlight">\(w_{ij}\)</span> representa a probabilidade de que a pessoa <span class="math notranslate nohighlight">\(j\)</span> compre um produto após <span class="math notranslate nohighlight">\(i\)</span> receber de graça. Note que os pesos <span class="math notranslate nohighlight">\(w_{ij}\)</span> podem ser em princípio maiores que <span class="math notranslate nohighlight">\(1\)</span> (ou mesmo negativos), correspondente ao caso em que o indivíduo <span class="math notranslate nohighlight">\(j\)</span> comprará mais de um produto. Maximizar a probabilidade de compra total corresponde a maximizar o total das receitas futuras. No caso em que a probabilidade de lucro será maior do que o custo das primeiras amostras gratuitas, a estratégia é conveniente. Uma extensão deste modelo tem os próprios nós com pesos, que podem ser considerados, no nosso modelo de marketing, como a probabilidade de uma pessoa concedida com uma amostra gratuita do produto a comprar de novo no futuro. Com essas informações adicionais em nosso modelo, a função objetiva para maximizar se torna</p>
 <div class="math notranslate nohighlight">
 \[C(\textbf{x}) = \sum_{i,j} w_{ij} x_i (1-x_j)+\sum_i w_i x_i.\]</div>
-<p>In order to find a solution to this problem on a quantum computer, one needs first to map it to an Ising Hamiltonian. This can be done with the assignment <span class="math notranslate nohighlight">\(x_i\rightarrow (1-Z_i)/2\)</span>, where <span class="math notranslate nohighlight">\(Z_i\)</span> is the Pauli Z operator that has eigenvalues <span class="math notranslate nohighlight">\(\pm 1\)</span>. Doing this we find that</p>
+<p>Para encontrar uma solução para este problema num computador quântico, é necessário primeiro mapeá-lo para um Hamiltoniano Ising. Isso pode ser feito com a atribuição <span class="math notranslate nohighlight">\(x_i\rightarrow (1-Z_i)/2\)</span>, onde <span class="math notranslate nohighlight">\(Z_i\)</span> é o operador Pauli Z que possui eigenvalues <span class="math notranslate nohighlight">\(\pm 1\)</span>. Fazendo isso, descobrimos que</p>
 <div class="math notranslate nohighlight">
 \[C(\textbf{Z}) = \sum_{i,j} \frac{w_{ij}}{4} (1-Z_i)(1+Z_j) + \sum_i \frac{w_i}{2} (1-Z_i) = -\frac{1}{2}\left( \sum_{i&lt;j} w_{ij} Z_i Z_j +\sum_i w_i Z_i\right)+\mathrm{const},\]</div>
-<p>where const = $:nbsphinx-math:<cite>sum</cite><em>{i&lt;j}w</em>{ij}/2+:nbsphinx-math:<cite>sum</cite>_i w_i/2 $. In other terms, the weighted Max-Cut problem is equivalent to minimizing the Ising Hamiltonian</p>
+<p>where $:nbsphinx-math:<cite>mathrm{const}</cite> = <span class="math">\sum</span><em>{i&lt;j}w</em>{ij}/2+:nbsphinx-math:<cite>sum</cite>_i w_i/2 $. In other terms, the weighted Max-Cut problem is equivalent to minimizing the Ising Hamiltonian</p>
 <div class="math notranslate nohighlight">
 \[H = \sum_i w_i Z_i + \sum_{i&lt;j} w_{ij} Z_iZ_j.\]</div>
-<p>Qiskit’s optimization module can generate the Ising Hamiltonian for the first profit function <span class="math notranslate nohighlight">\(\tilde{C}\)</span>. To this extend, function <span class="math notranslate nohighlight">\(\tilde{C}\)</span> can be modeled as a <code class="docutils literal notranslate"><span class="pre">QuadraticProgram</span></code>, which provides the <code class="docutils literal notranslate"><span class="pre">to_ising()</span></code> method.</p>
+<p>Qiskit’s optimization module can generate the Ising Hamiltonian for the first profit function <span class="math notranslate nohighlight">\(\tilde{C}\)</span>. To this extent, function <span class="math notranslate nohighlight">\(\tilde{C}\)</span> can be modeled as a <code class="docutils literal notranslate"><span class="pre">QuadraticProgram</span></code>, which provides the <code class="docutils literal notranslate"><span class="pre">to_ising()</span></code> method.</p>
 </div>
-<div class="section" id="Approximate-Universal-Quantum-Computing-for-Optimization-Problems">
-<h3>Approximate Universal Quantum Computing for Optimization Problems<a class="headerlink" href="#Approximate-Universal-Quantum-Computing-for-Optimization-Problems" title="Link permanente para este título">¶</a></h3>
-<p>There has been a considerable amount of interest in recent times about the use of quantum computers to find a solution to combinatorial optimization problems. It is important to say that, given the classical nature of combinatorial problems, exponential speedup in using quantum computers compared to the best classical algorithms is not guaranteed. However, due to the nature and importance of the target problems, it is worth investigating heuristic approaches on a quantum computer that could
-indeed speed up some problem instances. Here we demonstrate an approach that is based on the <em>Quantum Approximate Optimization Algorithm</em> (QAOA) by Farhi, Goldstone, and Gutman (2014). We frame the algorithm in the context of <em>approximate quantum computing</em>, given its heuristic nature.</p>
-<p>The Algorithm works as follows: 1. Choose the <span class="math notranslate nohighlight">\(w_i\)</span> and <span class="math notranslate nohighlight">\(w_{ij}\)</span> in the target Ising problem. In principle, even higher powers of Z are allowed. 2. Choose the depth of the quantum circuit <span class="math notranslate nohighlight">\(m\)</span>. Note that the depth can be modified adaptively. 3. Choose a set of controls <span class="math notranslate nohighlight">\(\theta\)</span> and make a trial function <span class="math notranslate nohighlight">\(|\psi(\boldsymbol\theta)\rangle\)</span>, built using a quantum circuit made of C-Phase gates and single-qubit Y rotations, parameterized by the components of
-<span class="math notranslate nohighlight">\(\boldsymbol\theta\)</span>. 4. Evaluate <span class="math notranslate nohighlight">\(C(\boldsymbol\theta) = \langle\psi(\boldsymbol\theta)~|H|~\psi(\boldsymbol\theta)\rangle = \sum_i w_i \langle\psi(\boldsymbol\theta)~|Z_i|~\psi(\boldsymbol\theta)\rangle+ \sum_{i&lt;j} w_{ij} \langle\psi(\boldsymbol\theta)~|Z_iZ_j|~\psi(\boldsymbol\theta)\rangle\)</span> by sampling the outcome of the circuit in the Z-basis and adding the expectation values of the individual Ising terms together. In general, different control points around
-<span class="math notranslate nohighlight">\(\boldsymbol\theta\)</span> have to be estimated, depending on the classical optimizer chosen. 5. Use a classical optimizer to choose a new set of controls. 6. Continue until <span class="math notranslate nohighlight">\(C(\boldsymbol\theta)\)</span> reaches a minimum, close enough to the solution <span class="math notranslate nohighlight">\(\boldsymbol\theta^*\)</span>. 7. Use the last <span class="math notranslate nohighlight">\(\boldsymbol\theta\)</span> to generate a final set of samples from the distribution <span class="math notranslate nohighlight">\(|\langle z_i~|\psi(\boldsymbol\theta)\rangle|^2\;\forall i\)</span> to obtain the answer.</p>
-<p>It is our belief the difficulty of finding good heuristic algorithms will come down to the choice of an appropriate trial wavefunction. For example, one could consider a trial function whose entanglement best aligns with the target problem, or simply make the amount of entanglement a variable. In this tutorial, we will consider a simple trial function of the form</p>
+<div class="section" id="Computação-Quântica-Universal-Aproximada-para-Problemas-de-Otimização">
+<h3>Computação Quântica Universal Aproximada para Problemas de Otimização<a class="headerlink" href="#Computação-Quântica-Universal-Aproximada-para-Problemas-de-Otimização" title="Link permanente para este título">¶</a></h3>
+<p>Nos últimos tempos, tem havido um interesse considerável pela utilização de computadores quânticos para encontrar uma solução para problemas de optimização combinatória. É importante dizer que, dada a natureza clássica dos problemas de combinação. É importante dizer que a aceleração exponencial no uso de computadores quânticos em comparação com os melhores algoritmos clássicos não é garantida. No entanto, devido à natureza e à importância dos problemas, vale a pena investigar abordagens heurísticas num computador quântico que podem, de facto, acelerar alguns casos problemáticos. Aqui, demonstramos uma abordagem que é baseada no <em>Algoritmo de Otimização de Aproximação Quântica</em> (QAOA) por Farhi, Goldstone, and Gutman (2014). Nós empacotamos o algoritmo no contexto de <em>cálculo quântico aproximado</em>, dado sua natureza heurística.</p>
+<p>The algorithm works as follows:</p>
+<ol class="arabic">
+<li><p>Choose the <span class="math notranslate nohighlight">\(w_i\)</span> and <span class="math notranslate nohighlight">\(w_{ij}\)</span> in the target Ising problem. In principle, even higher powers of Z are allowed.</p></li>
+<li><p>Choose the depth of the quantum circuit <span class="math notranslate nohighlight">\(m\)</span>. Note that the depth can be modified adaptively.</p></li>
+<li><p>Choose a set of controls <span class="math notranslate nohighlight">\(\theta\)</span> and make a trial function <span class="math notranslate nohighlight">\(|\psi(\boldsymbol\theta)\rangle\)</span>, built using a quantum circuit made of C-Phase gates and single-qubit Y rotations, parameterized by the components of <span class="math notranslate nohighlight">\(\boldsymbol\theta\)</span>.</p></li>
+<li><p>Evaluate</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}C(\boldsymbol\theta) = \langle\psi(\boldsymbol\theta)~|H|~\psi(\boldsymbol\theta)\rangle = \sum_i w_i \langle\psi(\boldsymbol\theta)~|Z_i|~\psi(\boldsymbol\theta)\rangle+ \sum_{i&lt;j} w_{ij} \langle\psi(\boldsymbol\theta)~|Z_iZ_j|~\psi(\boldsymbol\theta)\rangle\\by sampling the outcome of the circuit in the Z-basis and adding the expectation values of the individual Ising terms together. In general, different control points around :math:`\boldsymbol\theta` have to be estimated, depending on the classical optimizer chosen.\end{aligned}\end{align} \]</div>
+</li>
+<li><p>Use a classical optimizer to choose a new set of controls.</p></li>
+<li><p>Continue until <span class="math notranslate nohighlight">\(C(\boldsymbol\theta)\)</span> reaches a minimum, close enough to the solution <span class="math notranslate nohighlight">\(\boldsymbol\theta^*\)</span>.</p></li>
+<li><p>Use the last <span class="math notranslate nohighlight">\(\boldsymbol\theta\)</span> to generate a final set of samples from the distribution <span class="math notranslate nohighlight">\(|\langle z_i~|\psi(\boldsymbol\theta)\rangle|^2\;\forall i\)</span> to obtain the answer.</p></li>
+</ol>
+<p>Acreditamos que a dificuldade de encontrar bons algoritmos heurísticos reduzirá à escolha de uma função experimental apropriada. Por exemplo, poderia considerar-se uma função de tentativa cujo enredo melhor se alinhasse com o problema alvo, ou simplesmente tornar a quantidade de entrelaçamento uma variável. Neste tutorial, vamos considerar uma função experimental simples do formulário</p>
 <div class="math notranslate nohighlight">
 \[|\psi(\theta)\rangle  = [U_\mathrm{single}(\boldsymbol\theta) U_\mathrm{entangler}]^m |+\rangle\]</div>
-<p>where <span class="math notranslate nohighlight">\(U_\mathrm{entangler}\)</span> is a collection of C-Phase gates (fully entangling gates), and <span class="math notranslate nohighlight">\(U_\mathrm{single}(\theta) = \prod_{i=1}^n Y(\theta_{i})\)</span>, where <span class="math notranslate nohighlight">\(n\)</span> is the number of qubits and <span class="math notranslate nohighlight">\(m\)</span> is the depth of the quantum circuit. The motivation for this choice is that for these classical problems this choice allows us to search over the space of quantum states that have only real coefficients, still exploiting the entanglement to potentially converge faster to the
-solution.</p>
-<p>One advantage of using this sampling method compared to adiabatic approaches is that the target Ising Hamiltonian does not have to be implemented directly on hardware, allowing this algorithm not to be limited to the connectivity of the device. Furthermore, higher-order terms in the cost function, such as <span class="math notranslate nohighlight">\(Z_iZ_jZ_k\)</span>, can also be sampled efficiently, whereas in adiabatic or annealing approaches they are generally impractical to deal with.</p>
+<p>onde <span class="math notranslate nohighlight">\(U_\mathrm{entangler}\)</span> é uma coleção de C-Phase gates (portões totalmente entrelaçados), e <span class="math notranslate nohighlight">\(U_\mathrm{single}(\theta) = \prod_{i=1}^n Y(\theta_{i})\)</span>, onde <span class="math notranslate nohighlight">\(n\)</span> é o número de qubits e <span class="math notranslate nohighlight">\(m\)</span> é a profundidade do circuito quântico. A motivação para esta escolha é que, para estes problemas clássicos, esta escolha nos permite procurar o espaço de Estados quânticos que só têm verdadeiros coeficientes, ainda explorando o entalhe para potencialmente convergir mais rapidamente para a solução.</p>
+<p>Uma vantagem de utilizar este método de amostragem em comparação com abordagens adiabáticas é que o alvo Ising Hamiltonian não tem de ser implementado diretamente em hardware, permitindo que este algoritmo não seja limitado à conectividade do dispositivo. Além disso, termos de ordem superior na função de custo, como <span class="math notranslate nohighlight">\(Z_iZ_jZ_k\)</span>, também pode ser amostrado eficientemente, enquanto em abordagens adiabáticas ou de anelamento são geralmente impraticáveis para se tratar.</p>
 <p>References: - A. Lucas, Frontiers in Physics 2, 5 (2014) - E. Farhi, J. Goldstone, S. Gutmann e-print arXiv 1411.4028 (2014) - D. Wecker, M. B. Hastings, M. Troyer Phys. Rev. A 94, 022309 (2016) - E. Farhi, J. Goldstone, S. Gutmann, H. Neven e-print arXiv 1703.06199 (2017)</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -617,7 +622,6 @@ solution.</p>
 <span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">QuantumInstance</span>
 <span class="kn">from</span> <span class="nn">qiskit.optimization.applications.ising.common</span> <span class="kn">import</span> <span class="n">sample_most_likely</span>
 <span class="kn">from</span> <span class="nn">qiskit.optimization.algorithms</span> <span class="kn">import</span> <span class="n">MinimumEigenOptimizer</span>
-<span class="kn">from</span> <span class="nn">qiskit.optimization.converters</span> <span class="kn">import</span> <span class="n">IsingToQuadraticProgram</span>
 <span class="kn">from</span> <span class="nn">qiskit.optimization.problems</span> <span class="kn">import</span> <span class="n">QuadraticProgram</span>
 
 <span class="c1"># setup aqua logging</span>
@@ -629,8 +633,8 @@ solution.</p>
 </div>
 </div>
 </div>
-<div class="section" id="Max-Cut-problem">
-<h2>Max-Cut problem<a class="headerlink" href="#Max-Cut-problem" title="Link permanente para este título">¶</a></h2>
+<div class="section" id="Problema-de-Max-Cut">
+<h2>Problema de Max-Cut<a class="headerlink" href="#Problema-de-Max-Cut" title="Link permanente para este título">¶</a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -647,8 +651,14 @@ solution.</p>
 
 <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;r&#39;</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">()]</span>
 <span class="n">pos</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">spring_layout</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
-<span class="n">default_axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">node_color</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">node_size</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">default_axes</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">draw_graph</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="n">default_axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">node_color</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">node_size</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">default_axes</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">)</span>
+    <span class="n">edge_labels</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_edge_attributes</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx_edge_labels</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">edge_labels</span><span class="o">=</span><span class="n">edge_labels</span><span class="p">)</span>
+
+<span class="n">draw_graph</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -656,7 +666,8 @@ solution.</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_4_0.svg" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_4_0.svg" /></div>
+<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_4_0.png" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_4_0.png" />
+</div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
@@ -685,9 +696,9 @@ solution.</p>
  [1. 0. 1. 0.]]
 </pre></div></div>
 </div>
-<div class="section" id="Brute-force-approach">
-<h3>Brute force approach<a class="headerlink" href="#Brute-force-approach" title="Link permanente para este título">¶</a></h3>
-<p>Try all possible <span class="math notranslate nohighlight">\(2^n\)</span> combinations. For <span class="math notranslate nohighlight">\(n = 4\)</span>, as in this example, one deals with only 16 combinations, but for n = 1000, one has 1.071509e+30 combinations, which is impractical to deal with by using a brute force approach.</p>
+<div class="section" id="Abordagem-de-força-bruta">
+<h3>Abordagem de força bruta<a class="headerlink" href="#Abordagem-de-força-bruta" title="Link permanente para este título">¶</a></h3>
+<p>Tente todas as <span class="math notranslate nohighlight">\(2^n\)</span> combinações possíveis. Para <span class="math notranslate nohighlight">\(n = 4\)</span>, como neste exemplo, lidamos com apenas 16 combinações, mas para n = 1000, temos 1.071509e+30 combinações, o que é impraticável de se lidar usando uma abordagem de força bruta.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -705,8 +716,8 @@ solution.</p>
         <span class="n">xbest_brute</span> <span class="o">=</span> <span class="n">x</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;case = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">+</span> <span class="s1">&#39; cost = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">cost</span><span class="p">))</span>
 
-<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;r&#39;</span> <span class="k">if</span> <span class="n">xbest_brute</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;b&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
-<span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">node_color</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">node_size</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">)</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;r&#39;</span> <span class="k">if</span> <span class="n">xbest_brute</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;c&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
+<span class="n">draw_graph</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Best solution = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">xbest_brute</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; cost = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">best_cost_brute</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -740,12 +751,13 @@ Best solution = [1, 0, 1, 0] cost = 4.0
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_7_1.svg" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_7_1.svg" /></div>
+<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_7_1.png" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_7_1.png" />
 </div>
 </div>
-<div class="section" id="Mapping-to-the-Ising-problem">
-<h3>Mapping to the Ising problem<a class="headerlink" href="#Mapping-to-the-Ising-problem" title="Link permanente para este título">¶</a></h3>
-<p>Qiskit provides funcitonality to direclty generate the Ising Hamiltonian as well as create the corresponding <code class="docutils literal notranslate"><span class="pre">QuadraticProgram</span></code>.</p>
+</div>
+<div class="section" id="Mapeamento-para-o-problema-Ising">
+<h3>Mapeamento para o problema Ising<a class="headerlink" href="#Mapeamento-para-o-problema-Ising" title="Link permanente para este título">¶</a></h3>
+<p>Qiskit provides functionality to directly generate the Ising Hamiltonian as well as create the corresponding <code class="docutils literal notranslate"><span class="pre">QuadraticProgram</span></code>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
@@ -829,10 +841,10 @@ optimal value: [1. 0. 1. 0.]
 status: SUCCESS
 </pre></div></div>
 </div>
-<p>Since the problem was cast to a minimization problem, the solution of <span class="math notranslate nohighlight">\(-4\)</span> corresponds to the optimum.</p>
+<p>Uma vez que o problema foi convertido para um problema de minimização, a solução de <span class="math notranslate nohighlight">\(-4\)</span> corresponde ao ótimo.</p>
 </div>
-<div class="section" id="Checking-that-the-full-Hamiltonian-gives-the-right-cost">
-<h3>Checking that the full Hamiltonian gives the right cost<a class="headerlink" href="#Checking-that-the-full-Hamiltonian-gives-the-right-cost" title="Link permanente para este título">¶</a></h3>
+<div class="section" id="Verificando-se-o-Hamiltoniano-completo-oferece-o-custo-certo">
+<h3>Verificando se o Hamiltoniano completo oferece o custo certo<a class="headerlink" href="#Verificando-se-o-Hamiltoniano-completo-oferece-o-custo-certo" title="Link permanente para este título">¶</a></h3>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
@@ -848,8 +860,8 @@ status: SUCCESS
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;solution:&#39;</span><span class="p">,</span> <span class="n">max_cut</span><span class="o">.</span><span class="n">get_graph_solution</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;solution objective:&#39;</span><span class="p">,</span> <span class="n">max_cut</span><span class="o">.</span><span class="n">max_cut_value</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">w</span><span class="p">))</span>
 
-<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;r&#39;</span> <span class="k">if</span> <span class="n">max_cut</span><span class="o">.</span><span class="n">get_graph_solution</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;b&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
-<span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">node_color</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">node_size</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="o">.</span><span class="mi">8</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">)</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;r&#39;</span> <span class="k">if</span> <span class="n">max_cut</span><span class="o">.</span><span class="n">get_graph_solution</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;c&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
+<span class="n">draw_graph</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -868,12 +880,13 @@ solution objective: 4.0
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_15_1.svg" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_15_1.svg" /></div>
+<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_15_1.png" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_15_1.png" />
 </div>
 </div>
-<div class="section" id="Running-it-on-quantum-computer">
-<h3>Running it on quantum computer<a class="headerlink" href="#Running-it-on-quantum-computer" title="Link permanente para este título">¶</a></h3>
-<p>We run the optimization routine using a feedback loop with a quantum computer that uses trial functions built with Y single-qubit rotations, <span class="math notranslate nohighlight">\(U_\mathrm{single}(\theta) = \prod_{i=1}^n Y(\theta_{i})\)</span>, and entangler steps <span class="math notranslate nohighlight">\(U_\mathrm{entangler}\)</span>.</p>
+</div>
+<div class="section" id="Executando-o-em-um-computador-quântico">
+<h3>Executando-o em um computador quântico<a class="headerlink" href="#Executando-o-em-um-computador-quântico" title="Link permanente para este título">¶</a></h3>
+<p>Executamos a rotina de otimização usando um loop de feedback com um computador quântico que usa funções teste construídas com rotações Y de um único qubit, <span class="math notranslate nohighlight">\(U_\mathrm{single}(\theta) = \prod_{i=1}^n Y(\theta_{i})\)</span>, e etapas de emaranhamento <span class="math notranslate nohighlight">\(U_\mathrm{entangler}\)</span>.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
@@ -908,8 +921,8 @@ solution objective: 4.0
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;solution objective:&#39;</span><span class="p">,</span> <span class="n">max_cut</span><span class="o">.</span><span class="n">max_cut_value</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">w</span><span class="p">))</span>
 
 <span class="c1"># plot results</span>
-<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;r&#39;</span> <span class="k">if</span> <span class="n">max_cut</span><span class="o">.</span><span class="n">get_graph_solution</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;b&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
-<span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">node_color</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">node_size</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="o">.</span><span class="mi">8</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">)</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;r&#39;</span> <span class="k">if</span> <span class="n">max_cut</span><span class="o">.</span><span class="n">get_graph_solution</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;c&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
+<span class="n">draw_graph</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -918,9 +931,9 @@ solution objective: 4.0
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-energy: -1.4972781100194066
-time: 14.105326890945435
-max-cut objective: -3.9972781100194066
+energy: -1.499979671893171
+time: 4.265789747238159
+max-cut objective: -3.999979671893171
 solution: [1. 0. 1. 0.]
 solution objective: 4.0
 </pre></div></div>
@@ -929,7 +942,8 @@ solution objective: 4.0
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_18_1.svg" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_18_1.svg" /></div>
+<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_18_1.png" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_18_1.png" />
+</div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
@@ -943,8 +957,8 @@ solution objective: 4.0
 <span class="n">result</span> <span class="o">=</span> <span class="n">vqe_optimizer</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">qp</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 
-<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;r&#39;</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;b&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
-<span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">node_color</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">node_size</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="o">.</span><span class="mi">8</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">)</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;r&#39;</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;c&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
+<span class="n">draw_graph</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -962,34 +976,32 @@ status: SUCCESS
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_19_1.svg" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_19_1.svg" /></div>
+<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_19_1.png" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_19_1.png" />
 </div>
 </div>
 </div>
-<div class="section" id="Traveling-Salesman-Problem">
-<h2>Traveling Salesman Problem<a class="headerlink" href="#Traveling-Salesman-Problem" title="Link permanente para este título">¶</a></h2>
-<p>In addition to being a notorious NP-complete problem that has drawn the attention of computer scientists and mathematicians for over two centuries, the Traveling Salesman Problem (TSP) has important bearings on finance and marketing, as its name suggests. Colloquially speaking, the traveling salesman is a person that goes from city to city to sell merchandise. The objective in this case is to find the shortest path that would enable the salesman to visit all the cities and return to its
-hometown, i.e. the city where he started traveling. By doing this, the salesman gets to maximize potential sales in the least amount of time.</p>
-<p>The problem derives its importance from its “hardness” and ubiquitous equivalence to other relevant combinatorial optimization problems that arise in practice.</p>
-<p>The mathematical formulation with some early analysis was proposed by W.R. Hamilton in the early 19th century. Mathematically the problem is, as in the case of Max-Cut, best abstracted in terms of graphs. The TSP on the nodes of a graph asks for the shortest <em>Hamiltonian cycle</em> that can be taken through each of the nodes. A Hamilton cycle is a closed path that uses every vertex of a graph once. The general solution is unknown and an algorithm that finds it efficiently (e.g., in polynomial time)
-is not expected to exist.</p>
-<p>Find the shortest Hamiltonian cycle in a graph <span class="math notranslate nohighlight">\(G=(V,E)\)</span> with <span class="math notranslate nohighlight">\(n=|V|\)</span> nodes and distances, <span class="math notranslate nohighlight">\(w_{ij}\)</span> (distance from vertex <span class="math notranslate nohighlight">\(i\)</span> to vertex <span class="math notranslate nohighlight">\(j\)</span>). A Hamiltonian cycle is described by <span class="math notranslate nohighlight">\(N^2\)</span> variables <span class="math notranslate nohighlight">\(x_{i,p}\)</span>, where <span class="math notranslate nohighlight">\(i\)</span> represents the node and <span class="math notranslate nohighlight">\(p\)</span> represents its order in a prospective cycle. The decision variable takes the value 1 if the solution occurs at node <span class="math notranslate nohighlight">\(i\)</span> at time order <span class="math notranslate nohighlight">\(p\)</span>. We require that every node can only appear once in
-the cycle, and for each time a node has to occur. This amounts to the two constraints (here and in the following, whenever not specified, the summands run over 0,1,…N-1)</p>
+</div>
+<div class="section" id="Problema-do-Caixeiro-Viajante">
+<h2>Problema do Caixeiro Viajante<a class="headerlink" href="#Problema-do-Caixeiro-Viajante" title="Link permanente para este título">¶</a></h2>
+<p>Além de ser um notório problema NP-completo que chamou a atenção de cientistas de computação e matemáticos por mais de dois séculos, o Problema do Caixeiro Viajante (TSP) tem rolamentos importantes sobre finanças e marketing, como sugere seu nome. Coloquialmente falando, o caixeiro viajante é uma pessoa que vai de cidade em cidade para vender mercadorias. O objetivo neste caso é encontrar o caminho mais curto que possibilitaria ao vendedor visitar todas as cidades e retornar à sua cidade natal, ou seja, a cidade onde ele começou a viajar. Ao fazer isso, o vendedor consegue maximizar as vendas em potencial na menor quantidade de tempo.</p>
+<p>O problema deriva sua importância de sua “dificuldade” e da equivalência onipresente a outros problemas de otimização combinatória relevantes que surgem na prática.</p>
+<p>A formulação matemática com alguma análise inicial foi proposta por W.R. Hamilton no início do século XIX. Matematicamente o problema é, como no caso do Max-Cut, melhor abstraído em termos de grafos. O TSP nos nós de um grafo pede o <em>ciclo Hamiltoniano</em> mais curto que pode ser tomado através de cada um dos nós. Um ciclo Hamiltoniano é um caminho fechado que usa cada vértice do grafo uma vez. A solução geral é desconhecida e não é esperado que exista um algoritmo que o encontre de forma eficiente (por exemplo, em tempo polinomial).</p>
+<p>Encontre o ciclo Hamiltoniano mais curto em um grafo <span class="math notranslate nohighlight">\(G=(V,E)\)</span> com <span class="math notranslate nohighlight">\(n=|V|\)</span> nós e distâncias, <span class="math notranslate nohighlight">\(w_{ij}\)</span> (distância do vértice <span class="math notranslate nohighlight">\(i\)</span> ao vértice <span class="math notranslate nohighlight">\(j\)</span>). Um ciclo Hamiltoniano é descrito por <span class="math notranslate nohighlight">\(N^2\)</span> variáveis <span class="math notranslate nohighlight">\(x_{i,p}\)</span>, sendo que <span class="math notranslate nohighlight">\(i\)</span> representa o nó e <span class="math notranslate nohighlight">\(p\)</span> representa a sua ordem em um ciclo prospectivo. A variável de decisão leva o valor 1 se a solução ocorrer no nó <span class="math notranslate nohighlight">\(i\)</span> na posição no tempo <span class="math notranslate nohighlight">\(p\)</span>. Nós exigimos que cada nó possa aparecer apenas uma vez no ciclo, e para cada tempo um nó precisa ocorrer. Isto equivale às duas restrições (aqui e nos seguintes, sempre que não especificado, os somatórios vão de 0,1, …N-1)</p>
 <div class="math notranslate nohighlight">
 \[\sum_{i} x_{i,p} = 1 ~~\forall p\]</div>
 <div class="math notranslate nohighlight">
 \[\sum_{p} x_{i,p} = 1 ~~\forall i.\]</div>
-<p>For nodes in our prospective ordering, if <span class="math notranslate nohighlight">\(x_{i,p}\)</span> and <span class="math notranslate nohighlight">\(x_{j,p+1}\)</span> are both 1, then there should be an energy penalty if <span class="math notranslate nohighlight">\((i,j) \notin E\)</span> (not connected in the graph). The form of this penalty is</p>
+<p>Para nós em nossa ordenação prospectiva, se <span class="math notranslate nohighlight">\(x_{i,p}\)</span> e <span class="math notranslate nohighlight">\(x_{j,p+1}\)</span> são ambos 1, então deve haver uma penalidade de energia se <span class="math notranslate nohighlight">\((i,j) \notin E\)</span> (não conectados no grafo). A forma desta penalidade é</p>
 <div class="math notranslate nohighlight">
 \[\sum_{i,j\notin E}\sum_{p} x_{i,p}x_{j,p+1}&gt;0,\]</div>
-<p>where it is assumed the boundary condition of the Hamiltonian cycles <span class="math notranslate nohighlight">\((p=N)\equiv (p=0)\)</span>. However, here it will be assumed a fully connected graph and not include this term. The distance that needs to be minimized is</p>
+<p>onde se assume que a condição de limite dos ciclos Hamiltonianos <span class="math notranslate nohighlight">\((p=N)\equiv (p=0)\)</span>. No entanto, aqui será assumido um grafo completo e não incluirá esse termo. A distância que precisa ser minimizada é</p>
 <div class="math notranslate nohighlight">
 \[C(\textbf{x})=\sum_{i,j}w_{ij}\sum_{p} x_{i,p}x_{j,p+1}.\]</div>
-<p>Putting this all together in a single objective function to be minimized, we get the following:</p>
+<p>Juntando tudo isso numa única função objetiva a ser minimizada, obtemos o seguinte:</p>
 <div class="math notranslate nohighlight">
 \[C(\textbf{x})=\sum_{i,j}w_{ij}\sum_{p} x_{i,p}x_{j,p+1}+ A\sum_p\left(1- \sum_i x_{i,p}\right)^2+A\sum_i\left(1- \sum_p x_{i,p}\right)^2,\]</div>
-<p>where <span class="math notranslate nohighlight">\(A\)</span> is a free parameter. One needs to ensure that <span class="math notranslate nohighlight">\(A\)</span> is large enough so that these constraints are respected. One way to do this is to choose <span class="math notranslate nohighlight">\(A\)</span> such that <span class="math notranslate nohighlight">\(A &gt; \mathrm{max}(w_{ij})\)</span>.</p>
-<p>Once again, it is easy to map the problem in this form to a quantum computer, and the solution will be found by minimizing a Ising Hamiltonian.</p>
+<p>onde <span class="math notranslate nohighlight">\(A\)</span> é um parâmetro livre. Um precisa garantir que <span class="math notranslate nohighlight">\(A\)</span> seja grande o suficiente para que essas restrições sejam respeitadas. Uma maneira de fazer isso é escolher <span class="math notranslate nohighlight">\(A\)</span> tal que <span class="math notranslate nohighlight">\(A &gt; \mathrm{max}(w_{ij})\)</span>.</p>
+<p>Mais uma vez, é fácil mapear o problema desta forma para um computador quântico, e a solução será encontrada minimizando um Hamiltoniano Ising.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
@@ -999,13 +1011,20 @@ the cycle, and for each time a node has to occur. This amounts to the two constr
 <span class="n">n</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="n">num_qubits</span> <span class="o">=</span> <span class="n">n</span> <span class="o">**</span> <span class="mi">2</span>
 <span class="n">ins</span> <span class="o">=</span> <span class="n">tsp</span><span class="o">.</span><span class="n">random_tsp</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">123</span><span class="p">)</span>
-<span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
-<span class="n">G</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;r&#39;</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">()]</span>
-<span class="n">pos</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ins</span><span class="o">.</span><span class="n">coord</span><span class="p">)}</span>
-<span class="n">default_axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">node_color</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">node_size</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">default_axes</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;distance</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">.</span><span class="n">w</span><span class="p">)</span>
+
+<span class="c1"># Draw the graph</span>
+<span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+<span class="n">G</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ins</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;r&#39;</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">()]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ins</span><span class="o">.</span><span class="n">dim</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ins</span><span class="o">.</span><span class="n">dim</span><span class="p">):</span>
+        <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">ins</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">])</span>
+
+<span class="n">pos</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ins</span><span class="o">.</span><span class="n">coord</span><span class="p">)}</span>
+
+<span class="n">draw_graph</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1024,10 +1043,11 @@ distance
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_21_1.svg" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_21_1.svg" /></div>
+<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_21_1.png" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_21_1.png" />
+</div>
 </div>
 <div class="section" id="id2">
-<h3>Brute force approach<a class="headerlink" href="#id2" title="Link permanente para este título">¶</a></h3>
+<h3>Abordagem de força bruta<a class="headerlink" href="#id2" title="Link permanente para este título">¶</a></h3>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
@@ -1056,13 +1076,16 @@ distance
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best order from brute force = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">best_order</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; with total distance = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">best_distance</span><span class="p">))</span>
 
 <span class="k">def</span> <span class="nf">draw_tsp_solution</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
-    <span class="n">G2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">G2</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+    <span class="n">G2</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
     <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
         <span class="n">j</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">n</span>
-        <span class="n">G2</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">order</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">order</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">G2</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">order</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">order</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">weight</span><span class="o">=</span><span class="n">G</span><span class="p">[</span><span class="n">order</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">order</span><span class="p">[</span><span class="n">j</span><span class="p">]][</span><span class="s1">&#39;weight&#39;</span><span class="p">])</span>
     <span class="n">default_axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx</span><span class="p">(</span><span class="n">G2</span><span class="p">,</span> <span class="n">node_color</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">node_size</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">default_axes</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx</span><span class="p">(</span><span class="n">G2</span><span class="p">,</span> <span class="n">node_color</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">edge_color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">node_size</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">default_axes</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">)</span>
+    <span class="n">edge_labels</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_edge_attributes</span><span class="p">(</span><span class="n">G2</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx_edge_labels</span><span class="p">(</span><span class="n">G2</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">font_color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">edge_labels</span><span class="o">=</span><span class="n">edge_labels</span><span class="p">)</span>
 
 <span class="n">draw_tsp_solution</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">best_order</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
 </pre></div>
@@ -1081,11 +1104,12 @@ Best order from brute force = (0, 1, 2) with total distance = 202.0
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_23_1.svg" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_23_1.svg" /></div>
+<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_23_1.png" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_23_1.png" />
+</div>
 </div>
 </div>
 <div class="section" id="id3">
-<h3>Mapping to the Ising problem<a class="headerlink" href="#id3" title="Link permanente para este título">¶</a></h3>
+<h3>Mapeamento para o problema Ising<a class="headerlink" href="#id3" title="Link permanente para este título">¶</a></h3>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
@@ -1221,7 +1245,7 @@ status: SUCCESS
 </div>
 </div>
 <div class="section" id="id4">
-<h3>Checking that the full Hamiltonian gives the right cost<a class="headerlink" href="#id4" title="Link permanente para este título">¶</a></h3>
+<h3>Verificando se o Hamiltoniano completo oferece o custo certo<a class="headerlink" href="#id4" title="Link permanente para este título">¶</a></h3>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
@@ -1258,12 +1282,13 @@ solution objective: 202.0
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_29_1.svg" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_29_1.svg" /></div>
+<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_29_1.png" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_29_1.png" />
+</div>
 </div>
 </div>
 <div class="section" id="id5">
-<h3>Running it on quantum computer<a class="headerlink" href="#id5" title="Link permanente para este título">¶</a></h3>
-<p>We run the optimization routine using a feedback loop with a quantum computer that uses trial functions built with Y single-qubit rotations, <span class="math notranslate nohighlight">\(U_\mathrm{single}(\theta) = \prod_{i=1}^n Y(\theta_{i})\)</span>, and entangler steps <span class="math notranslate nohighlight">\(U_\mathrm{entangler}\)</span>.</p>
+<h3>Executando-o em um computador quântico<a class="headerlink" href="#id5" title="Link permanente para este título">¶</a></h3>
+<p>Executamos a rotina de otimização usando um loop de feedback com um computador quântico que usa funções teste construídas com rotações Y de um único qubit, <span class="math notranslate nohighlight">\(U_\mathrm{single}(\theta) = \prod_{i=1}^n Y(\theta_{i})\)</span>, e etapas de emaranhamento <span class="math notranslate nohighlight">\(U_\mathrm{entangler}\)</span>.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
@@ -1303,8 +1328,8 @@ solution objective: 202.0
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-energy: -587129.7995590196
-time: 51.629618883132935
+energy: -587129.7995590203
+time: 16.47167682647705
 feasible: True
 solution: [1, 2, 0]
 solution objective: 202.0
@@ -1314,7 +1339,8 @@ solution objective: 202.0
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_32_1.svg" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_32_1.svg" /></div>
+<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_32_1.png" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_32_1.png" />
+</div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
@@ -1363,7 +1389,8 @@ solution objective: 202.0
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_34_1.svg" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_34_1.svg" /></div>
+<img alt="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_34_1.png" src="../../_images/tutorials_optimization_6_examples_max_cut_and_tsp_34_1.png" />
+</div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
@@ -1380,8 +1407,8 @@ solution objective: 202.0
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.20.0</td></tr><tr><td>Terra</td><td>0.15.1</td></tr><tr><td>Aer</td><td>0.6.1</td></tr><tr><td>Ignis</td><td>0.4.0</td></tr><tr><td>Aqua</td><td>0.7.5</td></tr><tr><td>IBM Q Provider</td><td>0.8.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.8.5 (default, Jul 21 2020, 10:48:26)
-[Clang 11.0.3 (clang-1103.0.32.62)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>2</td></tr><tr><td>Memory (Gb)</td><td>8.0</td></tr><tr><td colspan='2'>Mon Sep 07 14:56:32 2020 JST</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.20.1</td></tr><tr><td>Terra</td><td>0.15.2</td></tr><tr><td>Aer</td><td>0.6.1</td></tr><tr><td>Ignis</td><td>0.4.0</td></tr><tr><td>Aqua</td><td>0.7.5</td></tr><tr><td>IBM Q Provider</td><td>0.8.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.8.5 | packaged by conda-forge | (default, Jul 31 2020, 02:39:48)
+[GCC 7.5.0]</td></tr><tr><td>OS</td><td>Linux</td></tr><tr><td>CPUs</td><td>4</td></tr><tr><td>Memory (Gb)</td><td>30.820919036865234</td></tr><tr><td colspan='2'>Mon Sep 21 11:40:13 2020 EDT</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -1425,7 +1452,7 @@ solution objective: 202.0
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Última atualização em 2020/09/19.
+        Última atualização em 2020/09/21.
       </span>
 
     </p>

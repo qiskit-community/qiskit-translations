@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
 from qiskit import QuantumCircuit
 # Create a circuit with a register of three qubits
 circ = QuantumCircuit(3)
@@ -9,6 +15,10 @@ circ.cx(0, 1)
 circ.cx(0, 2)
 # Draw the circuit
 circ.draw()
+
+
+# In[2]:
+
 
 from qiskit import QuantumCircuit
 qc = QuantumCircuit(12)
@@ -27,12 +37,33 @@ qc.swap(6, 10)
 qc.x(6)
 qc.draw()
 
+
+# In[3]:
+
+
 qc.width()
+
+
+# In[4]:
+
 
 qc.num_qubits
 
+
+# In[5]:
+
+
 qc.count_ops()
+
+
+# In[6]:
+
 
 qc.size()
 
+
+# In[7]:
+
+
 qc.depth()
+
