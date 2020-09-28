@@ -36,7 +36,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 
 | Language | Translation Leads | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
 | ---     | ---    | --- |
-| Bengali | Omar Shehab, Sristy Sangskriti |  @Shehab @Sristy Sangskriti   |
+| Bengali | Omar Shehab, Abhijit Mitra |  @Shehab @amitracal   |
 | Brazilian Portuguese | Jose Gilberto Biondo Junior | @Gilberto Biondo |
 | Hindi | Anupama Ray | @anupamar |
 | French | Olivier Hess | @Olivier Hess |
@@ -47,7 +47,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Korean | Jinho Hwang | @Jinho Hwang |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese | Omar Costa Hamido | @OCH |
-| Spanish | Arturo Acuaviva Huertos, Enric Delgado Samper | @Arturo Acuaviva |
+| Spanish | Arturo Acuaviva Huertos, Carmen Recio Valcarce | @Arturo Acuaviva @carmenrv |
 | Spanish-Mexico | Carlos Gonzalez | @Carlos Esteban Gonzalez |
 | Turkish | Ayşin Taşdelen | @Ayshine |
 
