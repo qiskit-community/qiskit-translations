@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>行列積状態を用いたシミュレーション法 &mdash; Qiskit 0.21.0 ドキュメント</title>
+  <title>行列積状態を用いたシミュレーション法 &mdash; Qiskit 0.22.0 ドキュメント</title>
   
 
   
@@ -165,6 +165,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../development_strategy.html">開発ストラテジー</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../contributing_to_qiskit.html">Qiskit に貢献する</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../release_notes.html">リリースノート</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Local Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../faq.html">よくある質問</a></li>
 </ul>
 <p class="caption"><span class="caption-text">チュートリアル</span></p>
@@ -182,7 +183,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">行列積状態を用いたシミュレーション法</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#シミュレーション方法">シミュレーション方法</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id2">行列積状態を用いたシミュレーション法</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Using-the-matrix-product-state-simulation-method">Using the matrix product state simulation method</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#行列積状態シミュレーション方法を利用する">行列積状態シミュレーション方法を利用する</a></li>
 </ul>
 </li>
 </ul>
@@ -544,15 +545,14 @@ div.rendered_html tbody tr:hover {
 <p>このシミュレーション方法は <code class="docutils literal notranslate"><span class="pre">matrix</span> <span class="pre">product</span> <span class="pre">states</span></code> の概念に基づいています。 この構造は、最初に Vidal の <em>Efficient classical simulation of slightly entangled quantum computations*(https://arxiv.org/abs/quant-ph/0301063) で提案されました。構造をより詳細に説明する論文として、例えば Schollwoeck の *The density-matrix renormalization group in the age of matrix product states</em> (<a class="reference external" href="https://arxiv.org/abs/1008.3477">https://arxiv.org/abs/1008.3477</a>) があります。</p>
 <p>純粋な量子状態は通常、状態ベクトルとして記述されます。 式で書くと、 <span class="math notranslate nohighlight">\(|\psi\rangle = \sum_{i_1=0}^1 {\ldots} \sum_{i_n=0}^1 c_{i_1 \ldots i_n} |i_i\rangle {\otimes} {\ldots} |i_n\rangle\)</span> です。</p>
 <p>状態ベクトル表現は、実際の回路に関係なく、指数サイズ表現を伴います。 この表現で動作するすべての量子ゲートには、指数時間と指数メモリが必要です。</p>
-<p>The matrix product state (MPS) representation offers a local representation, in the form: <span class="math notranslate nohighlight">\(\Gamma^{[1]} \lambda^{[1]} \Gamma^{[2]} \lambda^{[2]}\ldots \Gamma^{[1]} \lambda^{[n-1]} \Gamma^{[n]}\)</span>, such that all the information contained in the <span class="math notranslate nohighlight">\(c_{i_1 \ldots i_n}\)</span>, can be generated out of the MPS representation.</p>
-<p>Every <span class="math notranslate nohighlight">\(\Gamma^{[i]}\)</span> is a tensor of complex numbers that represents qubit <span class="math notranslate nohighlight">\(i\)</span>. Every <span class="math notranslate nohighlight">\(\lambda^{[i]}\)</span> is a matrix of real numbers that is used to normalize the amplitudes of qubits <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(i+1\)</span>. Single-qubit gates operate only on the relevant tensor.</p>
-<p>Two-qubit gates operate on consecutive qubits <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(i+1\)</span>. This involves a tensor-contract operation over <span class="math notranslate nohighlight">\(\lambda^{[i-1]}\)</span>, <span class="math notranslate nohighlight">\(\Gamma^{[i-1]}\)</span>, <span class="math notranslate nohighlight">\(\lambda^{[i]}\)</span>, <span class="math notranslate nohighlight">\(\Gamma^{[i+1]}\)</span> and <span class="math notranslate nohighlight">\(\lambda^{[i+1]}\)</span>, that creates a single tensor. We apply the gate to this tensor, and then decompose back to the original structure. This operation may increase the size of the respective tensors. Gates that involve two qubits that are not consecutive, require a series of
-swap gates to bring the two qubits next to each other and then the reverse swaps.</p>
-<p>In the worst case, the tensors may grow exponentially. However, the size of the overall structure remains 『small』 for circuits that do not have 『many』 two-qubit gates. This allows much more efficient operations in circuits with relatively 『low』 entanglement. Characterizing when to use this method over other methods is a subject of current research.</p>
+<p>行列積状態（Matrix Product State、MPS）表示は、形式:  <span class="math notranslate nohighlight">\(\Gamma^{[1]} \lambda^{[1]} \Gamma^{[2]} \lambda^{[2]}\ldots \Gamma^{[1]} \lambda^{[n-1]} \Gamma^{[n]}\)</span> にてローカル表示を提供します。 <span class="math notranslate nohighlight">\(c_{i_1 \ldots i_n}\)</span> に含まれるすべての情報を、MPS表現から生成できるようにします。</p>
+<p>すべての <span class="math notranslate nohighlight">\(\Gamma^{[i]}\)</span> は qubit <span class="math notranslate nohighlight">\(i\)</span> を表す複素数のテンソルです。 <span class="math notranslate nohighlight">\(\lambda^{[i]}\)</span> は実数の行列で、量子ビット <span class="math notranslate nohighlight">\(i\)</span> と <span class="math notranslate nohighlight">\(i+1\)</span> の振幅を正規化するために使用されます。 単一量子ビットゲートは、該当するテンソルでのみ動作します。</p>
+<p>２量子ビットゲートは連続した量子ビット <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(i+1\)</span> に作用します。これには <span class="math notranslate nohighlight">\(\lambda^{[i-1]}\)</span>, <span class="math notranslate nohighlight">\(\Gamma^{[i-1]}\)</span>, <span class="math notranslate nohighlight">\(\lambda^{[i]}\)</span>, <span class="math notranslate nohighlight">\(\Gamma^{[i+1]}\)</span> および <span class="math notranslate nohighlight">\(\lambda^{[i+1]}\)</span> のテンソル縮約が含まれ、単一のテンソルが作成されます。ゲートにはこのテンソルが適用され、次に元の構造にデコンポーズ(decompose) されます。この操作は各テンソルの大きさを増やすかも知れません。２つの量子ビットが連続していない場合には、swap ゲートをいくつか適用し２量子ビットが連続するようにし、再び swap を適応して元に戻します。</p>
+<p>最悪の場合、テンソルは指数関数的に成長する可能性があります。 しかし、構造全体の大きさは、 『多くの』 2量子ビットゲートを持たない回路では 『小さい』 ままです。これにより、比較的 『低い』 もつれの回路では、はるかに効率的な演算が可能になります。 他の方法ではなく、この方法を使うタイミングを特徴づけることは、現在の研究の対象です。</p>
 </div>
-<div class="section" id="Using-the-matrix-product-state-simulation-method">
-<h2>Using the matrix product state simulation method<a class="headerlink" href="#Using-the-matrix-product-state-simulation-method" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>The matrix product state simulation method is invoked in the <code class="docutils literal notranslate"><span class="pre">QasmSimulator</span></code> by setting the <code class="docutils literal notranslate"><span class="pre">simulation_method</span></code>. Other than that, all operations are controlled by the <code class="docutils literal notranslate"><span class="pre">QasmSimulator</span></code> itself, as in the following example:</p>
+<div class="section" id="行列積状態シミュレーション方法を利用する">
+<h2>行列積状態シミュレーション方法を利用する<a class="headerlink" href="#行列積状態シミュレーション方法を利用する" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>行列積状態シミュレーション方法は、<code class="docutils literal notranslate"><span class="pre">simulation_method</span></code> を設定することにより、<code class="docutils literal notranslate"><span class="pre">QasmSimulator</span></code> で呼び出されます。 以下の例にありますように、それ以外の操作は <code class="docutils literal notranslate"><span class="pre">QasmSimulator</span></code> 自体によって制御されます。</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -653,9 +653,8 @@ swap gates to bring the two qubits next to each other and then the reverse swaps
 {&#39;11&#39;: 516, &#39;00&#39;: 508}
 </pre></div></div>
 </div>
-<p>Running circuits using the matrix product state simulation method can be fast, relative to other methods. However, if we generate the state vector during the execution, then the conversion to state vector is, of course, exponential in memory and time, and therefore we don’t benefit from using this method. We can benefit if we only do operations that don’t require printing the full state vector. For example, if we run a circuit and then take measurement. The circuit below has 200 qubits. We
-create an <code class="docutils literal notranslate"><span class="pre">EPR</span> <span class="pre">state</span></code> involving all these qubits. Although this state is highly entangled, it is handled well by the matrix product state method, because there are effectively only two states.</p>
-<p>We can handle more qubits than this, but execution may take a few minutes. Try running a similar circuit with 500 qubits! Or maybe even 1000 (you can get a cup of coffee while waiting).</p>
+<p>行列積状態シミュレーション方法を使用した実行回路は、他の方法と比較して高速である可能性があります。 しかし、実行中に状態ベクトルを生成した場合、状態ベクトルへの変換は もちろんメモリーと時間の指数関数的なものです したがって我々はこの方法を使う恩恵を受けることはできません。 完全な状態ベクトルを出力する必要のない操作のみを行うことで利益を得ることができます。 例えば、回路を動かしてから測定する場合があげられます。以下の回路は200量子ビットです。 これらすべての量子ビットを含む <code class="docutils literal notranslate"><span class="pre">EPR</span> <span class="pre">状態</span></code> を作成します。 この状態は非常にエンタングルしていますが、実質的には2つの状態しか存在しないため、行列積状態法によってうまく処理されます。</p>
+<p>これよりも多くの量子ビットを扱うことができますが、実行には数分かかる場合があります。 500量子ビットで同じような回路を実行してみてください! または、1000など (待っている間にコーヒーを1杯飲むことができます)。</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
@@ -758,7 +757,7 @@ Time taken: 0.677933931350708 sec
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/09/30
+        最終更新: 2020/10/08
       </span>
 
     </p>
