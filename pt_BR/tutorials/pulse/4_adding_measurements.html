@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Adicionando medições a Schedules &mdash; documentação Qiskit 0.21.0</title>
+  <title>Adicionando medições a Schedules &mdash; documentação Qiskit 0.22.0</title>
   
 
   
@@ -166,7 +166,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../development_strategy.html">Development Strategy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../contributing_to_qiskit.html">Contribuindo para o Qiskit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../release_notes.html">Notas da Release</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Local Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuração local</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../faq.html">Perguntas Frequentes</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Tutoriais</span></p>
@@ -542,12 +542,12 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="section" id="Adicionando-medições-a-Schedules">
 <h1>Adicionando medições a <code class="docutils literal notranslate"><span class="pre">Schedule</span></code>s<a class="headerlink" href="#Adicionando-medições-a-Schedules" title="Link permanente para este título">¶</a></h1>
-<p>Measurement is clearly a very important part of building a Pulse schedule – this is required to get the results of our program execution! The powerful low-level control we are granted by Pulse gives us more freedom than <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code>s in specifying how the measurement should be done, enabling you to explore readout error mitigation. This power of course comes with responsibility: we have to understand how measurement works, and accommodate certain hardware constraints.</p>
+<p>A medição é claramente uma parte muito importante da construção de uma Pulse Schedule - isso é necessário para obter os resultados da execução do nosso programa! O poderoso controle de baixo nível que recebemos pela Pulse nos dá mais liberdade do que <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code>s ao especificar como a medição deve ser feita, possibilitando que você explore a mitigação de erros de leitura. Esse poder obviamente vem com uma responsabilidade: temos que entender como funciona a medição, e acomodar certas restrições de hardware.</p>
 <p>Nesta página, exploraremos a fundo como criar medições, utilizando várias abordagens diferentes de complexidade crescente.</p>
-<p>**Note: Pulse allows you to receive raw, kerneled, and discriminated readout data (whereas circuits will only return discriminated data).</p>
+<p>**Nota: Pulse permite que você receba dados de leitura não tratados, processados e discriminados (enquanto que os circuitos só retornarão dados discriminados).</p>
 <div class="section" id="Adicionando-uma-medição-backend-padrão-com-measure">
 <h2>Adicionando uma medição backend-padrão com <code class="docutils literal notranslate"><span class="pre">measure</span></code><a class="headerlink" href="#Adicionando-uma-medição-backend-padrão-com-measure" title="Link permanente para este título">¶</a></h2>
-<p>To add measurements as easily to <code class="docutils literal notranslate"><span class="pre">Schedule</span></code>s as to <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code>s, you just have to know which qubits you want to measure (below, qubits 0 and 1) and have an OpenPulse-enabled <code class="docutils literal notranslate"><span class="pre">backend</span></code>:</p>
+<p>Para adicionar medições tão facilmente quanto <code class="docutils literal notranslate"><span class="pre">Schedule</span></code>s aos <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code>s, você só precisa saber quais qubits você deseja medir (abaixo, qubits 0 e 1) e ter um <code class="docutils literal notranslate"><span class="pre">backend</span></code> OpenPulse habilitado:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Appending a measurement schedule to a Schedule, sched</span>
 <span class="kn">from</span> <span class="nn">qiskit.scheduler</span> <span class="kn">import</span> <span class="n">measure</span>
 <span class="n">sched</span> <span class="o">+=</span> <span class="n">measure</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">backend</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">sched</span><span class="o">.</span><span class="n">duration</span>
@@ -596,8 +596,7 @@ div.rendered_html tbody tr:hover {
 <img alt="../../_images/tutorials_pulse_4_adding_measurements_2_0.png" src="../../_images/tutorials_pulse_4_adding_measurements_2_0.png" />
 </div>
 </div>
-<p>Each qubit has two channels related to readout, as we see above. These are the readout transmit <code class="docutils literal notranslate"><span class="pre">MeasureChannel</span></code>s, and the readout receive <code class="docutils literal notranslate"><span class="pre">AcquireChannel</span></code>s. In superconducting qubit architectures, qubits are coupled to readout resonators. The <code class="docutils literal notranslate"><span class="pre">MeasureChannel</span></code> and <code class="docutils literal notranslate"><span class="pre">AcquireChannel</span></code>s label signal lines which connect to the readout resonator. The coupling between the qubit and the readout resonator hybridizes their state, so when a stimulus pulse is sent to the readout resonator, the
-reflected pulse is dependent on the state of the qubit. The acquisition “pulse” is truly a trigger specifying to the analog-to-digital converter (ADC) to begin collecting data, and for how long. That data is used to classify the qubit state.</p>
+<p>Cada qubit tem dois canais relacionados à leitura, como vemos acima. Estas são, as leituras de transmissão <code class="docutils literal notranslate"><span class="pre">MeasureChannel</span></code>s, e a leitura de recepção <code class="docutils literal notranslate"><span class="pre">AcquireChannel</span></code>s. Em arquiteturas de qubit supercondutores, os qubits são acoplados a ressonadores de leitura. As etiquetas <code class="docutils literal notranslate"><span class="pre">MeasureChannel</span></code> e <code class="docutils literal notranslate"><span class="pre">AcquireChannel</span></code>s sinalizam linhas que se conectam ao ressonador de leitura. O acoplamento entre o qubit e o ressonador de leitura hibridiza o seu estado, portanto, quando um pulso de estímulo é enviado para o ressonante de leitura, o pulso refletido é dependente do estado do qubit. A aquisição “pulse” é verdadeiramente um gatilho especificando para o conversor analógico-digital (ADC) para começar a coletar dados e por quanto tempo. Esses dados são usados para classificar o estado do qubit.</p>
 </div>
 <div class="section" id="Especificando-slots-de-memória-clássicos">
 <h2>Especificando slots de memória clássicos<a class="headerlink" href="#Especificando-slots-de-memória-clássicos" title="Link permanente para este título">¶</a></h2>
@@ -737,7 +736,7 @@ reflected pulse is dependent on the state of the qubit. The acquisition “pulse
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Última atualização em 2020/10/02.
+        Última atualização em 2020/10/08.
       </span>
 
     </p>
