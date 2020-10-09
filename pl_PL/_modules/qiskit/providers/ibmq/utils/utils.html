@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.providers.ibmq.utils.utils &mdash; Qiskit 0.21.0 - dokumentacja</title>
+  <title>qiskit.providers.ibmq.utils.utils &mdash; Qiskit 0.22.0 - dokumentacja</title>
   
 
   
@@ -285,6 +285,43 @@
 <span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Condition</span>
 <span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">Queue</span>
 
+<span class="kn">from</span> <span class="nn">qiskit.providers.jobstatus</span> <span class="kn">import</span> <span class="n">JobStatus</span>
+
+<span class="kn">from</span> <span class="nn">..apiconstants</span> <span class="kn">import</span> <span class="n">ApiJobStatus</span>
+
+
+<span class="n">API_TO_JOB_STATUS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">CREATING</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">INITIALIZING</span><span class="p">,</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">CREATED</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">INITIALIZING</span><span class="p">,</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">TRANSPILING</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">INITIALIZING</span><span class="p">,</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">TRANSPILED</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">INITIALIZING</span><span class="p">,</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">VALIDATING</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">VALIDATING</span><span class="p">,</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">VALIDATED</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">VALIDATING</span><span class="p">,</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">,</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">PENDING_IN_QUEUE</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">QUEUED</span><span class="p">,</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">QUEUED</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">QUEUED</span><span class="p">,</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">COMPLETED</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">DONE</span><span class="p">,</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">CANCELLED</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">CANCELLED</span><span class="p">,</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">ERROR_CREATING_JOB</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">ERROR_VALIDATING_JOB</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">ERROR_RUNNING_JOB</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+    <span class="n">ApiJobStatus</span><span class="o">.</span><span class="n">ERROR_TRANSPILING_JOB</span><span class="p">:</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">ERROR</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">api_status_to_job_status</span><span class="p">(</span><span class="n">api_status</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ApiJobStatus</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">JobStatus</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return the corresponding job status for the input server job status.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        api_status: Server job status.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Job status.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">api_status</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">api_status</span> <span class="o">=</span> <span class="n">ApiJobStatus</span><span class="p">(</span><span class="n">api_status</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">API_TO_JOB_STATUS</span><span class="p">[</span><span class="n">api_status</span><span class="p">]</span>
+
 
 <div class="viewcode-block" id="to_python_identifier"><a class="viewcode-back" href="../../../../../stubs/qiskit.providers.ibmq.utils.to_python_identifier.html#qiskit.providers.ibmq.utils.to_python_identifier">[dokumentacja]</a><span class="k">def</span> <span class="nf">to_python_identifier</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Convert a name to a valid Python identifier.</span>
@@ -488,7 +525,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Ostatnia modyfikacja 2020/10/02.
+        Ostatnia modyfikacja 2020/10/09.
       </span>
 
     </p>
