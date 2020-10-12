@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.providers.ibmq.accountprovider &mdash; Qiskit 0.21.0 belgelendirmesi</title>
+  <title>qiskit.providers.ibmq.accountprovider &mdash; Qiskit 0.22.0 belgelendirmesi</title>
   
 
   
@@ -264,7 +264,7 @@
 
 <span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
-<span class="c1"># (C) Copyright IBM 2017, 2019.</span>
+<span class="c1"># (C) Copyright IBM 2017, 2020.</span>
 <span class="c1">#</span>
 <span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
 <span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
@@ -290,6 +290,8 @@
 <span class="kn">from</span> <span class="nn">.ibmqbackendservice</span> <span class="kn">import</span> <span class="n">IBMQBackendService</span>
 <span class="kn">from</span> <span class="nn">.utils.json_decoder</span> <span class="kn">import</span> <span class="n">decode_backend_configuration</span>
 <span class="kn">from</span> <span class="nn">.random.ibmqrandomservice</span> <span class="kn">import</span> <span class="n">IBMQRandomService</span>
+<span class="kn">from</span> <span class="nn">.experiment.experimentservice</span> <span class="kn">import</span> <span class="n">ExperimentService</span>
+<span class="kn">from</span> <span class="nn">.exceptions</span> <span class="kn">import</span> <span class="n">IBMQNotAuthorizedError</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -356,6 +358,9 @@
         <span class="c1"># Initialize other services.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">random</span> <span class="o">=</span> <span class="n">IBMQRandomService</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">access_token</span><span class="p">)</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_experiment</span> <span class="o">=</span> <span class="n">ExperimentService</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">access_token</span><span class="p">)</span> \
+            <span class="k">if</span> <span class="n">credentials</span><span class="o">.</span><span class="n">experiment_url</span> <span class="k">else</span> <span class="kc">None</span>
+
 <div class="viewcode-block" id="AccountProvider.backends"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.AccountProvider.backends.html#qiskit.providers.ibmq.AccountProvider.backends">[belgeler]</a>    <span class="k">def</span> <span class="nf">backends</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">IBMQBackend</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return all backends accessible via this provider, subject to optional filtering.&quot;&quot;&quot;</span>
         <span class="c1"># pylint: disable=method-hidden</span>
@@ -404,10 +409,28 @@
 
         <span class="k">return</span> <span class="n">ret</span>
 
-    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span>  <span class="c1"># type: ignore[override]</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">experiment</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExperimentService</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the experiment service.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The experiment service instance.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            IBMQNotAuthorizedError: If the account is not authorized to use</span>
+<span class="sd">                the experiment service.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_experiment</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_experiment</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">IBMQNotAuthorizedError</span><span class="p">(</span><span class="s2">&quot;You are not authorized to use the experiment service.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="n">other</span><span class="p">:</span> <span class="s1">&#39;AccountProvider&#39;</span>
+            <span class="n">other</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">AccountProvider</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">credentials</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -431,7 +454,7 @@
         
         &copy; Telif hakkı 2020, Qiskit Development Team
       <span class="lastupdated">
-        Son güncelleme: 2020/10/02.
+        Son güncelleme: 2020/10/12.
       </span>
 
     </p>
