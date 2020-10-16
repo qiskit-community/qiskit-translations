@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.preset_passmanagers.level1 &mdash; Qiskit 0.22.0 belgelendirmesi</title>
+  <title>qiskit.transpiler.preset_passmanagers.level1 &mdash; Qiskit 0.23.0 belgelendirmesi</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>qiskit.transpiler.preset_passmanagers.level1 öğesinin kaynak kodu</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2017, 2018.</span>
 <span class="c1">#</span>
@@ -303,12 +301,16 @@
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">Depth</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">RemoveResetInZeroState</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">Optimize1qGates</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">Optimize1qGatesDecomposition</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">ApplyLayout</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">CheckCXDirection</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">Layout2qDistance</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">Collect2qBlocks</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">ConsolidateBlocks</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">UnitarySynthesis</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">TimeUnitAnalysis</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">ALAPSchedule</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">ASAPSchedule</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.transpiler</span> <span class="kn">import</span> <span class="n">TranspilerError</span>
 
@@ -344,6 +346,8 @@
     <span class="n">layout_method</span> <span class="o">=</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">layout_method</span> <span class="ow">or</span> <span class="s1">&#39;dense&#39;</span>
     <span class="n">routing_method</span> <span class="o">=</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">routing_method</span> <span class="ow">or</span> <span class="s1">&#39;stochastic&#39;</span>
     <span class="n">translation_method</span> <span class="o">=</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">translation_method</span> <span class="ow">or</span> <span class="s1">&#39;translator&#39;</span>
+    <span class="n">scheduling_method</span> <span class="o">=</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">scheduling_method</span>
+    <span class="n">instruction_durations</span> <span class="o">=</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">instruction_durations</span>
     <span class="n">seed_transpiler</span> <span class="o">=</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">seed_transpiler</span>
     <span class="n">backend_properties</span> <span class="o">=</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">backend_properties</span>
 
@@ -431,7 +435,21 @@
     <span class="k">def</span> <span class="nf">_opt_control</span><span class="p">(</span><span class="n">property_set</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="n">property_set</span><span class="p">[</span><span class="s1">&#39;depth_fixed_point&#39;</span><span class="p">]</span>
 
-    <span class="n">_opt</span> <span class="o">=</span> <span class="p">[</span><span class="n">Optimize1qGates</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">),</span> <span class="n">CXCancellation</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="n">basis_gates</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;u1&#39;</span> <span class="ow">in</span> <span class="n">basis_gates</span> <span class="ow">or</span> <span class="s1">&#39;u2&#39;</span> <span class="ow">in</span> <span class="n">basis_gates</span> <span class="ow">or</span>
+                        <span class="s1">&#39;u3&#39;</span> <span class="ow">in</span> <span class="n">basis_gates</span><span class="p">):</span>
+        <span class="n">_opt</span> <span class="o">=</span> <span class="p">[</span><span class="n">Optimize1qGates</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">),</span> <span class="n">CXCancellation</span><span class="p">()]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_opt</span> <span class="o">=</span> <span class="p">[</span><span class="n">Optimize1qGatesDecomposition</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">),</span> <span class="n">CXCancellation</span><span class="p">()]</span>
+
+    <span class="c1"># 10. Schedule the circuit only when scheduling_method is supplied</span>
+    <span class="k">if</span> <span class="n">scheduling_method</span><span class="p">:</span>
+        <span class="n">_scheduling</span> <span class="o">=</span> <span class="p">[</span><span class="n">TimeUnitAnalysis</span><span class="p">(</span><span class="n">instruction_durations</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">scheduling_method</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;alap&#39;</span><span class="p">,</span> <span class="s1">&#39;as_late_as_possible&#39;</span><span class="p">}:</span>
+            <span class="n">_scheduling</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ALAPSchedule</span><span class="p">(</span><span class="n">instruction_durations</span><span class="p">)]</span>
+        <span class="k">elif</span> <span class="n">scheduling_method</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;asap&#39;</span><span class="p">,</span> <span class="s1">&#39;as_soon_as_possible&#39;</span><span class="p">}:</span>
+            <span class="n">_scheduling</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ASAPSchedule</span><span class="p">(</span><span class="n">instruction_durations</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s2">&quot;Invalid scheduling method </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">scheduling_method</span><span class="p">)</span>
 
     <span class="c1"># Build pass manager</span>
     <span class="n">pm1</span> <span class="o">=</span> <span class="n">PassManager</span><span class="p">()</span>
@@ -449,6 +467,8 @@
         <span class="n">pm1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_direction</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="n">_direction_condition</span><span class="p">)</span>
     <span class="n">pm1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_reset</span><span class="p">)</span>
     <span class="n">pm1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_depth_check</span> <span class="o">+</span> <span class="n">_opt</span><span class="p">,</span> <span class="n">do_while</span><span class="o">=</span><span class="n">_opt_control</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">scheduling_method</span><span class="p">:</span>
+        <span class="n">pm1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_scheduling</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">pm1</span></div>
 </pre></div>
@@ -466,7 +486,7 @@
         
         &copy; Telif hakkı 2020, Qiskit Development Team
       <span class="lastupdated">
-        Son güncelleme: 2020/10/12.
+        Son güncelleme: 2020/10/16.
       </span>
 
     </p>

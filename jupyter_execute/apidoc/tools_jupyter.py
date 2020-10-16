@@ -25,3 +25,10 @@ get_ipython().run_line_magic('qiskit_version_table', '')
 import qiskit.tools.jupyter
 get_ipython().run_line_magic('qiskit_copyright', '')
 
+
+# In[4]:
+
+
+import qiskit.tools.jupyter
+get_ipython().run_line_magic('monospaced_output', '')
+

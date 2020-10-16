@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.chemistry.components.variational_forms.uccsd &mdash; Qiskit 0.22.0 belgelendirmesi</title>
+  <title>qiskit.chemistry.components.variational_forms.uccsd &mdash; Qiskit 0.23.0 belgelendirmesi</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>qiskit.chemistry.components.variational_forms.uccsd öğesinin kaynak kodu</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2018, 2020.</span>
 <span class="c1">#</span>
@@ -415,7 +413,7 @@
                                            <span class="n">excitation_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_excitation_type</span><span class="p">,)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_hopping_ops</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_hopping_operators</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_excitation_pool</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_excitation_pool</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[List[WeightedPauliOperator]]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span> <span class="o">=</span> <span class="p">[(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_parameters</span><span class="p">)]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_logging_construct_circuit</span> <span class="o">=</span> <span class="kc">True</span>
@@ -488,13 +486,14 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_double_excitations</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">excitation_pool</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Getter of full list of available excitations (called the pool)</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            list[WeightedPauliOperator]: excitation pool</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">excitation_pool</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">WeightedPauliOperator</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the full list of available excitations (called the pool).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_excitation_pool</span>
+
+    <span class="nd">@excitation_pool</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">excitation_pool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">excitation_pool</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">WeightedPauliOperator</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Sets the excitation pool.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_excitation_pool</span> <span class="o">=</span> <span class="n">excitation_pool</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_build_hopping_operators</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">logger</span><span class="o">.</span><span class="n">isEnabledFor</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">):</span>
@@ -590,8 +589,9 @@
 <span class="sd">        hopping operators in a so called &quot;excitation pool&quot; and clears the previous list to be empty.</span>
 <span class="sd">        Furthermore, the depth is asserted to be 1 which is required by the Adaptive VQE algorithm.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># store full list of excitations as pool</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_excitation_pool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hopping_ops</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_excitation_pool</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># store full list of excitations as pool</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_excitation_pool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hopping_ops</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
         <span class="c1"># check depth parameter</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reps</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
@@ -601,8 +601,8 @@
 
         <span class="c1"># reset internal excitation list to be empty</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_hopping_ops</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_num_parameters</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_hopping_ops</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reps</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span> <span class="o">=</span> <span class="p">[(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_parameters</span><span class="p">)]</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_parameters</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span> <span class="o">=</span> <span class="p">[]</span></div>
 
 <div class="viewcode-block" id="UCCSD.push_hopping_operator"><a class="viewcode-back" href="../../../../../stubs/qiskit.chemistry.components.variational_forms.UCCSD.push_hopping_operator.html#qiskit.chemistry.components.variational_forms.UCCSD.push_hopping_operator">[belgeler]</a>    <span class="k">def</span> <span class="nf">push_hopping_operator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">excitation</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -679,10 +679,15 @@
                                <span class="n">task_args</span><span class="o">=</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_time_slices</span><span class="p">),</span>
                                <span class="n">num_processes</span><span class="o">=</span><span class="n">aqua_globals</span><span class="o">.</span><span class="n">num_processes</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">qc</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shallow_circuit_concat</span><span class="p">:</span>
-                <span class="n">circuit</span><span class="o">.</span><span class="n">data</span> <span class="o">+=</span> <span class="n">qc</span><span class="o">.</span><span class="n">data</span>
-            <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shallow_circuit_concat</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">qc</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">qbits</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">qc</span><span class="o">.</span><span class="n">_data</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qbits</span><span class="p">):</span>
+                        <span class="n">qbits</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">qubits</span><span class="p">[</span><span class="n">qbits</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">qc</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                <span class="n">circuit</span><span class="o">.</span><span class="n">_data</span> <span class="o">+=</span> <span class="n">qc</span><span class="o">.</span><span class="n">_data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">qc</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
                 <span class="n">circuit</span> <span class="o">+=</span> <span class="n">qc</span>
 
         <span class="k">return</span> <span class="n">circuit</span></div>
@@ -782,7 +787,7 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                         <span class="s1">&#39;Invalid index </span><span class="si">{}</span><span class="s1"> in active active_occ_list </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">active_occ_list</span><span class="p">))</span>
                 <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_beta</span><span class="p">:</span>
-                    <span class="n">active_occ_list_beta</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">active_occ_list_beta</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">beta_idx</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                         <span class="s1">&#39;Invalid index </span><span class="si">{}</span><span class="s1"> in active active_occ_list </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">active_occ_list</span><span class="p">))</span>
@@ -800,7 +805,7 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid index </span><span class="si">{}</span><span class="s1"> in active active_unocc_list </span><span class="si">{}</span><span class="s1">&#39;</span>
                                      <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">active_unocc_list</span><span class="p">))</span>
                 <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">num_beta</span><span class="p">:</span>
-                    <span class="n">active_unocc_list_beta</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">active_unocc_list_beta</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">beta_idx</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid index </span><span class="si">{}</span><span class="s1"> in active active_unocc_list </span><span class="si">{}</span><span class="s1">&#39;</span>
                                      <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">active_unocc_list</span><span class="p">))</span>
@@ -1068,7 +1073,7 @@
         
         &copy; Telif hakkı 2020, Qiskit Development Team
       <span class="lastupdated">
-        Son güncelleme: 2020/10/12.
+        Son güncelleme: 2020/10/16.
       </span>
 
     </p>
