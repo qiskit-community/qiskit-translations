@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.operators.list_ops.tensored_op &mdash; documentação Qiskit 0.22.0</title>
+  <title>qiskit.aqua.operators.list_ops.tensored_op &mdash; documentação Qiskit 0.23.0</title>
   
 
   
@@ -259,9 +259,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fonte para qiskit.aqua.operators.list_ops.tensored_op</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -279,10 +277,13 @@
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span><span class="p">,</span> <span class="n">partial</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">ParameterExpression</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">ParameterExpression</span>
 
+<span class="kn">from</span> <span class="nn">..state_fns.circuit_state_fn</span> <span class="kn">import</span> <span class="n">CircuitStateFn</span>
 <span class="kn">from</span> <span class="nn">..operator_base</span> <span class="kn">import</span> <span class="n">OperatorBase</span>
+<span class="kn">from</span> <span class="nn">..primitive_ops.primitive_op</span> <span class="kn">import</span> <span class="n">PrimitiveOp</span>
 <span class="kn">from</span> <span class="nn">.list_op</span> <span class="kn">import</span> <span class="n">ListOp</span>
+<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">AquaError</span>
 
 
 <div class="viewcode-block" id="TensoredOp"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.TensoredOp.html#qiskit.aqua.operators.list_ops.TensoredOp">[documentos]</a><span class="k">class</span> <span class="nc">TensoredOp</span><span class="p">(</span><span class="n">ListOp</span><span class="p">):</span>
@@ -314,6 +315,16 @@
     <span class="k">def</span> <span class="nf">distributive</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span>
 
+    <span class="k">def</span> <span class="nf">_expand_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;TensoredOp&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Appends I ^ num_qubits to ``oplist``. Choice of PauliOp as</span>
+<span class="sd">        identity is arbitrary and can be substituted for other PrimitiveOp identity.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            TensoredOp expanded with identity operator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">I</span>
+        <span class="k">return</span> <span class="n">TensoredOp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oplist</span> <span class="o">+</span> <span class="p">[</span><span class="n">I</span> <span class="o">^</span> <span class="n">num_qubits</span><span class="p">],</span> <span class="n">coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
+
 <div class="viewcode-block" id="TensoredOp.tensor"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.TensoredOp.tensor.html#qiskit.aqua.operators.list_ops.TensoredOp.tensor">[documentos]</a>    <span class="k">def</span> <span class="nf">tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">OperatorBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">TensoredOp</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">TensoredOp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oplist</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">oplist</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
@@ -334,7 +345,22 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reduced_ops</span><span class="p">,</span> <span class="n">ListOp</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">reduced_ops</span><span class="o">.</span><span class="n">oplist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">reduced_ops</span><span class="o">.</span><span class="n">oplist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="n">reduced_ops</span><span class="p">)</span></div></div>
+            <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="n">reduced_ops</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TensoredOp.to_circuit"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.TensoredOp.to_circuit.html#qiskit.aqua.operators.list_ops.TensoredOp.to_circuit">[documentos]</a>    <span class="k">def</span> <span class="nf">to_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuantumCircuit</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the quantum circuit, representing the tensored operator.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The circuit representation of the tensored operator.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AquaError: for operators where a single underlying circuit can not be produced.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">circuit_op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_circuit_op</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">circuit_op</span><span class="p">,</span> <span class="p">(</span><span class="n">PrimitiveOp</span><span class="p">,</span> <span class="n">CircuitStateFn</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">circuit_op</span><span class="o">.</span><span class="n">to_circuit</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s1">&#39;Conversion to_circuit supported only for operators, where a single &#39;</span>
+                        <span class="s1">&#39;underlying circuit can be produced.&#39;</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -350,7 +376,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Última atualização em 2020/10/14.
+        Última atualização em 2020/10/16.
       </span>
 
     </p>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.extensions.quantum_initializer.diagonal &mdash; documentação Qiskit 0.22.0</title>
+  <title>qiskit.extensions.quantum_initializer.diagonal &mdash; documentação Qiskit 0.23.0</title>
   
 
   
@@ -259,9 +259,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fonte para qiskit.extensions.quantum_initializer.diagonal</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -295,17 +293,7 @@
 <span class="n">_EPS</span> <span class="o">=</span> <span class="mf">1e-10</span>  <span class="c1"># global variable used to chop very small numbers to zero</span>
 
 
-<span class="k">class</span> <span class="nc">DiagonalMeta</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A metaclass to ensure that DiagonalGate and DiagGate are of the same type.</span>
-
-<span class="sd">    Can be removed when DiagGate gets removed.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="fm">__instancecheck__</span><span class="p">(</span><span class="n">mcs</span><span class="p">,</span> <span class="n">inst</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">inst</span><span class="p">)</span> <span class="ow">in</span> <span class="p">{</span><span class="n">DiagonalGate</span><span class="p">,</span> <span class="n">DiagGate</span><span class="p">}</span>  <span class="c1"># pylint: disable=unidiomatic-typecheck</span>
-
-
-<span class="k">class</span> <span class="nc">DiagonalGate</span><span class="p">(</span><span class="n">Gate</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">DiagonalMeta</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">DiagonalGate</span><span class="p">(</span><span class="n">Gate</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    diag =  list of the 2^k diagonal entries (for a diagonal gate on k qubits). Must contain at</span>
 <span class="sd">    least two entries.</span>
@@ -339,6 +327,18 @@
         <span class="n">diag_circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
         <span class="n">diag_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gate</span><span class="p">,</span> <span class="n">q</span><span class="p">[:])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">diag_circuit</span>
+
+    <span class="k">def</span> <span class="nf">validate_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Diagonal Gate parameter should accept complex</span>
+<span class="sd">        (in addition to the Gate parameter types) and always return build-in complex.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="nb">complex</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">complex</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">complex</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">validate_parameter</span><span class="p">(</span><span class="n">parameter</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the inverse of the diagonal gate.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">DiagonalGate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">_dec_diag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -411,18 +411,6 @@
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DiagonalGate</span><span class="p">(</span><span class="n">diag</span><span class="p">),</span> <span class="n">qubit</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">DiagGate</span><span class="p">(</span><span class="n">DiagonalGate</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">DiagonalMeta</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;The deprecated DiagonalGate class.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diag</span><span class="p">):</span>
-        <span class="kn">import</span> <span class="nn">warnings</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The class DiagGate is deprecated as of 0.14.0, and &#39;</span>
-                      <span class="s1">&#39;will be removed no earlier than 3 months after that release date. &#39;</span>
-                      <span class="s1">&#39;You should use the class DiagonalGate instead.&#39;</span><span class="p">,</span>
-                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">diag</span><span class="p">)</span>
-
-
 <span class="k">def</span> <span class="nf">diag_gate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diag</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Deprecated version of QuantumCircuit.diagonal.&quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">warnings</span>
@@ -450,7 +438,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Última atualização em 2020/10/14.
+        Última atualização em 2020/10/16.
       </span>
 
     </p>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.circuit.instruction &mdash; documentação Qiskit 0.22.0</title>
+  <title>qiskit.circuit.instruction &mdash; documentação Qiskit 0.23.0</title>
   
 
   
@@ -259,9 +259,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fonte para qiskit.circuit.instruction</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2017.</span>
 <span class="c1">#</span>
@@ -312,7 +310,7 @@
 <div class="viewcode-block" id="Instruction"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.Instruction.html#qiskit.circuit.Instruction">[documentos]</a><span class="k">class</span> <span class="nc">Instruction</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Generic quantum instruction.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">,</span> <span class="n">num_clbits</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">,</span> <span class="n">num_clbits</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;dt&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a new instruction.</span>
 
 <span class="sd">        Args:</span>
@@ -321,6 +319,8 @@
 <span class="sd">            num_clbits (int): instruction&#39;s clbit width</span>
 <span class="sd">            params (list[int|float|complex|str|ndarray|list|ParameterExpression]):</span>
 <span class="sd">                list of parameters</span>
+<span class="sd">            duration (int or float): instruction&#39;s duration. it must be integer if ``unit`` is &#39;dt&#39;</span>
+<span class="sd">            unit (str): time unit of duration</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            CircuitError: when the register is not in the correct format.</span>
@@ -343,6 +343,9 @@
         <span class="c1"># empty definition means opaque or fundamental instruction</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_definition</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_duration</span> <span class="o">=</span> <span class="n">duration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span> <span class="o">=</span> <span class="n">unit</span>
 
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Two instructions are the same if they have the same name,</span>
@@ -400,29 +403,14 @@
     <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">single_param</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
-            <span class="c1"># example: u2(pi/2, sin(pi/4))</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">single_param</span><span class="p">,</span> <span class="p">(</span><span class="n">ParameterExpression</span><span class="p">)):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_param</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">single_param</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">number</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_param</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
-            <span class="c1"># example: u3(0.1, 0.2, 0.3)</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">single_param</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_param</span><span class="p">)</span>
-            <span class="c1"># example: Initialize([complex(0,1), complex(0,0)])</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">single_param</span><span class="p">,</span> <span class="nb">complex</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_param</span><span class="p">)</span>
-            <span class="c1"># example: snapshot(&#39;label&#39;)</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">single_param</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_param</span><span class="p">)</span>
-            <span class="c1"># example: Aer expectation_value_snapshot [complex, &#39;X&#39;]</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">single_param</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_param</span><span class="p">)</span>
-            <span class="c1"># example: numpy.array([[1, 0], [0, 1]])</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">single_param</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">single_param</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_param</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s2">&quot;invalid param type </span><span class="si">{0}</span><span class="s2"> in instruction &quot;</span>
-                                   <span class="s2">&quot;</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">single_param</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">validate_parameter</span><span class="p">(</span><span class="n">single_param</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Instruction.validate_parameter"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.Instruction.validate_parameter.html#qiskit.circuit.Instruction.validate_parameter">[documentos]</a>    <span class="k">def</span> <span class="nf">validate_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Instruction parameters has no validation or normalization.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">parameter</span></div>
 
 <div class="viewcode-block" id="Instruction.is_parameterized"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.Instruction.is_parameterized.html#qiskit.circuit.Instruction.is_parameterized">[documentos]</a>    <span class="k">def</span> <span class="nf">is_parameterized</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return True .IFF. instruction is parameterized else False&quot;&quot;&quot;</span>
@@ -461,6 +449,26 @@
         <span class="c1"># pylint: disable=cyclic-import</span>
         <span class="kn">from</span> <span class="nn">qiskit.circuit.equivalence_library</span> <span class="kn">import</span> <span class="n">SessionEquivalenceLibrary</span> <span class="k">as</span> <span class="n">sel</span>
         <span class="n">sel</span><span class="o">.</span><span class="n">add_equivalence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">decomposition</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">duration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the duration.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_duration</span>
+
+    <span class="nd">@duration</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duration</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the duration.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_duration</span> <span class="o">=</span> <span class="n">duration</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">unit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the time unit of duration.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span>
+
+    <span class="nd">@unit</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the time unit of duration.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span> <span class="o">=</span> <span class="n">unit</span>
 
 <div class="viewcode-block" id="Instruction.assemble"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.Instruction.assemble.html#qiskit.circuit.Instruction.assemble">[documentos]</a>    <span class="k">def</span> <span class="nf">assemble</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Assemble a QasmQobjInstruction&quot;&quot;&quot;</span>
@@ -677,7 +685,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Última atualização em 2020/10/14.
+        Última atualização em 2020/10/16.
       </span>
 
     </p>

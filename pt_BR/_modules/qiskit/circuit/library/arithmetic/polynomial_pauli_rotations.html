@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.circuit.library.arithmetic.polynomial_pauli_rotations &mdash; documentação Qiskit 0.22.0</title>
+  <title>qiskit.circuit.library.arithmetic.polynomial_pauli_rotations &mdash; documentação Qiskit 0.23.0</title>
   
 
   
@@ -259,9 +259,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fonte para qiskit.circuit.library.arithmetic.polynomial_pauli_rotations</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2017, 2020.</span>
 <span class="c1">#</span>
@@ -276,12 +274,13 @@
 <span class="c1"># pylint: disable=no-member</span>
 
 <span class="sd">&quot;&quot;&quot;Polynomially controlled Pauli-rotations.&quot;&quot;&quot;</span>
+
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Sequence</span>
 
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
 
-<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">AncillaRegister</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.exceptions</span> <span class="kn">import</span> <span class="n">CircuitError</span>
 
 <span class="kn">from</span> <span class="nn">.functional_pauli_rotations</span> <span class="kn">import</span> <span class="n">FunctionalPauliRotations</span>
@@ -495,23 +494,28 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reverse</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">num_ancilla_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;The number of ancilla qubits in this circuit.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            The number of ancilla qubits.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">num_ancilla_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Deprecated. Use num_ancillas instead.&quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The PolynomialPauliRotations.num_ancilla_qubits property is deprecated &#39;</span>
+                      <span class="s1">&#39;as of 0.16.0. It will be removed no earlier than 3 months after the release &#39;</span>
+                      <span class="s1">&#39;date. You should use the num_ancillas property instead.&#39;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ancillas</span>
 
     <span class="k">def</span> <span class="nf">_reset_registers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_state_qubits</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">num_state_qubits</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">num_state_qubits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># set new register of appropriate size</span>
             <span class="n">qr_state</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">num_state_qubits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;state&#39;</span><span class="p">)</span>
             <span class="n">qr_target</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">)</span>
-            <span class="n">qr_ancilla</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_ancilla_qubits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ancilla&#39;</span><span class="p">)</span>
+            <span class="n">num_ancillas</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">qr_ancilla</span> <span class="o">=</span> <span class="n">AncillaRegister</span><span class="p">(</span><span class="n">num_ancillas</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">qregs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qr_state</span><span class="p">,</span> <span class="n">qr_target</span><span class="p">,</span> <span class="n">qr_ancilla</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qubits</span> <span class="o">=</span> <span class="n">qr_state</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_target</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_ancilla</span><span class="p">[:]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ancillas</span> <span class="o">=</span> <span class="n">qr_ancilla</span><span class="p">[:]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">qregs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qubits</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ancillas</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span> <span class="nf">_check_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raise_on_failure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
@@ -623,7 +627,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Última atualização em 2020/10/14.
+        Última atualização em 2020/10/16.
       </span>
 
     </p>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.extensions.unitary &mdash; documentação Qiskit 0.22.0</title>
+  <title>qiskit.extensions.unitary &mdash; documentação Qiskit 0.23.0</title>
   
 
   
@@ -259,9 +259,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fonte para qiskit.extensions.unitary</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2017, 2019.</span>
 <span class="c1">#</span>
@@ -282,7 +280,8 @@
 
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">Gate</span><span class="p">,</span> <span class="n">ControlledGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">Qubit</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.exceptions</span> <span class="kn">import</span> <span class="n">CircuitError</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit._utils</span> <span class="kn">import</span> <span class="n">_compute_control_matrix</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates</span> <span class="kn">import</span> <span class="n">U3Gate</span>
 <span class="kn">from</span> <span class="nn">qiskit.extensions.quantum_initializer</span> <span class="kn">import</span> <span class="n">isometry</span>
@@ -369,8 +368,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">q</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;q&quot;</span><span class="p">)</span>
             <span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span> <span class="o">=</span> <span class="n">_DECOMPOSER1Q</span><span class="o">.</span><span class="n">angles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">())</span>
+            <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">global_phase</span> <span class="o">=</span> <span class="n">_DECOMPOSER1Q</span><span class="o">.</span><span class="n">angles_and_phase</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">())</span>
             <span class="n">qc</span><span class="o">.</span><span class="n">_append</span><span class="p">(</span><span class="n">U3Gate</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">),</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[])</span>
+            <span class="n">qc</span><span class="o">.</span><span class="n">global_phase</span> <span class="o">=</span> <span class="n">global_phase</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">qc</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">two_qubit_cnot_decompose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">())</span>
@@ -396,12 +396,12 @@
 <span class="sd">            QiskitError: Invalid ctrl_state.</span>
 <span class="sd">            ExtensionError: Non-unitary controlled unitary.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">cmat</span> <span class="o">=</span> <span class="n">_compute_control_matrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">(),</span> <span class="n">num_ctrl_qubits</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">)</span>
+        <span class="n">cmat</span> <span class="o">=</span> <span class="n">_compute_control_matrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">(),</span> <span class="n">num_ctrl_qubits</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="n">iso</span> <span class="o">=</span> <span class="n">isometry</span><span class="o">.</span><span class="n">Isometry</span><span class="p">(</span><span class="n">cmat</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">cunitary</span> <span class="o">=</span> <span class="n">ControlledGate</span><span class="p">(</span><span class="s1">&#39;c-unitary&#39;</span><span class="p">,</span> <span class="n">num_qubits</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="o">+</span><span class="n">num_ctrl_qubits</span><span class="p">,</span>
                                   <span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="n">cmat</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">num_ctrl_qubits</span><span class="o">=</span><span class="n">num_ctrl_qubits</span><span class="p">,</span>
-                                  <span class="n">definition</span><span class="o">=</span><span class="n">iso</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">)</span>
-
+                                  <span class="n">definition</span><span class="o">=</span><span class="n">iso</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">,</span>
+                                  <span class="n">base_gate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
         <span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">Operator</span>
         <span class="c1"># hack to correct global phase; should fix to prevent need for correction here</span>
         <span class="n">pmat</span> <span class="o">=</span> <span class="p">(</span><span class="n">Operator</span><span class="p">(</span><span class="n">iso</span><span class="o">.</span><span class="n">inverse</span><span class="p">())</span><span class="o">.</span><span class="n">data</span> <span class="o">@</span> <span class="n">cmat</span><span class="p">)</span>
@@ -410,11 +410,8 @@
             <span class="k">raise</span> <span class="n">ExtensionError</span><span class="p">(</span><span class="s1">&#39;controlled unitary generation failed&#39;</span><span class="p">)</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">diag</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">phase</span><span class="p">:</span>
-            <span class="n">qreg</span> <span class="o">=</span> <span class="n">cunitary</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">qregs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">cunitary</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">u3</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">phase</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">qreg</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="n">cunitary</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">u3</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">qreg</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">cunitary</span><span class="o">.</span><span class="n">base_gate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">cunitary</span><span class="o">.</span><span class="n">base_gate</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span>
+            <span class="c1"># need to apply to _definition since open controls creates temporary definition</span>
+            <span class="n">cunitary</span><span class="o">.</span><span class="n">_definition</span><span class="o">.</span><span class="n">global_phase</span> <span class="o">=</span> <span class="n">phase</span>
         <span class="k">return</span> <span class="n">cunitary</span></div>
 
 <div class="viewcode-block" id="UnitaryGate.qasm"><a class="viewcode-back" href="../../../stubs/qiskit.extensions.UnitaryGate.qasm.html#qiskit.circuit.UnitaryGate.qasm">[documentos]</a>    <span class="k">def</span> <span class="nf">qasm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -464,14 +461,27 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_qasm_def_written</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qasm_definition</span> <span class="o">=</span> <span class="n">overall</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qasm_definition</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qasmif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qasm_name</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qasm_definition</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qasmif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qasm_name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UnitaryGate.validate_parameter"><a class="viewcode-back" href="../../../stubs/qiskit.extensions.UnitaryGate.validate_parameter.html#qiskit.circuit.UnitaryGate.validate_parameter">[documentos]</a>    <span class="k">def</span> <span class="nf">validate_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Unitary gate parameter has to be an ndarray.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">parameter</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s2">&quot;invalid param type </span><span class="si">{0}</span><span class="s2"> in gate &quot;</span>
+                               <span class="s2">&quot;</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">parameter</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></div></div>
 
 
 <span class="k">def</span> <span class="nf">unitary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">qubits</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Apply unitary gate to q.&quot;&quot;&quot;</span>
+    <span class="n">gate</span> <span class="o">=</span> <span class="n">UnitaryGate</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qubits</span><span class="p">,</span> <span class="n">QuantumRegister</span><span class="p">):</span>
         <span class="n">qubits</span> <span class="o">=</span> <span class="n">qubits</span><span class="p">[:]</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">UnitaryGate</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">),</span> <span class="n">qubits</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="c1"># for single qubit unitary gate, allow an &#39;int&#39; or a &#39;list of ints&#39; as qubits.</span>
+    <span class="k">if</span> <span class="n">gate</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qubits</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">Qubit</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">qubits</span> <span class="o">=</span> <span class="p">[</span><span class="n">qubits</span><span class="p">]</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gate</span><span class="p">,</span> <span class="n">qubits</span><span class="p">,</span> <span class="p">[])</span>
 
 
 <span class="n">QuantumCircuit</span><span class="o">.</span><span class="n">unitary</span> <span class="o">=</span> <span class="n">unitary</span>
@@ -490,7 +500,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Última atualização em 2020/10/14.
+        Última atualização em 2020/10/16.
       </span>
 
     </p>

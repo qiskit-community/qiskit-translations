@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.compiler.schedule &mdash; documentação Qiskit 0.22.0</title>
+  <title>qiskit.compiler.schedule &mdash; documentação Qiskit 0.23.0</title>
   
 
   
@@ -259,9 +259,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fonte para qiskit.compiler.schedule</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2019.</span>
 <span class="c1">#</span>
@@ -286,6 +284,7 @@
 <span class="kn">from</span> <span class="nn">qiskit.exceptions</span> <span class="kn">import</span> <span class="n">QiskitError</span>
 <span class="kn">from</span> <span class="nn">qiskit.pulse</span> <span class="kn">import</span> <span class="n">InstructionScheduleMap</span><span class="p">,</span> <span class="n">Schedule</span>
 <span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">BaseBackend</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers.backend</span> <span class="kn">import</span> <span class="n">Backend</span>
 <span class="kn">from</span> <span class="nn">qiskit.scheduler</span> <span class="kn">import</span> <span class="n">ScheduleConfig</span>
 <span class="kn">from</span> <span class="nn">qiskit.scheduler.schedule_circuit</span> <span class="kn">import</span> <span class="n">schedule_circuit</span>
 
@@ -298,9 +297,10 @@
 
 
 <div class="viewcode-block" id="schedule"><a class="viewcode-back" href="../../../stubs/qiskit.compiler.schedule.html#qiskit.compiler.schedule">[documentos]</a><span class="k">def</span> <span class="nf">schedule</span><span class="p">(</span><span class="n">circuits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]],</span>
-             <span class="n">backend</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseBackend</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="n">backend</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Backend</span><span class="p">,</span> <span class="n">BaseBackend</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">inst_map</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">InstructionScheduleMap</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">meas_map</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="n">dt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Schedule</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Schedule</span><span class="p">]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Schedule a circuit to a pulse ``Schedule``, using the backend, according to any specified</span>
@@ -313,6 +313,9 @@
 <span class="sd">                  ``backend``\&#39;s ``instruction_schedule_map``</span>
 <span class="sd">        meas_map: List of sets of qubits that must be measured together. If ``None``, defaults to</span>
 <span class="sd">                  the ``backend``\&#39;s ``meas_map``</span>
+<span class="sd">        dt: The output sample rate of backend control electronics. For scheduled circuits</span>
+<span class="sd">            which contain time information, dt is required. If not provided, it will be</span>
+<span class="sd">            obtained from the backend configuration</span>
 <span class="sd">        method: Optionally specify a particular scheduling method</span>
 
 <span class="sd">    Returns:</span>
@@ -335,8 +338,11 @@
         <span class="k">if</span> <span class="n">backend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Must supply either a backend or a meas_map for scheduling passes.&quot;</span><span class="p">)</span>
         <span class="n">meas_map</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">meas_map</span>
+    <span class="k">if</span> <span class="n">dt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">backend</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">dt</span>
 
-    <span class="n">schedule_config</span> <span class="o">=</span> <span class="n">ScheduleConfig</span><span class="p">(</span><span class="n">inst_map</span><span class="o">=</span><span class="n">inst_map</span><span class="p">,</span> <span class="n">meas_map</span><span class="o">=</span><span class="n">meas_map</span><span class="p">)</span>
+    <span class="n">schedule_config</span> <span class="o">=</span> <span class="n">ScheduleConfig</span><span class="p">(</span><span class="n">inst_map</span><span class="o">=</span><span class="n">inst_map</span><span class="p">,</span> <span class="n">meas_map</span><span class="o">=</span><span class="n">meas_map</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
     <span class="n">circuits</span> <span class="o">=</span> <span class="n">circuits</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">circuits</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="n">circuits</span><span class="p">]</span>
     <span class="n">schedules</span> <span class="o">=</span> <span class="p">[</span><span class="n">schedule_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">schedule_config</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span> <span class="k">for</span> <span class="n">circuit</span> <span class="ow">in</span> <span class="n">circuits</span><span class="p">]</span>
     <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
@@ -357,7 +363,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Última atualização em 2020/10/14.
+        Última atualização em 2020/10/16.
       </span>
 
     </p>

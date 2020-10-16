@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.operators.operator_base &mdash; documentação Qiskit 0.22.0</title>
+  <title>qiskit.aqua.operators.operator_base &mdash; documentação Qiskit 0.23.0</title>
   
 
   
@@ -259,9 +259,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fonte para qiskit.aqua.operators.operator_base</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -275,12 +273,12 @@
 
 <span class="sd">&quot;&quot;&quot; OperatorBase Class &quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Tuple</span>
 <span class="kn">from</span> <span class="nn">numbers</span> <span class="kn">import</span> <span class="n">Number</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">AquaError</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">AquaError</span><span class="p">,</span> <span class="n">aqua_globals</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">ParameterExpression</span><span class="p">,</span> <span class="n">ParameterVector</span>
 <span class="kn">from</span> <span class="nn">.legacy.base_operator</span> <span class="kn">import</span> <span class="n">LegacyBaseOperator</span>
 
@@ -338,14 +336,19 @@
 <span class="sd">        defined to be evaluated from Zero implicitly (i.e. it is as if ``.eval(&#39;0000&#39;)`` is already</span>
 <span class="sd">        called implicitly to always &quot;indexing&quot; from column 0).</span>
 
+<span class="sd">        If ``front`` is None, the matrix-representation of the operator is returned.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            front: The bitstring, dict of bitstrings (with values being coefficients), or</span>
-<span class="sd">                StateFn to evaluated by the Operator&#39;s underlying function.</span>
+<span class="sd">                StateFn to evaluated by the Operator&#39;s underlying function, or None.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The output of the Operator&#39;s evaluation function. If self is a ``StateFn``, the result</span>
 <span class="sd">            is a float or complex. If self is an Operator (``PrimitiveOp, ComposedOp, SummedOp,</span>
-<span class="sd">            EvolvedOp,`` etc.), the result is a StateFn. If either self or front contain proper</span>
+<span class="sd">            EvolvedOp,`` etc.), the result is a StateFn.</span>
+<span class="sd">            If ``front`` is None, the matrix-representation of the operator is returned, which</span>
+<span class="sd">            is a ``MatrixOp`` for the operators and a ``VectorStateFn`` for state-functions.</span>
+<span class="sd">            If either self or front contain proper</span>
 <span class="sd">            ``ListOps`` (not ListOp subclasses), the result is an n-dimensional list of complex</span>
 <span class="sd">            or StateFn results, resulting from the recursive evaluation by each OperatorBase</span>
 <span class="sd">            in the ListOps.</span>
@@ -675,6 +678,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Return a set of Parameter objects contained in the Operator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
     <span class="c1"># Utility functions for parameter binding</span>
 
 <div class="viewcode-block" id="OperatorBase.assign_parameters"><a class="viewcode-back" href="../../../../stubs/qiskit.aqua.operators.OperatorBase.assign_parameters.html#qiskit.aqua.operators.OperatorBase.assign_parameters">[documentos]</a>    <span class="nd">@abstractmethod</span>
@@ -700,6 +710,32 @@
 <span class="sd">            The ``OperatorBase`` with the ``Parameters`` in self replaced by the</span>
 <span class="sd">            values or ``Parameters`` in param_dict. If param_dict contains parameterization lists,</span>
 <span class="sd">            this ``OperatorBase`` is an ``OpList``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_expand_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;OperatorBase&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Expands the operator with identity operator of dimension 2**num_qubits.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Operator corresponding to self.tensor(identity_operator), where dimension of identity</span>
+<span class="sd">            operator is 2 ** num_qubits.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+<div class="viewcode-block" id="OperatorBase.permute"><a class="viewcode-back" href="../../../../stubs/qiskit.aqua.operators.OperatorBase.permute.html#qiskit.aqua.operators.OperatorBase.permute">[documentos]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">permute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">permutation</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;OperatorBase&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Permutes the qubits of the operator.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            permutation: A list defining where each qubit should be permuted. The qubit at index</span>
+<span class="sd">                j should be permuted to position permutation[j].</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new OperatorBase containing the permuted operator.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AquaError: if indices do not define a new index for each qubit.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
@@ -742,8 +778,8 @@
                         <span class="n">OperatorBase</span><span class="o">.</span><span class="n">_get_param_dict_for_index</span><span class="p">(</span><span class="n">unrolled_value_dict</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
                                                                <span class="n">i</span><span class="p">))</span>
                 <span class="k">return</span> <span class="n">unrolled_value_dict_list</span>
-            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s1">&#39;Parameter binding lists must all be the same length.&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s1">&#39;Parameter binding lists must all be the same length.&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
         <span class="k">return</span> <span class="n">unrolled_value_dict</span>  <span class="c1"># type: ignore</span>
 
     <span class="nd">@staticmethod</span>
@@ -751,6 +787,24 @@
                                   <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Gets a single non-list-nested param_dict for a given list index from a nested one. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">unrolled_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="k">def</span> <span class="nf">_expand_shorter_operator_and_permute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s1">&#39;OperatorBase&#39;</span><span class="p">,</span>
+                                             <span class="n">permutation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> \
+            <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s1">&#39;OperatorBase&#39;</span><span class="p">,</span> <span class="s1">&#39;OperatorBase&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">permutation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="n">permutation</span><span class="p">)</span>
+        <span class="n">new_self</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">:</span>
+            <span class="c1"># pylint: disable=cyclic-import,import-outside-toplevel</span>
+            <span class="kn">from</span> <span class="nn">.operator_globals</span> <span class="kn">import</span> <span class="n">Zero</span>
+            <span class="k">if</span> <span class="n">other</span> <span class="o">==</span> <span class="n">Zero</span><span class="p">:</span>
+                <span class="c1"># Zero is special - we&#39;ll expand it to the correct qubit number.</span>
+                <span class="n">other</span> <span class="o">=</span> <span class="n">Zero</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="s1">&#39;0&#39;</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">:</span>
+                <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">_expand_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">:</span>
+                <span class="n">new_self</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expand_dim</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_self</span><span class="p">,</span> <span class="n">other</span>
 
     <span class="c1"># Composition</span>
 
@@ -766,7 +820,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
 <div class="viewcode-block" id="OperatorBase.compose"><a class="viewcode-back" href="../../../../stubs/qiskit.aqua.operators.OperatorBase.compose.html#qiskit.aqua.operators.OperatorBase.compose">[documentos]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s1">&#39;OperatorBase&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;OperatorBase&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s1">&#39;OperatorBase&#39;</span><span class="p">,</span>
+                <span class="n">permutation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">front</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;OperatorBase&#39;</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Return Operator Composition between self and other (linear algebra-style:</span>
 <span class="sd">        A@B(x) = A(B(x))), overloaded by ``@``.</span>
 
@@ -780,6 +835,8 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            other: The ``OperatorBase`` with which to compose self.</span>
+<span class="sd">            permutation: ``List[int]`` which defines permutation on other operator.</span>
+<span class="sd">            front: If front==True, return ``other.compose(self)``.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            An ``OperatorBase`` equivalent to the function composition of self and other.</span>
@@ -809,6 +866,37 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">exponent</span><span class="p">)</span>
 
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_check_massive</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                       <span class="n">matrix</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+                       <span class="n">num_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                       <span class="n">massive</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if matrix or vector generated will be too large.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            method: Name of the calling method</span>
+<span class="sd">            matrix: True if object is matrix, otherwise vector</span>
+<span class="sd">            num_qubits: number of qubits</span>
+<span class="sd">            massive: True if it is ok to proceed with large matrix</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: Massive is False and number of qubits is greater than 16</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">num_qubits</span> <span class="o">&gt;</span> <span class="mi">16</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">massive</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">aqua_globals</span><span class="o">.</span><span class="n">massive</span><span class="p">:</span>
+            <span class="n">dim</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">num_qubits</span>
+            <span class="k">if</span> <span class="n">matrix</span><span class="p">:</span>
+                <span class="n">obj_type</span> <span class="o">=</span> <span class="s1">&#39;matrix&#39;</span>
+                <span class="n">dimensions</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">dim</span><span class="si">}</span><span class="s1">x</span><span class="si">{</span><span class="n">dim</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">obj_type</span> <span class="o">=</span> <span class="s1">&#39;vector&#39;</span>
+                <span class="n">dimensions</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">dim</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&#39; will return an exponentially large </span><span class="si">{</span><span class="n">obj_type</span><span class="si">}</span><span class="s2">, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;in this case &#39;</span><span class="si">{</span><span class="n">dimensions</span><span class="si">}</span><span class="s2">&#39; elements. &quot;</span>
+                <span class="s2">&quot;Set aqua_globals.massive=True or the method argument massive=True &quot;</span>
+                <span class="s2">&quot;if you want to proceed.&quot;</span><span class="p">)</span>
+
     <span class="c1"># Printing</span>
 
     <span class="nd">@abstractmethod</span>
@@ -829,7 +917,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Última atualização em 2020/10/14.
+        Última atualização em 2020/10/16.
       </span>
 
     </p>

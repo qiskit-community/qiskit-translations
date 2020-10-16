@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.extensions.quantum_initializer.isometry &mdash; documentação Qiskit 0.22.0</title>
+  <title>qiskit.extensions.quantum_initializer.isometry &mdash; documentação Qiskit 0.23.0</title>
   
 
   
@@ -259,9 +259,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fonte para qiskit.extensions.quantum_initializer.isometry</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2019.</span>
 <span class="c1">#</span>
@@ -286,6 +284,7 @@
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
+<span class="kn">from</span> <span class="nn">qiskit.circuit.exceptions</span> <span class="kn">import</span> <span class="n">CircuitError</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.instruction</span> <span class="kn">import</span> <span class="n">Instruction</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumcircuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumregister</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
@@ -335,6 +334,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">num_ancillas_zero</span> <span class="o">=</span> <span class="n">num_ancillas_zero</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_ancillas_dirty</span> <span class="o">=</span> <span class="n">num_ancillas_dirty</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inverse</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># Check if the isometry has the right dimension and if the columns are orthonormal</span>
         <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">isometry</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -357,11 +357,10 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;isometry&quot;</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="n">isometry</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">_define</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># call to generate the circuit that takes the isometry to the first 2^m columns</span>
-        <span class="c1"># of the 2^n identity matrix</span>
-        <span class="n">iso_circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gates_to_uncompute</span><span class="p">()</span>
-        <span class="c1"># invert the circuit to create the circuit implementing the isometry</span>
-        <span class="n">gate</span> <span class="o">=</span> <span class="n">iso_circuit</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span>
+        <span class="c1"># TODO The inverse().inverse() is because there is code to uncompute (_gates_to_uncompute)</span>
+        <span class="c1">#  an isometry, but not for generating its decomposition. It would be cheaper to do the</span>
+        <span class="c1">#  later here instead.</span>
+        <span class="n">gate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span>
         <span class="n">q</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
         <span class="n">iso_circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
         <span class="n">iso_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gate</span><span class="p">,</span> <span class="n">q</span><span class="p">[:])</span>
@@ -517,6 +516,24 @@
         <span class="n">q_ancillas_zero</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="n">n</span><span class="p">:</span><span class="n">n</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ancillas_zero</span><span class="p">]</span>
         <span class="n">q_ancillas_dirty</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="n">n</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ancillas_zero</span><span class="p">:]</span>
         <span class="k">return</span> <span class="n">q_input</span><span class="p">,</span> <span class="n">q_ancillas_for_output</span><span class="p">,</span> <span class="n">q_ancillas_zero</span><span class="p">,</span> <span class="n">q_ancillas_dirty</span>
+
+    <span class="k">def</span> <span class="nf">validate_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Isometry parameter has to be an ndarray.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">parameter</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s2">&quot;invalid param type </span><span class="si">{0}</span><span class="s2"> for gate  &quot;</span>
+                               <span class="s2">&quot;</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">parameter</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the adjoint of the unitary.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inverse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># call to generate the circuit that takes the isometry to the first 2^m columns</span>
+            <span class="c1"># of the 2^n identity matrix</span>
+            <span class="n">iso_circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gates_to_uncompute</span><span class="p">()</span>
+            <span class="c1"># invert the circuit to create the circuit implementing the isometry</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_inverse</span> <span class="o">=</span> <span class="n">iso_circuit</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inverse</span>
 
 
 <span class="c1"># Find special unitary matrix that maps [c0,c1] to [r,0] or [0,r] if basis_state=0 or</span>
@@ -824,7 +841,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Última atualização em 2020/10/14.
+        Última atualização em 2020/10/16.
       </span>
 
     </p>

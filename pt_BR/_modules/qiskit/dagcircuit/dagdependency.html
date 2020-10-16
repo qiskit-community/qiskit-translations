@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.dagcircuit.dagdependency &mdash; documentação Qiskit 0.22.0</title>
+  <title>qiskit.dagcircuit.dagdependency &mdash; documentação Qiskit 0.23.0</title>
   
 
   
@@ -259,9 +259,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fonte para qiskit.dagcircuit.dagdependency</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -276,11 +274,12 @@
 <span class="sd">&quot;&quot;&quot;DAGDependency class for representing non-commutativity in a circuit.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">heapq</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">defaultdict</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 <span class="kn">import</span> <span class="nn">retworkx</span> <span class="k">as</span> <span class="nn">rx</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumregister</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.classicalregister</span> <span class="kn">import</span> <span class="n">ClassicalRegister</span>
@@ -320,9 +319,10 @@
 
 <span class="sd">    **Reference:**</span>
 
-<span class="sd">    [1] Iten, R., Sutter, D. and Woerner, S., 2019.</span>
-<span class="sd">    Efficient template matching in quantum circuits.</span>
+<span class="sd">    [1] Iten, R., Moyard, R., Metger, T., Sutter, D. and Woerner, S., 2020.</span>
+<span class="sd">    Exact and practical pattern matching for quantum circuit optimization.</span>
 <span class="sd">    `arXiv:1909.05270 &lt;https://arxiv.org/abs/1909.05270&gt;`_</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -343,6 +343,56 @@
         <span class="c1"># List of all Qubit/Clbit wires.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qubits</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clbits</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_global_phase</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calibrations</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dt&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">global_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the global phase of the circuit.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_phase</span>
+
+    <span class="nd">@global_phase</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">global_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">angle</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the global phase of the circuit.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            angle (float, ParameterExpression)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">qiskit.circuit.parameterexpression</span> <span class="kn">import</span> <span class="n">ParameterExpression</span>  <span class="c1"># needed?</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">angle</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_global_phase</span> <span class="o">=</span> <span class="n">angle</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Set the phase to the [-2 * pi, 2 * pi] interval</span>
+            <span class="n">angle</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">angle</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_global_phase</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">elif</span> <span class="n">angle</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_global_phase</span> <span class="o">=</span> <span class="n">angle</span> <span class="o">%</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_global_phase</span> <span class="o">=</span> <span class="n">angle</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">calibrations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return calibration dictionary.</span>
+
+<span class="sd">        The custom pulse definition of a given gate is of the form</span>
+<span class="sd">            {&#39;gate_name&#39;: {(qubits, params): schedule}}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calibrations</span><span class="p">)</span>
+
+    <span class="nd">@calibrations</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">calibrations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calibrations</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the circuit calibration data from a dictionary of calibration definition.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            calibrations (dict): A dictionary of input in th format</span>
+<span class="sd">                {&#39;gate_name&#39;: {(qubits, gate_params): schedule}}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calibrations</span> <span class="o">=</span> <span class="n">calibrations</span>
 
 <div class="viewcode-block" id="DAGDependency.to_networkx"><a class="viewcode-back" href="../../../stubs/qiskit.dagcircuit.DAGDependency.to_networkx.html#qiskit.dagcircuit.DAGDependency.to_networkx">[documentos]</a>    <span class="k">def</span> <span class="nf">to_networkx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a copy of the DAGDependency in networkx format.&quot;&quot;&quot;</span>
@@ -648,7 +698,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_multi_graph</span><span class="o">.</span><span class="n">get_node_data</span><span class="p">(</span><span class="n">current_node_id</span><span class="p">)</span><span class="o">.</span><span class="n">reachable</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="c1"># Check the commutation relation with reachable node, it adds edges if it does not commute</span>
         <span class="k">for</span> <span class="n">prev_node_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_node_id</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multi_graph</span><span class="o">.</span><span class="n">get_node_data</span><span class="p">(</span><span class="n">prev_node_id</span><span class="p">)</span><span class="o">.</span><span class="n">reachable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_commute</span><span class="p">(</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multi_graph</span><span class="o">.</span><span class="n">get_node_data</span><span class="p">(</span><span class="n">prev_node_id</span><span class="p">)</span><span class="o">.</span><span class="n">reachable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_does_commute</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_multi_graph</span><span class="o">.</span><span class="n">get_node_data</span><span class="p">(</span><span class="n">prev_node_id</span><span class="p">),</span> <span class="n">max_node</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_multi_graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">prev_node_id</span><span class="p">,</span> <span class="n">max_node_id</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;commute&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_list_pred</span><span class="p">(</span><span class="n">max_node_id</span><span class="p">)</span>
@@ -726,15 +776,15 @@
             <span class="k">yield</span> <span class="n">val</span>
 
 
-<span class="k">def</span> <span class="nf">_commute</span><span class="p">(</span><span class="n">node1</span><span class="p">,</span> <span class="n">node2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Function to verify commutation relation between two nodes in the DAG</span>
+<span class="k">def</span> <span class="nf">_does_commute</span><span class="p">(</span><span class="n">node1</span><span class="p">,</span> <span class="n">node2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to verify commutation relation between two nodes in the DAG.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        node1 (DAGnode): first node operation (attribute [&#39;operation&#39;] in the DAG)</span>
+<span class="sd">        node1 (DAGnode): first node operation</span>
 <span class="sd">        node2 (DAGnode): second node operation</span>
 
 <span class="sd">    Return:</span>
-<span class="sd">        bool: True if the gates commute and false if it is not the case.</span>
+<span class="sd">        bool: True if the nodes commute and false if it is not the case.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Create set of qubits on which the operation acts</span>
@@ -746,38 +796,31 @@
     <span class="n">carg2</span> <span class="o">=</span> <span class="p">[</span><span class="n">node2</span><span class="o">.</span><span class="n">qargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">node2</span><span class="o">.</span><span class="n">cargs</span><span class="p">))]</span>
 
     <span class="c1"># Commutation for classical conditional gates</span>
+    <span class="c1"># if and only if the qubits are different.</span>
+    <span class="c1"># TODO: qubits can be the same if conditions are identical and</span>
+    <span class="c1"># the non-conditional gates commute.</span>
     <span class="k">if</span> <span class="n">node1</span><span class="o">.</span><span class="n">condition</span> <span class="ow">or</span> <span class="n">node2</span><span class="o">.</span><span class="n">condition</span><span class="p">:</span>
         <span class="n">intersection</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">qarg1</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">qarg2</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">intersection</span> <span class="ow">or</span> <span class="n">carg1</span> <span class="ow">or</span> <span class="n">carg2</span><span class="p">:</span>
-            <span class="n">commute_condition</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">commute_condition</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">return</span> <span class="n">commute_condition</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="n">intersection</span>
 
-    <span class="c1"># Commutation for measurement</span>
-    <span class="k">if</span> <span class="n">node1</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;measure&#39;</span> <span class="ow">or</span> <span class="n">node2</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;measure&#39;</span><span class="p">:</span>
+    <span class="c1"># Commutation for non-unitary or parameterized or opaque ops</span>
+    <span class="c1"># (e.g. measure, reset, directives or pulse gates)</span>
+    <span class="c1"># if and only if the qubits and clbits are different.</span>
+    <span class="n">non_unitaries</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;measure&#39;</span><span class="p">,</span> <span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="s1">&#39;initialize&#39;</span><span class="p">,</span> <span class="s1">&#39;delay&#39;</span><span class="p">]</span>
+    <span class="n">directives</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;barrier&#39;</span><span class="p">,</span> <span class="s1">&#39;snapshot&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_unknown_commutator</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">non_unitaries</span> <span class="o">+</span> <span class="n">directives</span> <span class="ow">or</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">_unknown_commutator</span><span class="p">(</span><span class="n">node1</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_unknown_commutator</span><span class="p">(</span><span class="n">node2</span><span class="p">):</span>
         <span class="n">intersection_q</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">qarg1</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">qarg2</span><span class="p">))</span>
         <span class="n">intersection_c</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">carg1</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">carg2</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">intersection_q</span> <span class="ow">or</span> <span class="n">intersection_c</span><span class="p">:</span>
-            <span class="n">commute_measurement</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">commute_measurement</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">return</span> <span class="n">commute_measurement</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="n">intersection_q</span> <span class="ow">or</span> <span class="n">intersection_c</span><span class="p">)</span>
 
-    <span class="c1"># Commutation for barrier-like directives</span>
-    <span class="n">directives</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;barrier&#39;</span><span class="p">,</span> <span class="s1">&#39;snapshot&#39;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">node1</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">directives</span> <span class="ow">or</span> <span class="n">node2</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">directives</span><span class="p">:</span>
-        <span class="n">intersection</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">qarg1</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">qarg2</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">intersection</span><span class="p">:</span>
-            <span class="n">commute_directive</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">commute_directive</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">return</span> <span class="n">commute_directive</span>
-
-    <span class="c1"># List of non commuting gates (TO DO: add more elements)</span>
-    <span class="n">non_commute_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">set</span><span class="p">([</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">]),</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">])]</span>
-
-    <span class="k">if</span> <span class="n">qarg1</span> <span class="o">==</span> <span class="n">qarg2</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">node1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">node2</span><span class="o">.</span><span class="n">name</span><span class="p">])</span> <span class="ow">in</span> <span class="n">non_commute_list</span><span class="p">):</span>
+    <span class="c1"># Known non-commuting gates (TODO: add more).</span>
+    <span class="n">non_commute_gates</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">}]</span>
+    <span class="k">if</span> <span class="n">qarg1</span> <span class="o">==</span> <span class="n">qarg2</span> <span class="ow">and</span> <span class="p">({</span><span class="n">node1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">node2</span><span class="o">.</span><span class="n">name</span><span class="p">}</span> <span class="ow">in</span> <span class="n">non_commute_gates</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="c1"># Create matrices to check commutation relation if no other criteria are matched</span>
@@ -792,9 +835,7 @@
     <span class="n">op12</span> <span class="o">=</span> <span class="n">id_op</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">node1</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qarg1</span><span class="p">)</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">node2</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qarg2</span><span class="p">)</span>
     <span class="n">op21</span> <span class="o">=</span> <span class="n">id_op</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">node2</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qarg2</span><span class="p">)</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">node1</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qarg1</span><span class="p">)</span>
 
-    <span class="n">if_commute</span> <span class="o">=</span> <span class="p">(</span><span class="n">op12</span> <span class="o">==</span> <span class="n">op21</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">if_commute</span>
+    <span class="k">return</span> <span class="n">op12</span> <span class="o">==</span> <span class="n">op21</span>
 </pre></div>
 
            </div>
@@ -810,7 +851,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Última atualização em 2020/10/14.
+        Última atualização em 2020/10/16.
       </span>
 
     </p>
