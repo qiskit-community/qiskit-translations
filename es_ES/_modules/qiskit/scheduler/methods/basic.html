@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.scheduler.methods.basic &mdash; documentación de Qiskit - 0.22.0</title>
+  <title>qiskit.scheduler.methods.basic &mdash; documentación de Qiskit - 0.23.0</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fuente para qiskit.scheduler.methods.basic</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2019.</span>
 <span class="c1">#</span>
@@ -275,25 +273,15 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">The most straightforward scheduling methods: scheduling **as early** or **as late** as possible.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 
-<span class="kn">from</span> <span class="nn">qiskit.circuit.measure</span> <span class="kn">import</span> <span class="n">Measure</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumcircuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
-<span class="kn">from</span> <span class="nn">qiskit.exceptions</span> <span class="kn">import</span> <span class="n">QiskitError</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.barrier</span> <span class="kn">import</span> <span class="n">Barrier</span>
-<span class="kn">from</span> <span class="nn">qiskit.pulse.channels</span> <span class="kn">import</span> <span class="n">AcquireChannel</span>
-<span class="kn">from</span> <span class="nn">qiskit.pulse.exceptions</span> <span class="kn">import</span> <span class="n">PulseError</span>
-<span class="kn">from</span> <span class="nn">qiskit.pulse.macros</span> <span class="kn">import</span> <span class="n">measure</span>
 <span class="kn">from</span> <span class="nn">qiskit.pulse.schedule</span> <span class="kn">import</span> <span class="n">Schedule</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.scheduler.config</span> <span class="kn">import</span> <span class="n">ScheduleConfig</span>
-
-
-<span class="n">CircuitPulseDef</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;CircuitPulseDef&#39;</span><span class="p">,</span> <span class="p">[</span>
-    <span class="s1">&#39;schedule&#39;</span><span class="p">,</span>  <span class="c1"># The schedule which implements the quantum circuit command</span>
-    <span class="s1">&#39;qubits&#39;</span><span class="p">])</span>   <span class="c1"># The labels of the qubits involved in the command according to the circuit</span>
+<span class="kn">from</span> <span class="nn">qiskit.scheduler.lowering</span> <span class="kn">import</span> <span class="n">lower_gates</span>
 
 
 <div class="viewcode-block" id="as_soon_as_possible"><a class="viewcode-back" href="../../../../stubs/qiskit.scheduler.methods.basic.html#qiskit.scheduler.methods.basic.as_soon_as_possible">[documentos]</a><span class="k">def</span> <span class="nf">as_soon_as_possible</span><span class="p">(</span><span class="n">circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">,</span>
@@ -323,7 +311,7 @@
             <span class="n">qubit_time_available</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span>
 
     <span class="n">start_times</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">circ_pulse_defs</span> <span class="o">=</span> <span class="n">translate_gates_to_pulse_defs</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">schedule_config</span><span class="p">)</span>
+    <span class="n">circ_pulse_defs</span> <span class="o">=</span> <span class="n">lower_gates</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">schedule_config</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">circ_pulse_def</span> <span class="ow">in</span> <span class="n">circ_pulse_defs</span><span class="p">:</span>
         <span class="n">start_time</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">qubit_time_available</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">circ_pulse_def</span><span class="o">.</span><span class="n">qubits</span><span class="p">)</span>
         <span class="n">stop_time</span> <span class="o">=</span> <span class="n">start_time</span>
@@ -368,7 +356,7 @@
             <span class="n">qubit_time_available</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span>
 
     <span class="n">rev_stop_times</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">circ_pulse_defs</span> <span class="o">=</span> <span class="n">translate_gates_to_pulse_defs</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">schedule_config</span><span class="p">)</span>
+    <span class="n">circ_pulse_defs</span> <span class="o">=</span> <span class="n">lower_gates</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">schedule_config</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">circ_pulse_def</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">circ_pulse_defs</span><span class="p">):</span>
         <span class="n">start_time</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">qubit_time_available</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">circ_pulse_def</span><span class="o">.</span><span class="n">qubits</span><span class="p">)</span>
         <span class="n">stop_time</span> <span class="o">=</span> <span class="n">start_time</span>
@@ -383,72 +371,6 @@
     <span class="n">timed_schedules</span> <span class="o">=</span> <span class="p">[(</span><span class="n">time</span><span class="p">,</span> <span class="n">cpd</span><span class="o">.</span><span class="n">schedule</span><span class="p">)</span> <span class="k">for</span> <span class="n">time</span><span class="p">,</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">start_times</span><span class="p">,</span> <span class="n">circ_pulse_defs</span><span class="p">)</span>
                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cpd</span><span class="o">.</span><span class="n">schedule</span><span class="p">,</span> <span class="n">Barrier</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">Schedule</span><span class="p">(</span><span class="o">*</span><span class="n">timed_schedules</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">circuit</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="translate_gates_to_pulse_defs"><a class="viewcode-back" href="../../../../stubs/qiskit.scheduler.methods.basic.html#qiskit.scheduler.methods.basic.translate_gates_to_pulse_defs">[documentos]</a><span class="k">def</span> <span class="nf">translate_gates_to_pulse_defs</span><span class="p">(</span><span class="n">circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">,</span>
-                                  <span class="n">schedule_config</span><span class="p">:</span> <span class="n">ScheduleConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">CircuitPulseDef</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return a list of Schedules and the qubits they operate on, for each element encountered in th</span>
-<span class="sd">    input circuit.</span>
-
-<span class="sd">    Without concern for the final schedule, extract and return a list of Schedules and the qubits</span>
-<span class="sd">    they operate on, for each element encountered in the input circuit. Measures are grouped when</span>
-<span class="sd">    possible, so ``qc.measure(q0, c0)`` or ``qc.measure(q1, c1)`` will generate a synchronous</span>
-<span class="sd">    measurement pulse.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        circuit: The quantum circuit to translate.</span>
-<span class="sd">        schedule_config: Backend specific parameters used for building the Schedule.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        A list of CircuitPulseDefs: the pulse definition for each circuit element.</span>
-
-<span class="sd">    Raises:</span>
-<span class="sd">        QiskitError: If circuit uses a command that isn&#39;t defined in config.inst_map.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">circ_pulse_defs</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="n">inst_map</span> <span class="o">=</span> <span class="n">schedule_config</span><span class="o">.</span><span class="n">inst_map</span>
-    <span class="n">qubit_mem_slots</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Map measured qubit index to classical bit index</span>
-
-    <span class="k">def</span> <span class="nf">get_measure_schedule</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">CircuitPulseDef</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create a schedule to measure the qubits queued for measuring.&quot;&quot;&quot;</span>
-        <span class="n">sched</span> <span class="o">=</span> <span class="n">Schedule</span><span class="p">()</span>
-        <span class="n">sched</span> <span class="o">+=</span> <span class="n">measure</span><span class="p">(</span><span class="n">qubits</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">qubit_mem_slots</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
-                         <span class="n">inst_map</span><span class="o">=</span><span class="n">inst_map</span><span class="p">,</span>
-                         <span class="n">meas_map</span><span class="o">=</span><span class="n">schedule_config</span><span class="o">.</span><span class="n">meas_map</span><span class="p">,</span>
-                         <span class="n">qubit_mem_slots</span><span class="o">=</span><span class="n">qubit_mem_slots</span><span class="p">)</span>
-        <span class="n">qubit_mem_slots</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">CircuitPulseDef</span><span class="p">(</span><span class="n">schedule</span><span class="o">=</span><span class="n">sched</span><span class="p">,</span>
-                               <span class="n">qubits</span><span class="o">=</span><span class="p">[</span><span class="n">chan</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="n">sched</span><span class="o">.</span><span class="n">channels</span>
-                                       <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">AcquireChannel</span><span class="p">)])</span>
-
-    <span class="k">for</span> <span class="n">inst</span><span class="p">,</span> <span class="n">qubits</span><span class="p">,</span> <span class="n">clbits</span> <span class="ow">in</span> <span class="n">circuit</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-        <span class="n">inst_qubits</span> <span class="o">=</span> <span class="p">[</span><span class="n">qubit</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">]</span>  <span class="c1"># We want only the indices of the qubits</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">q</span> <span class="ow">in</span> <span class="n">qubit_mem_slots</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">inst_qubits</span><span class="p">):</span>
-            <span class="c1"># If we are operating on a qubit that was scheduled to be measured, process that first</span>
-            <span class="n">circ_pulse_defs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_measure_schedule</span><span class="p">())</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">Barrier</span><span class="p">):</span>
-            <span class="n">circ_pulse_defs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CircuitPulseDef</span><span class="p">(</span><span class="n">schedule</span><span class="o">=</span><span class="n">inst</span><span class="p">,</span> <span class="n">qubits</span><span class="o">=</span><span class="n">inst_qubits</span><span class="p">))</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">Measure</span><span class="p">):</span>
-            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">inst_qubits</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">clbits</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Qubit &#39;</span><span class="si">{0}</span><span class="s2">&#39; or classical bit &#39;</span><span class="si">{1}</span><span class="s2">&#39; errored because the &quot;</span>
-                                  <span class="s2">&quot;circuit Measure instruction only takes one of &quot;</span>
-                                  <span class="s2">&quot;each.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inst_qubits</span><span class="p">,</span> <span class="n">clbits</span><span class="p">))</span>
-            <span class="n">qubit_mem_slots</span><span class="p">[</span><span class="n">inst_qubits</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">clbits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">circ_pulse_defs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="n">CircuitPulseDef</span><span class="p">(</span><span class="n">schedule</span><span class="o">=</span><span class="n">inst_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">inst</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">inst_qubits</span><span class="p">,</span> <span class="o">*</span><span class="n">inst</span><span class="o">.</span><span class="n">params</span><span class="p">),</span>
-                                    <span class="n">qubits</span><span class="o">=</span><span class="n">inst_qubits</span><span class="p">))</span>
-            <span class="k">except</span> <span class="n">PulseError</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Operation &#39;</span><span class="si">{0}</span><span class="s2">&#39; on qubit(s) </span><span class="si">{1}</span><span class="s2"> not supported by the backend &quot;</span>
-                                  <span class="s2">&quot;command definition. Did you remember to transpile your input &quot;</span>
-                                  <span class="s2">&quot;circuit for the same backend?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inst</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">inst_qubits</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">qubit_mem_slots</span><span class="p">:</span>
-        <span class="n">circ_pulse_defs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_measure_schedule</span><span class="p">())</span>
-
-    <span class="k">return</span> <span class="n">circ_pulse_defs</span></div>
 </pre></div>
 
            </div>
@@ -464,7 +386,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Actualizado por última vez en 2020/10/13.
+        Actualizado por última vez en 2020/10/16.
       </span>
 
     </p>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.optimization.algorithms.admm_optimizer &mdash; documentación de Qiskit - 0.22.0</title>
+  <title>qiskit.optimization.algorithms.admm_optimizer &mdash; documentación de Qiskit - 0.23.0</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fuente para qiskit.optimization.algorithms.admm_optimizer</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -283,7 +281,8 @@
 <span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">NumPyMinimumEigensolver</span>
 
 <span class="kn">from</span> <span class="nn">.minimum_eigen_optimizer</span> <span class="kn">import</span> <span class="n">MinimumEigenOptimizer</span>
-<span class="kn">from</span> <span class="nn">.optimization_algorithm</span> <span class="kn">import</span> <span class="n">OptimizationAlgorithm</span><span class="p">,</span> <span class="n">OptimizationResult</span>
+<span class="kn">from</span> <span class="nn">.optimization_algorithm</span> <span class="kn">import</span> <span class="p">(</span><span class="n">OptimizationResultStatus</span><span class="p">,</span> <span class="n">OptimizationAlgorithm</span><span class="p">,</span>
+                                     <span class="n">OptimizationResult</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.slsqp_optimizer</span> <span class="kn">import</span> <span class="n">SlsqpOptimizer</span>
 <span class="kn">from</span> <span class="nn">..problems.constraint</span> <span class="kn">import</span> <span class="n">Constraint</span>
 <span class="kn">from</span> <span class="nn">..problems.linear_constraint</span> <span class="kn">import</span> <span class="n">LinearConstraint</span>
@@ -313,6 +312,7 @@
                  <span class="n">tau_decr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
                  <span class="n">mu_res</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
                  <span class="n">mu_merit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+                 <span class="n">warm_start</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                  <span class="n">max_iter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Defines parameters for ADMM optimizer and their default values.</span>
 
@@ -336,6 +336,11 @@
 <span class="sd">            tau_decr: Parameter used in the rho update (UPDATE_RHO_BY_RESIDUALS).</span>
 <span class="sd">            mu_res: Parameter used in the rho update (UPDATE_RHO_BY_RESIDUALS).</span>
 <span class="sd">            mu_merit: Penalization for constraint residual. Used to compute the merit values.</span>
+<span class="sd">            warm_start: Start ADMM with pre-initialized values for binary and continuous variables</span>
+<span class="sd">                by solving a relaxed (all variables are continuous) problem first. This option does</span>
+<span class="sd">                not guarantee the solution will optimal or even feasible. The option should be</span>
+<span class="sd">                used when tuning other options does not help and should be considered as a hint</span>
+<span class="sd">                to the optimizer where to start its iterative process.</span>
 <span class="sd">            max_iter: Deprecated, use maxiter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -357,6 +362,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">factor_c</span> <span class="o">=</span> <span class="n">factor_c</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rho_initial</span> <span class="o">=</span> <span class="n">rho_initial</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warm_start</span> <span class="o">=</span> <span class="n">warm_start</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">props</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
@@ -435,15 +441,16 @@
     <span class="sd">&quot;&quot;&quot; ADMMOptimization Result.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">fval</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Variable</span><span class="p">],</span>
-                 <span class="n">state</span><span class="p">:</span> <span class="n">ADMMState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                 <span class="n">state</span><span class="p">:</span> <span class="n">ADMMState</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="n">OptimizationResultStatus</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            x: the optimal value found by ADMM.</span>
 <span class="sd">            fval: the optimal function value.</span>
 <span class="sd">            variables: the list of variables of the optimization problem.</span>
 <span class="sd">            state: the internal computation state of ADMM.</span>
+<span class="sd">            status: Termination status of an optimization algorithm</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">fval</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="n">variables</span><span class="p">,</span> <span class="n">raw_results</span><span class="o">=</span><span class="n">state</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">fval</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="n">variables</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="p">,</span> <span class="n">raw_results</span><span class="o">=</span><span class="n">state</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ADMMState</span><span class="p">:</span>
@@ -552,6 +559,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_variable_indices</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">Variable</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">BINARY</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">continuous_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_variable_indices</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span>
                                                                     <span class="n">Variable</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">CONTINUOUS</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">warm_start</span><span class="p">:</span>
+            <span class="c1"># warm start injection for the initial values of the variables</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_warm_start</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
 
         <span class="c1"># convert optimization problem to a set of matrices and vector that are used</span>
         <span class="c1"># at each iteration.</span>
@@ -627,13 +637,15 @@
         <span class="n">objective_value</span> <span class="o">=</span> <span class="n">objective_value</span> <span class="o">*</span> <span class="n">sense</span>
 
         <span class="c1"># convert back integer to binary</span>
-        <span class="n">base_result</span> <span class="o">=</span> <span class="n">OptimizationResult</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">objective_value</span><span class="p">,</span> <span class="n">original_variables</span><span class="p">)</span>
+        <span class="n">base_result</span> <span class="o">=</span> <span class="n">OptimizationResult</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">objective_value</span><span class="p">,</span> <span class="n">original_variables</span><span class="p">,</span>
+                                         <span class="n">OptimizationResultStatus</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">)</span>
         <span class="n">base_result</span> <span class="o">=</span> <span class="n">int2bin</span><span class="o">.</span><span class="n">interpret</span><span class="p">(</span><span class="n">base_result</span><span class="p">)</span>
 
         <span class="c1"># third parameter is our internal state of computations.</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">ADMMOptimizationResult</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">base_result</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">base_result</span><span class="o">.</span><span class="n">fval</span><span class="p">,</span>
                                         <span class="n">variables</span><span class="o">=</span><span class="n">base_result</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span>
-                                        <span class="n">state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">)</span>
+                                        <span class="n">state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">,</span>
+                                        <span class="n">status</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_feasibility_status</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">base_result</span><span class="o">.</span><span class="n">x</span><span class="p">))</span>
 
         <span class="c1"># debug</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;solution=</span><span class="si">%s</span><span class="s2">, objective=</span><span class="si">%s</span><span class="s2"> at iteration=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
@@ -1090,6 +1102,26 @@
 
         <span class="k">return</span> <span class="n">primal_residual</span><span class="p">,</span> <span class="n">dual_residual</span>
 
+    <span class="k">def</span> <span class="nf">_warm_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Solves a relaxed (all variables are continuous) and initializes the optimizer state with</span>
+<span class="sd">            the found solution.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            problem: a problem to solve.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">qp_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">qp_copy</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+            <span class="n">variable</span><span class="o">.</span><span class="n">vartype</span> <span class="o">=</span> <span class="n">VarType</span><span class="o">.</span><span class="n">CONTINUOUS</span>
+        <span class="n">cts_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_continuous_optimizer</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">qp_copy</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Continuous relaxation: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">cts_result</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="n">cts_result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">cts_result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">continuous_indices</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">cts_result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">binary_indices</span><span class="p">]</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ADMMParameters</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Returns current parameters of the optimizer.</span>
@@ -1122,7 +1154,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Actualizado por última vez en 2020/10/13.
+        Actualizado por última vez en 2020/10/16.
       </span>
 
     </p>

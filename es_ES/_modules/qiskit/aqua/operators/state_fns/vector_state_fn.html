@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.operators.state_fns.vector_state_fn &mdash; documentación de Qiskit - 0.22.0</title>
+  <title>qiskit.aqua.operators.state_fns.vector_state_fn &mdash; documentación de Qiskit - 0.23.0</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fuente para qiskit.aqua.operators.state_fns.vector_state_fn</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -275,8 +273,9 @@
 <span class="sd">&quot;&quot;&quot; VectorStateFn Class &quot;&quot;&quot;</span>
 
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Set</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">Statevector</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">ParameterExpression</span>
@@ -285,6 +284,7 @@
 <span class="kn">from</span> <span class="nn">..operator_base</span> <span class="kn">import</span> <span class="n">OperatorBase</span>
 <span class="kn">from</span> <span class="nn">.state_fn</span> <span class="kn">import</span> <span class="n">StateFn</span>
 <span class="kn">from</span> <span class="nn">..list_ops.list_op</span> <span class="kn">import</span> <span class="n">ListOp</span>
+<span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">arithmetic</span>
 
 
 <div class="viewcode-block" id="VectorStateFn"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.state_fns.VectorStateFn.html#qiskit.aqua.operators.state_fns.VectorStateFn">[documentos]</a><span class="k">class</span> <span class="nc">VectorStateFn</span><span class="p">(</span><span class="n">StateFn</span><span class="p">):</span>
@@ -338,6 +338,51 @@
                              <span class="n">coeff</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">),</span>
                              <span class="n">is_measurement</span><span class="o">=</span><span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_measurement</span><span class="p">))</span></div>
 
+<div class="viewcode-block" id="VectorStateFn.permute"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.state_fns.VectorStateFn.permute.html#qiskit.aqua.operators.state_fns.VectorStateFn.permute">[documentos]</a>    <span class="k">def</span> <span class="nf">permute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">permutation</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;VectorStateFn&#39;</span><span class="p">:</span>
+        <span class="n">new_self</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">new_num_qubits</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">permutation</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">permutation</span><span class="p">):</span>
+            <span class="c1"># raise AquaError(&quot;New index must be defined for each qubit of the operator.&quot;)</span>
+            <span class="k">pass</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&lt;</span> <span class="n">new_num_qubits</span><span class="p">:</span>
+            <span class="c1"># pad the operator with identities</span>
+            <span class="n">new_self</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expand_dim</span><span class="p">(</span><span class="n">new_num_qubits</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
+        <span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">new_num_qubits</span><span class="p">)</span>
+
+        <span class="c1"># extend the permutation indices to match the size of the new matrix</span>
+        <span class="n">permutation</span> \
+            <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">permutation</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">new_num_qubits</span><span class="p">)))</span> <span class="o">+</span> <span class="n">permutation</span>
+
+        <span class="c1"># decompose permutation into sequence of transpositions</span>
+        <span class="n">transpositions</span> <span class="o">=</span> <span class="n">arithmetic</span><span class="o">.</span><span class="n">transpositions</span><span class="p">(</span><span class="n">permutation</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">trans</span> <span class="ow">in</span> <span class="n">transpositions</span><span class="p">:</span>
+            <span class="n">qc</span><span class="o">.</span><span class="n">swap</span><span class="p">(</span><span class="n">trans</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">trans</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">CircuitOp</span>
+        <span class="n">matrix</span> <span class="o">=</span> <span class="n">CircuitOp</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+        <span class="n">vector</span> <span class="o">=</span> <span class="n">new_self</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">return</span> <span class="n">VectorStateFn</span><span class="p">(</span><span class="n">primitive</span><span class="o">=</span><span class="n">matrix</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vector</span><span class="p">),</span>
+                             <span class="n">coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">,</span>
+                             <span class="n">is_measurement</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_measurement</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VectorStateFn.to_dict_fn"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.state_fns.VectorStateFn.to_dict_fn.html#qiskit.aqua.operators.state_fns.VectorStateFn.to_dict_fn">[documentos]</a>    <span class="k">def</span> <span class="nf">to_dict_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateFn</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Creates the equivalent state function of type DictStateFn.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new DictStateFn equivalent to ``self``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">.dict_state_fn</span> <span class="kn">import</span> <span class="n">DictStateFn</span>
+
+        <span class="n">num_qubits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span>
+        <span class="n">new_dict</span> <span class="o">=</span> <span class="p">{</span><span class="nb">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">data</span><span class="p">)}</span>
+        <span class="k">return</span> <span class="n">DictStateFn</span><span class="p">(</span><span class="n">new_dict</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">,</span> <span class="n">is_measurement</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_measurement</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_expand_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;VectorStateFn&#39;</span><span class="p">:</span>
+        <span class="n">primitive</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">VectorStateFn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">primitive</span><span class="p">),</span>
+                             <span class="n">coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">,</span>
+                             <span class="n">is_measurement</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_measurement</span><span class="p">)</span>
+
 <div class="viewcode-block" id="VectorStateFn.tensor"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.state_fns.VectorStateFn.tensor.html#qiskit.aqua.operators.state_fns.VectorStateFn.tensor">[documentos]</a>    <span class="k">def</span> <span class="nf">tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">OperatorBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">VectorStateFn</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">StateFn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">primitive</span><span class="p">),</span>
@@ -348,22 +393,12 @@
         <span class="k">return</span> <span class="n">TensoredOp</span><span class="p">([</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="VectorStateFn.to_density_matrix"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.state_fns.VectorStateFn.to_density_matrix.html#qiskit.aqua.operators.state_fns.VectorStateFn.to_density_matrix">[documentos]</a>    <span class="k">def</span> <span class="nf">to_density_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">massive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&gt;</span> <span class="mi">16</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">massive</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s1">&#39;to_matrix will return an exponentially large matrix,&#39;</span>
-                <span class="s1">&#39; in this case </span><span class="si">{0}</span><span class="s1">x</span><span class="si">{0}</span><span class="s1"> elements.&#39;</span>
-                <span class="s1">&#39; Set massive=True if you want to proceed.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">))</span>
-
+        <span class="n">OperatorBase</span><span class="o">.</span><span class="n">_check_massive</span><span class="p">(</span><span class="s1">&#39;to_density_matrix&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">massive</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">to_operator</span><span class="p">()</span><span class="o">.</span><span class="n">data</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span></div>
 
 <div class="viewcode-block" id="VectorStateFn.to_matrix"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.state_fns.VectorStateFn.to_matrix.html#qiskit.aqua.operators.state_fns.VectorStateFn.to_matrix">[documentos]</a>    <span class="k">def</span> <span class="nf">to_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">massive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&gt;</span> <span class="mi">16</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">massive</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s1">&#39;to_vector will return an exponentially large vector, in this case </span><span class="si">{0}</span><span class="s1"> elements.&#39;</span>
-                <span class="s1">&#39; Set massive=True if you want to proceed.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">))</span>
-
+        <span class="n">OperatorBase</span><span class="o">.</span><span class="n">_check_massive</span><span class="p">(</span><span class="s1">&#39;to_matrix&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">massive</span><span class="p">)</span>
         <span class="n">vec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">data</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span>
-
         <span class="k">return</span> <span class="n">vec</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_measurement</span> <span class="k">else</span> <span class="n">vec</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="VectorStateFn.to_matrix_op"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.state_fns.VectorStateFn.to_matrix_op.html#qiskit.aqua.operators.state_fns.VectorStateFn.to_matrix_op">[documentos]</a>    <span class="k">def</span> <span class="nf">to_matrix_op</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">massive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
@@ -372,7 +407,7 @@
 <div class="viewcode-block" id="VectorStateFn.to_circuit_op"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.state_fns.VectorStateFn.to_circuit_op.html#qiskit.aqua.operators.state_fns.VectorStateFn.to_circuit_op">[documentos]</a>    <span class="k">def</span> <span class="nf">to_circuit_op</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot; Return ``StateFnCircuit`` corresponding to this StateFn.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.circuit_state_fn</span> <span class="kn">import</span> <span class="n">CircuitStateFn</span>
-        <span class="n">csfn</span> <span class="o">=</span> <span class="n">CircuitStateFn</span><span class="o">.</span><span class="n">from_vector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">(</span><span class="n">massive</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span>  <span class="c1"># type: ignore</span>
+        <span class="n">csfn</span> <span class="o">=</span> <span class="n">CircuitStateFn</span><span class="o">.</span><span class="n">from_vector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span>  <span class="c1"># type: ignore</span>
         <span class="k">return</span> <span class="n">csfn</span><span class="o">.</span><span class="n">adjoint</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_measurement</span> <span class="k">else</span> <span class="n">csfn</span></div>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -388,8 +423,11 @@
 
     <span class="c1"># pylint: disable=too-many-return-statements</span>
 <div class="viewcode-block" id="VectorStateFn.eval"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.state_fns.VectorStateFn.eval.html#qiskit.aqua.operators.state_fns.VectorStateFn.eval">[documentos]</a>    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-             <span class="n">front</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-                          <span class="n">OperatorBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">]:</span>
+             <span class="n">front</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">complex</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">OperatorBase</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+             <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">front</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># this object is already a VectorStateFn</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_measurement</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">front</span><span class="p">,</span> <span class="n">OperatorBase</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s1">&#39;Cannot compute overlap with StateFn or Operator if not Measurement. Try taking &#39;</span>
@@ -404,9 +442,9 @@
 
         <span class="c1"># pylint: disable=cyclic-import,import-outside-toplevel</span>
         <span class="kn">from</span> <span class="nn">..operator_globals</span> <span class="kn">import</span> <span class="n">EVAL_SIG_DIGITS</span>
-        <span class="kn">from</span> <span class="nn">.dict_state_fn</span> <span class="kn">import</span> <span class="n">DictStateFn</span>
         <span class="kn">from</span> <span class="nn">.operator_state_fn</span> <span class="kn">import</span> <span class="n">OperatorStateFn</span>
         <span class="kn">from</span> <span class="nn">.circuit_state_fn</span> <span class="kn">import</span> <span class="n">CircuitStateFn</span>
+        <span class="kn">from</span> <span class="nn">.dict_state_fn</span> <span class="kn">import</span> <span class="n">DictStateFn</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">front</span><span class="p">,</span> <span class="n">DictStateFn</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">v</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mi">2</span><span class="p">)]</span> <span class="o">*</span> <span class="n">front</span><span class="o">.</span><span class="n">coeff</span>  <span class="c1"># type: ignore</span>
                                  <span class="k">for</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">front</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">,</span>
@@ -459,7 +497,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Actualizado por última vez en 2020/10/13.
+        Actualizado por última vez en 2020/10/16.
       </span>
 
     </p>
