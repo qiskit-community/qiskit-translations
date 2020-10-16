@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.algorithms.vq_algorithm &mdash; Documentation Qiskit 0.22.0</title>
+  <title>qiskit.aqua.algorithms.vq_algorithm &mdash; Documentation Qiskit 0.23.0</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Code source de qiskit.aqua.algorithms.vq_algorithm</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2019, 2020.</span>
 <span class="c1">#</span>
@@ -291,10 +289,12 @@
 
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">ParameterVector</span>
 <span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">BaseBackend</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">Backend</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">QuantumInstance</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">AlgorithmResult</span><span class="p">,</span> <span class="n">QuantumAlgorithm</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.optimizers</span> <span class="kn">import</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">SLSQP</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.variational_forms</span> <span class="kn">import</span> <span class="n">VariationalForm</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua.operators.gradients</span> <span class="kn">import</span> <span class="n">GradientBase</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -308,14 +308,17 @@
                  <span class="n">var_form</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">VariationalForm</span><span class="p">],</span>
                  <span class="n">optimizer</span><span class="p">:</span> <span class="n">Optimizer</span><span class="p">,</span>
                  <span class="n">cost_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">gradient</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">GradientBase</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">initial_point</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                 <span class="n">quantum_instance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuantumInstance</span><span class="p">,</span> <span class="n">BaseBackend</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                 <span class="n">quantum_instance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+                     <span class="n">Union</span><span class="p">[</span><span class="n">QuantumInstance</span><span class="p">,</span> <span class="n">BaseBackend</span><span class="p">,</span> <span class="n">Backend</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            var_form: An optional parameterized variational form (ansatz).</span>
 <span class="sd">            optimizer: A classical optimizer.</span>
 <span class="sd">            cost_fn: An optional cost function for optimizer. If not supplied here must be</span>
 <span class="sd">                supplied on :meth:`find_minimum`.</span>
+<span class="sd">            gradient: An optional gradient operator or function for optimizer.</span>
 <span class="sd">            initial_point: An optional initial point (i.e. initial parameter values)</span>
 <span class="sd">                for the optimizer.</span>
 <span class="sd">            quantum_instance: Quantum Instance or Backend</span>
@@ -330,6 +333,7 @@
             <span class="n">optimizer</span> <span class="o">=</span> <span class="n">SLSQP</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="n">gradient</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cost_fn</span> <span class="o">=</span> <span class="n">cost_fn</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_initial_point</span> <span class="o">=</span> <span class="n">initial_point</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_var_form</span> <span class="o">=</span> <span class="n">var_form</span>
@@ -457,6 +461,9 @@
         <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">is_gradient_supported</span><span class="p">:</span>  <span class="c1"># ignore the passed gradient function</span>
             <span class="n">gradient_fn</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">gradient_fn</span><span class="p">:</span>
+                <span class="n">gradient_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting optimizer.</span><span class="se">\n</span><span class="s1">bounds=</span><span class="si">%s</span><span class="se">\n</span><span class="s1">initial point=</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">initial_point</span><span class="p">)</span>
         <span class="n">opt_params</span><span class="p">,</span> <span class="n">opt_val</span><span class="p">,</span> <span class="n">num_optimizer_evals</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">nparms</span><span class="p">,</span>
@@ -617,7 +624,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Mis à jour le 2020/10/14.
+        Mis à jour le 2020/10/16.
       </span>
 
     </p>

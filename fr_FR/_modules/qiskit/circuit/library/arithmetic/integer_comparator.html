@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.circuit.library.arithmetic.integer_comparator &mdash; Documentation Qiskit 0.22.0</title>
+  <title>qiskit.circuit.library.arithmetic.integer_comparator &mdash; Documentation Qiskit 0.23.0</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Code source de qiskit.circuit.library.arithmetic.integer_comparator</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2017, 2020.</span>
 <span class="c1">#</span>
@@ -277,9 +275,10 @@
 <span class="sd">&quot;&quot;&quot;Integer Comparator.&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">AncillaRegister</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.exceptions</span> <span class="kn">import</span> <span class="n">CircuitError</span>
 <span class="kn">from</span> <span class="nn">..boolean_logic</span> <span class="kn">import</span> <span class="n">OR</span>
 <span class="kn">from</span> <span class="nn">..blueprintcircuit</span> <span class="kn">import</span> <span class="n">BlueprintCircuit</span>
@@ -361,6 +360,14 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_geq</span> <span class="o">=</span> <span class="n">geq</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_ancilla_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Deprecated. Use num_ancillas instead.&quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The IntegerComparator.num_ancilla_qubits property is deprecated &#39;</span>
+                      <span class="s1">&#39;as of 0.16.0. It will be removed no earlier than 3 months after the release &#39;</span>
+                      <span class="s1">&#39;date. You should use the num_ancillas property instead.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ancillas</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">num_state_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The number of qubits encoding the state for the comparison.</span>
 
@@ -382,25 +389,19 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_invalidate</span><span class="p">()</span>  <span class="c1"># reset data</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_num_state_qubits</span> <span class="o">=</span> <span class="n">num_state_qubits</span>
 
-            <span class="k">if</span> <span class="n">num_state_qubits</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">num_state_qubits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># set the new qubit registers</span>
-                <span class="n">qr_state</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;state&#39;</span><span class="p">)</span>
+                <span class="n">qr_state</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">num_state_qubits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;state&#39;</span><span class="p">)</span>
                 <span class="n">q_compare</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;compare&#39;</span><span class="p">)</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">qregs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qr_state</span><span class="p">,</span> <span class="n">q_compare</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_qubits</span> <span class="o">=</span> <span class="n">qr_state</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">q_compare</span><span class="p">[:]</span>
 
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ancilla_qubits</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">qr_ancilla</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_ancilla_qubits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ancilla&#39;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">qregs</span> <span class="o">+=</span> <span class="p">[</span><span class="n">qr_ancilla</span><span class="p">]</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">num_ancilla_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;The number of ancilla qubits used.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            The number of ancillas in the circuit.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_state_qubits</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="c1"># add ancillas is required</span>
+                <span class="n">num_ancillas</span> <span class="o">=</span> <span class="n">num_state_qubits</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">num_ancillas</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">qr_ancilla</span> <span class="o">=</span> <span class="n">AncillaRegister</span><span class="p">(</span><span class="n">num_ancillas</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">add_register</span><span class="p">(</span><span class="n">qr_ancilla</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_twos_complement</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Returns the 2&#39;s complement of ``self.value`` as array.</span>
@@ -409,7 +410,7 @@
 <span class="sd">             The 2&#39;s complement of ``self.value``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">twos_complement</span> <span class="o">=</span> <span class="nb">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span><span class="p">)</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
-        <span class="n">twos_complement</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{0:b}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">twos_complement</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">)</span>
+        <span class="n">twos_complement</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{:b}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">twos_complement</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">)</span>
         <span class="n">twos_complement</span> <span class="o">=</span> \
             <span class="p">[</span><span class="mi">1</span> <span class="k">if</span> <span class="n">twos_complement</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">twos_complement</span><span class="p">)))]</span>
         <span class="k">return</span> <span class="n">twos_complement</span>
@@ -513,7 +514,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Mis à jour le 2020/10/14.
+        Mis à jour le 2020/10/16.
       </span>
 
     </p>
