@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.algorithms.minimum_eigen_solvers.numpy_minimum_eigen_solver &mdash; Qiskit 0.22.0 Dokumentation</title>
+  <title>qiskit.aqua.algorithms.minimum_eigen_solvers.numpy_minimum_eigen_solver &mdash; Qiskit 0.23.0 Dokumentation</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Quellcode für qiskit.aqua.algorithms.minimum_eigen_solvers.numpy_minimum_eigen_solver</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -274,9 +272,10 @@
 
 <span class="sd">&quot;&quot;&quot;The Numpy Minimum Eigensolver algorithm.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">ClassicalAlgorithm</span><span class="p">,</span> <span class="n">NumPyEigensolver</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">OperatorBase</span><span class="p">,</span> <span class="n">LegacyBaseOperator</span>
@@ -295,14 +294,23 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">operator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="n">LegacyBaseOperator</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">aux_operators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span>
-                                                             <span class="n">LegacyBaseOperator</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span>
+                                                             <span class="n">LegacyBaseOperator</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">filter_criterion</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span>
+                                            <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
                  <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            operator: Operator instance</span>
 <span class="sd">            aux_operators: Auxiliary operators to be evaluated at minimum eigenvalue</span>
+<span class="sd">            filter_criterion: callable that allows to filter eigenvalues/eigenstates. The minimum</span>
+<span class="sd">                eigensolver is only searching over feasible states and returns an eigenstate that</span>
+<span class="sd">                has the smallest eigenvalue among feasible states. The callable has the signature</span>
+<span class="sd">                `filter(eigenstate, eigenvalue, aux_values)` and must return a boolean to indicate</span>
+<span class="sd">                whether to consider this value or not. If there is no</span>
+<span class="sd">                feasible element, the result can even be empty.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ces</span> <span class="o">=</span> <span class="n">NumPyEigensolver</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">aux_operators</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ces</span> <span class="o">=</span> <span class="n">NumPyEigensolver</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">operator</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">aux_operators</span><span class="o">=</span><span class="n">aux_operators</span><span class="p">,</span>
+                                     <span class="n">filter_criterion</span><span class="o">=</span><span class="n">filter_criterion</span><span class="p">)</span>
         <span class="c1"># TODO remove</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, Any]</span>
 
@@ -324,8 +332,21 @@
                                                                   <span class="n">LegacyBaseOperator</span><span class="p">]]]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ces</span><span class="o">.</span><span class="n">aux_operators</span> <span class="o">=</span> <span class="n">aux_operators</span>
 
-<div class="viewcode-block" id="NumPyMinimumEigensolver.supports_aux_operators"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.NumPyMinimumEigensolver.supports_aux_operators.html#qiskit.aqua.algorithms.NumPyMinimumEigensolver.supports_aux_operators">[Doku]</a>    <span class="k">def</span> <span class="nf">supports_aux_operators</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ces</span><span class="o">.</span><span class="n">supports_aux_operators</span><span class="p">()</span></div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">filter_criterion</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span>
+            <span class="n">Callable</span><span class="p">[[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span> <span class="nb">bool</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot; returns the filter criterion if set &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ces</span><span class="o">.</span><span class="n">filter_criterion</span>
+
+    <span class="nd">@filter_criterion</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">filter_criterion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filter_criterion</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+            <span class="n">Callable</span><span class="p">[[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span> <span class="nb">bool</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; set the filter criterion &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ces</span><span class="o">.</span><span class="n">filter_criterion</span> <span class="o">=</span> <span class="n">filter_criterion</span>
+
+<div class="viewcode-block" id="NumPyMinimumEigensolver.supports_aux_operators"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.NumPyMinimumEigensolver.supports_aux_operators.html#qiskit.aqua.algorithms.NumPyMinimumEigensolver.supports_aux_operators">[Doku]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">supports_aux_operators</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">NumPyEigensolver</span><span class="o">.</span><span class="n">supports_aux_operators</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="NumPyMinimumEigensolver.compute_minimum_eigenvalue"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.NumPyMinimumEigensolver.compute_minimum_eigenvalue.html#qiskit.aqua.algorithms.NumPyMinimumEigensolver.compute_minimum_eigenvalue">[Doku]</a>    <span class="k">def</span> <span class="nf">compute_minimum_eigenvalue</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -346,11 +367,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ces</span><span class="o">.</span><span class="n">_ret</span>  <span class="c1"># TODO remove</span>
 
         <span class="n">result</span> <span class="o">=</span> <span class="n">MinimumEigensolverResult</span><span class="p">()</span>
-        <span class="n">result</span><span class="o">.</span><span class="n">eigenvalue</span> <span class="o">=</span> <span class="n">result_ces</span><span class="o">.</span><span class="n">eigenvalues</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">result</span><span class="o">.</span><span class="n">eigenstate</span> <span class="o">=</span> <span class="n">result_ces</span><span class="o">.</span><span class="n">eigenstates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">result_ces</span><span class="o">.</span><span class="n">aux_operator_eigenvalues</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result_ces</span><span class="o">.</span><span class="n">aux_operator_eigenvalues</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">result</span><span class="o">.</span><span class="n">aux_operator_eigenvalues</span> <span class="o">=</span> <span class="n">result_ces</span><span class="o">.</span><span class="n">aux_operator_eigenvalues</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result_ces</span><span class="o">.</span><span class="n">eigenvalues</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">eigenvalue</span> <span class="o">=</span> <span class="n">result_ces</span><span class="o">.</span><span class="n">eigenvalues</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">eigenstate</span> <span class="o">=</span> <span class="n">result_ces</span><span class="o">.</span><span class="n">eigenstates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">result_ces</span><span class="o">.</span><span class="n">aux_operator_eigenvalues</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result_ces</span><span class="o">.</span><span class="n">aux_operator_eigenvalues</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">aux_operator_eigenvalues</span> <span class="o">=</span> <span class="n">result_ces</span><span class="o">.</span><span class="n">aux_operator_eigenvalues</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">eigenvalue</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">eigenstate</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">aux_operator_eigenvalues</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;NumPyMinimumEigensolver dict:</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
                      <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
@@ -371,7 +397,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Zuletzt aktualisiert am 2020/10/13.
+        Zuletzt aktualisiert am 2020/10/16.
       </span>
 
     </p>

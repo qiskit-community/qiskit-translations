@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.circuit.parameterexpression &mdash; Qiskit 0.22.0 Dokumentation</title>
+  <title>qiskit.circuit.parameterexpression &mdash; Qiskit 0.23.0 Dokumentation</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Quellcode für qiskit.circuit.parameterexpression</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2017, 2019.</span>
 <span class="c1">#</span>
@@ -274,6 +272,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">ParameterExpression Class to enable creating simple expressions of Parameters.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">numbers</span>
 <span class="kn">import</span> <span class="nn">operator</span>
@@ -282,39 +281,61 @@
 
 <span class="kn">from</span> <span class="nn">qiskit.circuit.exceptions</span> <span class="kn">import</span> <span class="n">CircuitError</span>
 
+<span class="n">ParameterValueType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="s1">&#39;ParameterExpression&#39;</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
 
-<div class="viewcode-block" id="ParameterExpression"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.ParameterExpression.html#qiskit.circuit.ParameterExpression">[Doku]</a><span class="k">class</span> <span class="nc">ParameterExpression</span><span class="p">():</span>
+
+<div class="viewcode-block" id="ParameterExpression"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.ParameterExpression.html#qiskit.circuit.ParameterExpression">[Doku]</a><span class="k">class</span> <span class="nc">ParameterExpression</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;ParameterExpression class to enable creating expressions of Parameters.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol_map</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_parameter_symbols&#39;</span><span class="p">,</span> <span class="s1">&#39;_parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;_symbol_expr&#39;</span><span class="p">,</span> <span class="s1">&#39;_names&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a new ParameterExpression.</span>
 
 <span class="sd">        Not intended to be called directly, but to be instantiated via operations</span>
 <span class="sd">        on other Parameter or ParameterExpression objects.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            symbol_map (dict): Mapping of Parameter instances to the sympy.Symbol</span>
-<span class="sd">                               serving as their placeholder in expr.</span>
+<span class="sd">            symbol_map: Mapping of Parameter instances to the sympy.Symbol</span>
+<span class="sd">                        serving as their placeholder in expr.</span>
 <span class="sd">            expr (sympy.Expr): Expression of sympy.Symbols.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_symbols</span> <span class="o">=</span> <span class="n">symbol_map</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_symbols</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_symbol_expr</span> <span class="o">=</span> <span class="n">expr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_names</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Returns a set of the unbound Parameters in the expression.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_symbols</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span>
 
-<div class="viewcode-block" id="ParameterExpression.conjugate"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.ParameterExpression.conjugate.html#qiskit.circuit.ParameterExpression.conjugate">[Doku]</a>    <span class="k">def</span> <span class="nf">conjugate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ParameterExpression.conjugate"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.ParameterExpression.conjugate.html#qiskit.circuit.ParameterExpression.conjugate">[Doku]</a>    <span class="k">def</span> <span class="nf">conjugate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ParameterExpression&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the conjugate, which is the ParameterExpression itself, since it is real.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="ParameterExpression.bind"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.ParameterExpression.bind.html#qiskit.circuit.ParameterExpression.bind">[Doku]</a>    <span class="k">def</span> <span class="nf">bind</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_values</span><span class="p">):</span>
+<div class="viewcode-block" id="ParameterExpression.assign"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.ParameterExpression.assign.html#qiskit.circuit.ParameterExpression.assign">[Doku]</a>    <span class="k">def</span> <span class="nf">assign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">ParameterValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ParameterExpression&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign one parameter to a value, which can either be numeric or another parameter</span>
+<span class="sd">        expression.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            parameter (Parameter): A parameter in this expression whose value will be updated.</span>
+<span class="sd">            value: The new value to bind to.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new expression parameterized by any parameters which were not bound by assignment.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">parameter</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">({</span><span class="n">parameter</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span></div>
+
+<div class="viewcode-block" id="ParameterExpression.bind"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.ParameterExpression.bind.html#qiskit.circuit.ParameterExpression.bind">[Doku]</a>    <span class="k">def</span> <span class="nf">bind</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_values</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ParameterExpression&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Binds the provided set of parameters to their corresponding values.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            parameter_values (dict): Mapping of Parameter instances to the</span>
-<span class="sd">                                     numeric value to which they will be bound.</span>
+<span class="sd">            parameter_values: Mapping of Parameter instances to the numeric value to which</span>
+<span class="sd">                              they will be bound.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            CircuitError:</span>
@@ -324,8 +345,8 @@
 <span class="sd">                - If binding the provided values requires division by zero.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            ParameterExpression: a new expression parameterized by any parameters</span>
-<span class="sd">                which were not bound by parameter_values.</span>
+<span class="sd">            A new expression parameterized by any parameters which were not bound by</span>
+<span class="sd">            parameter_values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_raise_if_passed_unknown_parameters</span><span class="p">(</span><span class="n">parameter_values</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
@@ -352,13 +373,13 @@
 
         <span class="k">return</span> <span class="n">ParameterExpression</span><span class="p">(</span><span class="n">free_parameter_symbols</span><span class="p">,</span> <span class="n">bound_symbol_expr</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ParameterExpression.subs"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.ParameterExpression.subs.html#qiskit.circuit.ParameterExpression.subs">[Doku]</a>    <span class="k">def</span> <span class="nf">subs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_map</span><span class="p">):</span>
+<div class="viewcode-block" id="ParameterExpression.subs"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.ParameterExpression.subs.html#qiskit.circuit.ParameterExpression.subs">[Doku]</a>    <span class="k">def</span> <span class="nf">subs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+             <span class="n">parameter_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ParameterExpression&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Returns a new Expression with replacement Parameters.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            parameter_map (dict): Mapping from Parameters in self to the</span>
-<span class="sd">                                  ParameterExpression instances with which they</span>
-<span class="sd">                                  should be replaced.</span>
+<span class="sd">            parameter_map: Mapping from Parameters in self to the ParameterExpression</span>
+<span class="sd">                           instances with which they should be replaced.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            CircuitError:</span>
@@ -367,8 +388,7 @@
 <span class="sd">                  a name conflict in the generated expression.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            ParameterExpression: a new expression with the specified parameters</span>
-<span class="sd">                                 replaced.</span>
+<span class="sd">            A new expression with the specified parameters replaced.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">inbound_parameters</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span>
@@ -416,28 +436,31 @@
         <span class="k">if</span> <span class="n">outbound_parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">outbound_parameters</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
-        <span class="n">self_names</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_names</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">}</span>
+
         <span class="n">inbound_names</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">inbound_parameters</span><span class="p">}</span>
         <span class="n">outbound_names</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">outbound_parameters</span><span class="p">}</span>
 
-        <span class="n">shared_names</span> <span class="o">=</span> <span class="p">(</span><span class="n">self_names</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-</span> <span class="n">outbound_names</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&amp;</span> <span class="n">inbound_names</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">shared_names</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-</span> <span class="n">outbound_names</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&amp;</span> <span class="n">inbound_names</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="n">conflicting_names</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">shared_names</span>
-                             <span class="k">if</span> <span class="n">self_names</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">!=</span> <span class="n">inbound_names</span><span class="p">[</span><span class="n">name</span><span class="p">]}</span>
+                             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">!=</span> <span class="n">inbound_names</span><span class="p">[</span><span class="n">name</span><span class="p">]}</span>
         <span class="k">if</span> <span class="n">conflicting_names</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s1">&#39;Name conflict applying operation for parameters: &#39;</span>
                                <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">conflicting_names</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_apply_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">reflected</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_apply_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operation</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+                         <span class="n">other</span><span class="p">:</span> <span class="n">ParameterValueType</span><span class="p">,</span>
+                         <span class="n">reflected</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ParameterExpression&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Base method implementing math operations between Parameters and</span>
 <span class="sd">        either a constant or a second ParameterExpression.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            operation (function): One of operator.{add,sub,mul,truediv}.</span>
-<span class="sd">            other (Parameter or numbers.Real): The second argument to be used</span>
-<span class="sd">               with self in operation.</span>
-<span class="sd">            reflected (bool): Optional - The default ordering is</span>
-<span class="sd">                &quot;self operator other&quot;. If reflected is True, this is switched</span>
-<span class="sd">                to &quot;other operator self&quot;. For use in e.g. __radd__, ...</span>
+<span class="sd">            operation: One of operator.{add,sub,mul,truediv}.</span>
+<span class="sd">            other: The second argument to be used with self in operation.</span>
+<span class="sd">            reflected: Optional - The default ordering is &quot;self operator other&quot;.</span>
+<span class="sd">                       If reflected is True, this is switched to &quot;other operator self&quot;.</span>
+<span class="sd">                       For use in e.g. __radd__, ...</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            CircuitError:</span>
@@ -446,8 +469,7 @@
 <span class="sd">                  a name conflict in the generated expression.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            ParameterExpression: a new expression describing the result of the</span>
-<span class="sd">                operation.</span>
+<span class="sd">            A new expression describing the result of the operation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">self_expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symbol_expr</span>
@@ -511,6 +533,15 @@
                             <span class="s1">&#39;cannot be cast to a float.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">))</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbol_expr</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="fm">__int__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;ParameterExpression with unbound parameters (</span><span class="si">{}</span><span class="s1">) &#39;</span>
+                            <span class="s1">&#39;cannot be cast to an int.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbol_expr</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="nb">frozenset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_symbols</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symbol_expr</span><span class="p">))</span>
+
     <span class="k">def</span> <span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span>
 
@@ -537,7 +568,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Zuletzt aktualisiert am 2020/10/13.
+        Zuletzt aktualisiert am 2020/10/16.
       </span>
 
     </p>
