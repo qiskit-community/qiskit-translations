@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.operators.primitive_ops.circuit_op &mdash; Qiskit 0.22.0 문서</title>
+  <title>qiskit.aqua.operators.primitive_ops.circuit_op &mdash; Qiskit 0.23.0 문서</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>qiskit.aqua.operators.primitive_ops.circuit_op의 소스 코드</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -274,17 +272,17 @@
 
 <span class="sd">&quot;&quot;&quot; CircuitOp Class &quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">cast</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">BasicAer</span><span class="p">,</span> <span class="n">execute</span>
+<span class="kn">import</span> <span class="nn">qiskit</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">IGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">Instruction</span><span class="p">,</span> <span class="n">ParameterExpression</span>
 
 <span class="kn">from</span> <span class="nn">..operator_base</span> <span class="kn">import</span> <span class="n">OperatorBase</span>
 <span class="kn">from</span> <span class="nn">..list_ops.summed_op</span> <span class="kn">import</span> <span class="n">SummedOp</span>
-<span class="kn">from</span> <span class="nn">..list_ops.composed_op</span> <span class="kn">import</span> <span class="n">ComposedOp</span>
 <span class="kn">from</span> <span class="nn">..list_ops.tensored_op</span> <span class="kn">import</span> <span class="n">TensoredOp</span>
 <span class="kn">from</span> <span class="nn">.primitive_op</span> <span class="kn">import</span> <span class="n">PrimitiveOp</span>
 
@@ -370,52 +368,47 @@
 
         <span class="k">return</span> <span class="n">TensoredOp</span><span class="p">([</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="CircuitOp.compose"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.primitive_ops.CircuitOp.compose.html#qiskit.aqua.operators.primitive_ops.CircuitOp.compose">[문서]</a>    <span class="k">def</span> <span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">OperatorBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
-        <span class="n">other</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_zero_for_composition_and_expand</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+<div class="viewcode-block" id="CircuitOp.compose"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.primitive_ops.CircuitOp.compose.html#qiskit.aqua.operators.primitive_ops.CircuitOp.compose">[문서]</a>    <span class="k">def</span> <span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">OperatorBase</span><span class="p">,</span>
+                <span class="n">permutation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">front</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
+
+        <span class="n">new_self</span><span class="p">,</span> <span class="n">other</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expand_shorter_operator_and_permute</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">permutation</span><span class="p">)</span>
+        <span class="n">new_self</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">CircuitOp</span><span class="p">,</span> <span class="n">new_self</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">front</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">new_self</span><span class="p">)</span>
+        <span class="c1"># ignore</span>
         <span class="c1"># pylint: disable=cyclic-import,import-outside-toplevel</span>
         <span class="kn">from</span> <span class="nn">..operator_globals</span> <span class="kn">import</span> <span class="n">Zero</span>
         <span class="kn">from</span> <span class="nn">..state_fns</span> <span class="kn">import</span> <span class="n">CircuitStateFn</span>
         <span class="kn">from</span> <span class="nn">.pauli_op</span> <span class="kn">import</span> <span class="n">PauliOp</span>
         <span class="kn">from</span> <span class="nn">.matrix_op</span> <span class="kn">import</span> <span class="n">MatrixOp</span>
 
-        <span class="k">if</span> <span class="n">other</span> <span class="o">==</span> <span class="n">Zero</span> <span class="o">^</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">CircuitStateFn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primitive</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">other</span> <span class="o">==</span> <span class="n">Zero</span> <span class="o">^</span> <span class="n">new_self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">CircuitStateFn</span><span class="p">(</span><span class="n">new_self</span><span class="o">.</span><span class="n">primitive</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="n">new_self</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">PauliOp</span><span class="p">,</span> <span class="n">CircuitOp</span><span class="p">,</span> <span class="n">MatrixOp</span><span class="p">)):</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">to_circuit_op</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">CircuitOp</span><span class="p">,</span> <span class="n">CircuitStateFn</span><span class="p">)):</span>
-            <span class="n">new_qc</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primitive</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+            <span class="n">new_qc</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">new_self</span><span class="o">.</span><span class="n">primitive</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">CircuitStateFn</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">CircuitStateFn</span><span class="p">(</span><span class="n">new_qc</span><span class="p">,</span>
                                       <span class="n">is_measurement</span><span class="o">=</span><span class="n">other</span><span class="o">.</span><span class="n">is_measurement</span><span class="p">,</span>
-                                      <span class="n">coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
+                                      <span class="n">coeff</span><span class="o">=</span><span class="n">new_self</span><span class="o">.</span><span class="n">coeff</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">CircuitOp</span><span class="p">(</span><span class="n">new_qc</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">CircuitOp</span><span class="p">(</span><span class="n">new_qc</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="n">new_self</span><span class="o">.</span><span class="n">coeff</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">ComposedOp</span><span class="p">([</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">])</span></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">CircuitOp</span><span class="p">,</span> <span class="n">new_self</span><span class="p">)</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="CircuitOp.to_matrix"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.primitive_ops.CircuitOp.to_matrix.html#qiskit.aqua.operators.primitive_ops.CircuitOp.to_matrix">[문서]</a>    <span class="k">def</span> <span class="nf">to_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">massive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&gt;</span> <span class="mi">16</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">massive</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s1">&#39;to_matrix will return an exponentially large matrix,&#39;</span>
-                <span class="s1">&#39; in this case </span><span class="si">{0}</span><span class="s1">x</span><span class="si">{0}</span><span class="s1"> elements.&#39;</span>
-                <span class="s1">&#39; Set massive=True if you want to proceed.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">))</span>
-
-        <span class="c1"># NOTE: not reversing qubits!! We generally reverse endianness when converting between</span>
-        <span class="c1"># circuit or Pauli representation and matrix representation, but we don&#39;t need to here</span>
-        <span class="c1"># because the Unitary simulator already presents the endianness of the circuit unitary in</span>
-        <span class="c1"># forward endianness.</span>
-        <span class="n">unitary_backend</span> <span class="o">=</span> <span class="n">BasicAer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;unitary_simulator&#39;</span><span class="p">)</span>
-        <span class="n">unitary</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_circuit</span><span class="p">(),</span>
-                          <span class="n">unitary_backend</span><span class="p">,</span>
-                          <span class="n">optimization_level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span><span class="o">.</span><span class="n">get_unitary</span><span class="p">()</span>
+        <span class="n">OperatorBase</span><span class="o">.</span><span class="n">_check_massive</span><span class="p">(</span><span class="s1">&#39;to_matrix&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">massive</span><span class="p">)</span>
+        <span class="n">unitary</span> <span class="o">=</span> <span class="n">qiskit</span><span class="o">.</span><span class="n">quantum_info</span><span class="o">.</span><span class="n">Operator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_circuit</span><span class="p">())</span><span class="o">.</span><span class="n">data</span>
         <span class="c1"># pylint: disable=cyclic-import</span>
         <span class="kn">from</span> <span class="nn">..operator_globals</span> <span class="kn">import</span> <span class="n">EVAL_SIG_DIGITS</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">unitary</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="n">EVAL_SIG_DIGITS</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="n">qc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce</span><span class="p">()</span><span class="o">.</span><span class="n">to_circuit</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+        <span class="n">qc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_circuit</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
         <span class="n">prim_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">qc</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="s1">&#39;text&#39;</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">prim_str</span>
@@ -447,8 +440,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="n">param_value</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="CircuitOp.eval"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.primitive_ops.CircuitOp.eval.html#qiskit.aqua.operators.primitive_ops.CircuitOp.eval">[문서]</a>    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-             <span class="n">front</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-                          <span class="n">OperatorBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">]:</span>
+             <span class="n">front</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">complex</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">OperatorBase</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+             <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">]:</span>
         <span class="c1"># pylint: disable=import-outside-toplevel</span>
         <span class="kn">from</span> <span class="nn">..state_fns</span> <span class="kn">import</span> <span class="n">CircuitStateFn</span>
         <span class="kn">from</span> <span class="nn">..list_ops</span> <span class="kn">import</span> <span class="n">ListOp</span>
@@ -488,6 +481,9 @@
                     <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
+    <span class="k">def</span> <span class="nf">_expand_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;CircuitOp&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">num_qubits</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)))</span>
+
 <div class="viewcode-block" id="CircuitOp.permute"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.primitive_ops.CircuitOp.permute.html#qiskit.aqua.operators.primitive_ops.CircuitOp.permute">[문서]</a>    <span class="k">def</span> <span class="nf">permute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">permutation</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;CircuitOp&#39;</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Permute the qubits of the circuit.</span>
@@ -499,7 +495,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A new CircuitOp containing the permuted circuit.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">new_qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primitive</span><span class="p">,</span> <span class="n">qubits</span><span class="o">=</span><span class="n">permutation</span><span class="p">)</span>
+        <span class="n">new_qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">permutation</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primitive</span><span class="p">,</span> <span class="n">qubits</span><span class="o">=</span><span class="n">permutation</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">CircuitOp</span><span class="p">(</span><span class="n">new_qc</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span></div></div>
 </pre></div>
 
@@ -516,7 +512,7 @@
         
         &copy; 저작권 2020, Qiskit Development Team
       <span class="lastupdated">
-        최종 업데이트: 2020/10/13
+        최종 업데이트: 2020/10/16
       </span>
 
     </p>

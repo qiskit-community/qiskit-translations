@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.assembler.disassemble &mdash; Qiskit 0.22.0 문서</title>
+  <title>qiskit.assembler.disassemble &mdash; Qiskit 0.23.0 문서</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>qiskit.assembler.disassemble의 소스 코드</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2017, 2019.</span>
 <span class="c1">#</span>
@@ -273,13 +271,64 @@
 <span class="c1"># that they have been altered from the originals.</span>
 
 <span class="sd">&quot;&quot;&quot;Disassemble function for a qobj into a list of circuits and its config&quot;&quot;&quot;</span>
-
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">NewType</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span> <span class="nn">collections</span>
 
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">pulse</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.classicalregister</span> <span class="kn">import</span> <span class="n">ClassicalRegister</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.instruction</span> <span class="kn">import</span> <span class="n">Instruction</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumcircuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumregister</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
+<span class="kn">from</span> <span class="nn">qiskit.pulse.schedule</span> <span class="kn">import</span> <span class="n">ParameterizedSchedule</span>
+<span class="kn">from</span> <span class="nn">qiskit.qobj.converters</span> <span class="kn">import</span> <span class="n">QobjToInstructionConverter</span>
+
+<span class="c1"># A ``CircuitModule`` is a representation of a circuit execution on the backend.</span>
+<span class="c1"># It is currently a list of quantum circuits to execute, a run Qobj dictionary</span>
+<span class="c1"># and a header dictionary.</span>
+<span class="n">CircuitModule</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span>
+    <span class="s1">&#39;CircuitModule&#39;</span><span class="p">,</span>
+    <span class="n">Tuple</span><span class="p">[</span>
+        <span class="n">List</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">],</span>
+        <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># A ``PulseModule`` is a representation of a pulse execution on the backend.</span>
+<span class="c1"># It is currently a list of pulse schedules to execute, a run Qobj dictionary</span>
+<span class="c1"># and a header dictionary.</span>
+<span class="n">PulseModule</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span>
+    <span class="s1">&#39;PulseModule&#39;</span><span class="p">,</span>
+    <span class="n">Tuple</span><span class="p">[</span>
+        <span class="n">List</span><span class="p">[</span><span class="n">pulse</span><span class="o">.</span><span class="n">Schedule</span><span class="p">],</span>
+        <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="disassemble"><a class="viewcode-back" href="../../../stubs/qiskit.assembler.disassemble.html#qiskit.assembler.disassemble">[문서]</a><span class="k">def</span> <span class="nf">disassemble</span><span class="p">(</span><span class="n">qobj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">CircuitModule</span><span class="p">,</span> <span class="n">PulseModule</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Disassemble a qobj and return the circuits or pulse schedules, run_config, and user header.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qobj (Qobj): The input qobj object to disassemble</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The disassembled program which consists of:</span>
+<span class="sd">            * programs: A list of quantum circuits or pulse schedules</span>
+<span class="sd">            * run_config: The dict of the run config</span>
+<span class="sd">            * user_qobj_header: The dict of any user headers in the qobj</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">qobj</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;PULSE&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_disassemble_pulse_schedule</span><span class="p">(</span><span class="n">qobj</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_disassemble_circuit</span><span class="p">(</span><span class="n">qobj</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_disassemble_circuit</span><span class="p">(</span><span class="n">qobj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CircuitModule</span><span class="p">:</span>
+    <span class="n">run_config</span> <span class="o">=</span> <span class="n">qobj</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+    <span class="n">user_qobj_header</span> <span class="o">=</span> <span class="n">qobj</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">CircuitModule</span><span class="p">((</span><span class="n">_experiments_to_circuits</span><span class="p">(</span><span class="n">qobj</span><span class="p">),</span> <span class="n">run_config</span><span class="p">,</span> <span class="n">user_qobj_header</span><span class="p">))</span>
 
 
 <span class="k">def</span> <span class="nf">_experiments_to_circuits</span><span class="p">(</span><span class="n">qobj</span><span class="p">):</span>
@@ -384,23 +433,68 @@
     <span class="k">return</span> <span class="kc">None</span>
 
 
-<div class="viewcode-block" id="disassemble"><a class="viewcode-back" href="../../../stubs/qiskit.assembler.disassemble.html#qiskit.assembler.disassemble">[문서]</a><span class="k">def</span> <span class="nf">disassemble</span><span class="p">(</span><span class="n">qobj</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Disassemble a qobj and return the circuits, run_config, and user header.</span>
+<span class="k">def</span> <span class="nf">_disassemble_pulse_schedule</span><span class="p">(</span><span class="n">qobj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PulseModule</span><span class="p">:</span>
+    <span class="n">run_config</span> <span class="o">=</span> <span class="n">qobj</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+    <span class="n">run_config</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;pulse_library&#39;</span><span class="p">)</span>
+
+    <span class="n">qubit_lo_freq</span> <span class="o">=</span> <span class="n">run_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;qubit_lo_freq&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">qubit_lo_freq</span><span class="p">:</span>
+        <span class="n">run_config</span><span class="p">[</span><span class="s1">&#39;qubit_lo_freq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">freq</span><span class="o">*</span><span class="mf">1e9</span> <span class="k">for</span> <span class="n">freq</span> <span class="ow">in</span> <span class="n">qubit_lo_freq</span><span class="p">]</span>
+
+    <span class="n">meas_lo_freq</span> <span class="o">=</span> <span class="n">run_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;meas_lo_freq&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">meas_lo_freq</span><span class="p">:</span>
+        <span class="n">run_config</span><span class="p">[</span><span class="s1">&#39;meas_lo_freq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">freq</span><span class="o">*</span><span class="mf">1e9</span> <span class="k">for</span> <span class="n">freq</span> <span class="ow">in</span> <span class="n">meas_lo_freq</span><span class="p">]</span>
+
+    <span class="n">user_qobj_header</span> <span class="o">=</span> <span class="n">qobj</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+
+    <span class="c1"># extract schedule lo settings</span>
+    <span class="n">schedule_los</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">program</span> <span class="ow">in</span> <span class="n">qobj</span><span class="o">.</span><span class="n">experiments</span><span class="p">:</span>
+        <span class="n">program_los</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">program</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;qubit_lo_freq&#39;</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">lo</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">program</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">qubit_lo_freq</span><span class="p">):</span>
+                    <span class="n">program_los</span><span class="p">[</span><span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">lo</span><span class="o">*</span><span class="mf">1e9</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">program</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;meas_lo_freq&#39;</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">lo</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">program</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">meas_lo_freq</span><span class="p">):</span>
+                    <span class="n">program_los</span><span class="p">[</span><span class="n">pulse</span><span class="o">.</span><span class="n">MeasureChannel</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">lo</span><span class="o">*</span><span class="mf">1e9</span>
+
+        <span class="n">schedule_los</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">program_los</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">schedule_los</span><span class="p">):</span>
+        <span class="n">run_config</span><span class="p">[</span><span class="s1">&#39;schedule_los&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">schedule_los</span>
+
+    <span class="k">return</span> <span class="n">PulseModule</span><span class="p">((</span><span class="n">_experiments_to_schedules</span><span class="p">(</span><span class="n">qobj</span><span class="p">),</span> <span class="n">run_config</span><span class="p">,</span> <span class="n">user_qobj_header</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">_experiments_to_schedules</span><span class="p">(</span><span class="n">qobj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">pulse</span><span class="o">.</span><span class="n">Schedule</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Return a list of :class:`qiskit.pulse.Schedule` object(s) from a qobj.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        qobj (Qobj): The input qobj object to disassemble</span>
+<span class="sd">        qobj (Qobj): The Qobj object to convert to pulse schedules.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        tuple: (circuits, run_config, user_qobj_header):</span>
-<span class="sd">            * circuits (list): A list of quantum circuits</span>
-<span class="sd">            * run_config (dict): The dict of the run config</span>
-<span class="sd">            * user_qobj_header (dict): The dict of any user headers in the qobj</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">run_config</span> <span class="o">=</span> <span class="n">qobj</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-    <span class="n">user_qobj_header</span> <span class="o">=</span> <span class="n">qobj</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-    <span class="n">circuits</span> <span class="o">=</span> <span class="n">_experiments_to_circuits</span><span class="p">(</span><span class="n">qobj</span><span class="p">)</span>
+<span class="sd">        A list of :class:`qiskit.pulse.Schedule` objects from the qobj</span>
 
-    <span class="k">return</span> <span class="n">circuits</span><span class="p">,</span> <span class="n">run_config</span><span class="p">,</span> <span class="n">user_qobj_header</span></div>
+<span class="sd">    Raises:</span>
+<span class="sd">        pulse.PulseError: If a parameterized instruction is supplied.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">converter</span> <span class="o">=</span> <span class="n">QobjToInstructionConverter</span><span class="p">(</span><span class="n">qobj</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">pulse_library</span><span class="p">)</span>
+
+    <span class="n">schedules</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">program</span> <span class="ow">in</span> <span class="n">qobj</span><span class="o">.</span><span class="n">experiments</span><span class="p">:</span>
+        <span class="n">insts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">inst</span> <span class="ow">in</span> <span class="n">program</span><span class="o">.</span><span class="n">instructions</span><span class="p">:</span>
+            <span class="n">pulse_inst</span> <span class="o">=</span> <span class="n">converter</span><span class="p">(</span><span class="n">inst</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pulse_inst</span><span class="p">,</span> <span class="n">ParameterizedSchedule</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">pulse</span><span class="o">.</span><span class="n">PulseError</span><span class="p">(</span><span class="s1">&#39;Parameterized instructions are not &#39;</span>
+                                       <span class="s1">&#39;yet supported in the pulse schedule.&#39;</span><span class="p">)</span>
+            <span class="n">insts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pulse_inst</span><span class="p">)</span>
+
+        <span class="n">schedule</span> <span class="o">=</span> <span class="n">pulse</span><span class="o">.</span><span class="n">Schedule</span><span class="p">(</span><span class="o">*</span><span class="n">insts</span><span class="p">)</span>
+        <span class="n">schedules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">schedule</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">schedules</span>
 </pre></div>
 
            </div>
@@ -416,7 +510,7 @@
         
         &copy; 저작권 2020, Qiskit Development Team
       <span class="lastupdated">
-        최종 업데이트: 2020/10/13
+        최종 업데이트: 2020/10/16
       </span>
 
     </p>

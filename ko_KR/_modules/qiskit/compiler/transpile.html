@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.compiler.transpile &mdash; Qiskit 0.22.0 문서</title>
+  <title>qiskit.compiler.transpile &mdash; Qiskit 0.23.0 문서</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>qiskit.compiler.transpile의 소스 코드</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2017, 2019.</span>
 <span class="c1">#</span>
@@ -274,25 +272,27 @@
 
 <span class="sd">&quot;&quot;&quot;Circuit transpile function&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">user_config</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumcircuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.quantumregister</span> <span class="kn">import</span> <span class="n">Qubit</span>
+<span class="kn">from</span> <span class="nn">qiskit.converters</span> <span class="kn">import</span> <span class="n">isinstanceint</span><span class="p">,</span> <span class="n">isinstancelist</span><span class="p">,</span> <span class="n">dag_to_circuit</span><span class="p">,</span> <span class="n">circuit_to_dag</span>
+<span class="kn">from</span> <span class="nn">qiskit.dagcircuit</span> <span class="kn">import</span> <span class="n">DAGCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">BaseBackend</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers.backend</span> <span class="kn">import</span> <span class="n">Backend</span>
 <span class="kn">from</span> <span class="nn">qiskit.providers.models</span> <span class="kn">import</span> <span class="n">BackendProperties</span>
 <span class="kn">from</span> <span class="nn">qiskit.providers.models.backendproperties</span> <span class="kn">import</span> <span class="n">Gate</span>
+<span class="kn">from</span> <span class="nn">qiskit.pulse</span> <span class="kn">import</span> <span class="n">Schedule</span>
+<span class="kn">from</span> <span class="nn">qiskit.tools.parallel</span> <span class="kn">import</span> <span class="n">parallel_map</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler</span> <span class="kn">import</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">CouplingMap</span><span class="p">,</span> <span class="n">PropertySet</span><span class="p">,</span> <span class="n">PassManager</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.basepasses</span> <span class="kn">import</span> <span class="n">BasePass</span>
-<span class="kn">from</span> <span class="nn">qiskit.dagcircuit</span> <span class="kn">import</span> <span class="n">DAGCircuit</span>
-<span class="kn">from</span> <span class="nn">qiskit.tools.parallel</span> <span class="kn">import</span> <span class="n">parallel_map</span>
-<span class="kn">from</span> <span class="nn">qiskit.transpiler.passmanager_config</span> <span class="kn">import</span> <span class="n">PassManagerConfig</span>
-<span class="kn">from</span> <span class="nn">qiskit.pulse</span> <span class="kn">import</span> <span class="n">Schedule</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit.quantumregister</span> <span class="kn">import</span> <span class="n">Qubit</span>
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">user_config</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.exceptions</span> <span class="kn">import</span> <span class="n">TranspilerError</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.instruction_durations</span> <span class="kn">import</span> <span class="n">InstructionDurations</span><span class="p">,</span> <span class="n">InstructionDurationsType</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes</span> <span class="kn">import</span> <span class="n">ApplyLayout</span>
-<span class="kn">from</span> <span class="nn">qiskit.converters</span> <span class="kn">import</span> <span class="n">isinstanceint</span><span class="p">,</span> <span class="n">isinstancelist</span><span class="p">,</span> <span class="n">dag_to_circuit</span><span class="p">,</span> <span class="n">circuit_to_dag</span>
-<span class="kn">from</span> <span class="nn">qiskit.transpiler.passes.basis.ms_basis_decomposer</span> <span class="kn">import</span> <span class="n">MSBasisDecomposer</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.passmanager_config</span> <span class="kn">import</span> <span class="n">PassManagerConfig</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.preset_passmanagers</span> <span class="kn">import</span> <span class="p">(</span><span class="n">level_0_pass_manager</span><span class="p">,</span>
                                                    <span class="n">level_1_pass_manager</span><span class="p">,</span>
                                                    <span class="n">level_2_pass_manager</span><span class="p">,</span>
@@ -302,7 +302,7 @@
 
 
 <div class="viewcode-block" id="transpile"><a class="viewcode-back" href="../../../stubs/qiskit.compiler.transpile.html#qiskit.compiler.transpile">[문서]</a><span class="k">def</span> <span class="nf">transpile</span><span class="p">(</span><span class="n">circuits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]],</span>
-              <span class="n">backend</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseBackend</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">backend</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Backend</span><span class="p">,</span> <span class="n">BaseBackend</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">basis_gates</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">coupling_map</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">CouplingMap</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">backend_properties</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BackendProperties</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -310,6 +310,9 @@
               <span class="n">layout_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">routing_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">translation_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">scheduling_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">instruction_durations</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">InstructionDurationsType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">dt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">seed_transpiler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">optimization_level</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">pass_manager</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PassManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -383,6 +386,24 @@
 <span class="sd">            may not run.</span>
 <span class="sd">        routing_method: Name of routing pass (&#39;basic&#39;, &#39;lookahead&#39;, &#39;stochastic&#39;, &#39;sabre&#39;)</span>
 <span class="sd">        translation_method: Name of translation pass (&#39;unroller&#39;, &#39;translator&#39;, &#39;synthesis&#39;)</span>
+<span class="sd">        scheduling_method: Name of scheduling pass.</span>
+<span class="sd">            * ``&#39;as_soon_as_possible&#39;``: Schedule instructions greedily, as early as possible</span>
+<span class="sd">            on a qubit resource. alias: ``&#39;asap&#39;``)</span>
+<span class="sd">            * ``&#39;as_late_as_possible&#39;``: Schedule instructions late, i.e. keeping qubits</span>
+<span class="sd">            in the ground state when possible. (alias: ``&#39;alap&#39;``)</span>
+<span class="sd">            If ``None``, no scheduling will be done.</span>
+<span class="sd">        instruction_durations: Durations of instructions.</span>
+<span class="sd">            The gate lengths defined in ``backend.properties`` are used as default.</span>
+<span class="sd">            They are overwritten if this ``instruction_durations`` is specified.</span>
+<span class="sd">            The format of ``instruction_durations`` must be as follows.</span>
+<span class="sd">            The `instruction_durations` must be given as a list of tuples</span>
+<span class="sd">            [(instruction_name, qubits, duration, unit), ...].</span>
+<span class="sd">            | [(&#39;cx&#39;, [0, 1], 12.3, &#39;ns&#39;), (&#39;u3&#39;, [0], 4.56, &#39;ns&#39;)]</span>
+<span class="sd">            | [(&#39;cx&#39;, [0, 1], 1000), (&#39;u3&#39;, [0], 300)]</span>
+<span class="sd">            If unit is omitted, the default is &#39;dt&#39;, which is a sample time depending on backend.</span>
+<span class="sd">            If the time unit is &#39;dt&#39;, the duration must be an integer.</span>
+<span class="sd">        dt: Backend sample time (resolution) in seconds.</span>
+<span class="sd">            If ``None`` (default), ``backend.configuration().dt`` is used.</span>
 <span class="sd">        seed_transpiler: Sets random seed for the stochastic parts of the transpiler</span>
 <span class="sd">        optimization_level: How much optimization to perform on the circuits.</span>
 <span class="sd">            Higher levels generate more optimized circuits,</span>
@@ -463,10 +484,16 @@
         <span class="n">config</span> <span class="o">=</span> <span class="n">user_config</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span>
         <span class="n">optimization_level</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;transpile_optimization_level&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="n">scheduling_method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">backend</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">instruction_durations</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;When scheduling circuits without backend,&quot;</span>
+                      <span class="s2">&quot; &#39;instruction_durations&#39; should be usually provided.&quot;</span><span class="p">,</span>
+                      <span class="ne">UserWarning</span><span class="p">)</span>
+
     <span class="c1"># Get transpile_args to configure the circuit transpilation job(s)</span>
     <span class="n">transpile_args</span> <span class="o">=</span> <span class="n">_parse_transpile_args</span><span class="p">(</span><span class="n">circuits</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">basis_gates</span><span class="p">,</span> <span class="n">coupling_map</span><span class="p">,</span>
                                            <span class="n">backend_properties</span><span class="p">,</span> <span class="n">initial_layout</span><span class="p">,</span>
                                            <span class="n">layout_method</span><span class="p">,</span> <span class="n">routing_method</span><span class="p">,</span> <span class="n">translation_method</span><span class="p">,</span>
+                                           <span class="n">scheduling_method</span><span class="p">,</span> <span class="n">instruction_durations</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span>
                                            <span class="n">seed_transpiler</span><span class="p">,</span> <span class="n">optimization_level</span><span class="p">,</span>
                                            <span class="n">callback</span><span class="p">,</span> <span class="n">output_name</span><span class="p">)</span>
 
@@ -542,20 +569,6 @@
         <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">initial_layout</span> <span class="o">=</span> <span class="n">_remap_layout_faulty_backend</span><span class="p">(</span>
             <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">initial_layout</span><span class="p">,</span> <span class="n">transpile_config</span><span class="p">[</span><span class="s1">&#39;faulty_qubits_map&#39;</span><span class="p">])</span>
 
-    <span class="n">ms_basis_swap</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">pass_manager_config</span><span class="o">.</span><span class="n">translation_method</span> <span class="o">==</span> <span class="s1">&#39;unroller&#39;</span>
-            <span class="ow">and</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">basis_gates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="c1"># Workaround for ion trap support: If basis gates includes</span>
-        <span class="c1"># Mølmer-Sørensen (rxx) and the circuit includes gates outside the basis,</span>
-        <span class="c1"># first unroll to u3, cx, then run MSBasisDecomposer to target basis.</span>
-        <span class="n">basic_insts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;measure&#39;</span><span class="p">,</span> <span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="s1">&#39;barrier&#39;</span><span class="p">,</span> <span class="s1">&#39;snapshot&#39;</span><span class="p">]</span>
-        <span class="n">device_insts</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pass_manager_config</span><span class="o">.</span><span class="n">basis_gates</span><span class="p">)</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">basic_insts</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s1">&#39;rxx&#39;</span> <span class="ow">in</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">basis_gates</span> <span class="ow">and</span> \
-                <span class="ow">not</span> <span class="n">device_insts</span> <span class="o">&gt;=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">count_ops</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">ms_basis_swap</span> <span class="o">=</span> <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">basis_gates</span>
-            <span class="n">pass_manager_config</span><span class="o">.</span><span class="n">basis_gates</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-                <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;u3&#39;</span><span class="p">,</span> <span class="s1">&#39;cx&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">pass_manager_config</span><span class="o">.</span><span class="n">basis_gates</span><span class="p">))</span>
-
     <span class="c1"># we choose an appropriate one based on desired optimization level</span>
     <span class="n">level</span> <span class="o">=</span> <span class="n">transpile_config</span><span class="p">[</span><span class="s1">&#39;optimization_level&#39;</span><span class="p">]</span>
 
@@ -569,9 +582,6 @@
         <span class="n">pass_manager</span> <span class="o">=</span> <span class="n">level_3_pass_manager</span><span class="p">(</span><span class="n">pass_manager_config</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s2">&quot;optimization_level can range from 0 to 3.&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">ms_basis_swap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">pass_manager</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MSBasisDecomposer</span><span class="p">(</span><span class="n">ms_basis_swap</span><span class="p">))</span>
 
     <span class="n">result</span> <span class="o">=</span> <span class="n">pass_manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">transpile_config</span><span class="p">[</span><span class="s1">&#39;callback&#39;</span><span class="p">],</span>
                               <span class="n">output_name</span><span class="o">=</span><span class="n">transpile_config</span><span class="p">[</span><span class="s1">&#39;output_name&#39;</span><span class="p">])</span>
@@ -640,6 +650,7 @@
 <span class="k">def</span> <span class="nf">_parse_transpile_args</span><span class="p">(</span><span class="n">circuits</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span>
                           <span class="n">basis_gates</span><span class="p">,</span> <span class="n">coupling_map</span><span class="p">,</span> <span class="n">backend_properties</span><span class="p">,</span>
                           <span class="n">initial_layout</span><span class="p">,</span> <span class="n">layout_method</span><span class="p">,</span> <span class="n">routing_method</span><span class="p">,</span> <span class="n">translation_method</span><span class="p">,</span>
+                          <span class="n">scheduling_method</span><span class="p">,</span> <span class="n">instruction_durations</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span>
                           <span class="n">seed_transpiler</span><span class="p">,</span> <span class="n">optimization_level</span><span class="p">,</span>
                           <span class="n">callback</span><span class="p">,</span> <span class="n">output_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Resolve the various types of args allowed to the transpile() function through</span>
@@ -669,15 +680,18 @@
     <span class="n">layout_method</span> <span class="o">=</span> <span class="n">_parse_layout_method</span><span class="p">(</span><span class="n">layout_method</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
     <span class="n">routing_method</span> <span class="o">=</span> <span class="n">_parse_routing_method</span><span class="p">(</span><span class="n">routing_method</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
     <span class="n">translation_method</span> <span class="o">=</span> <span class="n">_parse_translation_method</span><span class="p">(</span><span class="n">translation_method</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
+    <span class="n">durations</span> <span class="o">=</span> <span class="n">_parse_instruction_durations</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">instruction_durations</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span>
+                                             <span class="n">num_circuits</span><span class="p">)</span>
+    <span class="n">scheduling_method</span> <span class="o">=</span> <span class="n">_parse_scheduling_method</span><span class="p">(</span><span class="n">scheduling_method</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
     <span class="n">seed_transpiler</span> <span class="o">=</span> <span class="n">_parse_seed_transpiler</span><span class="p">(</span><span class="n">seed_transpiler</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
     <span class="n">optimization_level</span> <span class="o">=</span> <span class="n">_parse_optimization_level</span><span class="p">(</span><span class="n">optimization_level</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
     <span class="n">output_name</span> <span class="o">=</span> <span class="n">_parse_output_name</span><span class="p">(</span><span class="n">output_name</span><span class="p">,</span> <span class="n">circuits</span><span class="p">)</span>
     <span class="n">callback</span> <span class="o">=</span> <span class="n">_parse_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">)</span>
 
     <span class="n">list_transpile_args</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">,</span> <span class="n">coupling_map</span><span class="p">,</span> <span class="n">backend_properties</span><span class="p">,</span>
-                    <span class="n">initial_layout</span><span class="p">,</span> <span class="n">layout_method</span><span class="p">,</span> <span class="n">routing_method</span><span class="p">,</span> <span class="n">translation_method</span><span class="p">,</span>
-                    <span class="n">seed_transpiler</span><span class="p">,</span> <span class="n">optimization_level</span><span class="p">,</span>
+    <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">,</span> <span class="n">coupling_map</span><span class="p">,</span> <span class="n">backend_properties</span><span class="p">,</span> <span class="n">initial_layout</span><span class="p">,</span>
+                    <span class="n">layout_method</span><span class="p">,</span> <span class="n">routing_method</span><span class="p">,</span> <span class="n">translation_method</span><span class="p">,</span> <span class="n">scheduling_method</span><span class="p">,</span>
+                    <span class="n">durations</span><span class="p">,</span> <span class="n">seed_transpiler</span><span class="p">,</span> <span class="n">optimization_level</span><span class="p">,</span>
                     <span class="n">output_name</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">backend_num_qubits</span><span class="p">,</span> <span class="n">faulty_qubits_map</span><span class="p">):</span>
         <span class="n">transpile_args</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;pass_manager_config&#39;</span><span class="p">:</span> <span class="n">PassManagerConfig</span><span class="p">(</span><span class="n">basis_gates</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                                                                    <span class="n">coupling_map</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
@@ -686,12 +700,14 @@
                                                                    <span class="n">layout_method</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
                                                                    <span class="n">routing_method</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span>
                                                                    <span class="n">translation_method</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span>
-                                                                   <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">7</span><span class="p">]),</span>
-                          <span class="s1">&#39;optimization_level&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span>
-                          <span class="s1">&#39;output_name&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span>
-                          <span class="s1">&#39;callback&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">10</span><span class="p">],</span>
-                          <span class="s1">&#39;backend_num_qubits&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">11</span><span class="p">],</span>
-                          <span class="s1">&#39;faulty_qubits_map&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">12</span><span class="p">]}</span>
+                                                                   <span class="n">scheduling_method</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span>
+                                                                   <span class="n">instruction_durations</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span>
+                                                                   <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="mi">9</span><span class="p">]),</span>
+                          <span class="s1">&#39;optimization_level&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">10</span><span class="p">],</span>
+                          <span class="s1">&#39;output_name&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">11</span><span class="p">],</span>
+                          <span class="s1">&#39;callback&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">12</span><span class="p">],</span>
+                          <span class="s1">&#39;backend_num_qubits&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">13</span><span class="p">],</span>
+                          <span class="s1">&#39;faulty_qubits_map&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="mi">14</span><span class="p">]}</span>
         <span class="n">list_transpile_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">transpile_args</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">list_transpile_args</span>
@@ -863,6 +879,29 @@
     <span class="k">return</span> <span class="n">translation_method</span>
 
 
+<span class="k">def</span> <span class="nf">_parse_scheduling_method</span><span class="p">(</span><span class="n">scheduling_method</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scheduling_method</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">scheduling_method</span> <span class="o">=</span> <span class="p">[</span><span class="n">scheduling_method</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_circuits</span>
+    <span class="k">return</span> <span class="n">scheduling_method</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_instruction_durations</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">inst_durations</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">):</span>
+    <span class="n">durations</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">inst_durations</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">backend</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">backend_durations</span> <span class="o">=</span> <span class="n">InstructionDurations</span><span class="o">.</span><span class="n">from_backend</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">backend_durations</span> <span class="o">=</span> <span class="n">InstructionDurations</span><span class="p">()</span>
+        <span class="n">durations</span> <span class="o">=</span> <span class="n">backend_durations</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">durations</span> <span class="o">=</span> <span class="n">InstructionDurations</span><span class="p">(</span><span class="n">inst_durations</span><span class="p">,</span>
+                                         <span class="n">dt</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">inst_durations</span><span class="p">,</span> <span class="s1">&#39;dt&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">durations</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">durations</span> <span class="o">=</span> <span class="p">[</span><span class="n">durations</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_circuits</span>
+    <span class="k">return</span> <span class="n">durations</span>
+
+
 <span class="k">def</span> <span class="nf">_parse_seed_transpiler</span><span class="p">(</span><span class="n">seed_transpiler</span><span class="p">,</span> <span class="n">num_circuits</span><span class="p">):</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seed_transpiler</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
         <span class="n">seed_transpiler</span> <span class="o">=</span> <span class="p">[</span><span class="n">seed_transpiler</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_circuits</span>
@@ -940,7 +979,7 @@
         
         &copy; 저작권 2020, Qiskit Development Team
       <span class="lastupdated">
-        최종 업데이트: 2020/10/13
+        최종 업데이트: 2020/10/16
       </span>
 
     </p>
