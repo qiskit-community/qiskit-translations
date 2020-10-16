@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.chemistry.drivers.pyquanted.pyquantedriver &mdash; documentación de Qiskit - 0.22.0</title>
+  <title>qiskit.chemistry.drivers.pyquanted.pyquantedriver &mdash; documentación de Qiskit - 0.23.0</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fuente para qiskit.chemistry.drivers.pyquanted.pyquantedriver</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2018, 2020.</span>
 <span class="c1">#</span>
@@ -274,14 +272,17 @@
 
 <span class="sd">&quot;&quot;&quot; PyQuante Driver &quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">import</span> <span class="nn">importlib</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.utils.validation</span> <span class="kn">import</span> <span class="n">validate_min</span>
-<span class="kn">from</span> <span class="nn">qiskit.chemistry.drivers</span> <span class="kn">import</span> <span class="n">BaseDriver</span><span class="p">,</span> <span class="n">UnitsType</span><span class="p">,</span> <span class="n">HFMethodType</span>
-<span class="kn">from</span> <span class="nn">qiskit.chemistry</span> <span class="kn">import</span> <span class="n">QiskitChemistryError</span><span class="p">,</span> <span class="n">QMolecule</span>
-<span class="kn">from</span> <span class="nn">qiskit.chemistry.drivers.pyquanted.integrals</span> <span class="kn">import</span> <span class="n">compute_integrals</span>
+<span class="kn">from</span> <span class="nn">..units_type</span> <span class="kn">import</span> <span class="n">UnitsType</span>
+<span class="kn">from</span> <span class="nn">..fermionic_driver</span> <span class="kn">import</span> <span class="n">FermionicDriver</span><span class="p">,</span> <span class="n">HFMethodType</span>
+<span class="kn">from</span> <span class="nn">...qiskit_chemistry_error</span> <span class="kn">import</span> <span class="n">QiskitChemistryError</span>
+<span class="kn">from</span> <span class="nn">..molecule</span> <span class="kn">import</span> <span class="n">Molecule</span>
+<span class="kn">from</span> <span class="nn">...qmolecule</span> <span class="kn">import</span> <span class="n">QMolecule</span>
+<span class="kn">from</span> <span class="nn">.integrals</span> <span class="kn">import</span> <span class="n">compute_integrals</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -293,7 +294,7 @@
     <span class="n">B631GSS</span> <span class="o">=</span> <span class="s1">&#39;6-31g**&#39;</span></div>
 
 
-<div class="viewcode-block" id="PyQuanteDriver"><a class="viewcode-back" href="../../../../../stubs/qiskit.chemistry.drivers.PyQuanteDriver.html#qiskit.chemistry.drivers.PyQuanteDriver">[documentos]</a><span class="k">class</span> <span class="nc">PyQuanteDriver</span><span class="p">(</span><span class="n">BaseDriver</span><span class="p">):</span>
+<div class="viewcode-block" id="PyQuanteDriver"><a class="viewcode-back" href="../../../../../stubs/qiskit.chemistry.drivers.PyQuanteDriver.html#qiskit.chemistry.drivers.PyQuanteDriver">[documentos]</a><span class="k">class</span> <span class="nc">PyQuanteDriver</span><span class="p">(</span><span class="n">FermionicDriver</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Qiskit chemistry driver using the PyQuante2 library.</span>
 
@@ -301,49 +302,57 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                 <span class="n">atoms</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="s1">&#39;H 0.0 0.0 0.0; H 0.0 0.0 0.735&#39;</span><span class="p">,</span>
+                 <span class="n">atoms</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span>
+                 <span class="s1">&#39;H 0.0 0.0 0.0; H 0.0 0.0 0.735&#39;</span><span class="p">,</span>
                  <span class="n">units</span><span class="p">:</span> <span class="n">UnitsType</span> <span class="o">=</span> <span class="n">UnitsType</span><span class="o">.</span><span class="n">ANGSTROM</span><span class="p">,</span>
                  <span class="n">charge</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
                  <span class="n">multiplicity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
                  <span class="n">basis</span><span class="p">:</span> <span class="n">BasisType</span> <span class="o">=</span> <span class="n">BasisType</span><span class="o">.</span><span class="n">BSTO3G</span><span class="p">,</span>
                  <span class="n">hf_method</span><span class="p">:</span> <span class="n">HFMethodType</span> <span class="o">=</span> <span class="n">HFMethodType</span><span class="o">.</span><span class="n">RHF</span><span class="p">,</span>
                  <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">,</span>
-                 <span class="n">maxiters</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                 <span class="n">maxiters</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+                 <span class="n">molecule</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Molecule</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-<span class="sd">            atoms: atoms list or string separated by semicolons or line breaks</span>
-<span class="sd">            units: angstrom or bohr</span>
-<span class="sd">            charge: charge</span>
-<span class="sd">            multiplicity: spin multiplicity</span>
-<span class="sd">            basis: sto3g or 6-31g or 6-31g**</span>
+<span class="sd">            atoms: Atoms list or string separated by semicolons or line breaks. Each element in the</span>
+<span class="sd">                list is an atom followed by position e.g. `H 0.0 0.0 0.5`. The preceding example</span>
+<span class="sd">                shows the `XYZ` format for position but `Z-Matrix` format is supported too here.</span>
+<span class="sd">            units: Angstrom or Bohr</span>
+<span class="sd">            charge: Charge on the molecule</span>
+<span class="sd">            multiplicity: Spin multiplicity (2S+1)</span>
+<span class="sd">            basis: Basis set; sto3g, 6-31g or 6-31g**</span>
 <span class="sd">            hf_method: Hartree-Fock Method type</span>
 <span class="sd">            tol: Convergence tolerance see pyquante2.scf hamiltonians and iterators</span>
 <span class="sd">            maxiters: Convergence max iterations see pyquante2.scf hamiltonians and iterators,</span>
-<span class="sd">                      has a min. value of 1.</span>
+<span class="sd">                has a min. value of 1.</span>
+<span class="sd">            molecule: A driver independent Molecule definition instance may be provided. When</span>
+<span class="sd">                a molecule is supplied the `atoms`, `units`, `charge` and `multiplicity` parameters</span>
+<span class="sd">                are all ignored as the Molecule instance now defines these instead. The Molecule</span>
+<span class="sd">                object is read when the driver is run and converted to the driver dependent</span>
+<span class="sd">                configuration for the computation. This allows, for example, the Molecule geometry</span>
+<span class="sd">                to be updated to compute different points.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            QiskitChemistryError: Invalid Input</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">units</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">value</span>
-        <span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span><span class="o">.</span><span class="n">value</span>
-        <span class="n">hf_method</span> <span class="o">=</span> <span class="n">hf_method</span><span class="o">.</span><span class="n">value</span>
         <span class="n">validate_min</span><span class="p">(</span><span class="s1">&#39;maxiters&#39;</span><span class="p">,</span> <span class="n">maxiters</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_valid</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">QiskitChemistryError</span><span class="p">(</span><span class="s2">&quot;Invalid atom input for PYQUANTE Driver &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">atoms</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">atoms</span> <span class="o">=</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">atoms</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">atoms</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;;&#39;</span><span class="p">)</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">molecule</span><span class="o">=</span><span class="n">molecule</span><span class="p">,</span>
+                         <span class="n">basis</span><span class="o">=</span><span class="n">basis</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                         <span class="n">hf_method</span><span class="o">=</span><span class="n">hf_method</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                         <span class="n">supports_molecule</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span> <span class="o">=</span> <span class="n">atoms</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="n">units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">value</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_charge</span> <span class="o">=</span> <span class="n">charge</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_multiplicity</span> <span class="o">=</span> <span class="n">multiplicity</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_basis</span> <span class="o">=</span> <span class="n">basis</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_hf_method</span> <span class="o">=</span> <span class="n">hf_method</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tol</span> <span class="o">=</span> <span class="n">tol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_maxiters</span> <span class="o">=</span> <span class="n">maxiters</span>
 
@@ -361,22 +370,37 @@
         <span class="k">raise</span> <span class="n">QiskitChemistryError</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span>
 
 <div class="viewcode-block" id="PyQuanteDriver.run"><a class="viewcode-back" href="../../../../../stubs/qiskit.chemistry.drivers.PyQuanteDriver.run.html#qiskit.chemistry.drivers.PyQuanteDriver.run">[documentos]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QMolecule</span><span class="p">:</span>
-        <span class="n">q_mol</span> <span class="o">=</span> <span class="n">compute_integrals</span><span class="p">(</span><span class="n">atoms</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">,</span>
-                                  <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span>
-                                  <span class="n">charge</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_charge</span><span class="p">,</span>
-                                  <span class="n">multiplicity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_multiplicity</span><span class="p">,</span>
-                                  <span class="n">basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_basis</span><span class="p">,</span>
-                                  <span class="n">hf_method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_hf_method</span><span class="p">,</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">molecule</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">atoms</span> <span class="o">=</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">coord</span><span class="p">))</span>
+                              <span class="k">for</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">coord</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">molecule</span><span class="o">.</span><span class="n">geometry</span><span class="p">])</span>
+            <span class="n">charge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">molecule</span><span class="o">.</span><span class="n">charge</span>
+            <span class="n">multiplicity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">molecule</span><span class="o">.</span><span class="n">multiplicity</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">molecule</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">atoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span>
+            <span class="n">charge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_charge</span>
+            <span class="n">multiplicity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiplicity</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span>
+
+        <span class="n">basis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span>
+        <span class="n">hf_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hf_method</span>
+
+        <span class="n">q_mol</span> <span class="o">=</span> <span class="n">compute_integrals</span><span class="p">(</span><span class="n">atoms</span><span class="o">=</span><span class="n">atoms</span><span class="p">,</span>
+                                  <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span>
+                                  <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span>
+                                  <span class="n">multiplicity</span><span class="o">=</span><span class="n">multiplicity</span><span class="p">,</span>
+                                  <span class="n">basis</span><span class="o">=</span><span class="n">basis</span><span class="p">,</span>
+                                  <span class="n">hf_method</span><span class="o">=</span><span class="n">hf_method</span><span class="p">,</span>
                                   <span class="n">tol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tol</span><span class="p">,</span>
                                   <span class="n">maxiters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_maxiters</span><span class="p">)</span>
 
         <span class="n">q_mol</span><span class="o">.</span><span class="n">origin_driver_name</span> <span class="o">=</span> <span class="s1">&#39;PYQUANTE&#39;</span>
-        <span class="n">cfg</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;atoms=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">),</span>
-               <span class="s1">&#39;units=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">),</span>
-               <span class="s1">&#39;charge=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_charge</span><span class="p">),</span>
-               <span class="s1">&#39;multiplicity=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_multiplicity</span><span class="p">),</span>
-               <span class="s1">&#39;basis=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_basis</span><span class="p">),</span>
-               <span class="s1">&#39;hf_method=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_hf_method</span><span class="p">),</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;atoms=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">atoms</span><span class="p">),</span>
+               <span class="s1">&#39;units=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+               <span class="s1">&#39;charge=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">charge</span><span class="p">),</span>
+               <span class="s1">&#39;multiplicity=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">multiplicity</span><span class="p">),</span>
+               <span class="s1">&#39;basis=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">basis</span><span class="p">),</span>
+               <span class="s1">&#39;hf_method=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hf_method</span><span class="p">),</span>
                <span class="s1">&#39;tol=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tol</span><span class="p">),</span>
                <span class="s1">&#39;maxiters=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_maxiters</span><span class="p">),</span>
                <span class="s1">&#39;&#39;</span><span class="p">]</span>
@@ -398,7 +422,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Actualizado por última vez en 2020/10/13.
+        Actualizado por última vez en 2020/10/16.
       </span>
 
     </p>

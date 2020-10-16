@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.algorithms.eigen_solvers.numpy_eigen_solver &mdash; documentación de Qiskit - 0.22.0</title>
+  <title>qiskit.aqua.algorithms.eigen_solvers.numpy_eigen_solver &mdash; documentación de Qiskit - 0.23.0</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fuente para qiskit.aqua.algorithms.eigen_solvers.numpy_eigen_solver</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2018, 2020.</span>
 <span class="c1">#</span>
@@ -274,7 +272,7 @@
 
 <span class="sd">&quot;&quot;&quot;The Eigensolver algorithm.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
@@ -285,7 +283,7 @@
 <span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">ClassicalAlgorithm</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">OperatorBase</span><span class="p">,</span> <span class="n">LegacyBaseOperator</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">StateFn</span><span class="p">,</span> <span class="n">ListOp</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.utils.validation</span> <span class="kn">import</span> <span class="n">validate_min</span>
-<span class="kn">from</span> <span class="nn">.eigen_solver_result</span> <span class="kn">import</span> <span class="n">EigensolverResult</span>
+<span class="kn">from</span> <span class="nn">.eigen_solver</span> <span class="kn">import</span> <span class="n">Eigensolver</span><span class="p">,</span> <span class="n">EigensolverResult</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -293,7 +291,7 @@
 <span class="c1"># pylint: disable=invalid-name</span>
 
 
-<div class="viewcode-block" id="NumPyEigensolver"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.NumPyEigensolver.html#qiskit.aqua.algorithms.NumPyEigensolver">[documentos]</a><span class="k">class</span> <span class="nc">NumPyEigensolver</span><span class="p">(</span><span class="n">ClassicalAlgorithm</span><span class="p">):</span>
+<div class="viewcode-block" id="NumPyEigensolver"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.NumPyEigensolver.html#qiskit.aqua.algorithms.NumPyEigensolver">[documentos]</a><span class="k">class</span> <span class="nc">NumPyEigensolver</span><span class="p">(</span><span class="n">ClassicalAlgorithm</span><span class="p">,</span> <span class="n">Eigensolver</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The NumPy Eigensolver algorithm.</span>
 
@@ -310,7 +308,9 @@
                  <span class="n">operator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="n">LegacyBaseOperator</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
                  <span class="n">aux_operators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span>
-                                                             <span class="n">LegacyBaseOperator</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span>
+                                                             <span class="n">LegacyBaseOperator</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">filter_criterion</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span>
+                                            <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
                  <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -320,6 +320,12 @@
 <span class="sd">                application stack use this algorithm with an operator it creates.</span>
 <span class="sd">            k: How many eigenvalues are to be computed, has a min. value of 1.</span>
 <span class="sd">            aux_operators: Auxiliary operators to be evaluated at each eigenvalue</span>
+<span class="sd">            filter_criterion: callable that allows to filter eigenvalues/eigenstates, only feasible</span>
+<span class="sd">                eigenstates are returned in the results. The callable has the signature</span>
+<span class="sd">                `filter(eigenstate, eigenvalue, aux_values)` and must return a boolean to indicate</span>
+<span class="sd">                whether to keep this value in the final returned result or not. If the number of</span>
+<span class="sd">                elements that satisfies the criterion is smaller than `k` then the returned list has</span>
+<span class="sd">                fewer elements and can even be empty.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">validate_min</span><span class="p">(</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -332,44 +338,46 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">operator</span> <span class="o">=</span> <span class="n">operator</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">aux_operators</span> <span class="o">=</span> <span class="n">aux_operators</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filter_criterion</span> <span class="o">=</span> <span class="n">filter_criterion</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, Any]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">operator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot; returns operator &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator</span>
 
     <span class="nd">@operator</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">operator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operator</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="n">LegacyBaseOperator</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; set operator &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="n">LegacyBaseOperator</span><span class="p">):</span>
             <span class="n">operator</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">to_opflow</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">operator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_operator</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_operator</span> <span class="o">=</span> <span class="n">operator</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_check_set_k</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_operator</span> <span class="o">=</span> <span class="n">operator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_set_k</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">aux_operators</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">]]]:</span>
-        <span class="sd">&quot;&quot;&quot; returns aux operators &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aux_operators</span>
 
     <span class="nd">@aux_operators</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">aux_operators</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                      <span class="n">aux_operators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span>
-                                                                  <span class="n">LegacyBaseOperator</span><span class="p">]]]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; set aux operators &quot;&quot;&quot;</span>
+                      <span class="n">aux_operators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+                          <span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span>
+                                <span class="n">LegacyBaseOperator</span><span class="p">,</span>
+                                <span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span>
+                                                    <span class="n">LegacyBaseOperator</span><span class="p">]]]]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">aux_operators</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_aux_operators</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">aux_operators</span> <span class="o">=</span> \
-                <span class="p">[</span><span class="n">aux_operators</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aux_operators</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">aux_operators</span>
-            <span class="n">converted</span> <span class="o">=</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">to_opflow</span><span class="p">()</span> <span class="k">if</span> <span class="n">op</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">aux_operators</span><span class="p">]</span>
-            <span class="c1"># Chemistry passes aux_ops with 0 qubits and paulis sometimes</span>
+            <span class="n">aux_operators</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aux_operators</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">aux_operators</span> <span class="o">=</span> <span class="p">[</span><span class="n">aux_operators</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">aux_operators</span><span class="p">:</span>
             <span class="n">zero_op</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">tensorpower</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">operator</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.0</span>
-            <span class="n">converted</span> <span class="o">=</span> <span class="p">[</span><span class="n">zero_op</span> <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">op</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">converted</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_aux_operators</span> <span class="o">=</span> <span class="n">converted</span>
+            <span class="n">converted</span> <span class="o">=</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">to_opflow</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">LegacyBaseOperator</span><span class="p">)</span>
+                         <span class="k">else</span> <span class="n">op</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">aux_operators</span><span class="p">]</span>
+
+            <span class="c1"># For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes.</span>
+            <span class="n">aux_operators</span> <span class="o">=</span> <span class="p">[</span><span class="n">zero_op</span> <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">op</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">converted</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aux_operators</span> <span class="o">=</span> <span class="n">aux_operators</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">k</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -383,8 +391,20 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_in_k</span> <span class="o">=</span> <span class="n">k</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_set_k</span><span class="p">()</span>
 
-<div class="viewcode-block" id="NumPyEigensolver.supports_aux_operators"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.NumPyEigensolver.supports_aux_operators.html#qiskit.aqua.algorithms.NumPyEigensolver.supports_aux_operators">[documentos]</a>    <span class="k">def</span> <span class="nf">supports_aux_operators</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; If will process auxiliary operators or not &quot;&quot;&quot;</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">filter_criterion</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span>
+            <span class="n">Callable</span><span class="p">[[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span> <span class="nb">bool</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot; returns the filter criterion if set &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_criterion</span>
+
+    <span class="nd">@filter_criterion</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">filter_criterion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filter_criterion</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+            <span class="n">Callable</span><span class="p">[[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span> <span class="nb">bool</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; set the filter criterion &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filter_criterion</span> <span class="o">=</span> <span class="n">filter_criterion</span>
+
+<div class="viewcode-block" id="NumPyEigensolver.supports_aux_operators"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.NumPyEigensolver.supports_aux_operators.html#qiskit.aqua.algorithms.NumPyEigensolver.supports_aux_operators">[documentos]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">supports_aux_operators</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="k">def</span> <span class="nf">_check_set_k</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -397,6 +417,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_in_k</span>
 
     <span class="k">def</span> <span class="nf">_solve</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
         <span class="n">sp_mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator</span><span class="o">.</span><span class="n">to_spmatrix</span><span class="p">()</span>
         <span class="c1"># If matrix is diagonal, the elements on the diagonal are the eigenvalues. Solve by sorting.</span>
         <span class="k">if</span> <span class="n">scisparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">sp_mat</span><span class="o">.</span><span class="n">diagonal</span><span class="p">())</span><span class="o">.</span><span class="n">nnz</span> <span class="o">==</span> <span class="n">sp_mat</span><span class="o">.</span><span class="n">nnz</span><span class="p">:</span>
@@ -423,12 +444,17 @@
     <span class="k">def</span> <span class="nf">_get_ground_state_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="s1">&#39;eigvals&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span> <span class="ow">or</span> <span class="s1">&#39;eigvecs&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_solve</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvals&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">real</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;wavefunction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvecs&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvals&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvals&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">real</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;wavefunction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvecs&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;wavefunction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_get_energies</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="s1">&#39;eigvals&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span> <span class="ow">or</span> <span class="s1">&#39;eigvecs&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_solve</span><span class="p">()</span>
+
         <span class="n">energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_k</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_k</span><span class="p">):</span>
             <span class="n">energies</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvals&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">real</span>
@@ -457,7 +483,16 @@
                     <span class="n">value</span> <span class="o">=</span> <span class="n">StateFn</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="n">is_measurement</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">wavefn</span><span class="p">)</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">real</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">real</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">threshold</span> <span class="k">else</span> <span class="mf">0.0</span>
             <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">value</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NumPyEigensolver.compute_eigenvalues"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.NumPyEigensolver.compute_eigenvalues.html#qiskit.aqua.algorithms.NumPyEigensolver.compute_eigenvalues">[documentos]</a>    <span class="k">def</span> <span class="nf">compute_eigenvalues</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">operator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="n">LegacyBaseOperator</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">aux_operators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span>
+                                                        <span class="n">LegacyBaseOperator</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EigensolverResult</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">compute_eigenvalues</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="n">aux_operators</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -470,10 +505,53 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s2">&quot;Operator was never provided&quot;</span><span class="p">)</span>
 
+        <span class="n">k_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_criterion</span><span class="p">:</span>
+            <span class="c1"># need to consider all elements if a filter is set</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_k</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_operator</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_solve</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_get_ground_state_energy</span><span class="p">()</span>
+
+        <span class="c1"># compute energies before filtering, as this also evaluates the aux operators</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_get_energies</span><span class="p">()</span>
+
+        <span class="c1"># if a filter is set, loop over the given values and only keep</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_criterion</span><span class="p">:</span>
+
+            <span class="n">eigvecs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">eigvals</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">energies</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">aux_ops</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">cnt</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvals&#39;</span><span class="p">])):</span>
+                <span class="n">eigvec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvecs&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">eigval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvals&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;energies&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">if</span> <span class="s1">&#39;aux_ops&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">:</span>
+                    <span class="n">aux_op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;aux_ops&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">aux_op</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_criterion</span><span class="p">(</span><span class="n">eigvec</span><span class="p">,</span> <span class="n">eigval</span><span class="p">,</span> <span class="n">aux_op</span><span class="p">):</span>
+                    <span class="n">cnt</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">eigvecs</span> <span class="o">+=</span> <span class="p">[</span><span class="n">eigvec</span><span class="p">]</span>
+                    <span class="n">eigvals</span> <span class="o">+=</span> <span class="p">[</span><span class="n">eigval</span><span class="p">]</span>
+                    <span class="n">energies</span> <span class="o">+=</span> <span class="p">[</span><span class="n">energy</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="s1">&#39;aux_ops&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">:</span>
+                        <span class="n">aux_ops</span> <span class="o">+=</span> <span class="p">[</span><span class="n">aux_op</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">cnt</span> <span class="o">==</span> <span class="n">k_orig</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvecs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eigvecs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;eigvals&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eigvals</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;energies&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">energies</span><span class="p">)</span>
+            <span class="c1"># conversion to np.array breaks in case of aux_ops</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;aux_ops&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aux_ops</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_k</span> <span class="o">=</span> <span class="n">k_orig</span>
+
+        <span class="c1"># evaluate ground state after filtering (in case a filter is set)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_ground_state_energy</span><span class="p">()</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;NumPyEigensolver _run result:</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
                      <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
@@ -516,7 +594,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Actualizado por última vez en 2020/10/13.
+        Actualizado por última vez en 2020/10/16.
       </span>
 
     </p>

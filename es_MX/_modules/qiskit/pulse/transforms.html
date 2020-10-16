@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.pulse.transforms &mdash; documentación de Qiskit - 0.22.0</title>
+  <title>qiskit.pulse.transforms &mdash; documentación de Qiskit - 0.23.0</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Código fuente para qiskit.pulse.transforms</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2019.</span>
 <span class="c1">#</span>
@@ -277,13 +275,15 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Iterable</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.pulse</span> <span class="kn">import</span> <span class="n">channels</span> <span class="k">as</span> <span class="n">chans</span><span class="p">,</span> <span class="n">exceptions</span><span class="p">,</span> <span class="n">instructions</span><span class="p">,</span> <span class="n">interfaces</span>
-<span class="kn">from</span> <span class="nn">qiskit.pulse.instructions</span> <span class="kn">import</span> <span class="n">directives</span>
+<span class="kn">from</span> <span class="nn">qiskit.pulse.exceptions</span> <span class="kn">import</span> <span class="n">PulseError</span>
 <span class="kn">from</span> <span class="nn">qiskit.pulse.instruction_schedule_map</span> <span class="kn">import</span> <span class="n">InstructionScheduleMap</span>
+<span class="kn">from</span> <span class="nn">qiskit.pulse.instructions</span> <span class="kn">import</span> <span class="n">directives</span>
 <span class="kn">from</span> <span class="nn">qiskit.pulse.schedule</span> <span class="kn">import</span> <span class="n">Schedule</span>
 
 
@@ -516,8 +516,11 @@
             <span class="k">continue</span>
 
         <span class="n">curr_time</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Use the copy of timeslots. When a delay is inserted before the current interval,</span>
+        <span class="c1"># current timeslot is pointed twice and the program crashes with the wrong pointer index.</span>
+        <span class="n">timeslots</span> <span class="o">=</span> <span class="n">schedule</span><span class="o">.</span><span class="n">timeslots</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="c1"># TODO: Replace with method of getting instructions on a channel</span>
-        <span class="k">for</span> <span class="n">interval</span> <span class="ow">in</span> <span class="n">schedule</span><span class="o">.</span><span class="n">timeslots</span><span class="p">[</span><span class="n">channel</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">interval</span> <span class="ow">in</span> <span class="n">timeslots</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">curr_time</span> <span class="o">&gt;=</span> <span class="n">until</span><span class="p">:</span>
                 <span class="k">break</span>
             <span class="k">if</span> <span class="n">interval</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">curr_time</span><span class="p">:</span>
@@ -693,6 +696,85 @@
     <span class="k">return</span> <span class="n">aligned</span>
 
 
+<span class="k">def</span> <span class="nf">align_equispaced</span><span class="p">(</span><span class="n">schedule</span><span class="p">:</span> <span class="n">Schedule</span><span class="p">,</span>
+                     <span class="n">duration</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schedule</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Schedule a list of pulse instructions with equivalent interval.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        schedule: Input schedule of which top-level ``child`` nodes will be</span>
+<span class="sd">            reschedulued.</span>
+<span class="sd">        duration: Duration of context. This should be larger than the schedule duration.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        New schedule with input `schedule`` child schedules and instructions</span>
+<span class="sd">        aligned with equivalent interval.</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        This context is convenient for writing PDD or Hahn echo sequence for example.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">duration</span> <span class="ow">and</span> <span class="n">duration</span> <span class="o">&lt;</span> <span class="n">schedule</span><span class="o">.</span><span class="n">duration</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">schedule</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">total_delay</span> <span class="o">=</span> <span class="n">duration</span> <span class="o">-</span> <span class="n">schedule</span><span class="o">.</span><span class="n">duration</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">schedule</span><span class="o">.</span><span class="n">_children</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Calculate the interval in between sub-schedules.</span>
+        <span class="c1"># If the duration cannot be divided by the number of sub-schedules,</span>
+        <span class="c1"># the modulo is appended and prepended to the input schedule.</span>
+        <span class="n">interval</span><span class="p">,</span> <span class="n">mod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divmod</span><span class="p">(</span><span class="n">total_delay</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">schedule</span><span class="o">.</span><span class="n">_children</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">interval</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">mod</span> <span class="o">=</span> <span class="n">total_delay</span>
+
+    <span class="c1"># Calculate pre schedule delay</span>
+    <span class="n">delay</span><span class="p">,</span> <span class="n">mod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divmod</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">aligned</span> <span class="o">=</span> <span class="n">Schedule</span><span class="p">()</span>
+    <span class="c1"># Insert sub-schedules with interval</span>
+    <span class="n">_t0</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">aligned</span><span class="o">.</span><span class="n">stop_time</span> <span class="o">+</span> <span class="n">delay</span> <span class="o">+</span> <span class="n">mod</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">schedule</span><span class="o">.</span><span class="n">_children</span><span class="p">:</span>
+        <span class="n">aligned</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">_t0</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">_t0</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">aligned</span><span class="o">.</span><span class="n">stop_time</span> <span class="o">+</span> <span class="n">interval</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pad</span><span class="p">(</span><span class="n">aligned</span><span class="p">,</span> <span class="n">aligned</span><span class="o">.</span><span class="n">channels</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">align_func</span><span class="p">(</span><span class="n">schedule</span><span class="p">:</span> <span class="n">Schedule</span><span class="p">,</span>
+               <span class="n">duration</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+               <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Schedule</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Schedule a list of pulse instructions with schedule position defined by the</span>
+<span class="sd">    numerical expression.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        schedule: Input schedule of which top-level ``child`` nodes will be</span>
+<span class="sd">            reschedulued.</span>
+<span class="sd">        duration: Duration of context. This should be larger than the schedule duration.</span>
+<span class="sd">        func: A function that takes an index of sub-schedule and returns the</span>
+<span class="sd">            fractional coordinate of of that sub-schedule.</span>
+<span class="sd">            The returned value should be defined within [0, 1].</span>
+<span class="sd">            The pulse index starts from 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        New schedule with input `schedule`` child schedules and instructions</span>
+<span class="sd">        aligned with equivalent interval.</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        This context is convenient for writing UDD sequence for example.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">duration</span> <span class="o">&lt;</span> <span class="n">schedule</span><span class="o">.</span><span class="n">duration</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">schedule</span>
+
+    <span class="n">aligned</span> <span class="o">=</span> <span class="n">Schedule</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">child</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">schedule</span><span class="o">.</span><span class="n">_children</span><span class="p">):</span>
+        <span class="n">_t_center</span> <span class="o">=</span> <span class="n">duration</span> <span class="o">*</span> <span class="n">func</span><span class="p">(</span><span class="n">ind</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">_t0</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_t_center</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">child</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_t0</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">_t0</span> <span class="o">&gt;</span> <span class="n">duration</span><span class="p">:</span>
+            <span class="n">PulseError</span><span class="p">(</span><span class="s1">&#39;Invalid schedule position t=</span><span class="si">%d</span><span class="s1"> is specified at index=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_t0</span><span class="p">,</span> <span class="n">ind</span><span class="p">))</span>
+        <span class="n">aligned</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">_t0</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pad</span><span class="p">(</span><span class="n">aligned</span><span class="p">,</span> <span class="n">aligned</span><span class="o">.</span><span class="n">channels</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
 <span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">schedule</span><span class="p">:</span> <span class="n">Schedule</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schedule</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Flatten any called nodes into a Schedule tree with no nested children.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">schedule</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
@@ -725,7 +807,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Actualizado por última vez en 2020/10/13.
+        Actualizado por última vez en 2020/10/16.
       </span>
 
     </p>
