@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.pulse.library.parametric_pulses &mdash; Qiskit 0.22.0 - dokumentacja</title>
+  <title>qiskit.pulse.library.parametric_pulses &mdash; Qiskit 0.23.0 - dokumentacja</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Kod źródłowy modułu qiskit.pulse.library.parametric_pulses</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -300,15 +298,16 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">continuous</span>
-<span class="kn">from</span> <span class="nn">.discrete</span> <span class="kn">import</span> <span class="n">gaussian</span><span class="p">,</span> <span class="n">gaussian_square</span><span class="p">,</span> <span class="n">drag</span><span class="p">,</span> <span class="n">constant</span>
-<span class="kn">from</span> <span class="nn">.pulse</span> <span class="kn">import</span> <span class="n">Pulse</span>
-<span class="kn">from</span> <span class="nn">.waveform</span> <span class="kn">import</span> <span class="n">Waveform</span>
-<span class="kn">from</span> <span class="nn">..exceptions</span> <span class="kn">import</span> <span class="n">PulseError</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.parameterexpression</span> <span class="kn">import</span> <span class="n">ParameterExpression</span><span class="p">,</span> <span class="n">ParameterValueType</span>
+<span class="kn">from</span> <span class="nn">qiskit.pulse.exceptions</span> <span class="kn">import</span> <span class="n">PulseError</span>
+<span class="kn">from</span> <span class="nn">qiskit.pulse.library</span> <span class="kn">import</span> <span class="n">continuous</span>
+<span class="kn">from</span> <span class="nn">qiskit.pulse.library.discrete</span> <span class="kn">import</span> <span class="n">gaussian</span><span class="p">,</span> <span class="n">gaussian_square</span><span class="p">,</span> <span class="n">drag</span><span class="p">,</span> <span class="n">constant</span>
+<span class="kn">from</span> <span class="nn">qiskit.pulse.library.pulse</span> <span class="kn">import</span> <span class="n">Pulse</span>
+<span class="kn">from</span> <span class="nn">qiskit.pulse.library.waveform</span> <span class="kn">import</span> <span class="n">Waveform</span>
 
 
 <span class="k">class</span> <span class="nc">ParametricPulse</span><span class="p">(</span><span class="n">Pulse</span><span class="p">):</span>
@@ -354,6 +353,34 @@
         <span class="sd">&quot;&quot;&quot;Return a dictionary containing the pulse&#39;s parameters.&quot;&quot;&quot;</span>
         <span class="k">pass</span>
 
+    <span class="k">def</span> <span class="nf">assign_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                          <span class="n">value_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">ParameterExpression</span><span class="p">,</span> <span class="n">ParameterValueType</span><span class="p">]</span>
+                          <span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ParametricPulse&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return a new ParametricPulse with parameters assigned.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value_dict: A mapping from Parameters to either numeric values or another</span>
+<span class="sd">                Parameter expression.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            New pulse with updated parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">([</span><span class="n">_is_parameterized</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">()]):</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="n">new_parameters</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">op</span><span class="p">,</span> <span class="n">op_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">value_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="n">op_value</span><span class="p">)</span> <span class="ow">and</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">op_value</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+                    <span class="n">op_value</span> <span class="o">=</span> <span class="n">op_value</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="c1"># TODO: ParameterExpression doesn&#39;t support complex values</span>
+                        <span class="n">op_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">op_value</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                <span class="n">new_parameters</span><span class="p">[</span><span class="n">op</span><span class="p">]</span> <span class="o">=</span> <span class="n">op_value</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)(</span><span class="o">**</span><span class="n">new_parameters</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
              <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
              <span class="n">filename</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -395,8 +422,8 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">duration</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-                 <span class="n">amp</span><span class="p">:</span> <span class="nb">complex</span><span class="p">,</span>
-                 <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">amp</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">],</span>
+                 <span class="n">sigma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">],</span>
                  <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize the gaussian pulse.</span>
 
@@ -407,17 +434,19 @@
 <span class="sd">                   in the class docstring.</span>
 <span class="sd">            name: Display name for this pulse envelope.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_amp</span> <span class="o">=</span> <span class="nb">complex</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="n">amp</span><span class="p">):</span>
+            <span class="n">amp</span> <span class="o">=</span> <span class="nb">complex</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_amp</span> <span class="o">=</span> <span class="n">amp</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sigma</span> <span class="o">=</span> <span class="n">sigma</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">amp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">complex</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">amp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The Gaussian amplitude.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_amp</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">sigma</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">sigma</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The Gaussian standard deviation of the pulse width.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sigma</span>
 
@@ -426,10 +455,10 @@
                         <span class="n">sigma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span> <span class="n">zero_ends</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Gaussian.validate_parameters"><a class="viewcode-back" href="../../../../stubs/qiskit.pulse.library.Gaussian.validate_parameters.html#qiskit.pulse.Gaussian.validate_parameters">[dokumentacja]</a>    <span class="k">def</span> <span class="nf">validate_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;The amplitude norm must be &lt;= 1, &quot;</span>
                              <span class="s2">&quot;found: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)))</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;Sigma must be greater than 0.&quot;</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
@@ -464,9 +493,9 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">duration</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-                 <span class="n">amp</span><span class="p">:</span> <span class="nb">complex</span><span class="p">,</span>
-                 <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-                 <span class="n">width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">amp</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">],</span>
+                 <span class="n">sigma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">],</span>
+                 <span class="n">width</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">],</span>
                  <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize the gaussian square pulse.</span>
 
@@ -478,23 +507,25 @@
 <span class="sd">            width: The duration of the embedded square pulse.</span>
 <span class="sd">            name: Display name for this pulse envelope.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_amp</span> <span class="o">=</span> <span class="nb">complex</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="n">amp</span><span class="p">):</span>
+            <span class="n">amp</span> <span class="o">=</span> <span class="nb">complex</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_amp</span> <span class="o">=</span> <span class="n">amp</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sigma</span> <span class="o">=</span> <span class="n">sigma</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_width</span> <span class="o">=</span> <span class="n">width</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">amp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">complex</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">amp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The Gaussian amplitude.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_amp</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">sigma</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">sigma</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The Gaussian standard deviation of the pulse width.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sigma</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">width</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">width</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The width of the square portion of the pulse.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_width</span>
 
@@ -504,12 +535,12 @@
                                <span class="n">zero_ends</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="GaussianSquare.validate_parameters"><a class="viewcode-back" href="../../../../stubs/qiskit.pulse.library.GaussianSquare.validate_parameters.html#qiskit.pulse.GaussianSquare.validate_parameters">[dokumentacja]</a>    <span class="k">def</span> <span class="nf">validate_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;The amplitude norm must be &lt;= 1, &quot;</span>
                              <span class="s2">&quot;found: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)))</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;Sigma must be greater than 0.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;The pulse width must be at least 0 and less than its duration.&quot;</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
@@ -559,9 +590,9 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">duration</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-                 <span class="n">amp</span><span class="p">:</span> <span class="nb">complex</span><span class="p">,</span>
-                 <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-                 <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">amp</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">],</span>
+                 <span class="n">sigma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">],</span>
+                 <span class="n">beta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">],</span>
                  <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize the drag pulse.</span>
 
@@ -573,23 +604,25 @@
 <span class="sd">            beta: The correction amplitude.</span>
 <span class="sd">            name: Display name for this pulse envelope.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_amp</span> <span class="o">=</span> <span class="nb">complex</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="n">amp</span><span class="p">):</span>
+            <span class="n">amp</span> <span class="o">=</span> <span class="nb">complex</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_amp</span> <span class="o">=</span> <span class="n">amp</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sigma</span> <span class="o">=</span> <span class="n">sigma</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_beta</span> <span class="o">=</span> <span class="n">beta</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">amp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">complex</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">amp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The Gaussian amplitude.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_amp</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">sigma</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">sigma</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The Gaussian standard deviation of the pulse width.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sigma</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">beta</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">beta</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The weighing factor for the Gaussian derivative component of the waveform.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_beta</span>
 
@@ -598,15 +631,16 @@
                     <span class="n">beta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">,</span> <span class="n">zero_ends</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Drag.validate_parameters"><a class="viewcode-back" href="../../../../stubs/qiskit.pulse.library.Drag.validate_parameters.html#qiskit.pulse.Drag.validate_parameters">[dokumentacja]</a>    <span class="k">def</span> <span class="nf">validate_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;The amplitude norm must be &lt;= 1, &quot;</span>
                              <span class="s2">&quot;found: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)))</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;Sigma must be greater than 0.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">,</span> <span class="nb">complex</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">,</span> <span class="nb">complex</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;Beta must be real.&quot;</span><span class="p">)</span>
         <span class="c1"># Check if beta is too large: the amplitude norm must be &lt;=1 for all points</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">):</span>
             <span class="c1"># If beta &lt;= sigma, then the maximum amplitude is at duration / 2, which is</span>
             <span class="c1"># already constrainted by self.amp &lt;= 1</span>
 
@@ -649,7 +683,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">duration</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-                 <span class="n">amp</span><span class="p">:</span> <span class="nb">complex</span><span class="p">,</span>
+                 <span class="n">amp</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">],</span>
                  <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the constant-valued pulse.</span>
@@ -659,11 +693,13 @@
 <span class="sd">            amp: The amplitude of the constant square pulse.</span>
 <span class="sd">            name: Display name for this pulse envelope.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_amp</span> <span class="o">=</span> <span class="nb">complex</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="n">amp</span><span class="p">):</span>
+            <span class="n">amp</span> <span class="o">=</span> <span class="nb">complex</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_amp</span> <span class="o">=</span> <span class="n">amp</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">amp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">complex</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">amp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The constant value amplitude.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_amp</span>
 
@@ -671,7 +707,7 @@
         <span class="k">return</span> <span class="n">constant</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">amp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Constant.validate_parameters"><a class="viewcode-back" href="../../../../stubs/qiskit.pulse.library.Constant.validate_parameters.html#qiskit.pulse.Constant.validate_parameters">[dokumentacja]</a>    <span class="k">def</span> <span class="nf">validate_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_parameterized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;The amplitude norm must be &lt;= 1, &quot;</span>
                              <span class="s2">&quot;found: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)))</span></div>
 
@@ -697,7 +733,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">duration</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-                 <span class="n">amp</span><span class="p">:</span> <span class="nb">complex</span><span class="p">,</span>
+                 <span class="n">amp</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">],</span>
                  <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the constant-valued pulse.</span>
@@ -707,8 +743,15 @@
 <span class="sd">            amp: The amplitude of the constant square pulse.</span>
 <span class="sd">            name: Display name for this pulse envelope.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ConstantPulse</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">amp</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">amp</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The ConstantPulse is deprecated. Use Constant instead&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_is_parameterized</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Shorthand for a frequently checked predicate. ParameterExpressions cannot be</span>
+<span class="sd">    validated until they are numerically assigned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">)</span>
 </pre></div>
 
            </div>
@@ -724,7 +767,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Ostatnia modyfikacja 2020/10/14.
+        Ostatnia modyfikacja 2020/10/16.
       </span>
 
     </p>

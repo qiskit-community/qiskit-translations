@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.optimization.converters.inequality_to_equality &mdash; Qiskit 0.22.0 - dokumentacja</title>
+  <title>qiskit.optimization.converters.inequality_to_equality &mdash; Qiskit 0.23.0 - dokumentacja</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Kod źródłowy modułu qiskit.optimization.converters.inequality_to_equality</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -278,8 +276,8 @@
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
+<span class="kn">import</span> <span class="nn">qiskit.optimization.algorithms</span>  <span class="c1"># pylint: disable=unused-import</span>
 <span class="kn">from</span> <span class="nn">.quadratic_program_converter</span> <span class="kn">import</span> <span class="n">QuadraticProgramConverter</span>
-<span class="kn">from</span> <span class="nn">..algorithms.optimization_algorithm</span> <span class="kn">import</span> <span class="n">OptimizationResult</span>
 <span class="kn">from</span> <span class="nn">..exceptions</span> <span class="kn">import</span> <span class="n">QiskitOptimizationError</span>
 <span class="kn">from</span> <span class="nn">..problems.constraint</span> <span class="kn">import</span> <span class="n">Constraint</span>
 <span class="kn">from</span> <span class="nn">..problems.quadratic_objective</span> <span class="kn">import</span> <span class="n">QuadraticObjective</span>
@@ -448,21 +446,30 @@
 
         <span class="n">lhs_lb</span><span class="p">,</span> <span class="n">lhs_ub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_linear_bounds</span><span class="p">(</span><span class="n">linear</span><span class="p">)</span>
 
+        <span class="n">var_added</span> <span class="o">=</span> <span class="kc">False</span>
+
         <span class="k">if</span> <span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">LE</span><span class="p">:</span>
-            <span class="n">sign</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">integer_var</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">new_rhs</span> <span class="o">-</span> <span class="n">lhs_lb</span><span class="p">)</span>
+            <span class="n">var_ub</span> <span class="o">=</span> <span class="n">new_rhs</span> <span class="o">-</span> <span class="n">lhs_lb</span>
+            <span class="k">if</span> <span class="n">var_ub</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sign</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">integer_var</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">var_ub</span><span class="p">)</span>
+                <span class="n">var_added</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">elif</span> <span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">GE</span><span class="p">:</span>
-            <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">integer_var</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">lhs_ub</span> <span class="o">-</span> <span class="n">new_rhs</span><span class="p">)</span>
+            <span class="n">var_ub</span> <span class="o">=</span> <span class="n">lhs_ub</span> <span class="o">-</span> <span class="n">new_rhs</span>
+            <span class="k">if</span> <span class="n">var_ub</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">integer_var</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">var_ub</span><span class="p">)</span>
+                <span class="n">var_added</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span>
                 <span class="s1">&#39;The type of Sense in </span><span class="si">{}</span><span class="s1"> is not supported&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
 
         <span class="c1"># Add a new equality constraint.</span>
         <span class="n">new_linear</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">linear</span><span class="p">)</span>
-        <span class="n">new_linear</span><span class="p">[</span><span class="n">slack_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">sign</span>
+        <span class="k">if</span> <span class="n">var_added</span><span class="p">:</span>
+            <span class="n">new_linear</span><span class="p">[</span><span class="n">slack_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">sign</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">linear_constraint</span><span class="p">(</span><span class="n">new_linear</span><span class="p">,</span> <span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="n">new_rhs</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_add_continuous_slack_var_linear_constraint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">linear</span><span class="p">,</span> <span class="n">sense</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
@@ -470,21 +477,29 @@
 
         <span class="n">lhs_lb</span><span class="p">,</span> <span class="n">lhs_ub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_linear_bounds</span><span class="p">(</span><span class="n">linear</span><span class="p">)</span>
 
+        <span class="n">var_added</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">LE</span><span class="p">:</span>
-            <span class="n">sign</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">continuous_var</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">rhs</span> <span class="o">-</span> <span class="n">lhs_lb</span><span class="p">)</span>
+            <span class="n">var_ub</span> <span class="o">=</span> <span class="n">rhs</span> <span class="o">-</span> <span class="n">lhs_lb</span>
+            <span class="k">if</span> <span class="n">var_ub</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sign</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">continuous_var</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">var_ub</span><span class="p">)</span>
+                <span class="n">var_added</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">elif</span> <span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">GE</span><span class="p">:</span>
-            <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">continuous_var</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">lhs_ub</span> <span class="o">-</span> <span class="n">rhs</span><span class="p">)</span>
+            <span class="n">var_ub</span> <span class="o">=</span> <span class="n">lhs_ub</span> <span class="o">-</span> <span class="n">rhs</span>
+            <span class="k">if</span> <span class="n">var_ub</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">continuous_var</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">var_ub</span><span class="p">)</span>
+                <span class="n">var_added</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span>
                 <span class="s1">&#39;The type of Sense in </span><span class="si">{}</span><span class="s1"> is not supported&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
 
         <span class="c1"># Add a new equality constraint.</span>
         <span class="n">new_linear</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">linear</span><span class="p">)</span>
-        <span class="n">new_linear</span><span class="p">[</span><span class="n">slack_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">sign</span>
+        <span class="k">if</span> <span class="n">var_added</span><span class="p">:</span>
+            <span class="n">new_linear</span><span class="p">[</span><span class="n">slack_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">sign</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">linear_constraint</span><span class="p">(</span><span class="n">new_linear</span><span class="p">,</span> <span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_add_auto_slack_var_linear_constraint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">linear</span><span class="p">,</span> <span class="n">sense</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
@@ -517,21 +532,30 @@
 
         <span class="n">lhs_lb</span><span class="p">,</span> <span class="n">lhs_ub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_quadratic_bounds</span><span class="p">(</span><span class="n">linear</span><span class="p">,</span> <span class="n">quadratic</span><span class="p">)</span>
 
+        <span class="n">var_added</span> <span class="o">=</span> <span class="kc">False</span>
+
         <span class="k">if</span> <span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">LE</span><span class="p">:</span>
-            <span class="n">sign</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">integer_var</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">new_rhs</span> <span class="o">-</span> <span class="n">lhs_lb</span><span class="p">)</span>
+            <span class="n">var_ub</span> <span class="o">=</span> <span class="n">new_rhs</span> <span class="o">-</span> <span class="n">lhs_lb</span>
+            <span class="k">if</span> <span class="n">var_ub</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sign</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">integer_var</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">var_ub</span><span class="p">)</span>
+                <span class="n">var_added</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">elif</span> <span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">GE</span><span class="p">:</span>
-            <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">integer_var</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">lhs_ub</span> <span class="o">-</span> <span class="n">new_rhs</span><span class="p">)</span>
+            <span class="n">var_ub</span> <span class="o">=</span> <span class="n">lhs_ub</span> <span class="o">-</span> <span class="n">new_rhs</span>
+            <span class="k">if</span> <span class="n">var_ub</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">integer_var</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">var_ub</span><span class="p">)</span>
+                <span class="n">var_added</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span>
                 <span class="s1">&#39;The type of Sense in </span><span class="si">{}</span><span class="s1"> is not supported&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
 
         <span class="c1"># Add a new equality constraint.</span>
         <span class="n">new_linear</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">linear</span><span class="p">)</span>
-        <span class="n">new_linear</span><span class="p">[</span><span class="n">slack_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">sign</span>
+        <span class="k">if</span> <span class="n">var_added</span><span class="p">:</span>
+            <span class="n">new_linear</span><span class="p">[</span><span class="n">slack_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">sign</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">quadratic_constraint</span><span class="p">(</span>
             <span class="n">new_linear</span><span class="p">,</span> <span class="n">quadratic</span><span class="p">,</span> <span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="n">new_rhs</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
@@ -541,21 +565,30 @@
 
         <span class="n">lhs_lb</span><span class="p">,</span> <span class="n">lhs_ub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_quadratic_bounds</span><span class="p">(</span><span class="n">linear</span><span class="p">,</span> <span class="n">quadratic</span><span class="p">)</span>
 
+        <span class="n">var_added</span> <span class="o">=</span> <span class="kc">False</span>
+
         <span class="k">if</span> <span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">LE</span><span class="p">:</span>
-            <span class="n">sign</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">continuous_var</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">rhs</span> <span class="o">-</span> <span class="n">lhs_lb</span><span class="p">)</span>
+            <span class="n">var_ub</span> <span class="o">=</span> <span class="n">rhs</span> <span class="o">-</span> <span class="n">lhs_lb</span>
+            <span class="k">if</span> <span class="n">var_ub</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sign</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">continuous_var</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">var_ub</span><span class="p">)</span>
+                <span class="n">var_added</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">elif</span> <span class="n">sense</span> <span class="o">==</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">Sense</span><span class="o">.</span><span class="n">GE</span><span class="p">:</span>
-            <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">continuous_var</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">lhs_ub</span> <span class="o">-</span> <span class="n">rhs</span><span class="p">)</span>
+            <span class="n">var_ub</span> <span class="o">=</span> <span class="n">lhs_ub</span> <span class="o">-</span> <span class="n">rhs</span>
+            <span class="k">if</span> <span class="n">var_ub</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">continuous_var</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">slack_name</span><span class="p">,</span> <span class="n">lowerbound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upperbound</span><span class="o">=</span><span class="n">lhs_ub</span> <span class="o">-</span> <span class="n">rhs</span><span class="p">)</span>
+                <span class="n">var_added</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span>
                 <span class="s1">&#39;The type of Sense in </span><span class="si">{}</span><span class="s1"> is not supported&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
 
         <span class="c1"># Add a new equality constraint.</span>
         <span class="n">new_linear</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">linear</span><span class="p">)</span>
-        <span class="n">new_linear</span><span class="p">[</span><span class="n">slack_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">sign</span>
+        <span class="k">if</span> <span class="n">var_added</span><span class="p">:</span>
+            <span class="n">new_linear</span><span class="p">[</span><span class="n">slack_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">sign</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">quadratic_constraint</span><span class="p">(</span><span class="n">new_linear</span><span class="p">,</span> <span class="n">quadratic</span><span class="p">,</span> <span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_add_auto_slack_var_quadratic_constraint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">linear</span><span class="p">,</span> <span class="n">quadratic</span><span class="p">,</span> <span class="n">sense</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
@@ -601,20 +634,27 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">lhs_lb</span><span class="p">,</span> <span class="n">lhs_ub</span>
 
-<div class="viewcode-block" id="InequalityToEquality.interpret"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.converters.InequalityToEquality.interpret.html#qiskit.optimization.converters.InequalityToEquality.interpret">[dokumentacja]</a>    <span class="k">def</span> <span class="nf">interpret</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">OptimizationResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OptimizationResult</span><span class="p">:</span>
+<div class="viewcode-block" id="InequalityToEquality.interpret"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.converters.InequalityToEquality.interpret.html#qiskit.optimization.converters.InequalityToEquality.interpret">[dokumentacja]</a>    <span class="k">def</span> <span class="nf">interpret</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="s1">&#39;qiskit.optimization.algorithms.OptimizationResult&#39;</span><span class="p">)</span> \
+            <span class="o">-&gt;</span> <span class="s1">&#39;qiskit.optimization.algorithms.OptimizationResult&#39;</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
         <span class="sd">&quot;&quot;&quot;Convert a result of a converted problem into that of the original problem.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            result: The result of the converted problem.</span>
+<span class="sd">            result: The result of the converted problem or the given result in case of FAILURE.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The result of the original problem.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># pylint: disable=cyclic-import</span>
+        <span class="kn">from</span> <span class="nn">..algorithms.optimization_algorithm</span> <span class="kn">import</span> <span class="n">OptimizationResult</span>
+
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span>
+
         <span class="c1"># convert back the optimization result into that of the original problem</span>
         <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">variables</span><span class="p">]</span>
         <span class="n">new_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpret_var</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">OptimizationResult</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">new_x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">fval</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span>
-                                  <span class="n">raw_results</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">raw_results</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">status</span><span class="p">)</span></div>
+                                  <span class="n">status</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">raw_results</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">raw_results</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_interpret_var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">vals</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
         <span class="c1"># interpret slack variables</span>
@@ -670,7 +710,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Ostatnia modyfikacja 2020/10/14.
+        Ostatnia modyfikacja 2020/10/16.
       </span>
 
     </p>
