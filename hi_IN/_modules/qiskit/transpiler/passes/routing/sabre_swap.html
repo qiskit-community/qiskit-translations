@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.passes.routing.sabre_swap &mdash; Qiskit 0.22.0 दिग्दर्शिका</title>
+  <title>qiskit.transpiler.passes.routing.sabre_swap &mdash; Qiskit 0.23.0 दिग्दर्शिका</title>
   
 
   
@@ -259,9 +259,7 @@
            <div itemprop="articleBody">
             
   <h1>qiskit.transpiler.passes.routing.sabre_swap का स्रोत निर्देश </h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2017, 2020.</span>
 <span class="c1">#</span>
@@ -280,7 +278,6 @@
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">cycle</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">qiskit.dagcircuit</span> <span class="kn">import</span> <span class="n">DAGCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates</span> <span class="kn">import</span> <span class="n">SwapGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.basepasses</span> <span class="kn">import</span> <span class="n">TransformationPass</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.exceptions</span> <span class="kn">import</span> <span class="n">TranspilerError</span>
@@ -364,8 +361,8 @@
 
 <span class="sd">            .. math::</span>
 
-<span class="sd">                H_{decay} = \frac{1}{\abs{F}} \sum_{gate \in F} D[\pi(gate.q_1)][\pi(gate.q2)]</span>
-<span class="sd">                    + W * \frac{1}{\abs{E}} \sum_{gate \in E} D[\pi(gate.q_1)][\pi(gate.q2)]</span>
+<span class="sd">                H_{decay}=\frac{1}{\left|{F}\right|}\sum_{gate \in F} D[\pi(gate.q_1)][\pi(gate.q2)]</span>
+<span class="sd">                    + W*\frac{1}{\left|{E}\right|} \sum_{gate \in E} D[\pi(gate.q_1)][\pi(gate.q2)]</span>
 
 <span class="sd">            - &#39;decay&#39;:</span>
 
@@ -376,8 +373,8 @@
 <span class="sd">            .. math::</span>
 
 <span class="sd">                H_{decay} = max(decay(SWAP.q_1), decay(SWAP.q_2)) {</span>
-<span class="sd">                    \frac{1}{\abs{F}} \sum_{gate \in F} D[\pi(gate.q_1)][\pi(gate.q2)]</span>
-<span class="sd">                    + W * \frac{1}{\abs{E}} \sum_{gate \in E} D[\pi(gate.q_1)][\pi(gate.q2)]</span>
+<span class="sd">                    \frac{1}{\left|{F}\right|} \sum_{gate \in F} D[\pi(gate.q_1)][\pi(gate.q2)]\\</span>
+<span class="sd">                    + W *\frac{1}{\left|{E}\right|} \sum_{gate \in E} D[\pi(gate.q_1)][\pi(gate.q2)]</span>
 <span class="sd">                    }</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -408,7 +405,7 @@
         <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
 
         <span class="c1"># Preserve input DAG&#39;s name, regs, wire_map, etc. but replace the graph.</span>
-        <span class="n">mapped_dag</span> <span class="o">=</span> <span class="n">_copy_circuit_metadata</span><span class="p">(</span><span class="n">dag</span><span class="p">)</span>
+        <span class="n">mapped_dag</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">_copy_circuit_metadata</span><span class="p">()</span>
 
         <span class="c1"># Assume bidirectional couplings, fixing gate direction is easy later.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">coupling_map</span><span class="o">.</span><span class="n">make_symmetric</span><span class="p">()</span>
@@ -598,20 +595,6 @@
             <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s1">&#39;Heuristic </span><span class="si">%s</span><span class="s1"> not recognized.&#39;</span> <span class="o">%</span> <span class="n">heuristic</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">_copy_circuit_metadata</span><span class="p">(</span><span class="n">source_dag</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return a copy of source_dag with metadata but empty.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">target_dag</span> <span class="o">=</span> <span class="n">DAGCircuit</span><span class="p">()</span>
-    <span class="n">target_dag</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">source_dag</span><span class="o">.</span><span class="n">name</span>
-
-    <span class="k">for</span> <span class="n">qreg</span> <span class="ow">in</span> <span class="n">source_dag</span><span class="o">.</span><span class="n">qregs</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-        <span class="n">target_dag</span><span class="o">.</span><span class="n">add_qreg</span><span class="p">(</span><span class="n">qreg</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">creg</span> <span class="ow">in</span> <span class="n">source_dag</span><span class="o">.</span><span class="n">cregs</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-        <span class="n">target_dag</span><span class="o">.</span><span class="n">add_creg</span><span class="p">(</span><span class="n">creg</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">target_dag</span>
-
-
 <span class="k">def</span> <span class="nf">_transform_gate_for_layout</span><span class="p">(</span><span class="n">op_node</span><span class="p">,</span> <span class="n">layout</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return node implementing a virtual op on given layout.&quot;&quot;&quot;</span>
     <span class="n">mapped_op_node</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">op_node</span><span class="p">)</span>
@@ -637,7 +620,7 @@
         
         &copy; सर्वाधिकार 2020, Qiskit Development Team
       <span class="lastupdated">
-        अंतिम बार सम्पादित 2020/10/12.
+        अंतिम बार सम्पादित 2020/10/19.
       </span>
 
     </p>

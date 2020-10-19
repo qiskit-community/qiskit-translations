@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.optimization.algorithms.multistart_optimizer &mdash; Qiskit 0.22.0 दिग्दर्शिका</title>
+  <title>qiskit.optimization.algorithms.multistart_optimizer &mdash; Qiskit 0.23.0 दिग्दर्शिका</title>
   
 
   
@@ -259,9 +259,7 @@
            <div itemprop="articleBody">
             
   <h1>qiskit.optimization.algorithms.multistart_optimizer का स्रोत निर्देश </h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -280,14 +278,13 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Any</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">uniform</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.optimization</span> <span class="kn">import</span> <span class="n">QuadraticProgram</span><span class="p">,</span> <span class="n">INFINITY</span>
-<span class="kn">from</span> <span class="nn">qiskit.optimization.algorithms.optimization_algorithm</span> <span class="kn">import</span> <span class="p">(</span><span class="n">OptimizationAlgorithm</span><span class="p">,</span>
-                                                                   <span class="n">OptimizationResult</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.optimization_algorithm</span> <span class="kn">import</span> <span class="n">OptimizationAlgorithm</span><span class="p">,</span> <span class="n">OptimizationResult</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -318,7 +315,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_trials</span> <span class="o">=</span> <span class="n">trials</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_clip</span> <span class="o">=</span> <span class="n">clip</span>
 
-<div class="viewcode-block" id="MultiStartOptimizer.multi_start_solve"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.MultiStartOptimizer.multi_start_solve.html#qiskit.optimization.algorithms.MultiStartOptimizer.multi_start_solve">[docs]</a>    <span class="k">def</span> <span class="nf">multi_start_solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minimize</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">],</span>
+<div class="viewcode-block" id="MultiStartOptimizer.multi_start_solve"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.MultiStartOptimizer.multi_start_solve.html#qiskit.optimization.algorithms.MultiStartOptimizer.multi_start_solve">[docs]</a>    <span class="k">def</span> <span class="nf">multi_start_solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minimize</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
                           <span class="n">problem</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OptimizationResult</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Applies a multi start method given a local optimizer.</span>
 
@@ -330,7 +327,8 @@
 <span class="sd">            The result of the multi start algorithm applied to the problem.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">fval_sol</span> <span class="o">=</span> <span class="n">INFINITY</span>
-        <span class="n">x_sol</span> <span class="o">=</span> <span class="kc">None</span>    <span class="c1"># type: Optional[np.array]</span>
+        <span class="n">x_sol</span> <span class="o">=</span> <span class="kc">None</span>        <span class="c1"># type: Optional[np.array]</span>
+        <span class="n">rest_sol</span> <span class="o">=</span> <span class="kc">None</span>     <span class="c1"># type: Optional[Tuple]</span>
 
         <span class="c1"># Implementation of multi-start optimizer</span>
         <span class="k">for</span> <span class="n">trial</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_trials</span><span class="p">):</span>
@@ -342,7 +340,7 @@
                     <span class="n">x_0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">uniform</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">lowerbound</span><span class="p">,</span> <span class="p">(</span><span class="n">upperbound</span> <span class="o">-</span> <span class="n">lowerbound</span><span class="p">))</span>
             <span class="c1"># run optimization</span>
             <span class="n">t_0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">x_0</span><span class="p">)</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">rest</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">x_0</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;minimize done in: </span><span class="si">%s</span><span class="s2"> seconds&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t_0</span><span class="p">))</span>
 
             <span class="c1"># we minimize, to get actual objective value we must multiply by the sense value</span>
@@ -352,9 +350,11 @@
                 <span class="c1"># here we get back to the original sense of the problem</span>
                 <span class="n">fval_sol</span> <span class="o">=</span> <span class="n">fval</span> <span class="o">*</span> <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">sense</span><span class="o">.</span><span class="n">value</span>
                 <span class="n">x_sol</span> <span class="o">=</span> <span class="n">x</span>
+                <span class="n">rest_sol</span> <span class="o">=</span> <span class="n">rest</span>
 
         <span class="k">return</span> <span class="n">OptimizationResult</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x_sol</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">fval_sol</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span>
-                                  <span class="n">raw_results</span><span class="o">=</span><span class="n">x_sol</span><span class="p">)</span></div>
+                                  <span class="n">status</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_feasibility_status</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">x_sol</span><span class="p">),</span>
+                                  <span class="n">raw_results</span><span class="o">=</span><span class="n">rest_sol</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">trials</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -406,7 +406,7 @@
         
         &copy; सर्वाधिकार 2020, Qiskit Development Team
       <span class="lastupdated">
-        अंतिम बार सम्पादित 2020/10/12.
+        अंतिम बार सम्पादित 2020/10/19.
       </span>
 
     </p>

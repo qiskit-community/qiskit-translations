@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.circuit.quantumcircuit &mdash; Qiskit 0.22.0 दिग्दर्शिका</title>
+  <title>qiskit.circuit.quantumcircuit &mdash; Qiskit 0.23.0 दिग्दर्शिका</title>
   
 
   
@@ -259,9 +259,7 @@
            <div itemprop="articleBody">
             
   <h1>qiskit.circuit.quantumcircuit का स्रोत निर्देश </h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2017.</span>
 <span class="c1">#</span>
@@ -281,13 +279,14 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">numbers</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="k">as</span> <span class="nn">mp</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">qiskit.exceptions</span> <span class="kn">import</span> <span class="n">QiskitError</span>
 <span class="kn">from</span> <span class="nn">qiskit.util</span> <span class="kn">import</span> <span class="n">is_main_process</span>
-<span class="kn">from</span> <span class="nn">qiskit.util</span> <span class="kn">import</span> <span class="n">deprecate_arguments</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.instruction</span> <span class="kn">import</span> <span class="n">Instruction</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.gate</span> <span class="kn">import</span> <span class="n">Gate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.parameter</span> <span class="kn">import</span> <span class="n">Parameter</span>
 <span class="kn">from</span> <span class="nn">qiskit.qasm.qasm</span> <span class="kn">import</span> <span class="n">Qasm</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.exceptions</span> <span class="kn">import</span> <span class="n">CircuitError</span>
 <span class="kn">from</span> <span class="nn">.parameterexpression</span> <span class="kn">import</span> <span class="n">ParameterExpression</span>
@@ -299,6 +298,7 @@
 <span class="kn">from</span> <span class="nn">.register</span> <span class="kn">import</span> <span class="n">Register</span>
 <span class="kn">from</span> <span class="nn">.bit</span> <span class="kn">import</span> <span class="n">Bit</span>
 <span class="kn">from</span> <span class="nn">.quantumcircuitdata</span> <span class="kn">import</span> <span class="n">QuantumCircuitData</span>
+<span class="kn">from</span> <span class="nn">.delay</span> <span class="kn">import</span> <span class="n">Delay</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">pygments</span>
@@ -428,6 +428,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_qubits</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_clbits</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ancillas</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calibrations</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_register</span><span class="p">(</span><span class="o">*</span><span class="n">regs</span><span class="p">)</span>
 
         <span class="c1"># Parameter table tracks instructions with variable parameters.</span>
@@ -436,6 +437,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_layout</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_global_phase</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span> <span class="o">=</span> <span class="n">global_phase</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dt&#39;</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -449,6 +453,25 @@
 <span class="sd">            list of Clbit objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">QuantumCircuitData</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">calibrations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return calibration dictionary.</span>
+
+<span class="sd">        The custom pulse definition of a given gate is of the form</span>
+<span class="sd">            {&#39;gate_name&#39;: {(qubits, params): schedule}}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calibrations</span><span class="p">)</span>
+
+    <span class="nd">@calibrations</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">calibrations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calibrations</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the circuit calibration data from a dictionary of calibration definition.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            calibrations (dict): A dictionary of input in the format</span>
+<span class="sd">                {&#39;gate_name&#39;: {(qubits, gate_params): schedule}}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calibrations</span> <span class="o">=</span> <span class="n">calibrations</span>
 
     <span class="nd">@data</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_input</span><span class="p">):</span>
@@ -474,6 +497,9 @@
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="s1">&#39;text&#39;</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
         <span class="c1"># TODO: remove the DAG from this function</span>
         <span class="kn">from</span> <span class="nn">qiskit.converters</span> <span class="kn">import</span> <span class="n">circuit_to_dag</span>
         <span class="k">return</span> <span class="n">circuit_to_dag</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="n">circuit_to_dag</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
@@ -552,6 +578,9 @@
 
         <span class="k">for</span> <span class="n">inst</span><span class="p">,</span> <span class="n">qargs</span><span class="p">,</span> <span class="n">cargs</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
             <span class="n">reverse_circ</span><span class="o">.</span><span class="n">_append</span><span class="p">(</span><span class="n">inst</span><span class="o">.</span><span class="n">reverse_ops</span><span class="p">(),</span> <span class="n">qargs</span><span class="p">,</span> <span class="n">cargs</span><span class="p">)</span>
+
+        <span class="n">reverse_circ</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span>
+        <span class="n">reverse_circ</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span>
         <span class="k">return</span> <span class="n">reverse_circ</span></div>
 
 <div class="viewcode-block" id="QuantumCircuit.reverse_bits"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.reverse_bits.html#qiskit.circuit.QuantumCircuit.reverse_bits">[docs]</a>    <span class="k">def</span> <span class="nf">reverse_bits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -913,6 +942,7 @@
 
         <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">mapped_instrs</span><span class="p">:</span>
             <span class="n">dest</span><span class="o">.</span><span class="n">_update_parameter_table</span><span class="p">(</span><span class="n">instr</span><span class="p">)</span>
+        <span class="n">dest</span><span class="o">.</span><span class="n">_calibrations</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">calibrations</span><span class="p">)</span>
 
         <span class="n">dest</span><span class="o">.</span><span class="n">global_phase</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">global_phase</span>
 
@@ -1055,6 +1085,12 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">instruction</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">instruction</span><span class="p">,</span> <span class="s2">&quot;to_instruction&quot;</span><span class="p">):</span>
             <span class="n">instruction</span> <span class="o">=</span> <span class="n">instruction</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
 
+        <span class="c1"># Make copy of parameterized gate instances</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">instruction</span><span class="p">,</span> <span class="s1">&#39;params&#39;</span><span class="p">):</span>
+            <span class="n">is_parameter</span> <span class="o">=</span> <span class="nb">any</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">)</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">instruction</span><span class="o">.</span><span class="n">params</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">is_parameter</span><span class="p">:</span>
+                <span class="n">instruction</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span>
+
         <span class="n">expanded_qargs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">qbit_argument_conversion</span><span class="p">(</span><span class="n">qarg</span><span class="p">)</span> <span class="k">for</span> <span class="n">qarg</span> <span class="ow">in</span> <span class="n">qargs</span> <span class="ow">or</span> <span class="p">[]]</span>
         <span class="n">expanded_cargs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cbit_argument_conversion</span><span class="p">(</span><span class="n">carg</span><span class="p">)</span> <span class="k">for</span> <span class="n">carg</span> <span class="ow">in</span> <span class="n">cargs</span> <span class="ow">or</span> <span class="p">[]]</span>
 
@@ -1092,6 +1128,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instruction_context</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_parameter_table</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span>
+
+        <span class="c1"># mark as normal circuit if a new instruction is added</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dt&#39;</span>
 
         <span class="k">return</span> <span class="n">instruction</span>
 
@@ -1214,6 +1254,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            QuantumCircuit: a circuit one level decomposed</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># pylint: disable=cyclic-import</span>
         <span class="kn">from</span> <span class="nn">qiskit.transpiler.passes.basis.decompose</span> <span class="kn">import</span> <span class="n">Decompose</span>
         <span class="kn">from</span> <span class="nn">qiskit.converters.circuit_to_dag</span> <span class="kn">import</span> <span class="n">circuit_to_dag</span>
         <span class="kn">from</span> <span class="nn">qiskit.converters.dag_to_circuit</span> <span class="kn">import</span> <span class="n">dag_to_circuit</span>
@@ -1236,6 +1277,7 @@
         <span class="sd">&quot;&quot;&quot;Returns OpenQASM string composite circuit given an instruction.</span>
 <span class="sd">        The given instruction should be the result of composite_circuit.to_instruction().&quot;&quot;&quot;</span>
 
+        <span class="n">gate_parameters</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;param</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">num</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">instruction</span><span class="o">.</span><span class="n">params</span><span class="p">))])</span>
         <span class="n">qubit_parameters</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;q</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">num</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">instruction</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)])</span>
         <span class="n">composite_circuit_gates</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
@@ -1243,15 +1285,22 @@
             <span class="n">gate_qargs</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;q</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">index</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="p">[</span><span class="n">qubit</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">]])</span>
             <span class="n">composite_circuit_gates</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">; &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">qasm</span><span class="p">(),</span> <span class="n">gate_qargs</span><span class="p">)</span>
 
-        <span class="n">qasm_string</span> <span class="o">=</span> <span class="s2">&quot;gate </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> {</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">instruction</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">qubit_parameters</span><span class="p">,</span>
-                                           <span class="n">composite_circuit_gates</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">composite_circuit_gates</span><span class="p">:</span>
+            <span class="n">composite_circuit_gates</span> <span class="o">=</span> <span class="n">composite_circuit_gates</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">gate_parameters</span><span class="p">:</span>
+            <span class="n">qasm_string</span> <span class="o">=</span> <span class="s2">&quot;gate </span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">) </span><span class="si">%s</span><span class="s2"> { </span><span class="si">%s</span><span class="s2"> }&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">instruction</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">gate_parameters</span><span class="p">,</span>
+                                                     <span class="n">qubit_parameters</span><span class="p">,</span> <span class="n">composite_circuit_gates</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">qasm_string</span> <span class="o">=</span> <span class="s2">&quot;gate </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> { </span><span class="si">%s</span><span class="s2"> }&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">instruction</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">qubit_parameters</span><span class="p">,</span>
+                                                 <span class="n">composite_circuit_gates</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">qasm_string</span>
 
 <div class="viewcode-block" id="QuantumCircuit.qasm"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.qasm.html#qiskit.circuit.QuantumCircuit.qasm">[docs]</a>    <span class="k">def</span> <span class="nf">qasm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formatted</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return OpenQASM string.</span>
 
-<span class="sd">        Parameters:</span>
+<span class="sd">        Args:</span>
 <span class="sd">            formatted (bool): Return formatted Qasm string.</span>
 <span class="sd">            filename (str): Save Qasm to file with name &#39;filename&#39;.</span>
 
@@ -1283,9 +1332,8 @@
                 <span class="n">string_temp</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">[</span><span class="si">%d</span><span class="s2">] -&gt; </span><span class="si">%s</span><span class="s2">[</span><span class="si">%d</span><span class="s2">];</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">instruction</span><span class="o">.</span><span class="n">qasm</span><span class="p">(),</span>
                                                            <span class="n">qubit</span><span class="o">.</span><span class="n">register</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">qubit</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
                                                            <span class="n">clbit</span><span class="o">.</span><span class="n">register</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">clbit</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
-            <span class="c1"># If instruction is a composite circuit</span>
-            <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">instruction</span><span class="p">,</span> <span class="n">Gate</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">instruction</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;barrier&#39;</span><span class="p">,</span>
-                                                                                 <span class="s1">&#39;reset&#39;</span><span class="p">]):</span>
+            <span class="c1"># If instruction is a root gate or a root instruction (in that case, compositive)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="n">Gate</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">]:</span>  <span class="c1"># pylint: disable=unidiomatic-typecheck</span>
                 <span class="k">if</span> <span class="n">instruction</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">existing_composite_circuits</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">existing_gate_names</span><span class="p">:</span>
                         <span class="n">old_name</span> <span class="o">=</span> <span class="n">instruction</span><span class="o">.</span><span class="n">name</span>
@@ -1440,6 +1488,9 @@
 <span class="sd">        below:</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">            name (str): The name of the style. The name can be set to &#39;iqx&#39;,</span>
+<span class="sd">                &#39;bw&#39;, or &#39;default&#39;. This overrides the setting in the</span>
+<span class="sd">                &#39;~/.qiskit/settings.conf&#39; file.</span>
 <span class="sd">            textcolor (str): The color code to use for text. Defaults to</span>
 <span class="sd">                `&#39;#000000&#39;`</span>
 <span class="sd">            subtextcolor (str): The color code to use for subtext. Defaults to</span>
@@ -1485,33 +1536,55 @@
 <span class="sd">                You must specify all the necessary values if using this. There</span>
 <span class="sd">                is no provision for passing an incomplete dict in.</span>
 <span class="sd">            displaycolor (dict): The color codes to use for each circuit</span>
-<span class="sd">                element. The default values are::</span>
+<span class="sd">                element in the form (gate_color, text_color).</span>
+<span class="sd">                The default values are::</span>
 
 <span class="sd">                    {</span>
-<span class="sd">                        &#39;id&#39;: &#39;#F0E442&#39;,</span>
-<span class="sd">                        &#39;u0&#39;: &#39;#E7AB3B&#39;,</span>
-<span class="sd">                        &#39;u1&#39;: &#39;#E7AB3B&#39;,</span>
-<span class="sd">                        &#39;u2&#39;: &#39;#E7AB3B&#39;,</span>
-<span class="sd">                        &#39;u3&#39;: &#39;#E7AB3B&#39;,</span>
-<span class="sd">                        &#39;x&#39;: &#39;#58C698&#39;,</span>
-<span class="sd">                        &#39;y&#39;: &#39;#58C698&#39;,</span>
-<span class="sd">                        &#39;z&#39;: &#39;#58C698&#39;,</span>
-<span class="sd">                        &#39;h&#39;: &#39;#70B7EB&#39;,</span>
-<span class="sd">                        &#39;s&#39;: &#39;#E0722D&#39;,</span>
-<span class="sd">                        &#39;sdg&#39;: &#39;#E0722D&#39;,</span>
-<span class="sd">                        &#39;t&#39;: &#39;#E0722D&#39;,</span>
-<span class="sd">                        &#39;tdg&#39;: &#39;#E0722D&#39;,</span>
-<span class="sd">                        &#39;rx&#39;: &#39;#ffffff&#39;,</span>
-<span class="sd">                        &#39;ry&#39;: &#39;#ffffff&#39;,</span>
-<span class="sd">                        &#39;rz&#39;: &#39;#ffffff&#39;,</span>
-<span class="sd">                        &#39;reset&#39;: &#39;#D188B4&#39;,</span>
-<span class="sd">                        &#39;target&#39;: &#39;#70B7EB&#39;,</span>
-<span class="sd">                        &#39;meas&#39;: &#39;#D188B4&#39;</span>
+<span class="sd">                        &#39;u1&#39;: (&#39;#FA74A6&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;u2&#39;: (&#39;#FA74A6&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;u3&#39;: (&#39;#FA74A6&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;id&#39;: (&#39;#05BAB6&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;x&#39;: (&#39;#05BAB6&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;y&#39;: (&#39;#05BAB6&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;z&#39;: (&#39;#05BAB6&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;h&#39;: (&#39;#6FA4FF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;cx&#39;: (&#39;#6FA4FF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;cy&#39;: (&#39;#6FA4FF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;cz&#39;: (&#39;#6FA4FF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;swap&#39;: (&#39;#6FA4FF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;s&#39;: (&#39;#6FA4FF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;sdg&#39;: (&#39;#6FA4FF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;dcx&#39;: (&#39;#6FA4FF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;iswap&#39;: (&#39;#6FA4FF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;t&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;tdg&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;r&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;rx&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;ry&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;rz&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;rxx&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;ryy&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;rzx&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;reset&#39;: (&#39;#000000&#39;, #FFFFFF&#39;),</span>
+<span class="sd">                        &#39;target&#39;: (&#39;#FFFFFF, &#39;#FFFFFF&#39;),</span>
+<span class="sd">                        &#39;measure&#39;: (&#39;#000000&#39;, &#39;#FFFFFF&#39;),</span>
+<span class="sd">                        &#39;ccx&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;cdcx&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;ccdcx&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;cswap&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;ccswap&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;mcx&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;mcx_gray&#39;: (&#39;#BB8BFF&#39;, &#39;#000000),</span>
+<span class="sd">                        &#39;u&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;p&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;sx&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;),</span>
+<span class="sd">                        &#39;sxdg&#39;: (&#39;#BB8BFF&#39;, &#39;#000000&#39;)</span>
 <span class="sd">                    }</span>
 
-<span class="sd">               Also, just like  `displaytext` there is no provision for an</span>
-<span class="sd">               incomplete dict passed in.</span>
-
+<span class="sd">                Colors can also be entered without the text color, such as</span>
+<span class="sd">                &#39;u1&#39;: &#39;#FA74A6&#39;, in which case the text color will always</span>
+<span class="sd">                be &#39;gatetextcolor&#39;. The &#39;displaycolor&#39; dict can contain any</span>
+<span class="sd">                number of elements from one to the entire dict above.</span>
 <span class="sd">            latexdrawerstyle (bool): When set to True, enable LaTeX mode, which</span>
 <span class="sd">                will draw gates like the `latex` output modes.</span>
 <span class="sd">            usepiformat (bool): When set to True, use radians for output.</span>
@@ -1657,15 +1730,6 @@
     <span class="k">def</span> <span class="nf">num_ancillas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the number of ancilla qubits.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ancillas</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">n_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Deprecated, use ``num_qubits`` instead. Return number of qubits.&quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The QuantumCircuit.n_qubits method is deprecated as of 0.13.0, and &#39;</span>
-                      <span class="s1">&#39;will be removed no earlier than 3 months after that release date. &#39;</span>
-                      <span class="s1">&#39;You should use the QuantumCircuit.num_qubits method instead.&#39;</span><span class="p">,</span>
-                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">num_clbits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1823,6 +1887,8 @@
         <span class="n">cpy</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="p">[(</span><span class="n">instr_copies</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="n">inst</span><span class="p">)],</span> <span class="n">qargs</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">cargs</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
                      <span class="k">for</span> <span class="n">inst</span><span class="p">,</span> <span class="n">qargs</span><span class="p">,</span> <span class="n">cargs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">]</span>
 
+        <span class="n">cpy</span><span class="o">.</span><span class="n">_calibrations</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calibrations</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
             <span class="n">cpy</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="k">return</span> <span class="n">cpy</span></div>
@@ -1857,7 +1923,7 @@
 
 <span class="sd">        Returns a new circuit with measurements if `inplace=False`.</span>
 
-<span class="sd">        Parameters:</span>
+<span class="sd">        Args:</span>
 <span class="sd">            inplace (bool): All measurements inplace or return new circuit.</span>
 
 <span class="sd">        Returns:</span>
@@ -1886,7 +1952,7 @@
 
 <span class="sd">        Returns a new circuit with measurements if `inplace=False`.</span>
 
-<span class="sd">        Parameters:</span>
+<span class="sd">        Args:</span>
 <span class="sd">            inplace (bool): All measurements inplace or return new circuit.</span>
 
 <span class="sd">        Returns:</span>
@@ -1914,7 +1980,7 @@
 
 <span class="sd">        Returns a new circuit without measurements if `inplace=False`.</span>
 
-<span class="sd">        Parameters:</span>
+<span class="sd">        Args:</span>
 <span class="sd">            inplace (bool): All measurements removed inplace or return new circuit.</span>
 
 <span class="sd">        Returns:</span>
@@ -2080,11 +2146,7 @@
 
         <span class="c1"># replace the parameters with a new Parameter (&quot;substitute&quot;) or numeric value (&quot;bind&quot;)</span>
         <span class="k">for</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">unrolled_param_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">):</span>
-                <span class="n">bound_circuit</span><span class="o">.</span><span class="n">_substitute_parameter</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">bound_circuit</span><span class="o">.</span><span class="n">_bind_parameter</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-                <span class="k">del</span> <span class="n">bound_circuit</span><span class="o">.</span><span class="n">_parameter_table</span><span class="p">[</span><span class="n">parameter</span><span class="p">]</span>  <span class="c1"># clear evaluated expressions</span>
+            <span class="n">bound_circuit</span><span class="o">.</span><span class="n">_assign_parameter</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">inplace</span> <span class="k">else</span> <span class="n">bound_circuit</span></div>
 
@@ -2104,22 +2166,9 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            QuantumCircuit: copy of self with assignment substitution.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">bound_circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-
-        <span class="c1"># unroll the parameter dictionary (needed if e.g. it contains a ParameterVector)</span>
-        <span class="n">unrolled_value_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_param_dict</span><span class="p">(</span><span class="n">value_dict</span><span class="p">)</span>
-
-        <span class="c1"># check that only existing parameters are in the parameter dictionary</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unrolled_value_dict</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_table</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s1">&#39;Cannot bind parameters (</span><span class="si">{}</span><span class="s1">) not present in the circuit.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">value_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_table</span><span class="o">.</span><span class="n">keys</span><span class="p">()]))</span>
-
-        <span class="c1"># replace the parameters with a new Parameter (&quot;substitute&quot;) or numeric value (&quot;bind&quot;)</span>
-        <span class="k">for</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">unrolled_value_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">bound_circuit</span><span class="o">.</span><span class="n">_bind_parameter</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-            <span class="k">del</span> <span class="n">bound_circuit</span><span class="o">.</span><span class="n">_parameter_table</span><span class="p">[</span><span class="n">parameter</span><span class="p">]</span>  <span class="c1"># clear evaluated expressions</span>
-
-        <span class="k">return</span> <span class="n">bound_circuit</span></div>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">value_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Found ParameterExpression in values; use assign_parameters instead.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="n">value_dict</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_unroll_param_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value_dict</span><span class="p">):</span>
         <span class="n">unrolled_value_dict</span> <span class="o">=</span> <span class="p">{}</span>
@@ -2134,33 +2183,52 @@
                 <span class="n">unrolled_value_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">unrolled_value_dict</span>
 
-    <span class="k">def</span> <span class="nf">_bind_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Assigns a parameter value to matching instructions in-place.&quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">param_index</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_table</span><span class="p">[</span><span class="n">parameter</span><span class="p">]:</span>
-            <span class="n">instr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">param_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">instr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">param_index</span><span class="p">]</span><span class="o">.</span><span class="n">bind</span><span class="p">({</span><span class="n">parameter</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
+    <span class="k">def</span> <span class="nf">_assign_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update this circuit where instances of ``parameter`` are replaced by ``value``, which</span>
+<span class="sd">        can be either a numeric value or a new parameter expression.</span>
 
-            <span class="c1"># For instructions which have already been defined (e.g. composite</span>
-            <span class="c1"># instructions), search the definition for instances of the</span>
-            <span class="c1"># parameter which also need to be bound.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            parameter (ParameterExpression): Parameter to be bound</span>
+<span class="sd">            value (Union(ParameterExpression, float, int)): A numeric or parametric expression to</span>
+<span class="sd">                replace instances of ``parameter``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">param_index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_table</span><span class="p">[</span><span class="n">parameter</span><span class="p">]:</span>
+            <span class="n">instr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">param_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">instr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">param_index</span><span class="p">]</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_rebind_definition</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-        <span class="c1"># bind circuit&#39;s phase</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">):</span>
+            <span class="n">entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_table</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">new_parameter</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_table</span><span class="p">[</span><span class="n">new_parameter</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_table</span><span class="p">[</span><span class="n">parameter</span><span class="p">]</span>  <span class="c1"># clear evaluated expressions</span>
+
         <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">)</span> <span class="ow">and</span>
                 <span class="n">parameter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span><span class="o">.</span><span class="n">bind</span><span class="p">({</span><span class="n">parameter</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_assign_calibration_parameters</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_substitute_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old_parameter</span><span class="p">,</span> <span class="n">new_parameter_expr</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Substitute an existing parameter in all circuit instructions and the parameter table.&quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">param_index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_table</span><span class="p">[</span><span class="n">old_parameter</span><span class="p">]:</span>
-            <span class="n">new_param</span> <span class="o">=</span> <span class="n">instr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">param_index</span><span class="p">]</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">old_parameter</span><span class="p">:</span> <span class="n">new_parameter_expr</span><span class="p">})</span>
-            <span class="n">instr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">param_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_param</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_rebind_definition</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">old_parameter</span><span class="p">,</span> <span class="n">new_parameter_expr</span><span class="p">)</span>
-
-        <span class="n">entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_table</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">old_parameter</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">new_parameter</span> <span class="ow">in</span> <span class="n">new_parameter_expr</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_table</span><span class="p">[</span><span class="n">new_parameter</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">)</span>
-                <span class="ow">and</span> <span class="n">old_parameter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">old_parameter</span><span class="p">:</span> <span class="n">new_parameter_expr</span><span class="p">})</span>
+    <span class="k">def</span> <span class="nf">_assign_calibration_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update parameterized pulse gate calibrations, if there are any which contain</span>
+<span class="sd">        ``parameter``. This updates the calibration mapping as well as the gate definition</span>
+<span class="sd">        ``Schedule``s, which also may contain ``parameter``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">cals</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">calibrations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">qubit</span><span class="p">,</span> <span class="n">cal_params</span><span class="p">),</span> <span class="n">schedule</span> <span class="ow">in</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">cals</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">)</span> <span class="ow">and</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">parameters</span>
+                       <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">cal_params</span><span class="p">):</span>
+                    <span class="k">del</span> <span class="n">cals</span><span class="p">[(</span><span class="n">qubit</span><span class="p">,</span> <span class="n">cal_params</span><span class="p">)]</span>
+                    <span class="n">new_cal_params</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">cal_params</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">)</span> <span class="ow">and</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+                            <span class="n">new_param</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">new_param</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+                                <span class="n">new_param</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">new_param</span><span class="p">)</span>
+                            <span class="n">new_cal_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_param</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">new_cal_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                    <span class="n">schedule</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">({</span><span class="n">parameter</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
+                    <span class="n">cals</span><span class="p">[(</span><span class="n">qubit</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">new_cal_params</span><span class="p">))]</span> <span class="o">=</span> <span class="n">schedule</span>
 
     <span class="k">def</span> <span class="nf">_rebind_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instruction</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">_definition</span><span class="p">:</span>
@@ -2197,43 +2265,70 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Barrier</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qubits</span><span class="p">)),</span> <span class="n">qubits</span><span class="p">,</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.h"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.h.html#qiskit.circuit.QuantumCircuit.h">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name,unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.delay"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.delay.html#qiskit.circuit.QuantumCircuit.delay">[docs]</a>    <span class="k">def</span> <span class="nf">delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">qarg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;dt&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.Delay`. If qarg is None, applies to all qubits.</span>
+<span class="sd">        When applying to multiple qubits, delays with the same duration will be created.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            duration (int or float): duration of the delay.</span>
+<span class="sd">            qarg (Object): qubit argument to apply this delay.</span>
+<span class="sd">            unit (str): unit of the duration. Supported units: &#39;s&#39;, &#39;ms&#39;, &#39;us&#39;, &#39;ns&#39;, &#39;ps&#39;, &#39;dt&#39;.</span>
+<span class="sd">                Default is ``dt``, i.e. integer time unit depending on the target backend.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            qiskit.Instruction: the attached delay instruction.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            CircuitError: if arguments have bad format.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">qubits</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">qarg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># -&gt; apply delays to all qubits</span>
+            <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubits</span><span class="p">:</span>
+                <span class="n">qubits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qarg</span><span class="p">,</span> <span class="n">QuantumRegister</span><span class="p">):</span>
+                <span class="n">qubits</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">qarg</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">qarg</span><span class="o">.</span><span class="n">size</span><span class="p">)])</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qarg</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">qubits</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">qarg</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qarg</span><span class="p">,</span> <span class="p">(</span><span class="nb">range</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                <span class="n">qubits</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">qarg</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qarg</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+                <span class="n">qubits</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qubits</span><span class="p">[</span><span class="n">qarg</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">qubits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qarg</span><span class="p">)</span>
+
+        <span class="n">instructions</span> <span class="o">=</span> <span class="n">InstructionSet</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">:</span>
+            <span class="n">inst</span> <span class="o">=</span> <span class="p">(</span><span class="n">Delay</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">unit</span><span class="p">),</span> <span class="p">[</span><span class="n">q</span><span class="p">],</span> <span class="p">[])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">*</span><span class="n">inst</span><span class="p">)</span>
+            <span class="n">instructions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="o">*</span><span class="n">inst</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">instructions</span></div>
+
+<div class="viewcode-block" id="QuantumCircuit.h"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.h.html#qiskit.circuit.QuantumCircuit.h">[docs]</a>    <span class="k">def</span> <span class="nf">h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.HGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.h</span> <span class="kn">import</span> <span class="n">HGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.ch"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.ch.html#qiskit.circuit.QuantumCircuit.ch">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;ctl&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit&#39;</span><span class="p">,</span> <span class="s1">&#39;tgt&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">ch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span>  <span class="c1"># pylint: disable=invalid-name</span>
-           <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.ch"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.ch.html#qiskit.circuit.QuantumCircuit.ch">[docs]</a>    <span class="k">def</span> <span class="nf">ch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span>  <span class="c1"># pylint: disable=invalid-name</span>
+           <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CHGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.h</span> <span class="kn">import</span> <span class="n">CHGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CHGate</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">),</span>
                            <span class="p">[</span><span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.i"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.i.html#qiskit.circuit.QuantumCircuit.i">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">i</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.i"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.i.html#qiskit.circuit.QuantumCircuit.i">[docs]</a>    <span class="k">def</span> <span class="nf">i</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.IGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.i</span> <span class="kn">import</span> <span class="n">IGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">IGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.id"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.id.html#qiskit.circuit.QuantumCircuit.id">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name,unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.id"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.id.html#qiskit.circuit.QuantumCircuit.id">[docs]</a>    <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.IGate`.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">i</span><span class="p">(</span><span class="n">qubit</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="QuantumCircuit.iden"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.iden.html#qiskit.circuit.QuantumCircuit.iden">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">iden</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
-        <span class="sd">&quot;&quot;&quot;Deprecated identity gate.&quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The QuantumCircuit.iden() method is deprecated as of 0.14.0, and &#39;</span>
-                      <span class="s1">&#39;will be removed no earlier than 3 months after that release date. &#39;</span>
-                      <span class="s1">&#39;You should use the QuantumCircuit.i() method instead.&#39;</span><span class="p">,</span>
-                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">i</span><span class="p">(</span><span class="n">qubit</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="QuantumCircuit.ms"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.ms.html#qiskit.circuit.QuantumCircuit.ms">[docs]</a>    <span class="k">def</span> <span class="nf">ms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">qubits</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.MSGate`.&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.library.standard_gates.ms</span> <span class="kn">import</span> <span class="n">MSGate</span>
+        <span class="c1"># pylint: disable=cyclic-import</span>
+        <span class="kn">from</span> <span class="nn">.library.generalized_gates.gms</span> <span class="kn">import</span> <span class="n">MSGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MSGate</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qubits</span><span class="p">),</span> <span class="n">theta</span><span class="p">),</span> <span class="n">qubits</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="QuantumCircuit.p"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.p.html#qiskit.circuit.QuantumCircuit.p">[docs]</a>    <span class="k">def</span> <span class="nf">p</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>
@@ -2247,8 +2342,14 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CPhaseGate</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">),</span>
                            <span class="p">[</span><span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.r"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.r.html#qiskit.circuit.QuantumCircuit.r">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name,unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.mcp"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.mcp.html#qiskit.circuit.QuantumCircuit.mcp">[docs]</a>    <span class="k">def</span> <span class="nf">mcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">control_qubits</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.MCPhaseGate`.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">.library.standard_gates.p</span> <span class="kn">import</span> <span class="n">MCPhaseGate</span>
+        <span class="n">num_ctrl_qubits</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">control_qubits</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MCPhaseGate</span><span class="p">(</span><span class="n">lam</span><span class="p">,</span> <span class="n">num_ctrl_qubits</span><span class="p">),</span> <span class="n">control_qubits</span><span class="p">[:]</span> <span class="o">+</span> <span class="p">[</span><span class="n">target_qubit</span><span class="p">],</span>
+                           <span class="p">[])</span></div>
+
+<div class="viewcode-block" id="QuantumCircuit.r"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.r.html#qiskit.circuit.QuantumCircuit.r">[docs]</a>    <span class="k">def</span> <span class="nf">r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.RGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.r</span> <span class="kn">import</span> <span class="n">RGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RGate</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
@@ -2265,17 +2366,12 @@
                            <span class="p">[</span><span class="n">control_qubit1</span><span class="p">,</span> <span class="n">control_qubit2</span><span class="p">,</span> <span class="n">control_qubit3</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">],</span>
                            <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.rx"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.rx.html#qiskit.circuit.QuantumCircuit.rx">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="c1"># pylint: disable=invalid-name,unused-argument</span>
-    <span class="k">def</span> <span class="nf">rx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="QuantumCircuit.rx"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.rx.html#qiskit.circuit.QuantumCircuit.rx">[docs]</a>    <span class="k">def</span> <span class="nf">rx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.RXGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.rx</span> <span class="kn">import</span> <span class="n">RXGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RXGate</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.crx"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.crx.html#qiskit.circuit.QuantumCircuit.crx">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;ctl&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;tgt&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">crx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">ctl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.crx"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.crx.html#qiskit.circuit.QuantumCircuit.crx">[docs]</a>    <span class="k">def</span> <span class="nf">crx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CRXGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.rx</span> <span class="kn">import</span> <span class="n">CRXGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CRXGate</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">),</span>
@@ -2286,17 +2382,12 @@
         <span class="kn">from</span> <span class="nn">.library.standard_gates.rxx</span> <span class="kn">import</span> <span class="n">RXXGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RXXGate</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="p">[</span><span class="n">qubit1</span><span class="p">,</span> <span class="n">qubit2</span><span class="p">],</span> <span class="p">[])</span></div>
 
-    <span class="c1"># pylint: disable=invalid-name,unused-argument</span>
-<div class="viewcode-block" id="QuantumCircuit.ry"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.ry.html#qiskit.circuit.QuantumCircuit.ry">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">ry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="QuantumCircuit.ry"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.ry.html#qiskit.circuit.QuantumCircuit.ry">[docs]</a>    <span class="k">def</span> <span class="nf">ry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.RYGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.ry</span> <span class="kn">import</span> <span class="n">RYGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RYGate</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.cry"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cry.html#qiskit.circuit.QuantumCircuit.cry">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;ctl&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;tgt&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">cry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">ctl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.cry"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cry.html#qiskit.circuit.QuantumCircuit.cry">[docs]</a>    <span class="k">def</span> <span class="nf">cry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CRYGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.ry</span> <span class="kn">import</span> <span class="n">CRYGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CRYGate</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">),</span>
@@ -2307,15 +2398,12 @@
         <span class="kn">from</span> <span class="nn">.library.standard_gates.ryy</span> <span class="kn">import</span> <span class="n">RYYGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RYYGate</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="p">[</span><span class="n">qubit1</span><span class="p">,</span> <span class="n">qubit2</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.rz"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.rz.html#qiskit.circuit.QuantumCircuit.rz">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">rz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name,unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.rz"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.rz.html#qiskit.circuit.QuantumCircuit.rz">[docs]</a>    <span class="k">def</span> <span class="nf">rz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.RZGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.rz</span> <span class="kn">import</span> <span class="n">RZGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RZGate</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.crz"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.crz.html#qiskit.circuit.QuantumCircuit.crz">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;ctl&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit&#39;</span><span class="p">,</span> <span class="s1">&#39;tgt&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">crz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">ctl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.crz"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.crz.html#qiskit.circuit.QuantumCircuit.crz">[docs]</a>    <span class="k">def</span> <span class="nf">crz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CRZGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.rz</span> <span class="kn">import</span> <span class="n">CRZGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CRZGate</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">),</span>
@@ -2331,14 +2419,12 @@
         <span class="kn">from</span> <span class="nn">.library.standard_gates.rzz</span> <span class="kn">import</span> <span class="n">RZZGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RZZGate</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="p">[</span><span class="n">qubit1</span><span class="p">,</span> <span class="n">qubit2</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.s"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.s.html#qiskit.circuit.QuantumCircuit.s">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">s</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name,unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.s"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.s.html#qiskit.circuit.QuantumCircuit.s">[docs]</a>    <span class="k">def</span> <span class="nf">s</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.SGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.s</span> <span class="kn">import</span> <span class="n">SGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.sdg"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.sdg.html#qiskit.circuit.QuantumCircuit.sdg">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">sdg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.sdg"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.sdg.html#qiskit.circuit.QuantumCircuit.sdg">[docs]</a>    <span class="k">def</span> <span class="nf">sdg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.SdgGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.s</span> <span class="kn">import</span> <span class="n">SdgGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SdgGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
@@ -2353,25 +2439,17 @@
         <span class="kn">from</span> <span class="nn">.library.standard_gates.iswap</span> <span class="kn">import</span> <span class="n">iSwapGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">iSwapGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">qubit1</span><span class="p">,</span> <span class="n">qubit2</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.cswap"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cswap.html#qiskit.circuit.QuantumCircuit.cswap">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;ctl&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;tgt1&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit1&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;tgt2&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit2&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">cswap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit1</span><span class="p">,</span> <span class="n">target_qubit2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-              <span class="n">ctl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.cswap"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cswap.html#qiskit.circuit.QuantumCircuit.cswap">[docs]</a>    <span class="k">def</span> <span class="nf">cswap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit1</span><span class="p">,</span> <span class="n">target_qubit2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CSwapGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.swap</span> <span class="kn">import</span> <span class="n">CSwapGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CSwapGate</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">),</span>
                            <span class="p">[</span><span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit1</span><span class="p">,</span> <span class="n">target_qubit2</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.fredkin"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.fredkin.html#qiskit.circuit.QuantumCircuit.fredkin">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;ctl&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;tgt1&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit1&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;tgt2&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit2&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">fredkin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit1</span><span class="p">,</span> <span class="n">target_qubit2</span><span class="p">,</span>
-                <span class="o">*</span><span class="p">,</span> <span class="n">ctl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.fredkin"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.fredkin.html#qiskit.circuit.QuantumCircuit.fredkin">[docs]</a>    <span class="k">def</span> <span class="nf">fredkin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit1</span><span class="p">,</span> <span class="n">target_qubit2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CSwapGate`.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cswap</span><span class="p">(</span><span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit1</span><span class="p">,</span> <span class="n">target_qubit2</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.sx"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.sx.html#qiskit.circuit.QuantumCircuit.sx">[docs]</a>    <span class="k">def</span> <span class="nf">sx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>
+<div class="viewcode-block" id="QuantumCircuit.sx"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.sx.html#qiskit.circuit.QuantumCircuit.sx">[docs]</a>    <span class="k">def</span> <span class="nf">sx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.SXGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.sx</span> <span class="kn">import</span> <span class="n">SXGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SXGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
@@ -2387,113 +2465,117 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CSXGate</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">),</span>
                            <span class="p">[</span><span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.t"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.t.html#qiskit.circuit.QuantumCircuit.t">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">t</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name,unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.t"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.t.html#qiskit.circuit.QuantumCircuit.t">[docs]</a>    <span class="k">def</span> <span class="nf">t</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.TGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.t</span> <span class="kn">import</span> <span class="n">TGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.tdg"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.tdg.html#qiskit.circuit.QuantumCircuit.tdg">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">tdg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.tdg"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.tdg.html#qiskit.circuit.QuantumCircuit.tdg">[docs]</a>    <span class="k">def</span> <span class="nf">tdg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.TdgGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.t</span> <span class="kn">import</span> <span class="n">TdgGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TdgGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.u"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.u.html#qiskit.circuit.QuantumCircuit.u">[docs]</a>    <span class="k">def</span> <span class="nf">u</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>
+<div class="viewcode-block" id="QuantumCircuit.u"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.u.html#qiskit.circuit.QuantumCircuit.u">[docs]</a>    <span class="k">def</span> <span class="nf">u</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.UGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.u</span> <span class="kn">import</span> <span class="n">UGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">UGate</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.cu"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cu.html#qiskit.circuit.QuantumCircuit.cu">[docs]</a>    <span class="k">def</span> <span class="nf">cu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="QuantumCircuit.cu"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cu.html#qiskit.circuit.QuantumCircuit.cu">[docs]</a>    <span class="k">def</span> <span class="nf">cu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span>   <span class="c1"># pylint: disable=invalid-name</span>
+           <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CUGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.u</span> <span class="kn">import</span> <span class="n">CUGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CUGate</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">),</span>
                            <span class="p">[</span><span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.u1"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.u1.html#qiskit.circuit.QuantumCircuit.u1">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">u1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name,unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.u1"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.u1.html#qiskit.circuit.QuantumCircuit.u1">[docs]</a>    <span class="k">def</span> <span class="nf">u1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.U1Gate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.u1</span> <span class="kn">import</span> <span class="n">U1Gate</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The QuantumCircuit.u1 method is deprecated as of 0.16.0. It will be removed &#39;</span>
+                      <span class="s1">&#39;no earlier than 3 months after the release date. You should use the &#39;</span>
+                      <span class="s1">&#39;QuantumCircuit.p method instead, which acts identically.&#39;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">U1Gate</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.cu1"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cu1.html#qiskit.circuit.QuantumCircuit.cu1">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;ctl&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;tgt&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">cu1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">ctl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.cu1"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cu1.html#qiskit.circuit.QuantumCircuit.cu1">[docs]</a>    <span class="k">def</span> <span class="nf">cu1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CU1Gate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.u1</span> <span class="kn">import</span> <span class="n">CU1Gate</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The QuantumCircuit.cu1 method is deprecated as of 0.16.0. It will be &#39;</span>
+                      <span class="s1">&#39;removed no earlier than 3 months after the release date. You should use the &#39;</span>
+                      <span class="s1">&#39;QuantumCircuit.cp method instead, which acts identically.&#39;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CU1Gate</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">),</span>
                            <span class="p">[</span><span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
 <div class="viewcode-block" id="QuantumCircuit.mcu1"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.mcu1.html#qiskit.circuit.QuantumCircuit.mcu1">[docs]</a>    <span class="k">def</span> <span class="nf">mcu1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">control_qubits</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.MCU1Gate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.u1</span> <span class="kn">import</span> <span class="n">MCU1Gate</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The QuantumCircuit.mcu1 method is deprecated as of 0.16.0. It will be &#39;</span>
+                      <span class="s1">&#39;removed no earlier than 3 months after the release date. You should use the &#39;</span>
+                      <span class="s1">&#39;QuantumCircuit.mcp method instead, which acts identically.&#39;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="n">num_ctrl_qubits</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">control_qubits</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MCU1Gate</span><span class="p">(</span><span class="n">lam</span><span class="p">,</span> <span class="n">num_ctrl_qubits</span><span class="p">),</span> <span class="n">control_qubits</span><span class="p">[:]</span> <span class="o">+</span> <span class="p">[</span><span class="n">target_qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.u2"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.u2.html#qiskit.circuit.QuantumCircuit.u2">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">u2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name,unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.u2"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.u2.html#qiskit.circuit.QuantumCircuit.u2">[docs]</a>    <span class="k">def</span> <span class="nf">u2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.U2Gate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.u2</span> <span class="kn">import</span> <span class="n">U2Gate</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The QuantumCircuit.u2 method is deprecated as of 0.16.0. It will be &#39;</span>
+                      <span class="s1">&#39;removed no earlier than 3 months after the release date. You can use the &#39;</span>
+                      <span class="s1">&#39;general 1-qubit gate QuantumCircuit.u instead: u2(φ,λ) = u(π/2, φ, λ). &#39;</span>
+                      <span class="s1">&#39;Alternatively, you can decompose it in terms of QuantumCircuit.p and &#39;</span>
+                      <span class="s1">&#39;QuantumCircuit.sx: u2(φ,λ) = p(π/2+φ) sx p(π/2+λ) (1 pulse on hardware).&#39;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">U2Gate</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.u3"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.u3.html#qiskit.circuit.QuantumCircuit.u3">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">u3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name,unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.u3"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.u3.html#qiskit.circuit.QuantumCircuit.u3">[docs]</a>    <span class="k">def</span> <span class="nf">u3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.U3Gate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.u3</span> <span class="kn">import</span> <span class="n">U3Gate</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The QuantumCircuit.u3 method is deprecated as of 0.16.0. It will be &#39;</span>
+                      <span class="s1">&#39;removed no earlier than 3 months after the release date. You should use &#39;</span>
+                      <span class="s1">&#39;QuantumCircuit.u instead, which acts identically. Alternatively, you can &#39;</span>
+                      <span class="s1">&#39;decompose u3 in terms of QuantumCircuit.p and QuantumCircuit.sx: &#39;</span>
+                      <span class="s1">&#39;u3(ϴ,φ,λ) = p(φ+π) sx p(ϴ+π) sx p(λ) (2 pulses on hardware).&#39;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">U3Gate</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.cu3"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cu3.html#qiskit.circuit.QuantumCircuit.cu3">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;ctl&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;tgt&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">cu3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">ctl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.cu3"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cu3.html#qiskit.circuit.QuantumCircuit.cu3">[docs]</a>    <span class="k">def</span> <span class="nf">cu3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CU3Gate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.u3</span> <span class="kn">import</span> <span class="n">CU3Gate</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The QuantumCircuit.cu3 method is deprecated as of 0.16.0. It will be &#39;</span>
+                      <span class="s1">&#39;removed no earlier than 3 months after the release date. You should use the &#39;</span>
+                      <span class="s1">&#39;QuantumCircuit.cu method instead, where cu3(ϴ,φ,λ) = cu(ϴ,φ,λ,0).&#39;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CU3Gate</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">),</span>
                            <span class="p">[</span><span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.x"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.x.html#qiskit.circuit.QuantumCircuit.x">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.x"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.x.html#qiskit.circuit.QuantumCircuit.x">[docs]</a>    <span class="k">def</span> <span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.XGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.x</span> <span class="kn">import</span> <span class="n">XGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">XGate</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.cx"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cx.html#qiskit.circuit.QuantumCircuit.cx">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;ctl&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;tgt&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">cx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-           <span class="n">ctl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.cx"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cx.html#qiskit.circuit.QuantumCircuit.cx">[docs]</a>    <span class="k">def</span> <span class="nf">cx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span>  <span class="c1"># pylint:disable=invalid-name</span>
+           <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CXGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.x</span> <span class="kn">import</span> <span class="n">CXGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CXGate</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">),</span>
                            <span class="p">[</span><span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.cnot"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cnot.html#qiskit.circuit.QuantumCircuit.cnot">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;ctl&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;tgt&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">cnot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-             <span class="n">ctl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.cnot"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cnot.html#qiskit.circuit.QuantumCircuit.cnot">[docs]</a>    <span class="k">def</span> <span class="nf">cnot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CXGate`.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="QuantumCircuit.dcx"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.dcx.html#qiskit.circuit.QuantumCircuit.dcx">[docs]</a>    <span class="k">def</span> <span class="nf">dcx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit1</span><span class="p">,</span> <span class="n">qubit2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.DCXGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.dcx</span> <span class="kn">import</span> <span class="n">DCXGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DCXGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">qubit1</span><span class="p">,</span> <span class="n">qubit2</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.ccx"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.ccx.html#qiskit.circuit.QuantumCircuit.ccx">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;ctl1&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit1&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;ctl2&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit2&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;tgt&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">ccx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit1</span><span class="p">,</span> <span class="n">control_qubit2</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span>
-            <span class="o">*</span><span class="p">,</span> <span class="n">ctl1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctl2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.ccx"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.ccx.html#qiskit.circuit.QuantumCircuit.ccx">[docs]</a>    <span class="k">def</span> <span class="nf">ccx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit1</span><span class="p">,</span> <span class="n">control_qubit2</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CCXGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.x</span> <span class="kn">import</span> <span class="n">CCXGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CCXGate</span><span class="p">(),</span>
                            <span class="p">[</span><span class="n">control_qubit1</span><span class="p">,</span> <span class="n">control_qubit2</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.toffoli"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.toffoli.html#qiskit.circuit.QuantumCircuit.toffoli">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;ctl1&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit1&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;ctl2&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit2&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;tgt&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">toffoli</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit1</span><span class="p">,</span> <span class="n">control_qubit2</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span>
-                <span class="o">*</span><span class="p">,</span> <span class="n">ctl1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctl2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.toffoli"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.toffoli.html#qiskit.circuit.QuantumCircuit.toffoli">[docs]</a>    <span class="k">def</span> <span class="nf">toffoli</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit1</span><span class="p">,</span> <span class="n">control_qubit2</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CCXGate`.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ccx</span><span class="p">(</span><span class="n">control_qubit1</span><span class="p">,</span> <span class="n">control_qubit2</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">)</span></div>
 
@@ -2556,35 +2638,139 @@
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.MCXGate`.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mcx</span><span class="p">(</span><span class="n">control_qubits</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="n">ancilla_qubits</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.y"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.y.html#qiskit.circuit.QuantumCircuit.y">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.y"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.y.html#qiskit.circuit.QuantumCircuit.y">[docs]</a>    <span class="k">def</span> <span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.YGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.y</span> <span class="kn">import</span> <span class="n">YGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">YGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.cy"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cy.html#qiskit.circuit.QuantumCircuit.cy">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;ctl&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;tgt&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">cy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-           <span class="n">ctl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.cy"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cy.html#qiskit.circuit.QuantumCircuit.cy">[docs]</a>    <span class="k">def</span> <span class="nf">cy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span>   <span class="c1"># pylint: disable=invalid-name</span>
+           <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CYGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.y</span> <span class="kn">import</span> <span class="n">CYGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CYGate</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">),</span>
                            <span class="p">[</span><span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.z"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.z.html#qiskit.circuit.QuantumCircuit.z">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s1">&#39;qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.z"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.z.html#qiskit.circuit.QuantumCircuit.z">[docs]</a>    <span class="k">def</span> <span class="nf">z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.ZGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.z</span> <span class="kn">import</span> <span class="n">ZGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ZGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">],</span> <span class="p">[])</span></div>
 
-<div class="viewcode-block" id="QuantumCircuit.cz"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cz.html#qiskit.circuit.QuantumCircuit.cz">[docs]</a>    <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;ctl&#39;</span><span class="p">:</span> <span class="s1">&#39;control_qubit&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;tgt&#39;</span><span class="p">:</span> <span class="s1">&#39;target_qubit&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">cz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-           <span class="n">ctl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tgt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<div class="viewcode-block" id="QuantumCircuit.cz"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.cz.html#qiskit.circuit.QuantumCircuit.cz">[docs]</a>    <span class="k">def</span> <span class="nf">cz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">,</span>  <span class="c1"># pylint: disable=invalid-name</span>
+           <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply :class:`~qiskit.circuit.library.CZGate`.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.library.standard_gates.z</span> <span class="kn">import</span> <span class="n">CZGate</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CZGate</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ctrl_state</span><span class="o">=</span><span class="n">ctrl_state</span><span class="p">),</span>
-                           <span class="p">[</span><span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">],</span> <span class="p">[])</span></div></div>
+                           <span class="p">[</span><span class="n">control_qubit</span><span class="p">,</span> <span class="n">target_qubit</span><span class="p">],</span> <span class="p">[])</span></div>
+
+<div class="viewcode-block" id="QuantumCircuit.add_calibration"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.add_calibration.html#qiskit.circuit.QuantumCircuit.add_calibration">[docs]</a>    <span class="k">def</span> <span class="nf">add_calibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gate</span><span class="p">,</span> <span class="n">qubits</span><span class="p">,</span> <span class="n">schedule</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register a low-level, custom pulse definition for the given gate.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            gate (Union[Gate, str]): Gate information.</span>
+<span class="sd">            qubits (Union[int, Tuple[int]]): List of qubits to be measured.</span>
+<span class="sd">            schedule (Schedule): Schedule information.</span>
+<span class="sd">            params (Optional[List[Union[float, Parameter]]]): A list of parameters.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            Exception: if the gate is of type string and params is None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gate</span><span class="p">,</span> <span class="n">Gate</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_calibrations</span><span class="p">[</span><span class="n">gate</span><span class="o">.</span><span class="n">name</span><span class="p">][(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">qubits</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">gate</span><span class="o">.</span><span class="n">params</span><span class="p">))]</span> <span class="o">=</span> <span class="n">schedule</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_calibrations</span><span class="p">[</span><span class="n">gate</span><span class="p">][(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">qubits</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">params</span> <span class="ow">or</span> <span class="p">[]))]</span> <span class="o">=</span> <span class="n">schedule</span></div>
+
+    <span class="c1"># Functions only for scheduled circuits</span>
+<div class="viewcode-block" id="QuantumCircuit.qubit_duration"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.qubit_duration.html#qiskit.circuit.QuantumCircuit.qubit_duration">[docs]</a>    <span class="k">def</span> <span class="nf">qubit_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Qubit</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return the duration between the start and stop time of the first and last instructions,</span>
+<span class="sd">        excluding delays, over the supplied qubits. Its time unit is ``self.unit``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            *qubits: Qubits within ``self`` to include.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Return the duration between the first start and last stop time of non-delay instructions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubit_stop_time</span><span class="p">(</span><span class="o">*</span><span class="n">qubits</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubit_start_time</span><span class="p">(</span><span class="o">*</span><span class="n">qubits</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QuantumCircuit.qubit_start_time"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.qubit_start_time.html#qiskit.circuit.QuantumCircuit.qubit_start_time">[docs]</a>    <span class="k">def</span> <span class="nf">qubit_start_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Qubit</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return the start time of the first instruction, excluding delays,</span>
+<span class="sd">        over the supplied qubits. Its time unit is ``self.unit``.</span>
+
+<span class="sd">        Return 0 if there are no instructions over qubits</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            *qubits: Qubits within ``self`` to include. Integers are allowed for qubits, indicating</span>
+<span class="sd">            indices of ``self.qubits``.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Return the start time of the first instruction, excluding delays, over the qubits</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            CircuitError: if ``self`` is a not-yet scheduled circuit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># circuit has only delays, this is kind of scheduled</span>
+            <span class="k">for</span> <span class="n">inst</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">Delay</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s2">&quot;qubit_start_time is defined only for scheduled circuit.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="n">qubits</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">qubits</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">]</span>
+
+        <span class="n">starts</span> <span class="o">=</span> <span class="p">{</span><span class="n">q</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">}</span>
+        <span class="n">dones</span> <span class="o">=</span> <span class="p">{</span><span class="n">q</span><span class="p">:</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">inst</span><span class="p">,</span> <span class="n">qargs</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">Delay</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">dones</span><span class="p">[</span><span class="n">q</span><span class="p">]:</span>
+                            <span class="n">starts</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="o">+=</span> <span class="n">inst</span><span class="o">.</span><span class="n">duration</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">dones</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">([</span><span class="n">done</span> <span class="k">for</span> <span class="n">done</span> <span class="ow">in</span> <span class="n">dones</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">done</span><span class="p">]):</span>  <span class="c1"># all done</span>
+                <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">start</span> <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="n">starts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="mi">0</span>  <span class="c1"># If there are no instructions over bits</span></div>
+
+<div class="viewcode-block" id="QuantumCircuit.qubit_stop_time"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.QuantumCircuit.qubit_stop_time.html#qiskit.circuit.QuantumCircuit.qubit_stop_time">[docs]</a>    <span class="k">def</span> <span class="nf">qubit_stop_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Qubit</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return the stop time of the last instruction, excluding delays, over the supplied qubits.</span>
+<span class="sd">        Its time unit is ``self.unit``.</span>
+
+<span class="sd">        Return 0 if there are no instructions over qubits</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            *qubits: Qubits within ``self`` to include. Integers are allowed for qubits, indicating</span>
+<span class="sd">            indices of ``self.qubits``.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Return the stop time of the last instruction, excluding delays, over the qubits</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            CircuitError: if ``self`` is a not-yet scheduled circuit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># circuit has only delays, this is kind of scheduled</span>
+            <span class="k">for</span> <span class="n">inst</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">Delay</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s2">&quot;qubit_stop_time is defined only for scheduled circuit.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="n">qubits</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">qubits</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">]</span>
+
+        <span class="n">stops</span> <span class="o">=</span> <span class="p">{</span><span class="n">q</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">}</span>
+        <span class="n">dones</span> <span class="o">=</span> <span class="p">{</span><span class="n">q</span><span class="p">:</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">inst</span><span class="p">,</span> <span class="n">qargs</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">Delay</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">dones</span><span class="p">[</span><span class="n">q</span><span class="p">]:</span>
+                            <span class="n">stops</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="o">-=</span> <span class="n">inst</span><span class="o">.</span><span class="n">duration</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">dones</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">([</span><span class="n">done</span> <span class="k">for</span> <span class="n">done</span> <span class="ow">in</span> <span class="n">dones</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">done</span><span class="p">]):</span>  <span class="c1"># all done</span>
+                <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">stop</span> <span class="k">for</span> <span class="n">stop</span> <span class="ow">in</span> <span class="n">stops</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="mi">0</span>  <span class="c1"># If there are no instructions over bits</span></div></div>
 
 
 <span class="k">def</span> <span class="nf">_circuit_from_qasm</span><span class="p">(</span><span class="n">qasm</span><span class="p">):</span>
@@ -2609,7 +2795,7 @@
         
         &copy; सर्वाधिकार 2020, Qiskit Development Team
       <span class="lastupdated">
-        अंतिम बार सम्पादित 2020/10/12.
+        अंतिम बार सम्पादित 2020/10/19.
       </span>
 
     </p>
