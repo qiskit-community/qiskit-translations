@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.operators.list_ops.list_op &mdash; Qiskit 0.22.0 ドキュメント</title>
+  <title>qiskit.aqua.operators.list_ops.list_op &mdash; Qiskit 0.23.0 ドキュメント</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>qiskit.aqua.operators.list_ops.list_op のソースコード</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -275,14 +273,18 @@
 <span class="sd">&quot;&quot;&quot; ListOp Operator Class &quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">numbers</span> <span class="kn">import</span> <span class="n">Number</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">spmatrix</span>
 
-<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">ParameterExpression</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">ParameterExpression</span>
+
 <span class="kn">from</span> <span class="nn">..legacy.base_operator</span> <span class="kn">import</span> <span class="n">LegacyBaseOperator</span>
 <span class="kn">from</span> <span class="nn">..operator_base</span> <span class="kn">import</span> <span class="n">OperatorBase</span>
+<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">AquaError</span>
+<span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">arithmetic</span>
 
 
 <div class="viewcode-block" id="ListOp"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.ListOp.html#qiskit.aqua.operators.list_ops.ListOp">[ドキュメント]</a><span class="k">class</span> <span class="nc">ListOp</span><span class="p">(</span><span class="n">OperatorBase</span><span class="p">):</span>
@@ -316,7 +318,8 @@
                  <span class="n">oplist</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">],</span>
                  <span class="n">combo_fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
                  <span class="n">coeff</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
-                 <span class="n">abelian</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                 <span class="n">abelian</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">grad_combo_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            oplist: The list of ``OperatorBases`` defining this Operator&#39;s underlying function.</span>
@@ -324,7 +327,8 @@
 <span class="sd">                ``oplist`` Operators&#39; eval functions (e.g. sum).</span>
 <span class="sd">            coeff: A coefficient multiplying the operator</span>
 <span class="sd">            abelian: Indicates whether the Operators in ``oplist`` are known to mutually commute.</span>
-
+<span class="sd">            grad_combo_fn: The gradient of recombination function. If None, the gradient will</span>
+<span class="sd">                be computed automatically.</span>
 <span class="sd">            Note that the default &quot;recombination function&quot; lambda above is essentially the</span>
 <span class="sd">            identity - it accepts the list of values, and returns them in a list.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -332,6 +336,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_combo_fn</span> <span class="o">=</span> <span class="n">combo_fn</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_coeff</span> <span class="o">=</span> <span class="n">coeff</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_abelian</span> <span class="o">=</span> <span class="n">abelian</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_grad_combo_fn</span> <span class="o">=</span> <span class="n">grad_combo_fn</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">oplist</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">]:</span>
@@ -353,6 +358,11 @@
 <span class="sd">            The combination function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combo_fn</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">grad_combo_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; The gradient of ``combo_fn``. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grad_combo_fn</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">abelian</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -389,7 +399,10 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">num_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">num_qubits</span>
+        <span class="n">num_qubits0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">num_qubits</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">num_qubits0</span> <span class="o">==</span> <span class="n">op</span><span class="o">.</span><span class="n">num_qubits</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Operators in ListOp have differing numbers of qubits.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">num_qubits0</span>
 
 <div class="viewcode-block" id="ListOp.add"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.ListOp.add.html#qiskit.aqua.operators.list_ops.ListOp.add">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">OperatorBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span><span class="p">:</span>
@@ -413,7 +426,16 @@
                  <span class="n">convert_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
                  <span class="n">coeff</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span>
                                        <span class="n">ParameterExpression</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Apply the convert_fn to each node in the oplist. &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Apply the convert_fn to each node in the oplist.</span>
+
+<span class="sd">            Args:</span>
+<span class="sd">                convert_fn: The function to apply to the internal OperatorBase.</span>
+<span class="sd">                coeff: A coefficient to multiply by after applying convert_fn.</span>
+<span class="sd">                    If it is None, self.coeff is used instead.</span>
+
+<span class="sd">            Returns:</span>
+<span class="sd">                The converted ListOp.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">coeff</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">coeff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span>
 
@@ -461,11 +483,61 @@
         <span class="kn">from</span> <span class="nn">.tensored_op</span> <span class="kn">import</span> <span class="n">TensoredOp</span>
         <span class="k">return</span> <span class="n">TensoredOp</span><span class="p">([</span><span class="bp">self</span><span class="p">]</span> <span class="o">*</span> <span class="n">other</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ListOp.compose"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.ListOp.compose.html#qiskit.aqua.operators.list_ops.ListOp.compose">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">OperatorBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_expand_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ListOp&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ListOp</span><span class="p">([</span><span class="n">op</span><span class="o">.</span><span class="n">_expand_dim</span><span class="p">(</span><span class="n">num_qubits</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">-</span> <span class="n">op</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">],</span> <span class="n">combo_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">combo_fn</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ListOp.permute"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.ListOp.permute.html#qiskit.aqua.operators.list_ops.ListOp.permute">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">permute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">permutation</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;ListOp&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Permute the qubits of the operator.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            permutation: A list defining where each qubit should be permuted. The qubit at index</span>
+<span class="sd">                j should be permuted to position permutation[j].</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new ListOp representing the permuted operator.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AquaError: if indices do not define a new index for each qubit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_self</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">circuit_size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">permutation</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">permutation</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s2">&quot;New index must be defined for each qubit of the operator.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s2">&quot;Permute is only possible if all operators in the ListOp have the &quot;</span>
+                            <span class="s2">&quot;same number of qubits.&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">ValueError</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&lt;</span> <span class="n">circuit_size</span><span class="p">:</span>
+            <span class="c1"># pad the operator with identities</span>
+            <span class="n">new_self</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expand_dim</span><span class="p">(</span><span class="n">circuit_size</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
+        <span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">circuit_size</span><span class="p">)</span>
+        <span class="c1"># extend the indices to match the size of the circuit</span>
+        <span class="n">permutation</span> \
+            <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">permutation</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">circuit_size</span><span class="p">)))</span> <span class="o">+</span> <span class="n">permutation</span>
+
+        <span class="c1"># decompose permutation into sequence of transpositions</span>
+        <span class="n">transpositions</span> <span class="o">=</span> <span class="n">arithmetic</span><span class="o">.</span><span class="n">transpositions</span><span class="p">(</span><span class="n">permutation</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">trans</span> <span class="ow">in</span> <span class="n">transpositions</span><span class="p">:</span>
+            <span class="n">qc</span><span class="o">.</span><span class="n">swap</span><span class="p">(</span><span class="n">trans</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">trans</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">CircuitOp</span>
+
+        <span class="k">return</span> <span class="n">CircuitOp</span><span class="p">(</span><span class="n">qc</span><span class="o">.</span><span class="n">reverse_ops</span><span class="p">())</span> <span class="o">@</span> <span class="n">new_self</span> <span class="o">@</span> <span class="n">CircuitOp</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ListOp.compose"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.ListOp.compose.html#qiskit.aqua.operators.list_ops.ListOp.compose">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">OperatorBase</span><span class="p">,</span>
+                <span class="n">permutation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">front</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
+
+        <span class="n">new_self</span><span class="p">,</span> <span class="n">other</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expand_shorter_operator_and_permute</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">permutation</span><span class="p">)</span>
+        <span class="n">new_self</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">ListOp</span><span class="p">,</span> <span class="n">new_self</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">front</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">new_self</span><span class="p">)</span>
         <span class="c1"># Avoid circular dependency</span>
         <span class="c1"># pylint: disable=cyclic-import,import-outside-toplevel</span>
         <span class="kn">from</span> <span class="nn">.composed_op</span> <span class="kn">import</span> <span class="n">ComposedOp</span>
-        <span class="k">return</span> <span class="n">ComposedOp</span><span class="p">([</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">])</span></div>
+        <span class="k">return</span> <span class="n">ComposedOp</span><span class="p">([</span><span class="n">new_self</span><span class="p">,</span> <span class="n">other</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="ListOp.power"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.ListOp.power.html#qiskit.aqua.operators.list_ops.ListOp.power">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exponent</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exponent</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">exponent</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
@@ -477,14 +549,20 @@
         <span class="k">return</span> <span class="n">ComposedOp</span><span class="p">([</span><span class="bp">self</span><span class="p">]</span> <span class="o">*</span> <span class="n">exponent</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ListOp.to_matrix"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.ListOp.to_matrix.html#qiskit.aqua.operators.list_ops.ListOp.to_matrix">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">to_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">massive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&gt;</span> <span class="mi">16</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">massive</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s1">&#39;to_matrix will return an exponentially large matrix, &#39;</span>
-                <span class="s1">&#39;in this case </span><span class="si">{0}</span><span class="s1">x</span><span class="si">{0}</span><span class="s1"> elements.&#39;</span>
-                <span class="s1">&#39; Set massive=True if you want to proceed.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">))</span>
+        <span class="n">OperatorBase</span><span class="o">.</span><span class="n">_check_massive</span><span class="p">(</span><span class="s1">&#39;to_matrix&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">massive</span><span class="p">)</span>
 
-        <span class="c1"># Combination function must be able to handle classical values</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">combo_fn</span><span class="p">([</span><span class="n">op</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">])</span></div>
+        <span class="c1"># Combination function must be able to handle classical values.</span>
+        <span class="c1"># Note: this can end up, when we have list operators containing other list operators, as a</span>
+        <span class="c1">#       ragged array and numpy 1.19 raises a deprecation warning unless this is explicitly</span>
+        <span class="c1">#       done as object type now - was implicit before.</span>
+        <span class="n">mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combo_fn</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">op</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">(</span><span class="n">massive</span><span class="o">=</span><span class="n">massive</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">],</span>
+                       <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">))</span>
+        <span class="c1"># Note: As ComposedOp has a combo function of inner product we can end up here not with</span>
+        <span class="c1"># a matrix (array) but a scalar. In which case we make a single element array of it.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">Number</span><span class="p">):</span>
+            <span class="n">mat</span> <span class="o">=</span> <span class="p">[</span><span class="n">mat</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ListOp.to_spmatrix"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.ListOp.to_spmatrix.html#qiskit.aqua.operators.list_ops.ListOp.to_spmatrix">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">to_spmatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">spmatrix</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">spmatrix</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot; Returns SciPy sparse matrix representation of the Operator.</span>
@@ -498,8 +576,8 @@
             <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">to_spmatrix</span><span class="p">()</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">])</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span>  <span class="c1"># type: ignore</span></div>
 
 <div class="viewcode-block" id="ListOp.eval"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.ListOp.eval.html#qiskit.aqua.operators.list_ops.ListOp.eval">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-             <span class="n">front</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">complex</span><span class="p">],</span> <span class="s1">&#39;OperatorBase&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
-             <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s1">&#39;OperatorBase&#39;</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+             <span class="n">front</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">complex</span><span class="p">],</span> <span class="n">OperatorBase</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+             <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Evaluate the Operator&#39;s underlying function, either on a binary string or another Operator.</span>
 <span class="sd">        A square binary Operator can be defined as a function taking a binary function to another</span>
@@ -531,12 +609,29 @@
 <span class="sd">            NotImplementedError: Attempting to call ListOp&#39;s eval from a non-distributive subclass.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># pylint: disable=cyclic-import</span>
+        <span class="kn">from</span> <span class="nn">..state_fns.dict_state_fn</span> <span class="kn">import</span> <span class="n">DictStateFn</span>
+        <span class="kn">from</span> <span class="nn">..state_fns.vector_state_fn</span> <span class="kn">import</span> <span class="n">VectorStateFn</span>
+
         <span class="c1"># The below code only works for distributive ListOps, e.g. ListOp and SummedOp</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">distributive</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;ListOp</span><span class="se">\&#39;</span><span class="s1">s eval function is only defined for distributive &#39;</span>
-                                      <span class="sa">r</span><span class="s1">&#39;Listops.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;ListOp&#39;s eval function is only defined for distributive &quot;</span>
+                                      <span class="s2">&quot;ListOps.&quot;</span><span class="p">)</span>
 
         <span class="n">evals</span> <span class="o">=</span> <span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span> <span class="o">*</span> <span class="n">op</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">front</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+
+        <span class="c1"># Handle application of combo_fn for DictStateFn resp VectorStateFn operators</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combo_fn</span> <span class="o">!=</span> <span class="n">ListOp</span><span class="p">([])</span><span class="o">.</span><span class="n">_combo_fn</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">DictStateFn</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">evals</span><span class="p">)</span> <span class="ow">or</span> \
+                    <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">VectorStateFn</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">evals</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">evals</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">evals</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Combo_fn not yet supported for mixed &quot;</span>
+                                              <span class="s2">&quot;VectorStateFn primitives&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">is_measurement</span> <span class="o">==</span> <span class="n">evals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_measurement</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">evals</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Combo_fn not yet supported for mixed measurement &quot;</span>
+                                              <span class="s2">&quot;and non-measurement StateFns&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">combo_fn</span><span class="p">(</span><span class="n">evals</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">OperatorBase</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">evals</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">evals</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">OperatorBase</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">evals</span><span class="p">):</span>
@@ -586,6 +681,15 @@
                                                      <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">),</span>
                                                      <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">,</span>
                                                      <span class="bp">self</span><span class="o">.</span><span class="n">abelian</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">:</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">):</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">params</span>
 
 <div class="viewcode-block" id="ListOp.assign_parameters"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.ListOp.assign_parameters.html#qiskit.aqua.operators.list_ops.ListOp.assign_parameters">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">assign_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
         <span class="n">param_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span>
@@ -701,7 +805,7 @@
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/10/13
+        最終更新: 2020/10/19
       </span>
 
     </p>

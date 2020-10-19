@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.optimization.algorithms.grover_optimizer &mdash; Qiskit 0.22.0 ドキュメント</title>
+  <title>qiskit.optimization.algorithms.grover_optimizer &mdash; Qiskit 0.23.0 ドキュメント</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>qiskit.optimization.algorithms.grover_optimizer のソースコード</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -274,23 +272,24 @@
 
 <span class="sd">&quot;&quot;&quot;GroverOptimizer module&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
 <span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">QuantumRegister</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">QuadraticForm</span>
-<span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">BaseBackend</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">QuantumInstance</span><span class="p">,</span> <span class="n">aqua_globals</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms.amplitude_amplifiers.grover</span> <span class="kn">import</span> <span class="n">Grover</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.initial_states</span> <span class="kn">import</span> <span class="n">Custom</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.oracles</span> <span class="kn">import</span> <span class="n">CustomCircuitOracle</span>
-<span class="kn">from</span> <span class="nn">.optimization_algorithm</span> <span class="kn">import</span> <span class="n">OptimizationAlgorithm</span><span class="p">,</span> <span class="n">OptimizationResult</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">BaseBackend</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">Backend</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">QuadraticForm</span>
+<span class="kn">from</span> <span class="nn">.optimization_algorithm</span> <span class="kn">import</span> <span class="p">(</span><span class="n">OptimizationResultStatus</span><span class="p">,</span> <span class="n">OptimizationAlgorithm</span><span class="p">,</span>
+                                     <span class="n">OptimizationResult</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">..converters.quadratic_program_to_qubo</span> <span class="kn">import</span> <span class="n">QuadraticProgramToQubo</span><span class="p">,</span> <span class="n">QuadraticProgramConverter</span>
+<span class="kn">from</span> <span class="nn">..problems</span> <span class="kn">import</span> <span class="n">Variable</span>
 <span class="kn">from</span> <span class="nn">..problems.quadratic_program</span> <span class="kn">import</span> <span class="n">QuadraticProgram</span>
-<span class="kn">from</span> <span class="nn">..converters.quadratic_program_to_qubo</span> <span class="kn">import</span> <span class="n">QuadraticProgramToQubo</span>
-
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -299,22 +298,34 @@
     <span class="sd">&quot;&quot;&quot;Uses Grover Adaptive Search (GAS) to find the minimum of a QUBO function.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_value_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
-                 <span class="n">quantum_instance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">BaseBackend</span><span class="p">,</span> <span class="n">QuantumInstance</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                 <span class="n">quantum_instance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">BaseBackend</span><span class="p">,</span> <span class="n">Backend</span><span class="p">,</span> <span class="n">QuantumInstance</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">converters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuadraticProgramConverter</span><span class="p">,</span>
+                                            <span class="n">List</span><span class="p">[</span><span class="n">QuadraticProgramConverter</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">penalty</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            num_value_qubits: The number of value qubits.</span>
 <span class="sd">            num_iterations: The number of iterations the algorithm will search with</span>
 <span class="sd">                no improvement.</span>
 <span class="sd">            quantum_instance: Instance of selected backend, defaults to Aer&#39;s statevector simulator.</span>
+<span class="sd">            converters: The converters to use for converting a problem into a different form.</span>
+<span class="sd">                By default, when None is specified, an internally created instance of</span>
+<span class="sd">                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.</span>
+<span class="sd">            penalty: The penalty factor used in the default</span>
+<span class="sd">                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` converter</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            TypeError: When there one of converters is an invalid type.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_num_value_qubits</span> <span class="o">=</span> <span class="n">num_value_qubits</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_num_key_qubits</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_iterations</span> <span class="o">=</span> <span class="n">num_iterations</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_quantum_instance</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_converter</span> <span class="o">=</span> <span class="n">QuadraticProgramToQubo</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">quantum_instance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">quantum_instance</span> <span class="o">=</span> <span class="n">quantum_instance</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_converters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_converters</span><span class="p">(</span><span class="n">converters</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">quantum_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuantumInstance</span><span class="p">:</span>
@@ -326,13 +337,14 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quantum_instance</span>
 
     <span class="nd">@quantum_instance</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">quantum_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BaseBackend</span><span class="p">,</span> <span class="n">QuantumInstance</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">quantum_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Backend</span><span class="p">,</span>
+                                                       <span class="n">BaseBackend</span><span class="p">,</span> <span class="n">QuantumInstance</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Set the quantum instance used to run the circuits.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            quantum_instance: The quantum instance to be used in the algorithm.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">quantum_instance</span><span class="p">,</span> <span class="n">BaseBackend</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">quantum_instance</span><span class="p">,</span> <span class="p">(</span><span class="n">BaseBackend</span><span class="p">,</span> <span class="n">Backend</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_quantum_instance</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">quantum_instance</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_quantum_instance</span> <span class="o">=</span> <span class="n">quantum_instance</span>
@@ -360,34 +372,26 @@
         <span class="n">quadratic_form</span> <span class="o">=</span> <span class="n">QuadraticForm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_value_qubits</span><span class="p">,</span> <span class="n">quadratic</span><span class="p">,</span> <span class="n">linear</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span>
                                        <span class="n">little_endian</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-        <span class="n">a_operator_circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qr_key_value</span><span class="p">)</span>
-        <span class="n">a_operator_circuit</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_key_qubits</span><span class="p">)))</span>
-        <span class="n">a_operator_circuit</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">quadratic_form</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="n">a_operator</span> <span class="o">=</span> <span class="n">Custom</span><span class="p">(</span><span class="n">a_operator_circuit</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span> <span class="n">circuit</span><span class="o">=</span><span class="n">a_operator_circuit</span><span class="p">)</span>
+        <span class="n">a_operator</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qr_key_value</span><span class="p">)</span>
+        <span class="n">a_operator</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_key_qubits</span><span class="p">)))</span>
+        <span class="n">a_operator</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">quadratic_form</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">a_operator</span>
 
     <span class="k">def</span> <span class="nf">_get_oracle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qr_key_value</span><span class="p">):</span>
         <span class="c1"># Build negative value oracle O.</span>
-        <span class="n">qr_key_value</span> <span class="o">=</span> <span class="n">qr_key_value</span> <span class="ow">or</span> <span class="n">QuantumRegister</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_num_key_qubits</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_value_qubits</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">qr_key_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">qr_key_value</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_key_qubits</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_value_qubits</span><span class="p">)</span>
+
         <span class="n">oracle_bit</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;oracle&quot;</span><span class="p">)</span>
-        <span class="n">oracle_circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qr_key_value</span><span class="p">,</span> <span class="n">oracle_bit</span><span class="p">)</span>
-        <span class="n">oracle_circuit</span><span class="o">.</span><span class="n">z</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_key_qubits</span><span class="p">)</span>  <span class="c1"># recognize negative values.</span>
+        <span class="n">oracle</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qr_key_value</span><span class="p">,</span> <span class="n">oracle_bit</span><span class="p">)</span>
+        <span class="n">oracle</span><span class="o">.</span><span class="n">z</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_key_qubits</span><span class="p">)</span>  <span class="c1"># recognize negative values.</span>
 
-        <span class="k">def</span> <span class="nf">evaluate_classically</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">measurement</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot; evaluate classical &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">is_good_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">measurement</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Check whether ``measurement`` is a good state or not.&quot;&quot;&quot;</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">measurement</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_key_qubits</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_key_qubits</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_value_qubits</span><span class="p">]</span>
-            <span class="n">assignment</span> <span class="o">=</span> <span class="p">[(</span><span class="n">var</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">tf</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">tf</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">measurement</span><span class="p">,</span>
-                                                                           <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">measurement</span><span class="p">)))]</span>
-            <span class="n">evaluation</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span>
-            <span class="k">return</span> <span class="n">evaluation</span><span class="p">,</span> <span class="n">assignment</span>
+            <span class="k">return</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span>
 
-        <span class="n">oracle</span> <span class="o">=</span> <span class="n">CustomCircuitOracle</span><span class="p">(</span><span class="n">variable_register</span><span class="o">=</span><span class="n">qr_key_value</span><span class="p">,</span>
-                                     <span class="n">output_register</span><span class="o">=</span><span class="n">oracle_bit</span><span class="p">,</span>
-                                     <span class="n">circuit</span><span class="o">=</span><span class="n">oracle_circuit</span><span class="p">,</span>
-                                     <span class="n">evaluate_classically_callback</span><span class="o">=</span><span class="n">evaluate_classically</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">oracle</span>
+        <span class="k">return</span> <span class="n">oracle</span><span class="p">,</span> <span class="n">is_good_state</span>
 
 <div class="viewcode-block" id="GroverOptimizer.solve"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.GroverOptimizer.solve.html#qiskit.optimization.algorithms.GroverOptimizer.solve">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OptimizationResult</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Tries to solves the given problem using the grover optimizer.</span>
@@ -411,7 +415,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_verify_compatibility</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
 
         <span class="c1"># convert problem to QUBO</span>
-        <span class="n">problem_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_converter</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+        <span class="n">problem_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_converters</span><span class="p">)</span>
+        <span class="n">problem_init</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">problem_</span><span class="p">)</span>
 
         <span class="c1"># convert to minimization problem</span>
         <span class="n">sense</span> <span class="o">=</span> <span class="n">problem_</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">sense</span>
@@ -422,7 +427,7 @@
                 <span class="n">problem_</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">linear</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">val</span>
             <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">problem_</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">quadratic</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">problem_</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">quadratic</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">val</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_num_key_qubits</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">problem_</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_array</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_key_qubits</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">problem_</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">to_array</span><span class="p">())</span>  <span class="c1"># type: ignore</span>
 
         <span class="c1"># Variables for tracking the optimum.</span>
         <span class="n">optimum_found</span> <span class="o">=</span> <span class="kc">False</span>
@@ -448,7 +453,7 @@
         <span class="n">qr_key_value</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_key_qubits</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_value_qubits</span><span class="p">)</span>
         <span class="n">orig_constant</span> <span class="o">=</span> <span class="n">problem_</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">constant</span>
         <span class="n">measurement</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantum_instance</span><span class="o">.</span><span class="n">is_statevector</span>
-        <span class="n">oracle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_oracle</span><span class="p">(</span><span class="n">qr_key_value</span><span class="p">)</span>
+        <span class="n">oracle</span><span class="p">,</span> <span class="n">is_good_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_oracle</span><span class="p">(</span><span class="n">qr_key_value</span><span class="p">)</span>
 
         <span class="k">while</span> <span class="ow">not</span> <span class="n">optimum_found</span><span class="p">:</span>
             <span class="n">m</span> <span class="o">=</span> <span class="mi">1</span>
@@ -465,14 +470,12 @@
                 <span class="n">loops_with_no_improvement</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">rotation_count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">aqua_globals</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">m</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
                 <span class="n">rotations</span> <span class="o">+=</span> <span class="n">rotation_count</span>
-
                 <span class="c1"># Apply Grover&#39;s Algorithm to find values below the threshold.</span>
-                <span class="k">if</span> <span class="n">rotation_count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="c1"># TODO: Utilize Grover&#39;s incremental feature - requires changes to Grover.</span>
-                    <span class="n">grover</span> <span class="o">=</span> <span class="n">Grover</span><span class="p">(</span><span class="n">oracle</span><span class="p">,</span> <span class="n">init_state</span><span class="o">=</span><span class="n">a_operator</span><span class="p">,</span> <span class="n">num_iterations</span><span class="o">=</span><span class="n">rotation_count</span><span class="p">)</span>
-                    <span class="n">circuit</span> <span class="o">=</span> <span class="n">grover</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="n">measurement</span><span class="o">=</span><span class="n">measurement</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">circuit</span> <span class="o">=</span> <span class="n">a_operator</span><span class="o">.</span><span class="n">_circuit</span>
+                <span class="c1"># TODO: Utilize Grover&#39;s incremental feature - requires changes to Grover.</span>
+                <span class="n">grover</span> <span class="o">=</span> <span class="n">Grover</span><span class="p">(</span><span class="n">oracle</span><span class="p">,</span>
+                                <span class="n">state_preparation</span><span class="o">=</span><span class="n">a_operator</span><span class="p">,</span>
+                                <span class="n">good_state</span><span class="o">=</span><span class="n">is_good_state</span><span class="p">)</span>
+                <span class="n">circuit</span> <span class="o">=</span> <span class="n">grover</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="n">rotation_count</span><span class="p">,</span> <span class="n">measurement</span><span class="o">=</span><span class="n">measurement</span><span class="p">)</span>
 
                 <span class="c1"># Get the next outcome.</span>
                 <span class="n">outcome</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_measure</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
@@ -519,26 +522,24 @@
 
         <span class="n">opt_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span> <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;{0:</span><span class="si">%s</span><span class="s1">b}&#39;</span> <span class="o">%</span> <span class="n">n_key</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">optimum_key</span><span class="p">)])</span>
 
-        <span class="c1"># Build the results object.</span>
-        <span class="n">grover_results</span> <span class="o">=</span> <span class="n">GroverOptimizationRawResult</span><span class="p">(</span><span class="n">operation_count</span><span class="p">,</span> <span class="n">n_key</span><span class="p">,</span> <span class="n">n_value</span><span class="p">)</span>
-
         <span class="c1"># Compute function value</span>
-        <span class="n">fval</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">opt_x</span><span class="p">)</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">OptimizationResult</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">opt_x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">fval</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span>
-                                    <span class="n">raw_results</span><span class="o">=</span><span class="p">{</span>
-                                        <span class="s2">&quot;grover_results&quot;</span><span class="p">:</span> <span class="n">grover_results</span><span class="p">,</span>
-                                        <span class="s2">&quot;qubo_converter&quot;</span><span class="p">:</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qubo_converter</span><span class="p">)})</span>
+        <span class="n">fval</span> <span class="o">=</span> <span class="n">problem_init</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">opt_x</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">OptimizationResult</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">opt_x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">fval</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="n">problem_</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span>
+                                    <span class="n">status</span><span class="o">=</span><span class="n">OptimizationResultStatus</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">)</span>
 
         <span class="c1"># cast binaries back to integers</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qubo_converter</span><span class="o">.</span><span class="n">interpret</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpret</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_converters</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">result</span></div>
+        <span class="k">return</span> <span class="n">GroverOptimizationResult</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">fval</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span>
+                                        <span class="n">operation_counts</span><span class="o">=</span><span class="n">operation_count</span><span class="p">,</span> <span class="n">n_input_qubits</span><span class="o">=</span><span class="n">n_key</span><span class="p">,</span>
+                                        <span class="n">n_output_qubits</span><span class="o">=</span><span class="n">n_value</span><span class="p">,</span> <span class="n">intermediate_fval</span><span class="o">=</span><span class="n">fval</span><span class="p">,</span>
+                                        <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
+                                        <span class="n">status</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_feasibility_status</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">))</span></div>
 
     <span class="k">def</span> <span class="nf">_measure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Get probabilities from the given backend, and picks a random outcome.&quot;&quot;&quot;</span>
         <span class="n">probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_probs</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
         <span class="n">freq</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
         <span class="c1"># Pick a random outcome.</span>
         <span class="n">freq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]))</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="n">aqua_globals</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">freq</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
@@ -561,9 +562,8 @@
             <span class="n">shots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantum_instance</span><span class="o">.</span><span class="n">run_config</span><span class="o">.</span><span class="n">shots</span>
             <span class="n">hist</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">state</span><span class="p">:</span>
-                <span class="n">hist</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">/</span> <span class="n">shots</span>
+                <span class="n">hist</span><span class="p">[</span><span class="n">key</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">/</span> <span class="n">shots</span>
         <span class="n">hist</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">hist</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
-
         <span class="k">return</span> <span class="n">hist</span>
 
     <span class="nd">@staticmethod</span>
@@ -591,20 +591,34 @@
         <span class="k">return</span> <span class="n">int_v</span></div>
 
 
-<div class="viewcode-block" id="GroverOptimizationRawResult"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.GroverOptimizationRawResult.html#qiskit.optimization.algorithms.GroverOptimizationRawResult">[ドキュメント]</a><span class="k">class</span> <span class="nc">GroverOptimizationRawResult</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;A raw result object for Grover Optimization methods.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="GroverOptimizationResult"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.GroverOptimizationResult.html#qiskit.optimization.algorithms.GroverOptimizationResult">[ドキュメント]</a><span class="k">class</span> <span class="nc">GroverOptimizationResult</span><span class="p">(</span><span class="n">OptimizationResult</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A result object for Grover Optimization methods.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operation_counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
-                 <span class="n">n_input_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_output_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">fval</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Variable</span><span class="p">],</span>
+                 <span class="n">operation_counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span> <span class="n">n_input_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">n_output_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">intermediate_fval</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">status</span><span class="p">:</span> <span class="n">OptimizationResultStatus</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs a result object with the specific Grover properties.</span>
+
 <span class="sd">        Args:</span>
+<span class="sd">            x: The solution of the problem</span>
+<span class="sd">            fval: The value of the objective function of the solution</span>
+<span class="sd">            variables: A list of variables defined in the problem</span>
 <span class="sd">            operation_counts: The counts of each operation performed per iteration.</span>
 <span class="sd">            n_input_qubits: The number of qubits used to represent the input.</span>
 <span class="sd">            n_output_qubits: The number of qubits used to represent the output.</span>
+<span class="sd">            intermediate_fval: The intermediate value of the objective function of the solution,</span>
+<span class="sd">                that is expected to be identical with ``fval``.</span>
+<span class="sd">            threshold: The threshold of Grover algorithm.</span>
+<span class="sd">            status: the termination status of the optimization algorithm.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_operation_counts</span> <span class="o">=</span> <span class="n">operation_counts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_input_qubits</span> <span class="o">=</span> <span class="n">n_input_qubits</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_output_qubits</span> <span class="o">=</span> <span class="n">n_output_qubits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_intermediate_fval</span> <span class="o">=</span> <span class="n">intermediate_fval</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">operation_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
@@ -631,7 +645,25 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            The number of qubits used to represent the output.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_output_qubits</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_output_qubits</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">intermediate_fval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Getter of the intermediate fval</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The intermediate value of fval before interpret.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intermediate_fval</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Getter of the threshold of Grover algorithm.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The threshold of Grover algorithm.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span></div>
 </pre></div>
 
            </div>
@@ -647,7 +679,7 @@
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/10/13
+        最終更新: 2020/10/19
       </span>
 
     </p>

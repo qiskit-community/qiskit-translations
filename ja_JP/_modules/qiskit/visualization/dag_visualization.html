@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.visualization.dag_visualization &mdash; Qiskit 0.22.0 ドキュメント</title>
+  <title>qiskit.visualization.dag_visualization &mdash; Qiskit 0.23.0 ドキュメント</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>qiskit.visualization.dag_visualization のソースコード</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2017, 2018, 2020.</span>
 <span class="c1">#</span>
@@ -281,8 +279,6 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
-
-<span class="kn">from</span> <span class="nn">networkx.drawing.nx_pydot</span> <span class="kn">import</span> <span class="n">to_pydot</span>
 
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="kn">import</span> <span class="n">VisualizationError</span>
 
@@ -350,16 +346,15 @@
     <span class="c1"># the two tradeoffs ere that it will not handle subclasses and it is</span>
     <span class="c1"># slower (which doesn&#39;t matter for a visualization function)</span>
     <span class="n">type_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">dag</span><span class="p">))</span>
-    <span class="k">if</span> <span class="s1">&#39;dagcircuit.DAGDependency&#39;</span> <span class="ow">in</span> <span class="n">type_str</span><span class="p">:</span>
-        <span class="n">G</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">to_networkx</span><span class="p">()</span>
-        <span class="n">G</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;dpi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">scale</span>
+    <span class="k">if</span> <span class="s1">&#39;DAGDependency&#39;</span> <span class="ow">in</span> <span class="n">type_str</span><span class="p">:</span>
+        <span class="n">graph_attrs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;dpi&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)}</span>
 
-        <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;plain&#39;</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
-                <span class="n">n</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
-                <span class="n">n</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">node_id</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">def</span> <span class="nf">node_attr_func</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;plain&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">n</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">node_id</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;measure&#39;</span><span class="p">:</span>
                     <span class="n">n</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;blue&#39;</span>
                     <span class="n">n</span><span class="p">[</span><span class="s1">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;filled&#39;</span>
@@ -373,22 +368,23 @@
                     <span class="n">n</span><span class="p">[</span><span class="s1">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;filled&#39;</span>
                     <span class="n">n</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;red&#39;</span>
                 <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">condition</span><span class="p">:</span>
-                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">node_id</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; (conditional)&#39;</span>
+                    <span class="n">n</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">node_id</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; (conditional)&#39;</span>
                     <span class="n">n</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;black&#39;</span>
                     <span class="n">n</span><span class="p">[</span><span class="s1">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;filled&#39;</span>
                     <span class="n">n</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;lightgreen&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">VisualizationError</span><span class="p">(</span><span class="s2">&quot;Unrecognized style for the dag_drawer.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">n</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">VisualizationError</span><span class="p">(</span><span class="s2">&quot;Unrecognized style </span><span class="si">%s</span><span class="s2"> for the dag_drawer.&quot;</span> <span class="o">%</span> <span class="n">style</span><span class="p">)</span>
+        <span class="n">edge_attr_func</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">G</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">to_networkx</span><span class="p">()</span>
-        <span class="n">G</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;dpi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">scale</span>
+        <span class="n">graph_attrs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;dpi&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)}</span>
 
-        <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;plain&#39;</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
-                <span class="n">n</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
+        <span class="k">def</span> <span class="nf">node_attr_func</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;plain&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="p">{}</span>
                 <span class="n">n</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
                 <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;op&#39;</span><span class="p">:</span>
                     <span class="n">n</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;blue&#39;</span>
@@ -402,12 +398,18 @@
                     <span class="n">n</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;black&#39;</span>
                     <span class="n">n</span><span class="p">[</span><span class="s1">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;filled&#39;</span>
                     <span class="n">n</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;red&#39;</span>
-            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-                <span class="n">e</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">VisualizationError</span><span class="p">(</span><span class="s2">&quot;Unrecognized style for the dag_drawer.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">n</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">VisualizationError</span><span class="p">(</span><span class="s1">&#39;Invalid style </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">style</span><span class="p">)</span>
 
-    <span class="n">dot</span> <span class="o">=</span> <span class="n">to_pydot</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">edge_attr_func</span><span class="p">(</span><span class="n">edge</span><span class="p">):</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">e</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">e</span>
+
+    <span class="n">dot_str</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">_multi_graph</span><span class="o">.</span><span class="n">to_dot</span><span class="p">(</span><span class="n">node_attr_func</span><span class="p">,</span> <span class="n">edge_attr_func</span><span class="p">,</span>
+                                      <span class="n">graph_attrs</span><span class="p">)</span>
+    <span class="n">dot</span> <span class="o">=</span> <span class="n">pydot</span><span class="o">.</span><span class="n">graph_from_dot_data</span><span class="p">(</span><span class="n">dot_str</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
         <span class="n">extension</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -452,7 +454,7 @@
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/10/13
+        最終更新: 2020/10/19
       </span>
 
     </p>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.ignis.verification.randomized_benchmarking.dihedral &mdash; Qiskit 0.22.0 ドキュメント</title>
+  <title>qiskit.ignis.verification.randomized_benchmarking.dihedral &mdash; Qiskit 0.23.0 ドキュメント</title>
   
 
   
@@ -303,7 +303,11 @@
 <span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">RandomState</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.exceptions</span> <span class="kn">import</span> <span class="n">QiskitError</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.base_operator</span> <span class="kn">import</span> <span class="n">BaseOperator</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.operator</span> <span class="kn">import</span> <span class="n">Operator</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.pauli</span> <span class="kn">import</span> <span class="n">Pauli</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.scalar_op</span> <span class="kn">import</span> <span class="n">ScalarOp</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Instruction</span>
 
 
 <span class="k">class</span> <span class="nc">SpecialPolynomial</span><span class="p">():</span>
@@ -319,7 +323,8 @@
         <span class="c1">#   {n choose 2} quadratic terms x_1x_2, x_1x_3, ..., x_{n-1}x_n</span>
         <span class="c1">#   {n choose 3} cubic terms x_1x_2x_3, ..., x_{n-2}x_{n-1}x_n</span>
         <span class="c1"># and coefficients in Z_8</span>
-        <span class="k">assert</span> <span class="n">n_vars</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;n_vars too small!&quot;</span>
+        <span class="k">if</span> <span class="n">n_vars</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;n_vars for SpecialPolynomial is too small.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">=</span> <span class="n">n_vars</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nc2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_vars</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_vars</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nc3</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_vars</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_vars</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_vars</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">6</span><span class="p">)</span>
@@ -334,12 +339,13 @@
 <span class="sd">        Returns the product.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">length</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;no term!&quot;</span>
+        <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;There is no term with on more than 3 indices.&quot;</span><span class="p">)</span>
         <span class="n">indices_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> \
-            <span class="s2">&quot;indices out of bounds!&quot;</span>
-        <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">indices_arr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="s2">&quot;indices non-increasing!&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Indices are out of bounds.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">indices_arr</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Indices are non-increasing!&quot;</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">SpecialPolynomial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -365,7 +371,8 @@
             <span class="n">result</span><span class="o">.</span><span class="n">weight_2</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight_2</span> <span class="o">*</span> <span class="n">other</span><span class="p">)</span> <span class="o">%</span> <span class="mi">8</span>
             <span class="n">result</span><span class="o">.</span><span class="n">weight_3</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight_3</span> <span class="o">*</span> <span class="n">other</span><span class="p">)</span> <span class="o">%</span> <span class="mi">8</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">n_vars</span><span class="p">,</span> <span class="s2">&quot;different n_vars!&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">n_vars</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Multiplication on different n_vars.&quot;</span><span class="p">)</span>
             <span class="n">terms0</span> <span class="o">=</span> <span class="p">[[]]</span>
             <span class="n">terms1</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">),</span> <span class="n">r</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
             <span class="n">terms2</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">),</span> <span class="n">r</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
@@ -388,8 +395,10 @@
 
     <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add two polynomials.&quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SpecialPolynomial</span><span class="p">),</span> <span class="s2">&quot;other isn&#39;t poly!&quot;</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">n_vars</span><span class="p">,</span> <span class="s2">&quot;different n_vars!&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SpecialPolynomial</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Element to add is not a SpecialPolynomial.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">n_vars</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Addition on different n_vars.&quot;</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">SpecialPolynomial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">)</span>
         <span class="n">result</span><span class="o">.</span><span class="n">weight_0</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight_0</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">weight_0</span><span class="p">)</span> <span class="o">%</span> <span class="mi">8</span>
         <span class="n">result</span><span class="o">.</span><span class="n">weight_1</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight_1</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">weight_1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">8</span>
@@ -404,14 +413,16 @@
 <span class="sd">        if xval is a length n vector of multinomials, return</span>
 <span class="sd">        a multinomial. The multinomials must all be on n vars.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">xval</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">,</span> <span class="s2">&quot;wrong number of variables!&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">xval</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Evaluate on wrong number of variables.&quot;</span><span class="p">)</span>
         <span class="n">check_int</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="n">xval</span><span class="p">))</span>
         <span class="n">check_poly</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">SpecialPolynomial</span><span class="p">),</span> <span class="n">xval</span><span class="p">))</span>
-        <span class="k">assert</span> <span class="kc">False</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">check_int</span> <span class="ow">or</span> <span class="kc">False</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">check_poly</span><span class="p">,</span> <span class="s2">&quot;wrong type!&quot;</span>
+        <span class="k">if</span> <span class="kc">False</span> <span class="ow">in</span> <span class="n">check_int</span> <span class="ow">and</span> <span class="kc">False</span> <span class="ow">in</span> <span class="n">check_poly</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Evaluate on a wrong type.&quot;</span><span class="p">)</span>
         <span class="n">is_int</span> <span class="o">=</span> <span class="p">(</span><span class="kc">False</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">check_int</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">is_int</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="kc">False</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xval</span><span class="p">],</span> \
-                <span class="s2">&quot;incompatible polynomials!&quot;</span>
+            <span class="k">if</span> <span class="kc">False</span> <span class="ow">in</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xval</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Evaluate on incompatible polynomials.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">xval</span> <span class="o">=</span> <span class="n">xval</span> <span class="o">%</span> <span class="mi">2</span>
         <span class="c1"># Examine each term of this polynomial</span>
@@ -443,8 +454,8 @@
 <span class="sd">        p_J(x) := sum_{a subseteq J,|a| neq 0} (-2)^{|a|-1}x^a</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">indices_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> \
-            <span class="s2">&quot;indices out of bounds!&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="ow">or</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Indices are out of bounds.&quot;</span><span class="p">)</span>
         <span class="n">indices</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
         <span class="n">subsets_2</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">subsets_3</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -472,12 +483,14 @@
 <span class="sd">        If the indices are not increasing the method fails.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">length</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;no term!&quot;</span>
+        <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
         <span class="n">indices_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> \
-            <span class="s2">&quot;indices out of bounds!&quot;</span>
-        <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">indices_arr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="s2">&quot;indices non-increasing!&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="ow">or</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Indices are out of bounds.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">indices_arr</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Indices are non-increasing.&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_0</span>
         <span class="k">if</span> <span class="n">length</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -489,16 +502,16 @@
             <span class="n">offset_2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_2</span><span class="p">[</span><span class="n">offset_1</span> <span class="o">+</span> <span class="n">offset_2</span><span class="p">]</span>
 
-        <span class="c1"># sum({self.n_vars-j choose 2}, {j, 1, indices[0]})</span>
-        <span class="n">offset_1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">+</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">3</span><span class="o">*</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span>
-                                     <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span>
-                                     <span class="mi">6</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">+</span>
-                                     <span class="mi">3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span><span class="p">)</span>
-        <span class="c1"># sum(self.n_vars-j, {j, 2, indices[1]-indices[0]})</span>
-        <span class="n">offset_2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span>
-                       <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">offset_3</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_3</span><span class="p">[</span><span class="n">offset_1</span> <span class="o">+</span> <span class="n">offset_2</span> <span class="o">+</span> <span class="n">offset_3</span><span class="p">]</span>
+        <span class="c1"># handle length = 3</span>
+        <span class="n">tmp_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">offset_1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">tmp_1</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">tmp_1</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">tmp_1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">6</span><span class="p">)</span>
+        <span class="n">tmp_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">offset_2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">tmp_2</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">tmp_2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">offset_3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="n">indices</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">6</span> <span class="o">-</span>
+                     <span class="n">offset_1</span> <span class="o">-</span> <span class="n">offset_2</span> <span class="o">-</span> <span class="n">offset_3</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_3</span><span class="p">[</span><span class="n">offset</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">set_term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the value of a term given the list of variables.</span>
@@ -514,12 +527,14 @@
 <span class="sd">        The value is reduced modulo 8.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">length</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;no term!&quot;</span>
+        <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">return</span>
         <span class="n">indices_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> \
-            <span class="s2">&quot;indices out of bounds!&quot;</span>
-        <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">indices_arr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="s2">&quot;indices non-increasing!&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="ow">or</span> <span class="p">(</span><span class="n">indices_arr</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Indices are out of bounds.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">indices_arr</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Indices are non-increasing.&quot;</span><span class="p">)</span>
+
         <span class="n">value</span> <span class="o">=</span> <span class="n">value</span> <span class="o">%</span> <span class="mi">8</span>
         <span class="k">if</span> <span class="n">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">weight_0</span> <span class="o">=</span> <span class="n">value</span>
@@ -531,17 +546,15 @@
                            <span class="p">((</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
             <span class="n">offset_2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">weight_2</span><span class="p">[</span><span class="n">offset_1</span> <span class="o">+</span> <span class="n">offset_2</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># sum({self.n_vars-j choose 2}, {j, 1, indices[0]})</span>
-            <span class="n">offset_1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">+</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">3</span><span class="o">*</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span>
-                                         <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span>
-                                         <span class="mi">6</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">+</span>
-                                         <span class="mi">3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span><span class="p">)</span>
-            <span class="c1"># sum(self.n_vars-j, {j, 2, indices[1]-indices[0]})</span>
-            <span class="n">offset_2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span>
-                           <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
-            <span class="n">offset_3</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">weight_3</span><span class="p">[</span><span class="n">offset_1</span> <span class="o">+</span> <span class="n">offset_2</span> <span class="o">+</span> <span class="n">offset_3</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># length = 3</span>
+            <span class="n">tmp_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">offset_1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">tmp_1</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">tmp_1</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">tmp_1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">6</span><span class="p">)</span>
+            <span class="n">tmp_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">offset_2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">tmp_2</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">tmp_2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">offset_3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="n">indices</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_vars</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">6</span> <span class="o">-</span>
+                         <span class="n">offset_1</span> <span class="o">-</span> <span class="n">offset_2</span> <span class="o">-</span> <span class="n">offset_3</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weight_3</span><span class="p">[</span><span class="n">offset</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -585,20 +598,74 @@
         <span class="k">return</span> <span class="n">out</span>
 
 
-<div class="viewcode-block" id="CNOTDihedral"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.html#qiskit.ignis.verification.CNOTDihedral">[ドキュメント]</a><span class="k">class</span> <span class="nc">CNOTDihedral</span><span class="p">():</span>
+<div class="viewcode-block" id="CNOTDihedral"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.html#qiskit.ignis.verification.CNOTDihedral">[ドキュメント]</a><span class="k">class</span> <span class="nc">CNOTDihedral</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;CNOT-dihedral Object Class.</span>
 <span class="sd">    The CNOT-dihedral group on num_qubits qubits is generated by the gates</span>
-<span class="sd">    CNOT, T and X.&quot;&quot;&quot;</span>
+<span class="sd">    CNOT, T and X.</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">):</span>
+<span class="sd">    References:</span>
+<span class="sd">        1. Shelly Garion and Andrew W. Cross, *On the structure of the CNOT-Dihedral group*,</span>
+<span class="sd">           `arXiv:2006.12042 [quant-ph] &lt;https://arxiv.org/abs/2006.12042&gt;`_</span>
+<span class="sd">        2. Andrew W. Cross, Easwar Magesan, Lev S. Bishop, John A. Smolin and Jay M. Gambetta,</span>
+<span class="sd">           *Scalable randomised benchmarking of non-Clifford gates*,</span>
+<span class="sd">           npj Quantum Inf 2, 16012 (2016).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a CNOTDihedral operator object.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Initialize from another CNOTDihedral by sharing the underlying</span>
+        <span class="c1"># poly, linear and shift</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">CNOTDihedral</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">linear</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shift</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">poly</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">poly</span>
+
+        <span class="c1"># Initialize from ScalarOp as N-qubit identity discarding any global phase</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ScalarOp</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="o">.</span><span class="n">is_unitary</span><span class="p">()</span> <span class="ow">or</span> <span class="nb">set</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">)</span> <span class="o">!=</span> <span class="p">{</span><span class="mi">2</span><span class="p">}</span> <span class="ow">or</span> \
+                    <span class="n">data</span><span class="o">.</span><span class="n">num_qubits</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Can only initialize from N-qubit identity ScalarOp.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">num_qubits</span>
+            <span class="c1"># phase polynomial</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">poly</span> <span class="o">=</span> <span class="n">SpecialPolynomial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">)</span>
+            <span class="c1"># n x n invertible matrix over Z_2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+            <span class="c1"># binary shift, n coefficients in Z_2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+
+        <span class="c1"># Initialize from a QuantumCircuit or Instruction object</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">num_qubits</span>
+            <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_circuit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">poly</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">poly</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">linear</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">shift</span>
+
         <span class="c1"># Construct the identity element on num_qubits qubits.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">=</span> <span class="n">num_qubits</span>
-        <span class="c1"># phase polynomial</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">poly</span> <span class="o">=</span> <span class="n">SpecialPolynomial</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
-        <span class="c1"># n x n invertible matrix over Z_2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
-        <span class="c1"># binary shift, n coefficients in Z_2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">=</span> <span class="n">data</span>
+            <span class="c1"># phase polynomial</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">poly</span> <span class="o">=</span> <span class="n">SpecialPolynomial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">)</span>
+            <span class="c1"># n x n invertible matrix over Z_2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+            <span class="c1"># binary shift, n coefficients in Z_2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">num_qubits</span>
+            <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_circuit</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">poly</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">poly</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">linear</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">shift</span>
+
+        <span class="c1"># Initialize BaseOperator</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span><span class="p">,)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+
+        <span class="c1"># Validate the CNOTDihedral element</span>
+        <span class="k">if</span> <span class="n">validate</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cnotdihedral</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;Invalid CNOTDihedsral element.&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_z2matmul</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Compute product of two n x n z2 matrices.&quot;&quot;&quot;</span>
@@ -612,7 +679,8 @@
 
 <div class="viewcode-block" id="CNOTDihedral.__mul__"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.__mul__.html#qiskit.ignis.verification.CNOTDihedral.__mul__">[ドキュメント]</a>    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Left multiplication self * other.&quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s2">&quot;not same num_qubits!&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Multiplication on different number of qubits.&quot;</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">CNOTDihedral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
         <span class="n">result</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">%</span> <span class="mi">2</span>
                         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_z2matvecmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">shift</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">)]</span>
@@ -633,7 +701,8 @@
 
     <span class="k">def</span> <span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Right multiplication other * self.&quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s2">&quot;not same num_qubits!&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Multiplication on different number of qubits.&quot;</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">CNOTDihedral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
         <span class="n">result</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">%</span> <span class="mi">2</span>
                         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_z2matvecmul</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">linear</span><span class="p">,</span>
@@ -669,8 +738,9 @@
         <span class="sd">&quot;&quot;&quot;Apply a CNOT gate to this element.</span>
 <span class="sd">        Left multiply the element by CNOT_{i,j}.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span> \
-               <span class="ow">and</span> <span class="p">(</span><span class="n">i</span> <span class="o">!=</span> <span class="n">j</span><span class="p">),</span> <span class="s2">&quot;cnot qubits out of bounds!&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="ow">or</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;cnot qubits are out of bounds.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">%</span> <span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">%</span> <span class="mi">2</span></div>
 
@@ -678,7 +748,8 @@
         <span class="sd">&quot;&quot;&quot;Apply an k-th power of T to this element.</span>
 <span class="sd">        Left multiply the element by T_i^k.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s2">&quot;phase qubit out of bounds!&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;phase qubit out of bounds.&quot;</span><span class="p">)</span>
         <span class="c1"># If the kth bit is flipped, conjugate this gate</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="mi">7</span><span class="o">*</span><span class="n">k</span><span class="p">)</span> <span class="o">%</span> <span class="mi">8</span>
@@ -702,7 +773,8 @@
         <span class="sd">&quot;&quot;&quot;Apply X to this element.</span>
 <span class="sd">        Left multiply the element by X_i.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s2">&quot;flip qubit out of bounds!&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;flip qubit out of bounds.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span></div>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -727,64 +799,249 @@
         <span class="n">out</span> <span class="o">+=</span> <span class="s2">&quot;)</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="k">return</span> <span class="n">out</span>
 
+    <span class="k">def</span> <span class="nf">_add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Not implemented.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> does not support addition&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="nf">_multiply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Not implemented.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> does not support scalar multiplication&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+
 <div class="viewcode-block" id="CNOTDihedral.to_circuit"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.to_circuit.html#qiskit.ignis.verification.CNOTDihedral.to_circuit">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">to_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return a QuantumCircuit implementing the CNOT-Dihedral element.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return a QuantumCircuit implementing the CNOT-Dihedral element.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            QuantumCircuit: a circuit implementation of the CNOTDihedral object.</span>
+<span class="sd">        Remark:</span>
+<span class="sd">            Decompose 1 and 2-qubit CNOTDihedral elements.</span>
+
+<span class="sd">        References:</span>
+<span class="sd">            1. Shelly Garion and Andrew W. Cross, *On the structure of the CNOT-Dihedral group*,</span>
+<span class="sd">               `arXiv:2006.12042 [quant-ph] &lt;https://arxiv.org/abs/2006.12042&gt;`_</span>
+<span class="sd">            2. Andrew W. Cross, Easwar Magesan, Lev S. Bishop, John A. Smolin and Jay M. Gambetta,</span>
+<span class="sd">               *Scalable randomised benchmarking of non-Clifford gates*,</span>
+<span class="sd">               npj Quantum Inf 2, 16012 (2016).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">decompose_cnotdihedral</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="CNOTDihedral.to_instruction"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.to_instruction.html#qiskit.ignis.verification.CNOTDihedral.to_instruction">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">to_instruction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a Gate instruction implementing the CNOTDihedral object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_circuit</span><span class="p">()</span><span class="o">.</span><span class="n">to_gate</span><span class="p">()</span></div>
+
 <div class="viewcode-block" id="CNOTDihedral.from_circuit"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.from_circuit.html#qiskit.ignis.verification.CNOTDihedral.from_circuit">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">from_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize from a QuantumCircuit.</span>
+        <span class="sd">&quot;&quot;&quot;Initialize from a QuantumCircuit or Instruction.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            circuit (QuantumCircuit): instruction to initialize.</span>
+<span class="sd">            circuit (QuantumCircuit or ~qiskit.circuit.Instruction):</span>
+<span class="sd">                instruction to initialize.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            Clifford: the Clifford object for the circuit.</span>
+<span class="sd">            CNOTDihedral: the CNOTDihedral object for the circuit.</span>
 <span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if the input instruction is non-Clifford or contains</span>
+<span class="sd">            QiskitError: if the input instruction is not CNOTDihedral or contains</span>
 <span class="sd">                         classical register instruction.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="p">(</span><span class="n">QuantumCircuit</span><span class="p">)):</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Input must be a QuantumCircuit&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="p">(</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Input must be a QuantumCircuit or Instruction&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Convert circuit to an instruction</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+            <span class="n">circuit</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
 
         <span class="c1"># Initialize an identity CNOTDihedral object</span>
         <span class="n">elem</span> <span class="o">=</span> <span class="n">CNOTDihedral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
         <span class="n">append_circuit</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">circuit</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">elem</span></div>
 
-<div class="viewcode-block" id="CNOTDihedral.compose"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.compose.html#qiskit.ignis.verification.CNOTDihedral.compose">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+<div class="viewcode-block" id="CNOTDihedral.to_matrix"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.to_matrix.html#qiskit.ignis.verification.CNOTDihedral.to_matrix">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">to_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert operator to Numpy matrix.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_operator</span><span class="p">()</span><span class="o">.</span><span class="n">data</span></div>
+
+<div class="viewcode-block" id="CNOTDihedral.to_operator"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.to_operator.html#qiskit.ignis.verification.CNOTDihedral.to_operator">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">to_operator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert to an Operator object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Operator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="CNOTDihedral.compose"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.compose.html#qiskit.ignis.verification.CNOTDihedral.compose">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">front</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the composed operator.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            other (CNOTDihedral): an operator object.</span>
+<span class="sd">            qargs (None): using specific qargs is not implemented for this operator.</span>
+<span class="sd">            front (bool): if True compose using right operator multiplication,</span>
+<span class="sd">                          instead of left multiplication [default: False].</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            CNOTDihedral: The operator self @ other.</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            QiskitError: if operators have incompatible dimensions for</span>
 <span class="sd">                         composition.</span>
+<span class="sd">            NotImplementedError: if qargs is not None.</span>
+
 <span class="sd">        Additional Information:</span>
 <span class="sd">            Composition (``@``) is defined as `left` matrix multiplication for</span>
 <span class="sd">            matrix operators. That is that ``A @ B`` is equal to ``B * A``.</span>
 <span class="sd">            Setting ``front=True`` returns `right` matrix multiplication</span>
 <span class="sd">            ``A * B`` and is equivalent to the :meth:`dot` method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;compose method does not support qargs.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Incompatible dimension for composition&quot;</span><span class="p">)</span>
-        <span class="n">other</span> <span class="o">=</span> <span class="n">other</span> <span class="o">*</span> <span class="bp">self</span>
+        <span class="k">if</span> <span class="n">front</span><span class="p">:</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="bp">self</span> <span class="o">*</span> <span class="n">other</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">other</span> <span class="o">*</span> <span class="bp">self</span>
         <span class="n">other</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_0</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># set global phase</span>
         <span class="k">return</span> <span class="n">other</span></div>
 
-<div class="viewcode-block" id="CNOTDihedral.dot"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.dot.html#qiskit.ignis.verification.CNOTDihedral.dot">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">dot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+<div class="viewcode-block" id="CNOTDihedral.dot"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.dot.html#qiskit.ignis.verification.CNOTDihedral.dot">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">dot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the right multiplied operator self * other.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            other (CNOTDihedral): an operator object.</span>
+<span class="sd">            qargs (None): using specific qargs is not implemented for this operator.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            CNOTDihedral: The operator self * other.</span>
 <span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if operators have incompatible dimensions for</span>
-<span class="sd">                         composition.</span>
+<span class="sd">            QiskitError: if operators have incompatible dimensions for composition.</span>
+<span class="sd">            NotImplementedError: if qargs is not None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;dot method does not support qargs.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Incompatible dimension for composition&quot;</span><span class="p">)</span>
         <span class="n">other</span> <span class="o">=</span> <span class="bp">self</span> <span class="o">*</span> <span class="n">other</span>
         <span class="n">other</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_0</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># set global phase</span>
-        <span class="k">return</span> <span class="n">other</span></div></div>
+        <span class="k">return</span> <span class="n">other</span></div>
+
+    <span class="k">def</span> <span class="nf">_tensor_product</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the tensor product operator.</span>
+
+<span class="sd">         Args:</span>
+<span class="sd">             other (CNOTDihedral): another operator subclass object.</span>
+<span class="sd">             reverse (bool): If False return self tensor other,</span>
+<span class="sd">                            if True return other tensor self [Default: False].</span>
+<span class="sd">         Returns:</span>
+<span class="sd">             CNOTDihedral: the tensor product operator: self tensor other.</span>
+<span class="sd">         Raises:</span>
+<span class="sd">             QiskitError: if other cannot be converted into an CNOTDihderal object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">CNOTDihedral</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Tensored element is not a CNOTDihderal object.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">reverse</span><span class="p">:</span>
+            <span class="n">elem0</span> <span class="o">=</span> <span class="bp">self</span>
+            <span class="n">elem1</span> <span class="o">=</span> <span class="n">other</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">elem0</span> <span class="o">=</span> <span class="n">other</span>
+            <span class="n">elem1</span> <span class="o">=</span> <span class="bp">self</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">CNOTDihedral</span><span class="p">(</span><span class="n">elem0</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">+</span> <span class="n">elem1</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
+        <span class="n">linear</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">([[</span><span class="n">elem0</span><span class="o">.</span><span class="n">linear</span><span class="p">,</span>
+                            <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">elem0</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">elem1</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)],</span>
+                           <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">elem1</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">elem0</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">),</span>
+                            <span class="n">elem1</span><span class="o">.</span><span class="n">linear</span><span class="p">]])</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">linear</span>
+        <span class="n">shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">([</span><span class="n">elem0</span><span class="o">.</span><span class="n">shift</span><span class="p">,</span> <span class="n">elem1</span><span class="o">.</span><span class="n">shift</span><span class="p">])</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">shift</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">elem0</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">elem0</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">get_term</span><span class="p">([</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">set_term</span><span class="p">([</span><span class="n">i</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">elem0</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">get_term</span><span class="p">([</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">set_term</span><span class="p">([</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span><span class="p">):</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">elem0</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">get_term</span><span class="p">([</span><span class="n">k</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">set_term</span><span class="p">([</span><span class="n">k</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">elem1</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">elem1</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">get_term</span><span class="p">([</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">set_term</span><span class="p">([</span><span class="n">i</span> <span class="o">+</span> <span class="n">elem0</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">elem1</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">get_term</span><span class="p">([</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">set_term</span><span class="p">([</span><span class="n">j</span> <span class="o">+</span> <span class="n">elem0</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="n">elem0</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span><span class="p">):</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">elem1</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">get_term</span><span class="p">([</span><span class="n">k</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">set_term</span><span class="p">([</span><span class="n">k</span> <span class="o">+</span> <span class="n">elem0</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">j</span> <span class="o">+</span> <span class="n">elem0</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span>
+                                          <span class="n">i</span> <span class="o">+</span> <span class="n">elem0</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+<div class="viewcode-block" id="CNOTDihedral.tensor"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.tensor.html#qiskit.ignis.verification.CNOTDihedral.tensor">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the tensor product operator: self tensor other.</span>
+
+<span class="sd">         Args:</span>
+<span class="sd">             other (CNOTDihedral): an operator subclass object.</span>
+<span class="sd">         Returns:</span>
+<span class="sd">             CNOTDihedral: the tensor product operator: self tensor other.</span>
+<span class="sd">         &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tensor_product</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CNOTDihedral.expand"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.expand.html#qiskit.ignis.verification.CNOTDihedral.expand">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">expand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the tensor product operator: other tensor self.</span>
+
+<span class="sd">         Args:</span>
+<span class="sd">             other (CNOTDihedral): an operator subclass object.</span>
+<span class="sd">         Returns:</span>
+<span class="sd">             CNOTDihedral: the tensor product operator: other tensor other.</span>
+<span class="sd">         &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tensor_product</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CNOTDihedral.adjoint"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.adjoint.html#qiskit.ignis.verification.CNOTDihedral.adjoint">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">adjoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the conjugate transpose of the CNOTDihedral element&quot;&quot;&quot;</span>
+
+        <span class="n">circ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_circuit</span><span class="p">(</span><span class="n">circ</span><span class="o">.</span><span class="n">inverse</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="CNOTDihedral.conjugate"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.conjugate.html#qiskit.ignis.verification.CNOTDihedral.conjugate">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">conjugate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the conjugate of the CNOTDihedral element.&quot;&quot;&quot;</span>
+        <span class="n">circ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
+        <span class="n">new_circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
+        <span class="n">qargs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">qregs</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">circ</span><span class="o">.</span><span class="n">definition</span><span class="p">:</span>
+            <span class="n">new_qubits</span> <span class="o">=</span> <span class="p">[</span><span class="n">qargs</span><span class="p">[</span><span class="n">tup</span><span class="o">.</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">instr</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;u1&#39;</span><span class="p">:</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">instr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">instr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span>
+                <span class="n">new_circ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">new_qubits</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_circ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">new_qubits</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_circuit</span><span class="p">(</span><span class="n">new_circ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="CNOTDihedral.transpose"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.transpose.html#qiskit.ignis.verification.CNOTDihedral.transpose">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the transpose of the CNOT-Dihedral element.&quot;&quot;&quot;</span>
+
+        <span class="n">circ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_circuit</span><span class="p">(</span><span class="n">circ</span><span class="o">.</span><span class="n">reverse_ops</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="CNOTDihedral.is_cnotdihedral"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.verification.CNOTDihedral.is_cnotdihedral.html#qiskit.ignis.verification.CNOTDihedral.is_cnotdihedral">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">is_cnotdihedral</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return True if input is a CNOTDihedral element.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_0</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> \
+                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_1</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="ow">or</span> \
+                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_2</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> \
+                <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_3</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                                                  <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">6</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span> <span class="ow">or</span> \
+                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="ow">or</span> \
+                <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_1</span><span class="o">.</span><span class="n">flatten</span><span class="p">()))</span><span class="o">.</span><span class="n">issubset</span><span class="p">({</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">})</span> <span class="ow">or</span> \
+                <span class="ow">not</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_2</span><span class="o">.</span><span class="n">flatten</span><span class="p">()))</span><span class="o">.</span><span class="n">issubset</span><span class="p">({</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">})</span> <span class="ow">or</span> \
+                <span class="ow">not</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_3</span><span class="o">.</span><span class="n">flatten</span><span class="p">()))</span><span class="o">.</span><span class="n">issubset</span><span class="p">({</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">}):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="o">.</span><span class="n">flatten</span><span class="p">()))</span><span class="o">.</span><span class="n">issubset</span><span class="p">({</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">})</span> <span class="ow">or</span> \
+                <span class="ow">not</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">flatten</span><span class="p">()))</span><span class="o">.</span><span class="n">issubset</span><span class="p">({</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">}):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div></div>
 
 
 <span class="k">def</span> <span class="nf">make_dict_0</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">):</span>
@@ -795,7 +1052,6 @@
 <span class="sd">    The key is a unique string and the value is a pair:</span>
 <span class="sd">    a CNOTDihedral object and a list of gates as a string.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="n">num_qubits</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;num_qubits too small!&quot;</span>
     <span class="n">obj</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">16</span><span class="o">**</span><span class="n">num_qubits</span><span class="p">):</span>
         <span class="n">elem</span> <span class="o">=</span> <span class="n">CNOTDihedral</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
@@ -826,7 +1082,6 @@
 <span class="sd">    The key is a unique string and the value is a pair:</span>
 <span class="sd">    a CNOTDihedral object and a list of gates as a string.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="n">num_qubits</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;num_qubits too small!&quot;</span>
     <span class="n">obj</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">elem</span><span class="p">,</span> <span class="n">circ</span> <span class="ow">in</span> <span class="n">dicts_prior</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">):</span>
@@ -853,7 +1108,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        elem (CNOTDihedral): the CNOTDihedral element to update.</span>
-<span class="sd">        circuit (QuantumCircuit): the gates to apply.</span>
+<span class="sd">        circuit (QuantumCircuit or Instruction): the gate or composite gate to apply.</span>
 <span class="sd">        qargs (list or None): The qubits to apply gates to.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        CNOTDihedral: the updated CNOTDihedral.</span>
@@ -864,19 +1119,69 @@
     <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">qargs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">))</span>
 
-    <span class="n">gate</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+        <span class="n">gate</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gate</span> <span class="o">=</span> <span class="n">circuit</span>
+
+    <span class="c1"># Handle cx since it is a basic gate, and cannot be decomposed,</span>
+    <span class="c1"># so gate.definition = None</span>
+    <span class="k">if</span> <span class="n">gate</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;cx&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Invalid qubits for 2-qubit gate cx.&quot;</span><span class="p">)</span>
+        <span class="n">elem</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">qargs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">qargs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">elem</span>
+
+    <span class="k">if</span> <span class="n">gate</span><span class="o">.</span><span class="n">definition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;Cannot apply Instruction: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">gate</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gate</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> instruction definition is </span><span class="si">{}</span><span class="s1">; expected QuantumCircuit&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">gate</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">gate</span><span class="o">.</span><span class="n">definition</span><span class="p">)))</span>
 
     <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">qregs</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">gate</span><span class="o">.</span><span class="n">definition</span><span class="p">:</span>
         <span class="c1"># Get the integer position of the flat register</span>
         <span class="n">new_qubits</span> <span class="o">=</span> <span class="p">[</span><span class="n">qargs</span><span class="p">[</span><span class="n">tup</span><span class="o">.</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">instr</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">instr</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;x&#39;</span> <span class="ow">or</span> <span class="n">gate</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;x&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_qubits</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Invalid qubits for 1-qubit gate x.&quot;</span><span class="p">)</span>
             <span class="n">elem</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">new_qubits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="k">elif</span> <span class="n">instr</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;u1&#39;</span><span class="p">:</span>
+
+        <span class="k">elif</span> <span class="p">(</span><span class="n">instr</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;z&#39;</span> <span class="ow">or</span> <span class="n">gate</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;z&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_qubits</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Invalid qubits for 1-qubit gate z.&quot;</span><span class="p">)</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">phase</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">new_qubits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">elif</span> <span class="p">(</span><span class="n">instr</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;y&#39;</span> <span class="ow">or</span> <span class="n">gate</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;y&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_qubits</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Invalid qubits for 1-qubit gate y.&quot;</span><span class="p">)</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">new_qubits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">phase</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">new_qubits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">elif</span> <span class="p">(</span><span class="n">instr</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;u1&#39;</span> <span class="ow">or</span> <span class="n">gate</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;u1&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">new_qubits</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">instr</span><span class="o">.</span><span class="n">params</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Invalid qubits or params for 1-qubit gate u1.&quot;</span><span class="p">)</span>
             <span class="n">elem</span><span class="o">.</span><span class="n">phase</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">instr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="n">new_qubits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="k">elif</span> <span class="n">instr</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;cx&#39;</span><span class="p">:</span>
+
+        <span class="k">elif</span> <span class="p">(</span><span class="n">instr</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;cx&#39;</span> <span class="ow">or</span> <span class="n">gate</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;cx&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_qubits</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Invalid qubits for 2-qubit gate cx.&quot;</span><span class="p">)</span>
             <span class="n">elem</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">new_qubits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">new_qubits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="k">elif</span> <span class="n">instr</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span>
+
+        <span class="k">elif</span> <span class="p">(</span><span class="n">instr</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;cz&#39;</span> <span class="ow">or</span> <span class="n">gate</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;cz&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_qubits</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Invalid qubits for 2-qubit gate cz.&quot;</span><span class="p">)</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">phase</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">new_qubits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">phase</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">new_qubits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">new_qubits</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">new_qubits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">phase</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">new_qubits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">new_qubits</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">new_qubits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">phase</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">new_qubits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">phase</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">new_qubits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">elif</span> <span class="p">(</span><span class="n">instr</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;id&#39;</span> <span class="ow">or</span> <span class="n">gate</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;id&#39;</span><span class="p">):</span>
             <span class="k">pass</span>
+
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;Not a CNOT-Dihedral gate: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">gate</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
 
@@ -890,8 +1195,34 @@
 <span class="sd">        elem (CNOTDihedral): a CNOTDihedral element.</span>
 <span class="sd">    Return:</span>
 <span class="sd">        QuantumCircuit: a circuit implementation of the CNOTDihedral element.</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        1. Shelly Garion and Andrew W. Cross, *On the structure of the CNOT-Dihedral group*,</span>
+<span class="sd">           `arXiv:2006.12042 [quant-ph] &lt;https://arxiv.org/abs/2006.12042&gt;`_</span>
+<span class="sd">        2. Andrew W. Cross, Easwar Magesan, Lev S. Bishop, John A. Smolin and Jay M. Gambetta,</span>
+<span class="sd">           *Scalable randomised benchmarking of non-Clifford gates*,</span>
+<span class="sd">           npj Quantum Inf 2, 16012 (2016).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">num_qubits</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">num_qubits</span>
+
+    <span class="k">if</span> <span class="n">num_qubits</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">decompose_cnotdihedral_2_qubits</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">decompose_cnotdihedral_general</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">decompose_cnotdihedral_2_qubits</span><span class="p">(</span><span class="n">elem</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Decompose a CNOTDihedral element into a QuantumCircuit.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        elem (CNOTDihedral): a CNOTDihedral element.</span>
+<span class="sd">    Return:</span>
+<span class="sd">        QuantumCircuit: a circuit implementation of the CNOTDihedral element.</span>
 <span class="sd">    Remark:</span>
 <span class="sd">        Decompose 1 and 2-qubit CNOTDihedral elements.</span>
+<span class="sd">    Raises:</span>
+<span class="sd">        QiskitError: if the element in not 1 or 2-qubit CNOTDihedral.</span>
 
 <span class="sd">    References:</span>
 <span class="sd">        1. Shelly Garion and Andrew W. Cross, *On the structure of the CNOT-Dihedral group*,</span>
@@ -903,12 +1234,13 @@
 
     <span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
 
-    <span class="k">assert</span> <span class="n">elem</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">,</span> \
-        <span class="s2">&quot;cannot decompose a CNOT-Dihedral element with more than 2 qubits&quot;</span>
+    <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Cannot decompose a CNOT-Dihedral element with more than 2 qubits. &quot;</span>
+                          <span class="s2">&quot;use decompose_cnotdihedral_general function instead.&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">elem</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_0</span> <span class="o">==</span> <span class="mi">0</span>
-        <span class="k">assert</span> <span class="n">elem</span><span class="o">.</span><span class="n">linear</span> <span class="o">==</span> <span class="p">[[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_0</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">elem</span><span class="o">.</span><span class="n">linear</span> <span class="o">!=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">]]:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;1-qubit element in not CNOT-Dihedral .&quot;</span><span class="p">)</span>
         <span class="n">tpow0</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">xpow0</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">shift</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">tpow0</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -920,7 +1252,8 @@
         <span class="k">return</span> <span class="n">circuit</span>
 
     <span class="c1"># case elem.num_qubits == 2:</span>
-    <span class="k">assert</span> <span class="n">elem</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_0</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_0</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;2-qubit element in not CNOT-Dihedral .&quot;</span><span class="p">)</span>
     <span class="n">weight_1</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_1</span>
     <span class="n">weight_2</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">weight_2</span>
     <span class="n">linear</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">linear</span>
@@ -998,13 +1331,7 @@
             <span class="k">if</span> <span class="n">xpow1</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">circuit</span><span class="o">.</span><span class="n">x</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
             <span class="c1"># CZ gate is implemented using 2 CX gates</span>
-            <span class="n">circuit</span><span class="o">.</span><span class="n">u1</span><span class="p">(</span><span class="mi">7</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="n">circuit</span><span class="o">.</span><span class="n">u1</span><span class="p">(</span><span class="mi">7</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="n">circuit</span><span class="o">.</span><span class="n">u1</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="n">circuit</span><span class="o">.</span><span class="n">u1</span><span class="p">(</span><span class="mi">7</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="n">circuit</span><span class="o">.</span><span class="n">u1</span><span class="p">(</span><span class="mi">7</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">circuit</span><span class="o">.</span><span class="n">cz</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
     <span class="c1"># CX01-like class</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">linear</span> <span class="o">==</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
@@ -1133,11 +1460,119 @@
     <span class="k">return</span> <span class="n">circuit</span>
 
 
+<span class="k">def</span> <span class="nf">decompose_cnotdihedral_general</span><span class="p">(</span><span class="n">elem</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Decompose a CNOTDihedral element into a QuantumCircuit.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        elem (CNOTDihedral): a CNOTDihedral element.</span>
+<span class="sd">    Return:</span>
+<span class="sd">        QuantumCircuit: a circuit implementation of the CNOTDihedral element.</span>
+<span class="sd">    Remark:</span>
+<span class="sd">        Decompose general CNOTDihedral elements.</span>
+<span class="sd">        The number of CNOT gates is not necessarily optimal.</span>
+<span class="sd">    Raises:</span>
+<span class="sd">        QiskitError: if the element could not be decomposed into a circuit.</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        1. Andrew W. Cross, Easwar Magesan, Lev S. Bishop, John A. Smolin and Jay M. Gambetta,</span>
+<span class="sd">           *Scalable randomised benchmarking of non-Clifford gates*,</span>
+<span class="sd">           npj Quantum Inf 2, 16012 (2016).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">num_qubits</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">num_qubits</span>
+    <span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
+
+    <span class="c1"># Make a copy of the CNOTDihedral element as we are going to</span>
+    <span class="c1"># reduce it to an identity</span>
+    <span class="n">elem_cpy</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">elem_cpy</span><span class="o">.</span><span class="n">linear</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Linear part is not invertible.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Do x gate for each qubit i where shift[i]=1</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">shift</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">circuit</span><span class="o">.</span><span class="n">x</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">elem_cpy</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="c1"># Do Gauss elimination on the linear part by adding cx gates</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">):</span>
+        <span class="c1"># set i-th element to be 1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">elem_cpy</span><span class="o">.</span><span class="n">linear</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">elem_cpy</span><span class="o">.</span><span class="n">linear</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>  <span class="c1"># swap qubits i and j</span>
+                    <span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                    <span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+                    <span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                    <span class="n">elem_cpy</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                    <span class="n">elem_cpy</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+                    <span class="n">elem_cpy</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                    <span class="k">break</span>
+        <span class="c1"># make all the other elements in column i zero</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">!=</span> <span class="n">i</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">elem_cpy</span><span class="o">.</span><span class="n">linear</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                    <span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+                    <span class="n">elem_cpy</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">elem_cpy</span><span class="o">.</span><span class="n">shift</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="ow">or</span> \
+            <span class="ow">not</span> <span class="p">(</span><span class="n">elem_cpy</span><span class="o">.</span><span class="n">linear</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Cannot do Gauss elimination on linear part.&quot;</span><span class="p">)</span>
+
+    <span class="n">new_elem</span> <span class="o">=</span> <span class="n">CNOTDihedral</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
+    <span class="n">new_circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
+
+    <span class="c1"># Do cx and u1 gates to construct all monomials of weight 3</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">elem_cpy</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">get_term</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">new_elem</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                    <span class="n">new_elem</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                    <span class="n">new_elem</span><span class="o">.</span><span class="n">phase</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                    <span class="n">new_elem</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                    <span class="n">new_elem</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                    <span class="n">new_circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                    <span class="n">new_circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                    <span class="n">new_circuit</span><span class="o">.</span><span class="n">u1</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                    <span class="n">new_circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                    <span class="n">new_circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+
+    <span class="c1"># Do cx and u1 gates to construct all monomials of weight 2</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">):</span>
+            <span class="n">tpow1</span> <span class="o">=</span> <span class="n">elem_cpy</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">get_term</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>
+            <span class="n">tpow2</span> <span class="o">=</span> <span class="n">new_elem</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">get_term</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>
+            <span class="n">tpow</span> <span class="o">=</span> <span class="p">((</span><span class="n">tpow2</span> <span class="o">-</span> <span class="n">tpow1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">%</span> <span class="mi">4</span>
+            <span class="k">if</span> <span class="n">tpow</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">new_elem</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+                <span class="n">new_elem</span><span class="o">.</span><span class="n">phase</span><span class="p">(</span><span class="n">tpow</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+                <span class="n">new_elem</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+                <span class="n">new_circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+                <span class="n">new_circuit</span><span class="o">.</span><span class="n">u1</span><span class="p">(</span><span class="n">tpow</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+                <span class="n">new_circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+
+    <span class="c1"># Do u1 gates to construct all monomials of weight 1</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">):</span>
+        <span class="n">tpow1</span> <span class="o">=</span> <span class="n">elem_cpy</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">get_term</span><span class="p">([</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">tpow2</span> <span class="o">=</span> <span class="n">new_elem</span><span class="o">.</span><span class="n">poly</span><span class="o">.</span><span class="n">get_term</span><span class="p">([</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">tpow</span> <span class="o">=</span> <span class="p">(</span><span class="n">tpow1</span> <span class="o">-</span> <span class="n">tpow2</span><span class="p">)</span> <span class="o">%</span> <span class="mi">8</span>
+        <span class="k">if</span> <span class="n">tpow</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">new_elem</span><span class="o">.</span><span class="n">phase</span><span class="p">(</span><span class="n">tpow</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">new_circuit</span><span class="o">.</span><span class="n">u1</span><span class="p">(</span><span class="n">tpow</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">poly</span> <span class="o">!=</span> <span class="n">new_elem</span><span class="o">.</span><span class="n">poly</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Could not recover phase polynomial.&quot;</span><span class="p">)</span>
+
+    <span class="n">inv_circuit</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">new_circuit</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">inv_circuit</span><span class="p">)</span>
+
+
 <span class="k">def</span> <span class="nf">random_cnotdihedral</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return a random CNOTDihedral element.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        num_qubits (int): the number of qubits for the Clifford</span>
+<span class="sd">        num_qubits (int): the number of qubits for the CNOTDihedral object.</span>
 <span class="sd">        seed (int or RandomState): Optional. Set a fixed seed or</span>
 <span class="sd">                                   generator for RNG.</span>
 <span class="sd">    Returns:</span>
@@ -1165,7 +1600,7 @@
     <span class="c1"># Random affine function</span>
     <span class="c1"># Random invertible binary matrix</span>
     <span class="n">det</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">while</span> <span class="n">det</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">while</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
         <span class="n">linear</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">))</span>
         <span class="n">det</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">linear</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
     <span class="n">elem</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">linear</span>
@@ -1190,7 +1625,7 @@
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/10/13
+        最終更新: 2020/10/19
       </span>
 
     </p>
