@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.operators.list_ops.summed_op &mdash; Qiskit 0.22.0 documentazione</title>
+  <title>qiskit.aqua.operators.list_ops.summed_op &mdash; Qiskit 0.23.0 documentazione</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Codice sorgente per qiskit.aqua.operators.list_ops.summed_op</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -279,12 +277,13 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">ParameterExpression</span>
 <span class="kn">from</span> <span class="nn">.list_op</span> <span class="kn">import</span> <span class="n">ListOp</span>
 <span class="kn">from</span> <span class="nn">..legacy.base_operator</span> <span class="kn">import</span> <span class="n">LegacyBaseOperator</span>
 <span class="kn">from</span> <span class="nn">..legacy.weighted_pauli_operator</span> <span class="kn">import</span> <span class="n">WeightedPauliOperator</span>
 <span class="kn">from</span> <span class="nn">..operator_base</span> <span class="kn">import</span> <span class="n">OperatorBase</span>
-<span class="kn">from</span> <span class="nn">..primitive_ops.primitive_op</span> <span class="kn">import</span> <span class="n">PrimitiveOp</span>
+<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">AquaError</span>
 
 
 <div class="viewcode-block" id="SummedOp"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.SummedOp.html#qiskit.aqua.operators.list_ops.SummedOp">[documenti]</a><span class="k">class</span> <span class="nc">SummedOp</span><span class="p">(</span><span class="n">ListOp</span><span class="p">):</span>
@@ -349,6 +348,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A simplified ``SummedOp`` equivalent to self.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">PrimitiveOp</span>
         <span class="n">oplist</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[OperatorBase]</span>
         <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[Union[int, float, complex, ParameterExpression]]</span>
         <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oplist</span><span class="p">:</span>
@@ -392,6 +392,29 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="n">reduced_ops</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="SummedOp.to_circuit"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.SummedOp.to_circuit.html#qiskit.aqua.operators.list_ops.SummedOp.to_circuit">[documenti]</a>    <span class="k">def</span> <span class="nf">to_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuantumCircuit</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the quantum circuit, representing the SummedOp. In the first step,</span>
+<span class="sd">        the SummedOp is converted to MatrixOp. This is straightforward for most operators,</span>
+<span class="sd">        but it is not supported for operators containing parametrized PrimitiveOps (in that case,</span>
+<span class="sd">        AquaError is raised). In the next step, the MatrixOp representation of SummedOp is</span>
+<span class="sd">        converted to circuit. In most cases, if the summands themselves are unitary operators,</span>
+<span class="sd">        the SummedOp itself is non-unitary and can not be converted to circuit. In that case,</span>
+<span class="sd">        ExtensionError is raised in the underlying modules.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The circuit representation of the summed operator.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AquaError: if SummedOp can not be converted to MatrixOp (e.g. SummedOp is composed of</span>
+<span class="sd">            parametrized PrimitiveOps).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">MatrixOp</span>
+        <span class="n">matrix_op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_matrix_op</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">matrix_op</span><span class="p">,</span> <span class="n">MatrixOp</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">matrix_op</span><span class="o">.</span><span class="n">to_circuit</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s2">&quot;The SummedOp can not be converted to circuit, because to_matrix_op did &quot;</span>
+                        <span class="s2">&quot;not return a MatrixOp.&quot;</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="SummedOp.to_matrix_op"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.list_ops.SummedOp.to_matrix_op.html#qiskit.aqua.operators.list_ops.SummedOp.to_matrix_op">[documenti]</a>    <span class="k">def</span> <span class="nf">to_matrix_op</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">massive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot; Returns an equivalent Operator composed of only NumPy-based primitives, such as</span>
 <span class="sd">        ``MatrixOp`` and ``VectorStateFn``. &quot;&quot;&quot;</span>
@@ -413,9 +436,9 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">coeff</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Cannot convert Operator with unbound parameter </span><span class="si">{}</span><span class="s1"> to Legacy &#39;</span>
-                                <span class="s1">&#39;Operator&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">))</span>
+                                <span class="s1">&#39;Operator&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">))</span> <span class="kn">from</span> <span class="nn">ex</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">coeff</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeff</span><span class="p">)</span>
 
@@ -494,7 +517,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Ultimo aggiornamento 2020/10/13.
+        Ultimo aggiornamento 2020/10/19.
       </span>
 
     </p>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.algorithms.minimum_eigen_solvers.qpe &mdash; Qiskit 0.22.0 documentazione</title>
+  <title>qiskit.aqua.algorithms.minimum_eigen_solvers.qpe &mdash; Qiskit 0.23.0 documentazione</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Codice sorgente per qiskit.aqua.algorithms.minimum_eigen_solvers.qpe</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2018, 2020.</span>
 <span class="c1">#</span>
@@ -276,13 +274,13 @@
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">Pauli</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">BaseBackend</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">Backend</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">QuantumInstance</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">op_converter</span><span class="p">,</span> <span class="n">OperatorBase</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.utils</span> <span class="kn">import</span> <span class="n">get_subsystem_density_matrix</span>
@@ -291,7 +289,6 @@
 <span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">WeightedPauliOperator</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">LegacyBaseOperator</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.initial_states</span> <span class="kn">import</span> <span class="n">InitialState</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.iqfts</span> <span class="kn">import</span> <span class="n">IQFT</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.utils.validation</span> <span class="kn">import</span> <span class="n">validate_min</span><span class="p">,</span> <span class="n">validate_in_set</span>
 <span class="kn">from</span> <span class="nn">.minimum_eigen_solver</span> <span class="kn">import</span> <span class="n">MinimumEigensolver</span><span class="p">,</span> <span class="n">MinimumEigensolverResult</span>
 
@@ -320,13 +317,14 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">operator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="n">LegacyBaseOperator</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">state_in</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">InitialState</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                 <span class="n">iqft</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">IQFT</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">iqft</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">num_time_slices</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
                  <span class="n">num_ancillae</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
                  <span class="n">expansion_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;trotter&#39;</span><span class="p">,</span>
                  <span class="n">expansion_order</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
                  <span class="n">shallow_circuit_concat</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-                 <span class="n">quantum_instance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuantumInstance</span><span class="p">,</span> <span class="n">BaseBackend</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                 <span class="n">quantum_instance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+                     <span class="n">Union</span><span class="p">[</span><span class="n">QuantumInstance</span><span class="p">,</span> <span class="n">BaseBackend</span><span class="p">,</span> <span class="n">Backend</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        Args:</span>
@@ -349,16 +347,9 @@
         <span class="n">validate_in_set</span><span class="p">(</span><span class="s1">&#39;expansion_mode&#39;</span><span class="p">,</span> <span class="n">expansion_mode</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;trotter&#39;</span><span class="p">,</span> <span class="s1">&#39;suzuki&#39;</span><span class="p">})</span>
         <span class="n">validate_min</span><span class="p">(</span><span class="s1">&#39;expansion_order&#39;</span><span class="p">,</span> <span class="n">expansion_order</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">quantum_instance</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_state_in</span> <span class="o">=</span> <span class="n">state_in</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">iqft</span><span class="p">,</span> <span class="n">IQFT</span><span class="p">):</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 &#39;</span>
-                          <span class="s1">&#39;and will be removed no earlier than 3 months after the release. &#39;</span>
-                          <span class="s1">&#39;You should pass a QuantumCircuit instead, see &#39;</span>
-                          <span class="s1">&#39;qiskit.circuit.library.QFT and the .inverse() method.&#39;</span><span class="p">,</span>
-                          <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_iqft</span> <span class="o">=</span> <span class="n">iqft</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">_num_time_slices</span> <span class="o">=</span> <span class="n">num_time_slices</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_num_ancillae</span> <span class="o">=</span> <span class="n">num_ancillae</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_expansion_mode</span> <span class="o">=</span> <span class="n">expansion_mode</span>
@@ -576,7 +567,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Ultimo aggiornamento 2020/10/13.
+        Ultimo aggiornamento 2020/10/19.
       </span>
 
     </p>

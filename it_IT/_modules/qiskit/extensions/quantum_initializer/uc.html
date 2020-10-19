@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.extensions.quantum_initializer.uc &mdash; Qiskit 0.22.0 documentazione</title>
+  <title>qiskit.extensions.quantum_initializer.uc &mdash; Qiskit 0.23.0 documentazione</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Codice sorgente per qiskit.extensions.quantum_initializer.uc</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2020.</span>
 <span class="c1">#</span>
@@ -306,6 +304,7 @@
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.predicates</span> <span class="kn">import</span> <span class="n">is_unitary_matrix</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumregister</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumcircuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.exceptions</span> <span class="kn">import</span> <span class="n">CircuitError</span>
 <span class="kn">from</span> <span class="nn">qiskit.exceptions</span> <span class="kn">import</span> <span class="n">QiskitError</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.synthesis</span> <span class="kn">import</span> <span class="n">OneQubitEulerDecomposer</span>
 
@@ -313,17 +312,7 @@
 <span class="n">_DECOMPOSER1Q</span> <span class="o">=</span> <span class="n">OneQubitEulerDecomposer</span><span class="p">(</span><span class="s1">&#39;U3&#39;</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">UCMeta</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A metaclass to ensure that UCGate and UCG are of the same type.</span>
-
-<span class="sd">    Can be removed when UCGG gets removed.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="fm">__instancecheck__</span><span class="p">(</span><span class="n">mcs</span><span class="p">,</span> <span class="n">inst</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">inst</span><span class="p">)</span> <span class="ow">in</span> <span class="p">{</span><span class="n">UCGate</span><span class="p">,</span> <span class="n">UCG</span><span class="p">}</span>  <span class="c1"># pylint: disable=unidiomatic-typecheck</span>
-
-
-<span class="k">class</span> <span class="nc">UCGate</span><span class="p">(</span><span class="n">Gate</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">UCMeta</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">UCGate</span><span class="p">(</span><span class="n">Gate</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Uniformly controlled gate (also called multiplexed gate).</span>
 <span class="sd">    The decomposition is based on: https://arxiv.org/pdf/quant-ph/0410066.pdf.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -367,6 +356,22 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;multiplexer&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_contr</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">gate_list</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">up_to_diagonal</span> <span class="o">=</span> <span class="n">up_to_diagonal</span>
 
+    <span class="k">def</span> <span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the inverse.</span>
+
+<span class="sd">        This does not re-compute the decomposition for the multiplexer with the inverse of the</span>
+<span class="sd">        gates but simply inverts the existing decomposition.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inverse_gate</span> <span class="o">=</span> <span class="n">Gate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_dg&#39;</span><span class="p">,</span>
+                            <span class="n">num_qubits</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span>
+                            <span class="n">params</span><span class="o">=</span><span class="p">[])</span>  <span class="c1"># remove parameters since array is deprecated as parameter</span>
+
+        <span class="n">inverse_gate</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">qregs</span><span class="p">)</span>
+        <span class="n">inverse_gate</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="p">[(</span><span class="n">inst</span><span class="o">.</span><span class="n">inverse</span><span class="p">(),</span> <span class="n">qargs</span><span class="p">,</span> <span class="p">[])</span>
+                                         <span class="k">for</span> <span class="n">inst</span><span class="p">,</span> <span class="n">qargs</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_definition</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="n">inverse_gate</span>
+
     <span class="k">def</span> <span class="nf">_get_diagonal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Important: for a control list q_controls = [q[0],...,q_[k-1]] the</span>
         <span class="c1"># diagonal gate is provided in the computational basis of the qubits</span>
@@ -393,7 +398,7 @@
         <span class="c1"># If there is no control, we use the ZYZ decomposition</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">q_controls</span><span class="p">:</span>
             <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lamb</span> <span class="o">=</span> <span class="n">_DECOMPOSER1Q</span><span class="o">.</span><span class="n">angles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="n">circuit</span><span class="o">.</span><span class="n">u3</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lamb</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+            <span class="n">circuit</span><span class="o">.</span><span class="n">u</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lamb</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">diag</span>
         <span class="c1"># If there is at least one control, first,</span>
         <span class="c1"># we find the single qubit gates of the decomposition.</span>
@@ -523,6 +528,14 @@
     <span class="k">def</span> <span class="nf">_rz</span><span class="p">(</span><span class="n">alpha</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">alpha</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">alpha</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)]])</span>
 
+    <span class="k">def</span> <span class="nf">validate_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Uniformly controlled gate parameter has to be an ndarray.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">parameter</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s2">&quot;invalid param type </span><span class="si">{0}</span><span class="s2"> in gate &quot;</span>
+                               <span class="s2">&quot;</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">parameter</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
 
 <span class="k">def</span> <span class="nf">uc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gate_list</span><span class="p">,</span> <span class="n">q_controls</span><span class="p">,</span> <span class="n">q_target</span><span class="p">,</span> <span class="n">up_to_diagonal</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Attach a uniformly controlled gates (also called multiplexed gates) to a circuit.</span>
@@ -581,31 +594,7 @@
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">UCGate</span><span class="p">(</span><span class="n">gate_list</span><span class="p">,</span> <span class="n">up_to_diagonal</span><span class="p">),</span> <span class="p">[</span><span class="n">q_target</span><span class="p">]</span> <span class="o">+</span> <span class="n">q_controls</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">UCG</span><span class="p">(</span><span class="n">UCGate</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">UCMeta</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;The deprecated UCGate class.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gate_list</span><span class="p">,</span> <span class="n">up_to_diagonal</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="kn">import</span> <span class="nn">warnings</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The class UCG is deprecated as of 0.14.0, and &#39;</span>
-                      <span class="s1">&#39;will be removed no earlier than 3 months after that release date. &#39;</span>
-                      <span class="s1">&#39;You should use the class UCGate instead.&#39;</span><span class="p">,</span>
-                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">gate_list</span><span class="p">,</span> <span class="n">up_to_diagonal</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">ucg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">angle_list</span><span class="p">,</span> <span class="n">q_controls</span><span class="p">,</span> <span class="n">q_target</span><span class="p">,</span> <span class="n">up_to_diagonal</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Deprecated version of uc.&quot;&quot;&quot;</span>
-
-    <span class="kn">import</span> <span class="nn">warnings</span>
-    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The QuantumCircuit.ucg() method is deprecated as of 0.14.0, and &#39;</span>
-                  <span class="s1">&#39;will be removed no earlier than 3 months after that release date. &#39;</span>
-                  <span class="s1">&#39;You should use the QuantumCircuit.uc() method instead.&#39;</span><span class="p">,</span>
-                  <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">uc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">angle_list</span><span class="p">,</span> <span class="n">q_controls</span><span class="p">,</span> <span class="n">q_target</span><span class="p">,</span> <span class="n">up_to_diagonal</span><span class="p">)</span>
-
-
 <span class="n">QuantumCircuit</span><span class="o">.</span><span class="n">uc</span> <span class="o">=</span> <span class="n">uc</span>
-<span class="n">QuantumCircuit</span><span class="o">.</span><span class="n">ucg</span> <span class="o">=</span> <span class="n">ucg</span>  <span class="c1"># deprecated, but still supported</span>
 </pre></div>
 
            </div>
@@ -621,7 +610,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Ultimo aggiornamento 2020/10/13.
+        Ultimo aggiornamento 2020/10/19.
       </span>
 
     </p>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.extensions.quantum_initializer.squ &mdash; Qiskit 0.22.0 documentazione</title>
+  <title>qiskit.extensions.quantum_initializer.squ &mdash; Qiskit 0.23.0 documentazione</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Codice sorgente per qiskit.extensions.quantum_initializer.squ</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2017, 2019.</span>
 <span class="c1">#</span>
@@ -285,6 +283,7 @@
 
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">Qubit</span><span class="p">,</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.gate</span> <span class="kn">import</span> <span class="n">Gate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.exceptions</span> <span class="kn">import</span> <span class="n">CircuitError</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.predicates</span> <span class="kn">import</span> <span class="n">is_unitary_matrix</span>
 <span class="kn">from</span> <span class="nn">qiskit.exceptions</span> <span class="kn">import</span> <span class="n">QiskitError</span>
 <span class="kn">from</span> <span class="nn">qiskit.util</span> <span class="kn">import</span> <span class="n">deprecate_arguments</span>
@@ -321,6 +320,21 @@
 
         <span class="c1"># Create new gate</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;unitary&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="n">unitary_matrix</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the inverse.</span>
+
+<span class="sd">        Note that the resulting gate has an empty ``params`` property.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inverse_gate</span> <span class="o">=</span> <span class="n">Gate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_dg&#39;</span><span class="p">,</span>
+                            <span class="n">num_qubits</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span>
+                            <span class="n">params</span><span class="o">=</span><span class="p">[])</span>  <span class="c1"># removing the params because arrays are deprecated</span>
+
+        <span class="n">inverse_gate</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">qregs</span><span class="p">)</span>
+        <span class="n">inverse_gate</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="p">[(</span><span class="n">inst</span><span class="o">.</span><span class="n">inverse</span><span class="p">(),</span> <span class="n">qargs</span><span class="p">,</span> <span class="p">[])</span>
+                                         <span class="k">for</span> <span class="n">inst</span><span class="p">,</span> <span class="n">qargs</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_definition</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="n">inverse_gate</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">diag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -399,6 +413,14 @@
         <span class="c1"># Therefore, we have to take the inverse of the angles at the end.</span>
         <span class="k">return</span> <span class="o">-</span><span class="n">alpha</span><span class="p">,</span> <span class="o">-</span><span class="n">beta</span><span class="p">,</span> <span class="o">-</span><span class="n">gamma</span><span class="p">,</span> <span class="n">delta</span>
 
+    <span class="k">def</span> <span class="nf">validate_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Single-qubit unitary gate parameter has to be an ndarray.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">parameter</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s2">&quot;invalid param type </span><span class="si">{0}</span><span class="s2"> in gate &quot;</span>
+                               <span class="s2">&quot;</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">parameter</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
 
 <span class="c1"># pylint: disable=unused-argument, invalid-name, missing-type-doc, missing-param-doc</span>
 <span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;u&#39;</span><span class="p">:</span> <span class="s1">&#39;unitary&#39;</span><span class="p">})</span>
@@ -455,7 +477,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Ultimo aggiornamento 2020/10/13.
+        Ultimo aggiornamento 2020/10/19.
       </span>
 
     </p>

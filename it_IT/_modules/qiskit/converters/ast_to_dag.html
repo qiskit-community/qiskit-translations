@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.converters.ast_to_dag &mdash; Qiskit 0.22.0 documentazione</title>
+  <title>qiskit.converters.ast_to_dag &mdash; Qiskit 0.23.0 documentazione</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Codice sorgente per qiskit.converters.ast_to_dag</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2017, 2018.</span>
 <span class="c1">#</span>
@@ -283,7 +281,6 @@
 
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">ClassicalRegister</span><span class="p">,</span> <span class="n">Gate</span><span class="p">,</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.qasm.node.real</span> <span class="kn">import</span> <span class="n">Real</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit.instruction</span> <span class="kn">import</span> <span class="n">Instruction</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.measure</span> <span class="kn">import</span> <span class="n">Measure</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.reset</span> <span class="kn">import</span> <span class="n">Reset</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.barrier</span> <span class="kn">import</span> <span class="n">Barrier</span>
@@ -297,11 +294,15 @@
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.i</span> <span class="kn">import</span> <span class="n">IGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.s</span> <span class="kn">import</span> <span class="n">SGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.s</span> <span class="kn">import</span> <span class="n">SdgGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.sx</span> <span class="kn">import</span> <span class="n">SXGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.sx</span> <span class="kn">import</span> <span class="n">SXdgGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.t</span> <span class="kn">import</span> <span class="n">TGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.t</span> <span class="kn">import</span> <span class="n">TdgGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.p</span> <span class="kn">import</span> <span class="n">PhaseGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.u1</span> <span class="kn">import</span> <span class="n">U1Gate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.u2</span> <span class="kn">import</span> <span class="n">U2Gate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.u3</span> <span class="kn">import</span> <span class="n">U3Gate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.u</span> <span class="kn">import</span> <span class="n">UGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.x</span> <span class="kn">import</span> <span class="n">XGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.y</span> <span class="kn">import</span> <span class="n">YGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.z</span> <span class="kn">import</span> <span class="n">ZGate</span>
@@ -310,12 +311,15 @@
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.rz</span> <span class="kn">import</span> <span class="n">RZGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.rxx</span> <span class="kn">import</span> <span class="n">RXXGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.rzz</span> <span class="kn">import</span> <span class="n">RZZGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.p</span> <span class="kn">import</span> <span class="n">CPhaseGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.u</span> <span class="kn">import</span> <span class="n">CUGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.u1</span> <span class="kn">import</span> <span class="n">CU1Gate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.u3</span> <span class="kn">import</span> <span class="n">CU3Gate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.h</span> <span class="kn">import</span> <span class="n">CHGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.rx</span> <span class="kn">import</span> <span class="n">CRXGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.ry</span> <span class="kn">import</span> <span class="n">CRYGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.rz</span> <span class="kn">import</span> <span class="n">CRZGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.sx</span> <span class="kn">import</span> <span class="n">CSXGate</span>
 
 
 <div class="viewcode-block" id="ast_to_dag"><a class="viewcode-back" href="../../../stubs/qiskit.converters.ast_to_dag.html#qiskit.converters.ast_to_dag">[documenti]</a><span class="k">def</span> <span class="nf">ast_to_dag</span><span class="p">(</span><span class="n">ast</span><span class="p">):</span>
@@ -362,6 +366,8 @@
     <span class="n">standard_extension</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;u1&quot;</span><span class="p">:</span> <span class="n">U1Gate</span><span class="p">,</span>
                           <span class="s2">&quot;u2&quot;</span><span class="p">:</span> <span class="n">U2Gate</span><span class="p">,</span>
                           <span class="s2">&quot;u3&quot;</span><span class="p">:</span> <span class="n">U3Gate</span><span class="p">,</span>
+                          <span class="s2">&quot;u&quot;</span><span class="p">:</span> <span class="n">UGate</span><span class="p">,</span>
+                          <span class="s2">&quot;p&quot;</span><span class="p">:</span> <span class="n">PhaseGate</span><span class="p">,</span>
                           <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">XGate</span><span class="p">,</span>
                           <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">YGate</span><span class="p">,</span>
                           <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="n">ZGate</span><span class="p">,</span>
@@ -369,6 +375,8 @@
                           <span class="s2">&quot;tdg&quot;</span><span class="p">:</span> <span class="n">TdgGate</span><span class="p">,</span>
                           <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="n">SGate</span><span class="p">,</span>
                           <span class="s2">&quot;sdg&quot;</span><span class="p">:</span> <span class="n">SdgGate</span><span class="p">,</span>
+                          <span class="s2">&quot;sx&quot;</span><span class="p">:</span> <span class="n">SXGate</span><span class="p">,</span>
+                          <span class="s2">&quot;sxdg&quot;</span><span class="p">:</span> <span class="n">SXdgGate</span><span class="p">,</span>
                           <span class="s2">&quot;swap&quot;</span><span class="p">:</span> <span class="n">SwapGate</span><span class="p">,</span>
                           <span class="s2">&quot;rx&quot;</span><span class="p">:</span> <span class="n">RXGate</span><span class="p">,</span>
                           <span class="s2">&quot;rxx&quot;</span><span class="p">:</span> <span class="n">RXXGate</span><span class="p">,</span>
@@ -384,7 +392,10 @@
                           <span class="s2">&quot;crx&quot;</span><span class="p">:</span> <span class="n">CRXGate</span><span class="p">,</span>
                           <span class="s2">&quot;cry&quot;</span><span class="p">:</span> <span class="n">CRYGate</span><span class="p">,</span>
                           <span class="s2">&quot;crz&quot;</span><span class="p">:</span> <span class="n">CRZGate</span><span class="p">,</span>
+                          <span class="s2">&quot;csx&quot;</span><span class="p">:</span> <span class="n">CSXGate</span><span class="p">,</span>
                           <span class="s2">&quot;cu1&quot;</span><span class="p">:</span> <span class="n">CU1Gate</span><span class="p">,</span>
+                          <span class="s2">&quot;cp&quot;</span><span class="p">:</span> <span class="n">CPhaseGate</span><span class="p">,</span>
+                          <span class="s2">&quot;cu&quot;</span><span class="p">:</span> <span class="n">CUGate</span><span class="p">,</span>
                           <span class="s2">&quot;cu3&quot;</span><span class="p">:</span> <span class="n">CU3Gate</span><span class="p">,</span>
                           <span class="s2">&quot;ccx&quot;</span><span class="p">:</span> <span class="n">CCXGate</span><span class="p">,</span>
                           <span class="s2">&quot;cswap&quot;</span><span class="p">:</span> <span class="n">CSwapGate</span><span class="p">}</span>
@@ -674,15 +685,9 @@
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">standard_extension</span><span class="p">:</span>
             <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">standard_extension</span><span class="p">[</span><span class="n">name</span><span class="p">](</span><span class="o">*</span><span class="n">params</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gates</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gates</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;opaque&#39;</span><span class="p">]:</span>
-                <span class="c1"># call an opaque gate</span>
-                <span class="n">op</span> <span class="o">=</span> <span class="n">Gate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">num_qubits</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gates</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;n_bits&#39;</span><span class="p">],</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># call a custom gate</span>
-                <span class="n">op</span> <span class="o">=</span> <span class="n">Instruction</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-                                 <span class="n">num_qubits</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gates</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;n_bits&#39;</span><span class="p">],</span>
-                                 <span class="n">num_clbits</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                                 <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+            <span class="n">op</span> <span class="o">=</span> <span class="n">Gate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">num_qubits</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gates</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;n_bits&#39;</span><span class="p">],</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">gates</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;opaque&#39;</span><span class="p">]:</span>
+                <span class="c1"># call a custom gate (otherwise, opaque)</span>
                 <span class="n">op</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gate_rules_to_qiskit_circuit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gates</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
                                                                    <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -703,7 +708,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Ultimo aggiornamento 2020/10/13.
+        Ultimo aggiornamento 2020/10/19.
       </span>
 
     </p>

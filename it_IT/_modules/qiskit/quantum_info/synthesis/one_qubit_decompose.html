@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.quantum_info.synthesis.one_qubit_decompose &mdash; Qiskit 0.22.0 documentazione</title>
+  <title>qiskit.quantum_info.synthesis.one_qubit_decompose &mdash; Qiskit 0.23.0 documentazione</title>
   
 
   
@@ -258,9 +258,7 @@
            <div itemprop="articleBody">
             
   <h1>Codice sorgente per qiskit.quantum_info.synthesis.one_qubit_decompose</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2017, 2019.</span>
 <span class="c1">#</span>
@@ -282,8 +280,9 @@
 <span class="kn">import</span> <span class="nn">scipy.linalg</span> <span class="k">as</span> <span class="nn">la</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumcircuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates</span> <span class="kn">import</span> <span class="p">(</span><span class="n">U3Gate</span><span class="p">,</span> <span class="n">U1Gate</span><span class="p">,</span> <span class="n">RXGate</span><span class="p">,</span> <span class="n">RYGate</span><span class="p">,</span> <span class="n">RZGate</span><span class="p">,</span>
-                                                   <span class="n">RGate</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PhaseGate</span><span class="p">,</span> <span class="n">U3Gate</span><span class="p">,</span>
+                                                   <span class="n">U1Gate</span><span class="p">,</span> <span class="n">RXGate</span><span class="p">,</span> <span class="n">RYGate</span><span class="p">,</span>
+                                                   <span class="n">RZGate</span><span class="p">,</span> <span class="n">RGate</span><span class="p">,</span> <span class="n">SXGate</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">qiskit.exceptions</span> <span class="kn">import</span> <span class="n">QiskitError</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.predicates</span> <span class="kn">import</span> <span class="n">is_unitary_matrix</span>
 
@@ -319,6 +318,13 @@
 <span class="sd">        * - &#39;U3&#39;</span>
 <span class="sd">          - :math:`Z(\phi) Y(\theta) Z(\lambda)`</span>
 <span class="sd">          - :math:`e^{i\gamma} U_3(\theta,\phi,\lambda)`</span>
+<span class="sd">        * - &#39;U&#39;</span>
+<span class="sd">          - :math:`Z(\phi) Y(\theta) Z(\lambda)`</span>
+<span class="sd">          - :math:`e^{i\gamma} U_3(\theta,\phi,\lambda)`</span>
+<span class="sd">        * - &#39;PSX&#39;</span>
+<span class="sd">          - :math:`Z(\phi) Y(\theta) Z(\lambda)`</span>
+<span class="sd">          - :math:`e^{i\gamma} U_1(\phi+\pi).R_X\left(\frac{\pi}{2}\right).`</span>
+<span class="sd">            :math:`U_1(\theta+\pi).R_X\left(\frac{\pi}{2}\right).U_1(\lambda)`</span>
 <span class="sd">        * - &#39;U1X&#39;</span>
 <span class="sd">          - :math:`Z(\phi) Y(\theta) Z(\lambda)`</span>
 <span class="sd">          - :math:`e^{i\gamma} U_1(\phi+\pi).R_X\left(\frac{\pi}{2}\right).`</span>
@@ -332,7 +338,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">basis</span><span class="o">=</span><span class="s1">&#39;U3&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize decomposer</span>
 
-<span class="sd">        Supported bases are: &#39;U3&#39;, &#39;U1X&#39;, &#39;RR&#39;, &#39;ZYZ&#39;, &#39;ZXZ&#39;, &#39;XYX&#39;.</span>
+<span class="sd">        Supported bases are: &#39;U&#39;, &#39;PSX&#39;, &#39;U3&#39;, &#39;U1X&#39;, &#39;RR&#39;, &#39;ZYZ&#39;, &#39;ZXZ&#39;, &#39;XYX&#39;.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            basis (str): the decomposition basis [Default: &#39;U3&#39;]</span>
@@ -395,6 +401,8 @@
         <span class="sd">&quot;&quot;&quot;Set the decomposition basis.&quot;&quot;&quot;</span>
         <span class="n">basis_methods</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;U3&#39;</span><span class="p">:</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params_u3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_u3</span><span class="p">),</span>
+            <span class="s1">&#39;U&#39;</span><span class="p">:</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params_u3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_u</span><span class="p">),</span>
+            <span class="s1">&#39;PSX&#39;</span><span class="p">:</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params_u1x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_psx</span><span class="p">),</span>
             <span class="s1">&#39;U1X&#39;</span><span class="p">:</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params_u1x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_u1x</span><span class="p">),</span>
             <span class="s1">&#39;RR&#39;</span><span class="p">:</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params_zyz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_rr</span><span class="p">),</span>
             <span class="s1">&#39;ZYZ&#39;</span><span class="p">:</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params_zyz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_zyz</span><span class="p">),</span>
@@ -559,6 +567,53 @@
         <span class="k">return</span> <span class="n">circuit</span>
 
     <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_circuit_u</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span>
+                   <span class="n">phi</span><span class="p">,</span>
+                   <span class="n">lam</span><span class="p">,</span>
+                   <span class="n">simplify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                   <span class="n">atol</span><span class="o">=</span><span class="n">DEFAULT_ATOL</span><span class="p">):</span>
+        <span class="c1"># pylint: disable=unused-argument</span>
+        <span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">circuit</span><span class="o">.</span><span class="n">u</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">circuit</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_circuit_psx</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span>
+                     <span class="n">phi</span><span class="p">,</span>
+                     <span class="n">lam</span><span class="p">,</span>
+                     <span class="n">simplify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                     <span class="n">atol</span><span class="o">=</span><span class="n">DEFAULT_ATOL</span><span class="p">):</span>
+        <span class="c1"># Shift theta and phi so decomposition is</span>
+        <span class="c1"># Phase(phi+pi).SX.Phase(theta+pi).SX.Phase(lam)</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">_mod2pi</span><span class="p">(</span><span class="n">theta</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">_mod2pi</span><span class="p">(</span><span class="n">phi</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Check for decomposition into minimimal number required SX gates</span>
+        <span class="k">if</span> <span class="n">simplify</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">_mod2pi</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">lam</span> <span class="o">+</span> <span class="n">phi</span> <span class="o">+</span> <span class="n">theta</span><span class="p">)),</span>
+                              <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PhaseGate</span><span class="p">(</span><span class="n">_mod2pi</span><span class="p">(</span><span class="n">lam</span> <span class="o">+</span> <span class="n">phi</span> <span class="o">+</span> <span class="n">theta</span><span class="p">)),</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">simplify</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+                                     <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">_mod2pi</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">lam</span> <span class="o">+</span> <span class="n">theta</span><span class="p">)),</span>
+                              <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PhaseGate</span><span class="p">(</span><span class="n">_mod2pi</span><span class="p">(</span><span class="n">lam</span> <span class="o">+</span> <span class="n">theta</span><span class="p">)),</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SXGate</span><span class="p">(),</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">_mod2pi</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">phi</span> <span class="o">+</span> <span class="n">theta</span><span class="p">)),</span>
+                              <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PhaseGate</span><span class="p">(</span><span class="n">_mod2pi</span><span class="p">(</span><span class="n">phi</span> <span class="o">+</span> <span class="n">theta</span><span class="p">)),</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">lam</span><span class="p">),</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PhaseGate</span><span class="p">(</span><span class="n">lam</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SXGate</span><span class="p">(),</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PhaseGate</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SXGate</span><span class="p">(),</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PhaseGate</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">circuit</span>
+
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_circuit_u1x</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span>
                      <span class="n">phi</span><span class="p">,</span>
                      <span class="n">lam</span><span class="p">,</span>
@@ -601,6 +656,13 @@
             <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RGate</span><span class="p">(</span><span class="n">theta</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">lam</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RGate</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">phi</span> <span class="o">-</span> <span class="n">lam</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)),</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">circuit</span></div>
+
+
+<span class="k">def</span> <span class="nf">_mod2pi</span><span class="p">(</span><span class="n">angle</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">angle</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">angle</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">angle</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
 </pre></div>
 
            </div>
@@ -616,7 +678,7 @@
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Ultimo aggiornamento 2020/10/13.
+        Ultimo aggiornamento 2020/10/19.
       </span>
 
     </p>
