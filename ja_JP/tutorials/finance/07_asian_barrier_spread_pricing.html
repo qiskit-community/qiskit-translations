@@ -592,48 +592,22 @@ div.rendered_html tbody tr:hover {
 <span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Aer</span><span class="p">,</span> <span class="n">execute</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">IntegerComparator</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Aer</span><span class="p">,</span> <span class="n">execute</span><span class="p">,</span> <span class="n">AncillaRegister</span><span class="p">,</span> <span class="n">transpile</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">IntegerComparator</span><span class="p">,</span> <span class="n">WeightedAdder</span><span class="p">,</span> <span class="n">LogNormalDistribution</span><span class="p">,</span> <span class="n">LinearAmplitudeFunction</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">IterativeAmplitudeEstimation</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.circuits</span> <span class="kn">import</span> <span class="n">WeightedSumOperator</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_problems</span> <span class="kn">import</span> <span class="n">UnivariatePiecewiseLinearObjective</span> <span class="k">as</span> <span class="n">PwlObjective</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_problems</span> <span class="kn">import</span> <span class="n">MultivariateProblem</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_models</span> <span class="kn">import</span> <span class="n">MultivariateLogNormalDistribution</span>
-
-<span class="c1"># MultivariateProblem internally still needs the methods in the Comparator custom class below.</span>
-<span class="c1"># The code will be changed so that an IntegerComparator can be passed directly without the need</span>
-<span class="c1"># of a custom class. Until it happens the custom class is necessary.</span>
-
-<span class="k">class</span> <span class="nc">Comparator</span><span class="p">(</span><span class="n">IntegerComparator</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">required_ancillas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ancilla_qubits</span>
-
-    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qc</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q_ancillas</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">i_state</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span><span class="p">)</span>
-        <span class="n">i_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span>
-        <span class="n">instr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
-        <span class="n">qr</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">i_state</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">i_target</span><span class="p">]]</span>
-        <span class="k">if</span> <span class="n">q_ancillas</span><span class="p">:</span>
-            <span class="n">qr</span> <span class="o">+=</span> <span class="p">[</span><span class="n">qi</span> <span class="k">for</span> <span class="n">qi</span> <span class="ow">in</span> <span class="n">q_ancillas</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">required_ancillas</span><span class="p">()]]</span>
-        <span class="n">qc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">qr</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">build_inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qc</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q_ancillas</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">qc_</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="o">*</span><span class="n">qc</span><span class="o">.</span><span class="n">qregs</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">qc_</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q_ancillas</span><span class="p">)</span>
-        <span class="n">qc</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">qc_</span><span class="o">.</span><span class="n">inverse</span><span class="p">())</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="不確実性モデル">
 <h2>不確実性モデル<a class="headerlink" href="#不確実性モデル" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>多変量対数正規分布に従うデータを <span class="math notranslate nohighlight">\(n\)</span> 量子ビットの量子状態にロードするための回路ファクトリを構築します。各次元 <span class="math notranslate nohighlight">\(j = 1,\ldots,d\)</span> に対して，分布は与えられた区間 <span class="math notranslate nohighlight">\([low_j, high_j]\)</span> で切り捨てられ、 <span class="math notranslate nohighlight">\(2^{n_j}\)</span> の格子点を用いて離散化されます。このとき、 <span class="math notranslate nohighlight">\(n_j\)</span> は次元 <span class="math notranslate nohighlight">\(j\)</span> すなわち <span class="math notranslate nohighlight">\(n_1+\ldots+n_d = n\)</span> を表します。回路ファクトリに対応するユニタリ演算子は次の実装を行います。</p>
+<p>We construct a circuit factory to load a multivariate log-normal random distribution into a quantum state on <span class="math notranslate nohighlight">\(n\)</span> qubits. For every dimension <span class="math notranslate nohighlight">\(j = 1,\ldots,d\)</span>, the distribution is truncated to a given interval <span class="math notranslate nohighlight">\([\text{low}_j, \text{high}_j]\)</span> and discretized using <span class="math notranslate nohighlight">\(2^{n_j}\)</span> grid points, where <span class="math notranslate nohighlight">\(n_j\)</span> denotes the number of qubits used to represent dimension <span class="math notranslate nohighlight">\(j\)</span>, i.e., <span class="math notranslate nohighlight">\(n_1+\ldots+n_d = n\)</span>. The unitary operator corresponding to the circuit factory implements
+the following:</p>
 <div class="math notranslate nohighlight">
 \[\big|0\rangle_{n} \mapsto \big|\psi\rangle_{n} = \sum_{i_1,\ldots,i_d} \sqrt{p_{i_1\ldots i_d}}\big|i_1\rangle_{n_1}\ldots\big|i_d\rangle_{n_d},\]</div>
 <p>ここで <span class="math notranslate nohighlight">\(p_{i_1\ldots i_d}\)</span> は、切り捨て分布と離散化分布に対応する確率を表し、 <span class="math notranslate nohighlight">\(i_j\)</span> はアフィンマップを用いて右区間にマップされています。</p>
 <div class="math notranslate nohighlight">
-\[\{0, \ldots, 2^{n_j}-1\} \ni i_j \mapsto \frac{high_j - low_j}{2^{n_j} - 1} * i_j + low_j \in [low_j, high_j].\]</div>
+\[\{0, \ldots, 2^{n_j}-1\} \ni i_j \mapsto \frac{\text{high}_j - \text{low}_j}{2^{n_j} - 1} * i_j + \text{low}_j \in [\text{low}_j, \text{high}_j].\]</div>
 <p>簡単のため、ここでは両方の株価が独立しており、同一の分布を取るものと仮定します。この仮定は、以下のパラメトライゼーション簡略化し、より複雑なそして相関のある多変量分布に緩和することが容易に出来ます。現在の実装のための唯一の重要な仮定は、異なる次元の離散化グリッドが同じステップサイズを持つということです。</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
@@ -670,7 +644,7 @@ div.rendered_html tbody tr:hover {
 <span class="n">cov</span><span class="o">=</span><span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">dimension</span><span class="p">)</span>
 
 <span class="c1"># construct circuit factory</span>
-<span class="n">u</span> <span class="o">=</span> <span class="n">MultivariateLogNormalDistribution</span><span class="p">(</span><span class="n">num_qubits</span><span class="o">=</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="n">high</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="n">cov</span><span class="p">)</span>
+<span class="n">u</span> <span class="o">=</span> <span class="n">LogNormalDistribution</span><span class="p">(</span><span class="n">num_qubits</span><span class="o">=</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">cov</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">))))</span>
 </pre></div>
 </div>
 </div>
@@ -711,15 +685,15 @@ div.rendered_html tbody tr:hover {
 <p>簡単のため、平均の代わりにスポット価格の合計を考えます。結果を２で割るだけで平均にできます。</p>
 <p>ペイオフ関数は、スポット価格合計 <span class="math notranslate nohighlight">\((S_1 + S_2)\)</span> がストライクプライス <span class="math notranslate nohighlight">\(K_1\)</span> よりも小さい間ゼロであり、その後スポット価格合計が <span class="math notranslate nohighlight">\(K_2\)</span> になるまで線形に増加します。そしてペイオフはどちらかのスポット価格がバリアしきい値 <span class="math notranslate nohighlight">\(B\)</span> を超えるまで、一定 <span class="math notranslate nohighlight">\(K_2 - K_1\)</span> ですが、その後ペイオフは直ちにゼロに落ちます。実装は初め加重合計演算子を使って補助量子ビットにスポット価格合計を計算しますが、それからコンパレーターを使って、もし <span class="math notranslate nohighlight">\((S_1 + S_2) \geq K_1\)</span> ならば補助量子ビットを <span class="math notranslate nohighlight">\(\big|0\rangle\)</span> to <span class="math notranslate nohighlight">\(\big|1\rangle\)</span> にフリップします。そしてもう一つのコンパレーターと補助量子ビットを <span class="math notranslate nohighlight">\((S_1 + S_2) \geq K_2\)</span> のケースを記録するためにフリップします。これらの補助量子ビットはペイオフ関数の線形部分をコントロールするために使われます。</p>
 <p>それに加え、別の補助量子ビットを時間ステップごとに追加します。そして追加のコンパレーターで <span class="math notranslate nohighlight">\(S_1\)</span> とそれぞれの <span class="math notranslate nohighlight">\(S_2\)</span> がバリアしきい値 <span class="math notranslate nohighlight">\(B\)</span> を超えていないかチェックします。ペイオフ関数は <span class="math notranslate nohighlight">\(S_1, S_2 \leq B\)</span> の場合のみ適用されます。</p>
-<p>線形部分は次のように近似されます。<span class="math notranslate nohighlight">\(\sin^2(y + \pi/4) \approx y + 1/2\)</span> for small <span class="math notranslate nohighlight">\(|y|\)</span> の関係を利用して、所与の近似スケーリングファクター <span class="math notranslate nohighlight">\(c_{approx} \in [0, 1]\)</span> かつ <span class="math notranslate nohighlight">\(x \in [0, 1]\)</span> について、以下を考えます。</p>
+<p>The linear part itself is approximated as follows. We exploit the fact that <span class="math notranslate nohighlight">\(\sin^2(y + \pi/4) \approx y + 1/2\)</span> for small <span class="math notranslate nohighlight">\(|y|\)</span>. Thus, for a given approximation scaling factor <span class="math notranslate nohighlight">\(c_\text{approx} \in [0, 1]\)</span> and <span class="math notranslate nohighlight">\(x \in [0, 1]\)</span> we consider</p>
 <div class="math notranslate nohighlight">
-\[\sin^2( \pi/2 * c_{approx} * ( x - 1/2 ) + \pi/4) \approx \pi/2 * c_{approx} * ( x - 1/2 ) + 1/2\]</div>
-<p><span class="math notranslate nohighlight">\(c_{approx}\)</span> は小さいとします。</p>
+\[\sin^2( \pi/2 * c_\text{approx} * ( x - 1/2 ) + \pi/4) \approx \pi/2 * c_\text{approx} * ( x - 1/2 ) + 1/2\]</div>
+<p>for small <span class="math notranslate nohighlight">\(c_\text{approx}\)</span>.</p>
 <p>次のように機能する演算子を簡単に構築できます</p>
 <div class="math notranslate nohighlight">
 \[\big|x\rangle \big|0\rangle \mapsto \big|x\rangle \left( \cos(a*x+b) \big|0\rangle + \sin(a*x+b) \big|1\rangle \right),\]</div>
 <p>制御Y-回転を使って。</p>
-<p>最終的には、我々は最後の量子ビットが <span class="math notranslate nohighlight">\(\big|1\rangle\)</span> を観測する確率に興味があります。それは <span class="math notranslate nohighlight">\(\sin^2(a*x+b)\)</span> になります。上記の近似によって、確率の近似を得ることができます。<span class="math notranslate nohighlight">\(c_{approx}\)</span>, を小さくすればするほど良い近似になります。しかし <span class="math notranslate nohighlight">\(c_{approx}\)</span> でスケールされたプロパティを見積もっているので、評価の量子ビット数 <span class="math notranslate nohighlight">\(m\)</span> はそれに合わせて調整する必要があります。</p>
+<p>Eventually, we are interested in the probability of measuring <span class="math notranslate nohighlight">\(\big|1\rangle\)</span> in the last qubit, which corresponds to <span class="math notranslate nohighlight">\(\sin^2(a*x+b)\)</span>. Together with the approximation above, this allows to approximate the values of interest. The smaller we choose <span class="math notranslate nohighlight">\(c_\text{approx}\)</span>, the better the approximation. However, since we are then estimating a property scaled by <span class="math notranslate nohighlight">\(c_\text{approx}\)</span>, the number of evaluation qubits <span class="math notranslate nohighlight">\(m\)</span> needs to be adjusted accordingly.</p>
 <p>近似の詳細については、以下を参照してください: Quantum Risk Analysis, Woerner, Egger. 2018.</p>
 <p>(現在実装中の) 加重合計演算子は整数のみを合計することができるため、結果を推定するために元の範囲から表現可能な範囲に写像し、結果を解釈する前に逆写像する必要があります。このマッピングは不確定性モデルのコンテキストに出てきたアフィン写像に一致します。</p>
 <div class="nbinput nblast docutils container">
@@ -732,10 +706,11 @@ div.rendered_html tbody tr:hover {
 <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">num_qubits</span><span class="p">:</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
         <span class="n">weights</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">2</span><span class="o">**</span><span class="n">i</span><span class="p">]</span>
-<span class="n">n_s</span> <span class="o">=</span> <span class="n">WeightedSumOperator</span><span class="o">.</span><span class="n">get_required_sum_qubits</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
 
-<span class="c1"># create circuit factory</span>
-<span class="n">agg</span> <span class="o">=</span> <span class="n">WeightedSumOperator</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">),</span> <span class="n">weights</span><span class="p">)</span>
+<span class="c1"># create aggregation circuit</span>
+<span class="n">agg</span> <span class="o">=</span> <span class="n">WeightedAdder</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">),</span> <span class="n">weights</span><span class="p">)</span>
+<span class="n">n_s</span> <span class="o">=</span> <span class="n">agg</span><span class="o">.</span><span class="n">num_sum_qubits</span>
+<span class="n">n_aux</span> <span class="o">=</span> <span class="n">agg</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">-</span> <span class="n">n_s</span> <span class="o">-</span> <span class="n">agg</span><span class="o">.</span><span class="n">num_state_qubits</span>  <span class="c1"># number of additional qubits</span>
 </pre></div>
 </div>
 </div>
@@ -770,9 +745,12 @@ div.rendered_html tbody tr:hover {
 <span></span><span class="c1"># condition and condition result</span>
 <span class="n">conditions</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">barrier_thresholds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">dimension</span>
+<span class="n">n_aux_conditions</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dimension</span><span class="p">):</span>
     <span class="c1"># target dimension of random distribution and corresponding condition (which is required to be True)</span>
-    <span class="n">conditions</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">Comparator</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">mapped_barrier</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">geq</span><span class="o">=</span><span class="kc">False</span><span class="p">))]</span>
+    <span class="n">comparator</span> <span class="o">=</span> <span class="n">IntegerComparator</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">mapped_barrier</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">geq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">n_aux_conditions</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">n_aux_conditions</span><span class="p">,</span> <span class="n">comparator</span><span class="o">.</span><span class="n">num_ancillas</span><span class="p">)</span>
+    <span class="n">conditions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">comparator</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
@@ -790,25 +768,140 @@ div.rendered_html tbody tr:hover {
 <span class="n">offsets</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">mapped_strike_price_2</span> <span class="o">-</span> <span class="n">mapped_strike_price_1</span><span class="p">]</span>
 <span class="n">f_min</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">f_max</span> <span class="o">=</span> <span class="n">mapped_strike_price_2</span> <span class="o">-</span> <span class="n">mapped_strike_price_1</span>
-<span class="n">bull_spread_objective</span> <span class="o">=</span> <span class="n">PwlObjective</span><span class="p">(</span>
+<span class="n">objective</span> <span class="o">=</span> <span class="n">LinearAmplitudeFunction</span><span class="p">(</span>
     <span class="n">n_s</span><span class="p">,</span>
-    <span class="mi">0</span><span class="p">,</span>
-    <span class="n">max_value</span><span class="p">,</span>
-    <span class="n">breakpoints</span><span class="p">,</span>
     <span class="n">slopes</span><span class="p">,</span>
     <span class="n">offsets</span><span class="p">,</span>
-    <span class="n">f_min</span><span class="p">,</span>
-    <span class="n">f_max</span><span class="p">,</span>
-    <span class="n">c_approx</span>
+    <span class="n">domain</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_value</span><span class="p">),</span>
+    <span class="n">image</span><span class="o">=</span><span class="p">(</span><span class="n">f_min</span><span class="p">,</span> <span class="n">f_max</span><span class="p">),</span>
+    <span class="n">rescaling_factor</span><span class="o">=</span><span class="n">c_approx</span><span class="p">,</span>
+    <span class="n">breakpoints</span><span class="o">=</span><span class="n">breakpoints</span>
 <span class="p">)</span>
-
-<span class="c1"># define overall multivariate problem</span>
-<span class="n">asian_barrier_spread</span> <span class="o">=</span> <span class="n">MultivariateProblem</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">agg</span><span class="p">,</span> <span class="n">bull_spread_objective</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">conditions</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># define overall multivariate problem</span>
+<span class="n">qr_state</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s1">&#39;state&#39;</span><span class="p">)</span>  <span class="c1"># to load the probability distribution</span>
+<span class="n">qr_obj</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;obj&#39;</span><span class="p">)</span>  <span class="c1"># to encode the function values</span>
+<span class="n">ar_sum</span> <span class="o">=</span> <span class="n">AncillaRegister</span><span class="p">(</span><span class="n">n_s</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>  <span class="c1"># number of qubits used to encode the sum</span>
+<span class="n">ar_cond</span> <span class="o">=</span> <span class="n">AncillaRegister</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">conditions</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;conditions&#39;</span><span class="p">)</span>
+<span class="n">ar</span> <span class="o">=</span> <span class="n">AncillaRegister</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">n_aux</span><span class="p">,</span> <span class="n">n_aux_conditions</span><span class="p">,</span> <span class="n">objective</span><span class="o">.</span><span class="n">num_ancillas</span><span class="p">),</span> <span class="s1">&#39;work&#39;</span><span class="p">)</span>  <span class="c1"># additional qubits</span>
+
+<span class="n">objective_index</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">num_qubits</span>
+
+<span class="c1"># define the circuit</span>
+<span class="n">asian_barrier_spread</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qr_state</span><span class="p">,</span> <span class="n">qr_obj</span><span class="p">,</span> <span class="n">ar_cond</span><span class="p">,</span> <span class="n">ar_sum</span><span class="p">,</span> <span class="n">ar</span><span class="p">)</span>
+
+<span class="c1"># load the probability distribution</span>
+<span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">qr_state</span><span class="p">)</span>
+
+<span class="c1"># apply the conditions</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">cond</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">conditions</span><span class="p">):</span>
+    <span class="n">state_qubits</span> <span class="o">=</span> <span class="n">qr_state</span><span class="p">[(</span><span class="n">num_uncertainty_qubits</span> <span class="o">*</span> <span class="n">i</span><span class="p">):(</span><span class="n">num_uncertainty_qubits</span> <span class="o">*</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))]</span>
+    <span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">state_qubits</span> <span class="o">+</span> <span class="p">[</span><span class="n">ar_cond</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">+</span> <span class="n">ar</span><span class="p">[:</span><span class="n">cond</span><span class="o">.</span><span class="n">num_ancillas</span><span class="p">])</span>
+
+<span class="c1"># aggregate the conditions on a single qubit</span>
+<span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">mcx</span><span class="p">(</span><span class="n">ar_cond</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">ar_cond</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># apply the aggregation function controlled on the condition</span>
+<span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">control</span><span class="p">(),</span> <span class="p">[</span><span class="n">ar_cond</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="n">qr_state</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">ar_sum</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">ar</span><span class="p">[:</span><span class="n">n_aux</span><span class="p">])</span>
+
+<span class="c1"># apply the payoff function</span>
+<span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">ar_sum</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_obj</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">ar</span><span class="p">[:</span><span class="n">objective</span><span class="o">.</span><span class="n">num_ancillas</span><span class="p">])</span>
+
+<span class="c1"># uncompute the aggregation</span>
+<span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span><span class="o">.</span><span class="n">control</span><span class="p">(),</span> <span class="p">[</span><span class="n">ar_cond</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="n">qr_state</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">ar_sum</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">ar</span><span class="p">[:</span><span class="n">n_aux</span><span class="p">])</span>
+
+<span class="c1"># uncompute the conditions</span>
+<span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">mcx</span><span class="p">(</span><span class="n">ar_cond</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">ar_cond</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">cond</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">conditions</span><span class="p">)):</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">conditions</span><span class="p">)</span> <span class="o">-</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">state_qubits</span> <span class="o">=</span> <span class="n">qr_state</span><span class="p">[(</span><span class="n">num_uncertainty_qubits</span> <span class="o">*</span> <span class="n">i</span><span class="p">):(</span><span class="n">num_uncertainty_qubits</span> <span class="o">*</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))]</span>
+    <span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cond</span><span class="o">.</span><span class="n">inverse</span><span class="p">(),</span> <span class="n">state_qubits</span> <span class="o">+</span> <span class="p">[</span><span class="n">ar_cond</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">+</span> <span class="n">ar</span><span class="p">[:</span><span class="n">cond</span><span class="o">.</span><span class="n">num_ancillas</span><span class="p">])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">draw</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;objective qubit index&#39;</span><span class="p">,</span> <span class="n">objective_index</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+              ┌───────┐┌──────┐             ┌───────────┐      ┌──────────────┐»
+     state_0: ┤0      ├┤0     ├─────────────┤1          ├──────┤1             ├»
+              │       ││      │             │           │      │              │»
+     state_1: ┤1      ├┤1     ├─────────────┤2          ├──────┤2             ├»
+              │  P(X) ││      │┌──────┐     │           │      │              │»
+     state_2: ┤2      ├┤      ├┤0     ├─────┤3          ├──────┤3             ├»
+              │       ││      ││      │     │           │      │              │»
+     state_3: ┤3      ├┤      ├┤1     ├─────┤4          ├──────┤4             ├»
+              └───────┘│      ││      │     │           │┌────┐│              │»
+       obj_0: ─────────┤      ├┤      ├─────┤           ├┤3   ├┤              ├»
+                       │      ││      │     │           ││    ││              │»
+conditions_0: ─────────┤2     ├┤      ├──■──┤           ├┤    ├┤              ├»
+                       │  cmp ││      │  │  │           ││    ││              │»
+conditions_1: ─────────┤      ├┤2     ├──■──┤           ├┤    ├┤              ├»
+                       │      ││  cmp │┌─┴─┐│   c_adder ││    ││   c_adder_dg │»
+conditions_2: ─────────┤      ├┤      ├┤ X ├┤0          ├┤    ├┤0             ├»
+                       │      ││      │└───┘│           ││    ││              │»
+       sum_0: ─────────┤      ├┤      ├─────┤5          ├┤0   ├┤5             ├»
+                       │      ││      │     │           ││    ││              │»
+       sum_1: ─────────┤      ├┤      ├─────┤6          ├┤1 F ├┤6             ├»
+                       │      ││      │     │           ││    ││              │»
+       sum_2: ─────────┤      ├┤      ├─────┤7          ├┤2   ├┤7             ├»
+                       │      ││      │     │           ││    ││              │»
+      work_0: ─────────┤3     ├┤3     ├─────┤8          ├┤4   ├┤8             ├»
+                       └──────┘└──────┘     │           ││    ││              │»
+      work_1: ──────────────────────────────┤9          ├┤5   ├┤9             ├»
+                                            │           ││    ││              │»
+      work_2: ──────────────────────────────┤10         ├┤6   ├┤10            ├»
+                                            └───────────┘│    │└──────────────┘»
+      work_3: ───────────────────────────────────────────┤7   ├────────────────»
+                                                         └────┘                »
+«                              ┌─────────┐
+«     state_0: ────────────────┤0        ├
+«                              │         │
+«     state_1: ────────────────┤1        ├
+«                   ┌─────────┐│         │
+«     state_2: ─────┤0        ├┤         ├
+«                   │         ││         │
+«     state_3: ─────┤1        ├┤         ├
+«                   │         ││         │
+«       obj_0: ─────┤         ├┤         ├
+«                   │         ││         │
+«conditions_0: ──■──┤         ├┤2        ├
+«                │  │         ││  cmp_dg │
+«conditions_1: ──■──┤2        ├┤         ├
+«              ┌─┴─┐│  cmp_dg ││         │
+«conditions_2: ┤ X ├┤         ├┤         ├
+«              └───┘│         ││         │
+«       sum_0: ─────┤         ├┤         ├
+«                   │         ││         │
+«       sum_1: ─────┤         ├┤         ├
+«                   │         ││         │
+«       sum_2: ─────┤         ├┤         ├
+«                   │         ││         │
+«      work_0: ─────┤3        ├┤3        ├
+«                   └─────────┘└─────────┘
+«      work_1: ───────────────────────────
+«
+«      work_2: ───────────────────────────
+«
+«      work_3: ───────────────────────────
+«
+objective qubit index 4
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -831,11 +924,11 @@ div.rendered_html tbody tr:hover {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_finance_07_asian_barrier_spread_pricing_11_0.png" src="../../_images/tutorials_finance_07_asian_barrier_spread_pricing_11_0.png" />
+<img alt="../../_images/tutorials_finance_07_asian_barrier_spread_pricing_12_0.png" src="../../_images/tutorials_finance_07_asian_barrier_spread_pricing_12_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -865,11 +958,11 @@ div.rendered_html tbody tr:hover {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_finance_07_asian_barrier_spread_pricing_12_0.png" src="../../_images/tutorials_finance_07_asian_barrier_spread_pricing_12_0.png" />
+<img alt="../../_images/tutorials_finance_07_asian_barrier_spread_pricing_13_0.png" src="../../_images/tutorials_finance_07_asian_barrier_spread_pricing_13_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -895,21 +988,15 @@ exact expected value:   0.8023
 <h2>期待ペイオフの評価<a class="headerlink" href="#期待ペイオフの評価" title="このヘッドラインへのパーマリンク">¶</a></h2>
 <p>我々は、まず量子回路を検証します。シミュレートで目的量子ビットの <span class="math notranslate nohighlight">\(|1\rangle\)</span> 状態の観測確率を分析します。</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">num_req_qubits</span> <span class="o">=</span> <span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">num_target_qubits</span>
-<span class="n">num_req_ancillas</span> <span class="o">=</span> <span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">required_ancillas</span><span class="p">()</span>
-
-<span class="n">q</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">num_req_qubits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;q&#39;</span><span class="p">)</span>
-<span class="n">q_a</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">num_req_ancillas</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;q_a&#39;</span><span class="p">)</span>
-<span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">q_a</span><span class="p">)</span>
-
-<span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q_a</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;state qubits: &#39;</span><span class="p">,</span> <span class="n">num_req_qubits</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;circuit width:&#39;</span><span class="p">,</span> <span class="n">qc</span><span class="o">.</span><span class="n">width</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;circuit depth:&#39;</span><span class="p">,</span> <span class="n">qc</span><span class="o">.</span><span class="n">depth</span><span class="p">())</span>
+<span></span><span class="n">num_state_qubits</span> <span class="o">=</span> <span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">-</span> <span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">num_ancillas</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;state qubits: &#39;</span><span class="p">,</span> <span class="n">num_state_qubits</span><span class="p">)</span>
+<span class="n">transpiled</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">asian_barrier_spread</span><span class="p">,</span> <span class="n">basis_gates</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="s1">&#39;cx&#39;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;circuit width:&#39;</span><span class="p">,</span> <span class="n">transpiled</span><span class="o">.</span><span class="n">width</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;circuit depth:&#39;</span><span class="p">,</span> <span class="n">transpiled</span><span class="o">.</span><span class="n">depth</span><span class="p">())</span>
 </pre></div>
 </div>
 </div>
@@ -920,36 +1007,36 @@ exact expected value:   0.8023
 <div class="highlight"><pre>
 state qubits:  5
 circuit width: 15
-circuit depth: 1137
+circuit depth: 8541
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">job</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">))</span>
+<span></span><span class="n">job</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">asian_barrier_spread</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># evaluate resulting statevector</span>
 <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span><span class="o">.</span><span class="n">get_statevector</span><span class="p">()):</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{0:0</span><span class="si">%s</span><span class="s1">b}&#39;</span> <span class="o">%</span> <span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="o">-</span><span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">:]</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{0:0</span><span class="si">%s</span><span class="s1">b}&#39;</span> <span class="o">%</span> <span class="n">num_state_qubits</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="o">-</span><span class="n">num_state_qubits</span><span class="p">:]</span>
     <span class="n">prob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
     <span class="k">if</span> <span class="n">prob</span> <span class="o">&gt;</span> <span class="mf">1e-4</span> <span class="ow">and</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span><span class="p">:</span>
         <span class="n">value</span> <span class="o">+=</span> <span class="n">prob</span>
     <span class="c1"># all other states should have zero probability due to ancilla qubits</span>
-    <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="o">**</span><span class="n">num_req_qubits</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="o">**</span><span class="n">num_state_qubits</span><span class="p">:</span>
         <span class="k">break</span>
 
 <span class="c1"># map value to original range</span>
-<span class="n">mapped_value</span> <span class="o">=</span> <span class="n">asian_barrier_spread</span><span class="o">.</span><span class="n">value_to_estimation</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">num_uncertainty_qubits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">high_</span> <span class="o">-</span> <span class="n">low_</span><span class="p">)</span>
+<span class="n">mapped_value</span> <span class="o">=</span> <span class="n">objective</span><span class="o">.</span><span class="n">post_processing</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">num_uncertainty_qubits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">high_</span> <span class="o">-</span> <span class="n">low_</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exact Operator Value:  </span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">value</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mapped Operator value: </span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mapped_value</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exact Expected Payoff: </span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">exact_value</span><span class="p">)</span>
@@ -968,7 +1055,7 @@ Exact Expected Payoff: 0.8023
 </div>
 <p>次に振幅推定で期待ペイオフを推定します。多数の量子ビットをシミュレートするため、推定には時間がかかることに注意してください。我々が設計した演算子(アジアン・バリア・スプレッド) は実際の状態量子ビット数よりもかなり少なくなっていますが、これはシミュレーション時間を短縮するためです。</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -977,12 +1064,15 @@ Exact Expected Payoff: 0.8023
 <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.05</span>
 
 <span class="c1"># construct amplitude estimation</span>
-<span class="n">ae</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">a_factory</span><span class="o">=</span><span class="n">asian_barrier_spread</span><span class="p">)</span>
+<span class="n">ae</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                                  <span class="n">state_preparation</span><span class="o">=</span><span class="n">asian_barrier_spread</span><span class="p">,</span>
+                                  <span class="n">objective_qubits</span><span class="o">=</span><span class="p">[</span><span class="n">objective_index</span><span class="p">],</span>
+                                  <span class="n">post_processing</span><span class="o">=</span><span class="n">objective</span><span class="o">.</span><span class="n">post_processing</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -991,7 +1081,7 @@ Exact Expected Payoff: 0.8023
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1008,12 +1098,12 @@ Exact Expected Payoff: 0.8023
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Exact value:            0.8023
-Estimated value:        0.8305
-Confidence interval:    [0.8235, 0.8374]
+Estimated value:        0.8299
+Confidence interval:    [0.8243, 0.8355]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1027,8 +1117,8 @@ Confidence interval:    [0.8235, 0.8374]
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.16.0.dev0+1c89cc5</td></tr><tr><td>Aer</td><td>0.7.0.dev0+88fddc3</td></tr><tr><td>Ignis</td><td>0.5.0.dev0+5bdc29b</td></tr><tr><td>Aqua</td><td>0.8.0.dev0+99394e5</td></tr><tr><td>IBM Q Provider</td><td>0.9.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.4 (default, Aug 13 2019, 15:17:50)
-[Clang 4.0.1 (tags/RELEASE_401/final)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>2</td></tr><tr><td>Memory (Gb)</td><td>12.0</td></tr><tr><td colspan='2'>Fri Sep 11 11:00:45 2020 EDT</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.17.0.dev0+8bac9c1</td></tr><tr><td>Aer</td><td>0.6.1</td></tr><tr><td>Ignis</td><td>0.5.0.dev0+470d8cc</td></tr><tr><td>Aqua</td><td>0.8.0.dev0+ce81016</td></tr><tr><td>IBM Q Provider</td><td>0.8.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.7 (default, May  6 2020, 04:59:01)
+[Clang 4.0.1 (tags/RELEASE_401/final)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>2</td></tr><tr><td>Memory (Gb)</td><td>16.0</td></tr><tr><td colspan='2'>Fri Oct 16 13:15:57 2020 CEST</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -1071,7 +1161,7 @@ Confidence interval:    [0.8235, 0.8374]
         
         &copy; 著作権 2020, Qiskit Development Team
       <span class="lastupdated">
-        最終更新: 2020/10/20
+        最終更新: 2020/10/21
       </span>
 
     </p>
