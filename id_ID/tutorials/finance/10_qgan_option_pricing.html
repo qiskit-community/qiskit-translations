@@ -571,17 +571,14 @@ Pricing</a>. For further details on learning and loading random distributions by
 <span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">Aer</span><span class="p">,</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">ParameterVector</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">IterativeAmplitudeEstimation</span>
-<span class="kn">from</span> <span class="nn">qiskit.finance.components.uncertainty_problems</span> <span class="kn">import</span> <span class="n">EuropeanCallExpectedValue</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_models</span> <span class="kn">import</span> <span class="n">UnivariateVariationalDistribution</span><span class="p">,</span> <span class="n">NormalDistribution</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">RealAmplitudes</span>
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">QuantumCircuit</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.initial_states</span> <span class="kn">import</span> <span class="n">Custom</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">TwoLocal</span><span class="p">,</span> <span class="n">NormalDistribution</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">Statevector</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">aqua_globals</span><span class="p">,</span> <span class="n">QuantumInstance</span>
-
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">Aer</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">IterativeAmplitudeEstimation</span>
+<span class="kn">from</span> <span class="nn">qiskit.finance.applications</span> <span class="kn">import</span> <span class="n">EuropeanCallExpectedValue</span>
 </pre></div>
 </div>
 </div>
@@ -599,34 +596,23 @@ Pricing</a>. For further details on learning and loading random distributions by
 <span></span><span class="c1"># Set upper and lower data values</span>
 <span class="n">bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span><span class="mf">7.</span><span class="p">])</span>
 <span class="c1"># Set number of qubits used in the uncertainty model</span>
-<span class="n">num_qubits</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">]</span>
-
-<span class="c1"># Set entangler map</span>
-<span class="n">entangler_map</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)):</span>
-    <span class="n">entangler_map</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)))])</span>
+<span class="n">num_qubits</span> <span class="o">=</span> <span class="mi">3</span>
 
 <span class="c1"># Load the trained circuit parameters</span>
 <span class="n">g_params</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.29399714</span><span class="p">,</span> <span class="mf">0.38853322</span><span class="p">,</span> <span class="mf">0.9557694</span><span class="p">,</span> <span class="mf">0.07245791</span><span class="p">,</span> <span class="mf">6.02626428</span><span class="p">,</span> <span class="mf">0.13537225</span><span class="p">]</span>
 
 <span class="c1"># Set an initial state for the generator circuit</span>
-<span class="n">init_dist</span> <span class="o">=</span> <span class="n">NormalDistribution</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">),</span> <span class="n">mu</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">high</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-<span class="n">init_distribution</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">init_dist</span><span class="o">.</span><span class="n">probabilities</span><span class="p">)</span>
-<span class="n">init_distribution</span> <span class="o">=</span> <span class="n">Custom</span><span class="p">(</span><span class="n">num_qubits</span><span class="o">=</span><span class="nb">sum</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">),</span> <span class="n">state_vector</span><span class="o">=</span><span class="n">init_distribution</span><span class="p">)</span>
+<span class="n">init_dist</span> <span class="o">=</span> <span class="n">NormalDistribution</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">)</span>
 
 <span class="c1"># construct the variational form</span>
-<span class="n">var_form</span> <span class="o">=</span> <span class="n">RealAmplitudes</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">),</span> <span class="n">entanglement</span><span class="o">=</span><span class="n">entangler_map</span><span class="p">,</span> <span class="n">reps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">initial_state</span><span class="o">=</span><span class="n">init_distribution</span><span class="p">)</span>
-<span class="n">var_form</span><span class="o">.</span><span class="n">entanglement_blocks</span> <span class="o">=</span> <span class="s1">&#39;cz&#39;</span>
-<span class="n">theta</span> <span class="o">=</span> <span class="n">ParameterVector</span><span class="p">(</span><span class="s1">&#39;θ&#39;</span><span class="p">,</span> <span class="n">var_form</span><span class="o">.</span><span class="n">num_parameters</span><span class="p">)</span>
-<span class="n">var_form</span> <span class="o">=</span> <span class="n">var_form</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+<span class="n">var_form</span> <span class="o">=</span> <span class="n">TwoLocal</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s1">&#39;ry&#39;</span><span class="p">,</span> <span class="s1">&#39;cz&#39;</span><span class="p">,</span> <span class="n">entanglement</span><span class="o">=</span><span class="s1">&#39;circular&#39;</span><span class="p">,</span> <span class="n">reps</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-<span class="c1"># Set generator circuit</span>
-<span class="n">g_circuit</span> <span class="o">=</span> <span class="n">UnivariateVariationalDistribution</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">),</span> <span class="n">var_form</span><span class="p">,</span> <span class="n">g_params</span><span class="p">,</span>
-                                              <span class="n">low</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">high</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-<span class="n">g_circuit</span><span class="o">.</span><span class="n">_var_form_params</span> <span class="o">=</span> <span class="n">theta</span>
+<span class="c1"># keep a list of the parameters so we can associate them to the list of numerical values</span>
+<span class="c1"># (otherwise we need a dictionary)</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="n">var_form</span><span class="o">.</span><span class="n">ordered_parameters</span>
 
-<span class="c1"># construct circuit factory for uncertainty model</span>
-<span class="n">uncertainty_model</span> <span class="o">=</span> <span class="n">g_circuit</span>
+<span class="c1"># compose the generator circuit, this is the circuit loading the uncertainty model</span>
+<span class="n">g_circuit</span> <span class="o">=</span> <span class="n">init_dist</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">var_form</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -645,11 +631,12 @@ Pricing</a>. For further details on learning and loading random distributions by
 <span class="c1"># set the approximation scaling for the payoff function</span>
 <span class="n">c_approx</span> <span class="o">=</span> <span class="mf">0.25</span>
 
-<span class="c1"># construct circuit factory for payoff function</span>
-<span class="n">european_call</span> <span class="o">=</span> <span class="n">EuropeanCallExpectedValue</span><span class="p">(</span>
-    <span class="n">uncertainty_model</span><span class="p">,</span>
+<span class="c1"># construct circuit for payoff function</span>
+<span class="n">european_call_objective</span> <span class="o">=</span> <span class="n">EuropeanCallExpectedValue</span><span class="p">(</span>
+    <span class="n">num_qubits</span><span class="p">,</span>
     <span class="n">strike_price</span><span class="o">=</span><span class="n">strike_price</span><span class="p">,</span>
-    <span class="n">c_approx</span><span class="o">=</span><span class="n">c_approx</span>
+    <span class="n">rescaling_factor</span><span class="o">=</span><span class="n">c_approx</span><span class="p">,</span>
+    <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -664,9 +651,12 @@ Pricing</a>. For further details on learning and loading random distributions by
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Evaluate trained probability distribution</span>
-<span class="n">uncertainty_model</span><span class="o">.</span><span class="n">set_probabilities</span><span class="p">(</span><span class="n">QuantumInstance</span><span class="p">(</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">)))</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">uncertainty_model</span><span class="o">.</span><span class="n">values</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">uncertainty_model</span><span class="o">.</span><span class="n">probabilities</span>
+<span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">num_qubits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">num_qubits</span><span class="p">)]</span>
+<span class="n">uncertainty_model</span> <span class="o">=</span> <span class="n">g_circuit</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">g_params</span><span class="p">)))</span>
+<span class="n">amplitudes</span> <span class="o">=</span> <span class="n">Statevector</span><span class="o">.</span><span class="n">from_instruction</span><span class="p">(</span><span class="n">uncertainty_model</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">amplitudes</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
 
 <span class="c1"># Sample from target probability distribution</span>
 <span class="n">N</span> <span class="o">=</span> <span class="mi">100000</span>
@@ -715,7 +705,7 @@ Pricing</a>. For further details on learning and loading random distributions by
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Analytically calculated expected payoff w.r.t. the trained distribution: </span><span class="si">%.4f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ep_trained</span><span class="p">)</span>
 
 <span class="c1"># Plot exact payoff function (evaluated on the grid of the trained uncertainty model)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">uncertainty_model</span><span class="o">.</span><span class="n">values</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
 <span class="n">y_strike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">-</span> <span class="n">strike_price</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_strike</span><span class="p">,</span> <span class="s1">&#39;ro-&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
@@ -733,7 +723,7 @@ Pricing</a>. For further details on learning and loading random distributions by
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Analytically calculated expected payoff w.r.t. the target distribution:  1.0628
+Analytically calculated expected payoff w.r.t. the target distribution:  1.0578
 Analytically calculated expected payoff w.r.t. the trained distribution: 0.9805
 </pre></div></div>
 </div>
@@ -749,12 +739,8 @@ Analytically calculated expected payoff w.r.t. the trained distribution: 0.9805
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># set target precision and confidence level</span>
-<span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.01</span>
-<span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.05</span>
-
-<span class="c1"># construct amplitude estimation</span>
-<span class="n">ae</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">a_factory</span><span class="o">=</span><span class="n">european_call</span><span class="p">)</span>
+<span></span><span class="c1"># construct A operator for QAE</span>
+<span class="n">european_call</span> <span class="o">=</span> <span class="n">european_call_objective</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">uncertainty_model</span><span class="p">,</span> <span class="n">front</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -763,12 +749,29 @@ Analytically calculated expected payoff w.r.t. the trained distribution: 0.9805
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># set target precision and confidence level</span>
+<span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.01</span>
+<span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.05</span>
+
+<span class="c1"># construct amplitude estimation</span>
+<span class="n">ae</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                                  <span class="n">state_preparation</span><span class="o">=</span><span class="n">european_call</span><span class="p">,</span>
+                                  <span class="n">objective_qubits</span><span class="o">=</span><span class="p">[</span><span class="n">num_qubits</span><span class="p">],</span>
+                                  <span class="n">post_processing</span><span class="o">=</span><span class="n">european_call_objective</span><span class="o">.</span><span class="n">post_processing</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">result</span> <span class="o">=</span> <span class="n">ae</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">quantum_instance</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">),</span> <span class="n">shots</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -785,12 +788,12 @@ Analytically calculated expected payoff w.r.t. the trained distribution: 0.9805
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Exact value:            0.9805
-Estimated value:        1.0070
-Confidence interval:    [0.9747, 1.0393]
+Estimated value:        1.0353
+Confidence interval:    [0.9209, 1.1497]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -804,8 +807,8 @@ Confidence interval:    [0.9747, 1.0393]
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.19.1</td></tr><tr><td>Terra</td><td>0.14.1</td></tr><tr><td>Aer</td><td>0.5.1</td></tr><tr><td>Ignis</td><td>0.3.0</td></tr><tr><td>Aqua</td><td>0.7.0</td></tr><tr><td>IBM Q Provider</td><td>0.7.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.4 (default, Aug 13 2019, 15:17:50)
-[Clang 4.0.1 (tags/RELEASE_401/final)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>6</td></tr><tr><td>Memory (Gb)</td><td>16.0</td></tr><tr><td colspan='2'>Wed Jul 15 20:05:58 2020 CEST</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.17.0.dev0+4ada179</td></tr><tr><td>Aer</td><td>0.6.1</td></tr><tr><td>Ignis</td><td>0.5.0.dev0+470d8cc</td></tr><tr><td>Aqua</td><td>0.9.0.dev0+5a88b59</td></tr><tr><td>IBM Q Provider</td><td>0.8.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.7 (default, May  6 2020, 04:59:01)
+[Clang 4.0.1 (tags/RELEASE_401/final)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>2</td></tr><tr><td>Memory (Gb)</td><td>16.0</td></tr><tr><td colspan='2'>Tue Oct 20 11:23:34 2020 CEST</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -849,7 +852,7 @@ Confidence interval:    [0.9747, 1.0393]
         
         &copy; Hak Cipta 2020, Qiskit Development Team
       <span class="lastupdated">
-        Terakhir diperbarui pada 2020/10/20.
+        Terakhir diperbarui pada 2020/10/21.
       </span>
 
     </p>

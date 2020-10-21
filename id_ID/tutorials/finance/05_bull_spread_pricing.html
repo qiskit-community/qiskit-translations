@@ -586,21 +586,19 @@ div.rendered_html tbody tr:hover {
 
 <span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">Aer</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">IterativeAmplitudeEstimation</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_models</span> <span class="kn">import</span> <span class="n">LogNormalDistribution</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_problems</span> <span class="kn">import</span> <span class="n">UnivariateProblem</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_problems</span> <span class="kn">import</span> <span class="n">UnivariatePiecewiseLinearObjective</span> <span class="k">as</span> <span class="n">PwlObjective</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">LogNormalDistribution</span><span class="p">,</span> <span class="n">LinearAmplitudeFunction</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="Uncertainty-Model">
 <h2>Uncertainty Model<a class="headerlink" href="#Uncertainty-Model" title="Link permanen untuk headline ini">¶</a></h2>
-<p>We construct a circuit factory to load a log-normal random distribution into a quantum state. The distribution is truncated to a given interval <span class="math notranslate nohighlight">\([low, high]\)</span> and discretized using <span class="math notranslate nohighlight">\(2^n\)</span> grid points, where <span class="math notranslate nohighlight">\(n\)</span> denotes the number of qubits used. The unitary operator corresponding to the circuit factory implements the following:</p>
+<p>We construct a circuit factory to load a log-normal random distribution into a quantum state. The distribution is truncated to a given interval <span class="math notranslate nohighlight">\([\text{low}, \text{high}]\)</span> and discretized using <span class="math notranslate nohighlight">\(2^n\)</span> grid points, where <span class="math notranslate nohighlight">\(n\)</span> denotes the number of qubits used. The unitary operator corresponding to the circuit factory implements the following:</p>
 <div class="math notranslate nohighlight">
 \[\big|0\rangle_{n} \mapsto \big|\psi\rangle_{n} = \sum_{i=0}^{2^n-1} \sqrt{p_i}\big|i\rangle_{n},\]</div>
 <p>where <span class="math notranslate nohighlight">\(p_i\)</span> denote the probabilities corresponding to the truncated and discretized distribution and where <span class="math notranslate nohighlight">\(i\)</span> is mapped to the right interval using the affine map:</p>
 <div class="math notranslate nohighlight">
-\[\{0, \ldots, 2^n-1\} \ni i \mapsto \frac{high - low}{2^n - 1} * i + low \in [low, high].\]</div>
+\[\{0, \ldots, 2^n-1\} \ni i \mapsto \frac{\text{high} - \text{low}}{2^n - 1} * i + \text{low} \in [\text{low}, \text{high}].\]</div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -627,7 +625,7 @@ div.rendered_html tbody tr:hover {
 <span class="n">high</span> <span class="o">=</span> <span class="n">mean</span> <span class="o">+</span> <span class="mi">3</span><span class="o">*</span><span class="n">stddev</span>
 
 <span class="c1"># construct circuit factory for uncertainty model</span>
-<span class="n">uncertainty_model</span> <span class="o">=</span> <span class="n">LogNormalDistribution</span><span class="p">(</span><span class="n">num_uncertainty_qubits</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="n">high</span><span class="p">)</span>
+<span class="n">uncertainty_model</span> <span class="o">=</span> <span class="n">LogNormalDistribution</span><span class="p">(</span><span class="n">num_uncertainty_qubits</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -659,16 +657,16 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="section" id="Payoff-Function">
 <h2>Payoff Function<a class="headerlink" href="#Payoff-Function" title="Link permanen untuk headline ini">¶</a></h2>
-<p>The payoff function equals zero as long as the spot price at maturity <span class="math notranslate nohighlight">\(S_T\)</span> is less than the strike price <span class="math notranslate nohighlight">\(K_1\)</span>, then increases linearly, and is bounded by <span class="math notranslate nohighlight">\(K_2\)</span>. The implementation uses two comparators, that flip an ancilla qubit each from <span class="math notranslate nohighlight">\(\big|0\rangle\)</span> to <span class="math notranslate nohighlight">\(\big|1\rangle\)</span> if <span class="math notranslate nohighlight">\(S_T \geq K_1\)</span> and $S_T :nbsphinx-math:<a href="#id2"><span class="problematic" id="id3">`</span></a>leq <a href="#id4"><span class="problematic" id="id5">`</span></a>K_2, and these ancillas are used to control the linear part of the payoff function.</p>
-<p>The linear part itself is then approximated as follows. We exploit the fact that <span class="math notranslate nohighlight">\(\sin^2(y + \pi/4) \approx y + 1/2\)</span> for small <span class="math notranslate nohighlight">\(|y|\)</span>. Thus, for a given approximation scaling factor <span class="math notranslate nohighlight">\(c_{approx} \in [0, 1]\)</span> and <span class="math notranslate nohighlight">\(x \in [0, 1]\)</span> we consider</p>
+<p>The payoff function equals zero as long as the spot price at maturity <span class="math notranslate nohighlight">\(S_T\)</span> is less than the strike price <span class="math notranslate nohighlight">\(K_1\)</span>, then increases linearly, and is bounded by <span class="math notranslate nohighlight">\(K_2\)</span>. The implementation uses two comparators, that flip an ancilla qubit each from <span class="math notranslate nohighlight">\(\big|0\rangle\)</span> to <span class="math notranslate nohighlight">\(\big|1\rangle\)</span> if <span class="math notranslate nohighlight">\(S_T \geq K_1\)</span> and <span class="math notranslate nohighlight">\(S_T \leq K_2\)</span>, and these ancillas are used to control the linear part of the payoff function.</p>
+<p>The linear part itself is then approximated as follows. We exploit the fact that <span class="math notranslate nohighlight">\(\sin^2(y + \pi/4) \approx y + 1/2\)</span> for small <span class="math notranslate nohighlight">\(|y|\)</span>. Thus, for a given approximation rescaling factor <span class="math notranslate nohighlight">\(c_\text{approx} \in [0, 1]\)</span> and <span class="math notranslate nohighlight">\(x \in [0, 1]\)</span> we consider</p>
 <div class="math notranslate nohighlight">
-\[\sin^2( \pi/2 * c_{approx} * ( x - 1/2 ) + \pi/4) \approx \pi/2 * c_{approx} * ( x - 1/2 ) + 1/2\]</div>
-<p>for small <span class="math notranslate nohighlight">\(c_{approx}\)</span>.</p>
+\[\sin^2( \pi/2 * c_\text{approx} * ( x - 1/2 ) + \pi/4) \approx \pi/2 * c_\text{approx} * ( x - 1/2 ) + 1/2\]</div>
+<p>for small <span class="math notranslate nohighlight">\(c_\text{approx}\)</span>.</p>
 <p>We can easily construct an operator that acts as</p>
 <div class="math notranslate nohighlight">
 \[\big|x\rangle \big|0\rangle \mapsto \big|x\rangle \left( \cos(a*x+b) \big|0\rangle + \sin(a*x+b) \big|1\rangle \right),\]</div>
 <p>using controlled Y-rotations.</p>
-<p>Eventually, we are interested in the probability of measuring <span class="math notranslate nohighlight">\(\big|1\rangle\)</span> in the last qubit, which corresponds to <span class="math notranslate nohighlight">\(\sin^2(a*x+b)\)</span>. Together with the approximation above, this allows to approximate the values of interest. The smaller we choose <span class="math notranslate nohighlight">\(c_{approx}\)</span>, the better the approximation. However, since we are then estimating a property scaled by <span class="math notranslate nohighlight">\(c_{approx}\)</span>, the number of evaluation qubits <span class="math notranslate nohighlight">\(m\)</span> needs to be adjusted accordingly.</p>
+<p>Eventually, we are interested in the probability of measuring <span class="math notranslate nohighlight">\(\big|1\rangle\)</span> in the last qubit, which corresponds to <span class="math notranslate nohighlight">\(\sin^2(a*x+b)\)</span>. Together with the approximation above, this allows to approximate the values of interest. The smaller we choose <span class="math notranslate nohighlight">\(c_\text{approx}\)</span>, the better the approximation. However, since we are then estimating a property scaled by <span class="math notranslate nohighlight">\(c_\text{approx}\)</span>, the number of evaluation qubits <span class="math notranslate nohighlight">\(m\)</span> needs to be adjusted accordingly.</p>
 <p>For more details on the approximation, we refer to: Quantum Risk Analysis. Woerner, Egger. 2018.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
@@ -680,31 +678,27 @@ div.rendered_html tbody tr:hover {
 <span class="n">strike_price_2</span> <span class="o">=</span> <span class="mf">2.584</span>
 
 <span class="c1"># set the approximation scaling for the payoff function</span>
-<span class="n">c_approx</span> <span class="o">=</span> <span class="mf">0.25</span>
+<span class="n">rescaling_factor</span> <span class="o">=</span> <span class="mf">0.25</span>
 
 <span class="c1"># setup piecewise linear objective fcuntion</span>
-<span class="n">breakpoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">uncertainty_model</span><span class="o">.</span><span class="n">low</span><span class="p">,</span> <span class="n">strike_price_1</span><span class="p">,</span> <span class="n">strike_price_2</span><span class="p">]</span>
+<span class="n">breakpoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">low</span><span class="p">,</span> <span class="n">strike_price_1</span><span class="p">,</span> <span class="n">strike_price_2</span><span class="p">]</span>
 <span class="n">slopes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 <span class="n">offsets</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">strike_price_2</span> <span class="o">-</span> <span class="n">strike_price_1</span><span class="p">]</span>
 <span class="n">f_min</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">f_max</span> <span class="o">=</span> <span class="n">strike_price_2</span> <span class="o">-</span> <span class="n">strike_price_1</span>
-<span class="n">bull_spread_objective</span> <span class="o">=</span> <span class="n">PwlObjective</span><span class="p">(</span>
-    <span class="n">uncertainty_model</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">,</span>
-    <span class="n">uncertainty_model</span><span class="o">.</span><span class="n">low</span><span class="p">,</span>
-    <span class="n">uncertainty_model</span><span class="o">.</span><span class="n">high</span><span class="p">,</span>
-    <span class="n">breakpoints</span><span class="p">,</span>
+<span class="n">bull_spread_objective</span> <span class="o">=</span> <span class="n">LinearAmplitudeFunction</span><span class="p">(</span>
+    <span class="n">num_uncertainty_qubits</span><span class="p">,</span>
     <span class="n">slopes</span><span class="p">,</span>
     <span class="n">offsets</span><span class="p">,</span>
-    <span class="n">f_min</span><span class="p">,</span>
-    <span class="n">f_max</span><span class="p">,</span>
-    <span class="n">c_approx</span>
+    <span class="n">domain</span><span class="o">=</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">),</span>
+    <span class="n">image</span><span class="o">=</span><span class="p">(</span><span class="n">f_min</span><span class="p">,</span> <span class="n">f_max</span><span class="p">),</span>
+    <span class="n">breakpoints</span><span class="o">=</span><span class="n">breakpoints</span><span class="p">,</span>
+    <span class="n">rescaling_factor</span><span class="o">=</span><span class="n">rescaling_factor</span>
 <span class="p">)</span>
 
-<span class="c1"># construct circuit factory for payoff function</span>
-<span class="n">bull_spread</span> <span class="o">=</span> <span class="n">UnivariateProblem</span><span class="p">(</span>
-    <span class="n">uncertainty_model</span><span class="p">,</span>
-    <span class="n">bull_spread_objective</span>
-<span class="p">)</span>
+<span class="c1"># construct A operator for QAE for the payoff function by</span>
+<span class="c1"># composing the uncertainty model and the objective</span>
+<span class="n">bull_spread</span> <span class="o">=</span> <span class="n">bull_spread_objective</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">uncertainty_model</span><span class="p">,</span> <span class="n">front</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -769,7 +763,10 @@ exact delta value:      0.9291
 <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.05</span>
 
 <span class="c1"># construct amplitude estimation</span>
-<span class="n">ae</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">a_factory</span><span class="o">=</span><span class="n">bull_spread</span><span class="p">)</span>
+<span class="n">ae</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                                  <span class="n">state_preparation</span><span class="o">=</span><span class="n">bull_spread</span><span class="p">,</span>
+                                  <span class="n">objective_qubits</span><span class="o">=</span><span class="p">[</span><span class="n">num_uncertainty_qubits</span><span class="p">],</span>
+                                  <span class="n">post_processing</span><span class="o">=</span><span class="n">bull_spread_objective</span><span class="o">.</span><span class="n">post_processing</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -800,8 +797,8 @@ exact delta value:      0.9291
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Exact value:            0.5695
-Estimated value:        0.5693
-Confidence interval:    [0.5607, 0.5779]
+Estimated value:        0.5694
+Confidence interval:    [0.5639, 0.5750]
 </pre></div></div>
 </div>
 </div>
@@ -814,29 +811,23 @@ Confidence interval:    [0.5607, 0.5779]
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># setup piecewise linear objective fcuntion</span>
-<span class="n">breakpoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">uncertainty_model</span><span class="o">.</span><span class="n">low</span><span class="p">,</span> <span class="n">strike_price_1</span><span class="p">,</span> <span class="n">strike_price_2</span><span class="p">]</span>
+<span class="n">breakpoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">low</span><span class="p">,</span> <span class="n">strike_price_1</span><span class="p">,</span> <span class="n">strike_price_2</span><span class="p">]</span>
 <span class="n">slopes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 <span class="n">offsets</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 <span class="n">f_min</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">f_max</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">c_approx</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># no approximation necessary</span>
-<span class="n">bull_spread_delta_objective</span> <span class="o">=</span> <span class="n">PwlObjective</span><span class="p">(</span>
-    <span class="n">uncertainty_model</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">,</span>
-    <span class="n">uncertainty_model</span><span class="o">.</span><span class="n">low</span><span class="p">,</span>
-    <span class="n">uncertainty_model</span><span class="o">.</span><span class="n">high</span><span class="p">,</span>
-    <span class="n">breakpoints</span><span class="p">,</span>
+
+<span class="n">bull_spread_delta_objective</span> <span class="o">=</span> <span class="n">LinearAmplitudeFunction</span><span class="p">(</span>
+    <span class="n">num_uncertainty_qubits</span><span class="p">,</span>
     <span class="n">slopes</span><span class="p">,</span>
     <span class="n">offsets</span><span class="p">,</span>
-    <span class="n">f_min</span><span class="p">,</span>
-    <span class="n">f_max</span><span class="p">,</span>
-    <span class="n">c_approx</span>
-<span class="p">)</span>
+    <span class="n">domain</span><span class="o">=</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">),</span>
+    <span class="n">image</span><span class="o">=</span><span class="p">(</span><span class="n">f_min</span><span class="p">,</span> <span class="n">f_max</span><span class="p">),</span>
+    <span class="n">breakpoints</span><span class="o">=</span><span class="n">breakpoints</span><span class="p">,</span>
+<span class="p">)</span>  <span class="c1"># no approximation necessary, hence no rescaling factor</span>
 
-<span class="c1"># construct circuit factory for payoff function</span>
-<span class="n">bull_spread_delta</span> <span class="o">=</span> <span class="n">UnivariateProblem</span><span class="p">(</span>
-    <span class="n">uncertainty_model</span><span class="p">,</span>
-    <span class="n">bull_spread_delta_objective</span>
-<span class="p">)</span>
+<span class="c1"># construct the A operator by stacking the uncertainty model and payoff function together</span>
+<span class="n">bull_spread_delta</span> <span class="o">=</span> <span class="n">bull_spread_delta_objective</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">uncertainty_model</span><span class="p">,</span> <span class="n">front</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -850,7 +841,9 @@ Confidence interval:    [0.5607, 0.5779]
 <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.05</span>
 
 <span class="c1"># construct amplitude estimation</span>
-<span class="n">ae_delta</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">a_factory</span><span class="o">=</span><span class="n">bull_spread_delta</span><span class="p">)</span>
+<span class="n">ae_delta</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                                        <span class="n">state_preparation</span><span class="o">=</span><span class="n">bull_spread_delta</span><span class="p">,</span>
+                                        <span class="n">objective_qubits</span><span class="o">=</span><span class="p">[</span><span class="n">num_uncertainty_qubits</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
@@ -881,8 +874,8 @@ Confidence interval:    [0.5607, 0.5779]
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Exact delta:            0.9291
-Estimated value:        0.9271
-Confidence interval:    [0.9223, 0.9319]
+Estimated value:        0.9290
+Confidence interval:    [0.9264, 0.9316]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -900,8 +893,8 @@ Confidence interval:    [0.9223, 0.9319]
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.19.1</td></tr><tr><td>Terra</td><td>0.14.1</td></tr><tr><td>Aer</td><td>0.5.1</td></tr><tr><td>Ignis</td><td>0.3.0</td></tr><tr><td>Aqua</td><td>0.7.0</td></tr><tr><td>IBM Q Provider</td><td>0.7.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.4 (default, Aug 13 2019, 15:17:50)
-[Clang 4.0.1 (tags/RELEASE_401/final)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>6</td></tr><tr><td>Memory (Gb)</td><td>16.0</td></tr><tr><td colspan='2'>Wed Jul 15 19:59:54 2020 CEST</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.16.0.dev0+28d8c6a</td></tr><tr><td>Aer</td><td>0.6.1</td></tr><tr><td>Ignis</td><td>0.5.0.dev0+470d8cc</td></tr><tr><td>Aqua</td><td>0.8.0.dev0+ce81016</td></tr><tr><td>IBM Q Provider</td><td>0.8.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.7 (default, May  6 2020, 04:59:01)
+[Clang 4.0.1 (tags/RELEASE_401/final)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>2</td></tr><tr><td>Memory (Gb)</td><td>16.0</td></tr><tr><td colspan='2'>Fri Oct 16 11:03:18 2020 CEST</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -944,7 +937,7 @@ Confidence interval:    [0.9223, 0.9319]
         
         &copy; Hak Cipta 2020, Qiskit Development Team
       <span class="lastupdated">
-        Terakhir diperbarui pada 2020/10/20.
+        Terakhir diperbarui pada 2020/10/21.
       </span>
 
     </p>
