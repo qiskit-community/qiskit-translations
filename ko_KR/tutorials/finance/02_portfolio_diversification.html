@@ -300,21 +300,35 @@
 /* CSS for nbsphinx extension */
 
 /* remove conflicting styling from Sphinx themes */
-div.nbinput.container,
-div.nbinput.container div.prompt,
-div.nbinput.container div.input_area,
-div.nbinput.container div[class*=highlight],
-div.nbinput.container div[class*=highlight] pre,
-div.nboutput.container,
-div.nboutput.container div.prompt,
-div.nboutput.container div.output_area,
-div.nboutput.container div[class*=highlight],
-div.nboutput.container div[class*=highlight] pre {
-    background: none;
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
     border: none;
-    padding: 0 0;
+    padding: 0;
     margin: 0;
     box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
 }
 
 /* avoid gaps between output lines */
@@ -415,7 +429,7 @@ div.nboutput.container div.output_area {
 div.nbinput.container div.input_area {
     border: 1px solid #e0e0e0;
     border-radius: 2px;
-    background: #f5f5f5;
+    /*background: #f5f5f5;*/
 }
 
 /* override MathJax center alignment in output cells */
@@ -481,6 +495,7 @@ div.nboutput.container div.output_area.rendered_html,
 div.nboutput.container div.output_area > div.output_javascript,
 div.nboutput.container div.output_area:not(.rendered_html) > img{
     padding: 5px;
+    margin: 0;
 }
 
 /* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
@@ -566,7 +581,7 @@ is imperfect. Consider, for instance, a company listed both in London and New Yo
 captured by only one of the time series, while for others, both time series exhibit the similarity due to the parallel evolution of the stock price.</p>
 <p>본 전체 워크플로우(workflow) 는 다음과 같다.</p>
 <ol class="arabic simple">
-<li><p>pick the ground set of assets. In our case, this is a small number of US stocks.</p></li>
+<li><p>기초 세트 자산을 선택합니다. 우리의 경우, 이것은 적은 수의 미국 주식이다.</p></li>
 <li><p>load the time series capturing the evolution of the prices of assets. In our case, this is a simplistic load of adjusted daily closing price data from Wikipedia or Nasdaq or LSE or EuroNext, whereas in a real asset management, a much higher frequency may be considered.</p></li>
 <li><p>compute the pair-wise similarity among the time series. In our case, we run a linear-time approximation of the dynamic time warping, still on the classical computer.</p></li>
 <li><p>compute the actual portfolio of <span class="math notranslate nohighlight">\(q\)</span> representative assets, based on the similarity measure. This step is run twice, actually. First, we obtain a reference value by a run of an IBM solver (IBM ILOG CPLEX or the Exact Eigensolver) on the classical computer. Second, we run an alternative, hybrid algorithm partly on the quantum computer.</p></li>
@@ -591,15 +606,15 @@ captured by only one of the time series, while for others, both time series exhi
 \[\sum_{j=1}^n x_{ij} = 1, \,\textrm{ for }\,  i = 1,\ldots, n,
 \quad x_{ij} \leq y_j,\,\textrm{ for }\,  i = 1,\ldots, n; \, j = 1,\ldots, n,
 \quad x_{jj} = y_j,\,\textrm{ for }\,  j = 1,\ldots, n,\]</div>
-<p>and integral constraints:</p>
+<p>및 필수 제약 사항:</p>
 <div class="math notranslate nohighlight">
 \[\quad  x_{ij}, y_j \in\{0,1\}, \,\textrm{ for }\,  i = 1,\ldots, n; \, j = 1,\ldots, n.\]</div>
 <p>The variables <span class="math notranslate nohighlight">\(y_j\)</span> describe which stocks <span class="math notranslate nohighlight">\(j\)</span> are in the index fund (<span class="math notranslate nohighlight">\(y_j = 1\)</span> if <span class="math notranslate nohighlight">\(j\)</span> is selected in the fund, <span class="math notranslate nohighlight">\(0\)</span> otherwise). For each stock <span class="math notranslate nohighlight">\(i = 1,\dots,n\)</span>, the variable <span class="math notranslate nohighlight">\(x_{ij}\)</span> indicates which stock <span class="math notranslate nohighlight">\(j\)</span> in the index fund is most similar to <span class="math notranslate nohighlight">\(i\)</span> (<span class="math notranslate nohighlight">\(x_{ij} = 1\)</span> if <span class="math notranslate nohighlight">\(j\)</span> is the most similar stock in the index fund, <span class="math notranslate nohighlight">\(0\)</span> otherwise).</p>
 <p>The first constraint selects <span class="math notranslate nohighlight">\(q\)</span> stocks in the fund. The second constraint imposes that each stock <span class="math notranslate nohighlight">\(i\)</span> has exactly one representative stock <span class="math notranslate nohighlight">\(j\)</span> in the fund. The third and fourth constraints guarantee that stock <span class="math notranslate nohighlight">\(i\)</span> can be represented by stock <span class="math notranslate nohighlight">\(j\)</span> only if <span class="math notranslate nohighlight">\(j\)</span> is in the fund. The objective of the model maximizes the similarity between the <span class="math notranslate nohighlight">\(n\)</span> stocks and their representatives in the fund. Different cost functions can also be considered.</p>
-<p>Let us concatenate the decision variables in one vector</p>
+<p>한 벡터에서 결정 변수를 연결하도록 합니다.</p>
 <div class="math notranslate nohighlight">
 \[{\bf z} = [x_{11},x_{12},\ldots,x_{11}, x_{22},\ldots,x_{nn}, y_{1},\ldots,y_{n}],\]</div>
-<p>whose dimension is <span class="math notranslate nohighlight">\({\bf z} \in \{0,1\}^N\)</span>, with <span class="math notranslate nohighlight">\(N = n (n+1)\)</span> and denote the optimal solution with <span class="math notranslate nohighlight">\({\bf z}^*\)</span>, and the optimal cost <span class="math notranslate nohighlight">\(f^*\)</span>.</p>
+<p>그의 치수는 :math:〉{bf z} in{0 ,1} ^ N〉, :math:〉N = n (n+1)〉 이고, 최적의 솔루션을 :math:〉{bf z} <a href="#id1"><span class="problematic" id="id2">*</span></a>〉 로 표시하고 최적의 비용은 :math:〉f〉 이다.</p>
 </div>
 <div class="section" id="A-Hybrid-Approach">
 <h2>A Hybrid Approach<a class="headerlink" href="#A-Hybrid-Approach" title="제목 주소">¶</a></h2>
@@ -1178,7 +1193,7 @@ finding optimal solutions of the ILP is harder than finding local optima of the 
         
         &copy; 저작권 2020, Qiskit Development Team
       <span class="lastupdated">
-        최종 업데이트: 2020/10/19
+        최종 업데이트: 2020/10/21
       </span>
 
     </p>
