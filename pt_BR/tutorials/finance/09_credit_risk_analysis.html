@@ -289,21 +289,35 @@
 /* CSS for nbsphinx extension */
 
 /* remove conflicting styling from Sphinx themes */
-div.nbinput.container,
-div.nbinput.container div.prompt,
-div.nbinput.container div.input_area,
-div.nbinput.container div[class*=highlight],
-div.nbinput.container div[class*=highlight] pre,
-div.nboutput.container,
-div.nboutput.container div.prompt,
-div.nboutput.container div.output_area,
-div.nboutput.container div[class*=highlight],
-div.nboutput.container div[class*=highlight] pre {
-    background: none;
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
     border: none;
-    padding: 0 0;
+    padding: 0;
     margin: 0;
     box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
 }
 
 /* avoid gaps between output lines */
@@ -404,7 +418,7 @@ div.nboutput.container div.output_area {
 div.nbinput.container div.input_area {
     border: 1px solid #e0e0e0;
     border-radius: 2px;
-    background: #f5f5f5;
+    /*background: #f5f5f5;*/
 }
 
 /* override MathJax center alignment in output cells */
@@ -470,6 +484,7 @@ div.nboutput.container div.output_area.rendered_html,
 div.nboutput.container div.output_area > div.output_javascript,
 div.nboutput.container div.output_area:not(.rendered_html) > img{
     padding: 5px;
+    margin: 0;
 }
 
 /* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
@@ -555,40 +570,12 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Aer</span><span class="p">,</span> <span class="n">execute</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">IntegerComparator</span>
-
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_models</span> <span class="kn">import</span> <span class="n">GaussianConditionalIndependenceModel</span> <span class="k">as</span> <span class="n">GCI</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_problems</span> <span class="kn">import</span> <span class="n">UnivariatePiecewiseLinearObjective</span> <span class="k">as</span> <span class="n">PwlObjective</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_problems</span> <span class="kn">import</span> <span class="n">MultivariateProblem</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.circuits</span> <span class="kn">import</span> <span class="n">WeightedSumOperator</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">IterativeAmplitudeEstimation</span>
-
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
-<span class="c1"># MultivariateProblem internally still needs the methods in the Comparator custom class below.</span>
-<span class="c1"># The code will be changed so that an IntegerComparator can be passed directly without the need</span>
-<span class="c1"># of a custom class. Until it happens the custom class is necessary.</span>
-
-<span class="k">class</span> <span class="nc">Comparator</span><span class="p">(</span><span class="n">IntegerComparator</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">required_ancillas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ancilla_qubits</span>
-
-    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qc</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q_ancillas</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">i_state</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span><span class="p">)</span>
-        <span class="n">i_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span>
-        <span class="n">instr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
-        <span class="n">qr</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">i_state</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">i_target</span><span class="p">]]</span>
-        <span class="k">if</span> <span class="n">q_ancillas</span><span class="p">:</span>
-            <span class="n">qr</span> <span class="o">+=</span> <span class="p">[</span><span class="n">qi</span> <span class="k">for</span> <span class="n">qi</span> <span class="ow">in</span> <span class="n">q_ancillas</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">required_ancillas</span><span class="p">()]]</span>
-        <span class="n">qc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">qr</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">build_inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qc</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q_ancillas</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">qc_</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="o">*</span><span class="n">qc</span><span class="o">.</span><span class="n">qregs</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">qc_</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q_ancillas</span><span class="p">)</span>
-        <span class="n">qc</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">qc_</span><span class="o">.</span><span class="n">inverse</span><span class="p">())</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Aer</span><span class="p">,</span> <span class="n">execute</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">IntegerComparator</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">IterativeAmplitudeEstimation</span>
 </pre></div>
 </div>
 </div>
@@ -640,27 +627,34 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># construct circuit factory for uncertainty model (Gaussian Conditional Independence model)</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.finance.applications</span> <span class="kn">import</span> <span class="n">GaussianConditionalIndependenceModel</span> <span class="k">as</span> <span class="n">GCI</span>
 <span class="n">u</span> <span class="o">=</span> <span class="n">GCI</span><span class="p">(</span><span class="n">n_z</span><span class="p">,</span> <span class="n">z_max</span><span class="p">,</span> <span class="n">p_zeros</span><span class="p">,</span> <span class="n">rhos</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># determine the number of qubits required to represent the uncertainty model</span>
-<span class="n">num_qubits</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">num_target_qubits</span>
-
-<span class="c1"># initialize quantum register and circuit</span>
-<span class="n">q</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;q&#39;</span><span class="p">)</span>
-<span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
-
-<span class="c1"># construct circuit</span>
-<span class="n">u</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+<span></span><span class="n">u</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="word-wrap: normal;white-space: pre;background: #fff0;line-height: 1.1;font-family: &quot;Courier New&quot;,Courier,monospace">     ┌───────┐┌─────────┐┌─────────┐
+q_0: ┤0      ├┤0        ├┤0        ├
+     │  P(X) ││         ││         │
+q_1: ┤1      ├┤1 LinRot ├┤1        ├
+     └───────┘│         ││  LinRot │
+q_2: ─────────┤2        ├┤         ├
+              └─────────┘│         │
+q_3: ────────────────────┤2        ├
+                         └─────────┘</pre></div>
 </div>
 <p>Utilizamos agora o simulador para validar o circuito que constrói :math:` <a href="#id1"><span class="problematic" id="id2">|</span></a>Psirangle ` e computar os valores exatos correspondentes para - perda esperada :math:` mathbb{E}[L]` - PDF e CDF de :math:` L <cite>- valor em risco :math:</cite> VaR (L) ` e probabilidade correspondente - valor condicional em risco :math:` CVaR (L) `</p>
 <div class="nbinput nblast docutils container">
@@ -669,7 +663,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># run the circuit and analyze the results</span>
-<span class="n">job</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">))</span>
+<span class="n">job</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -683,6 +677,7 @@ div.rendered_html tbody tr:hover {
 <span class="n">p_default</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
 <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">probabilities</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">num_qubits</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">num_qubits</span>
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span><span class="o">.</span><span class="n">get_statevector</span><span class="p">()):</span>
 
     <span class="c1"># get binary representation</span>
@@ -836,11 +831,9 @@ Conditional Value at Risk CVaR[L]: 3.0000
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># determine number of qubits required to represent total loss</span>
-<span class="n">n_s</span> <span class="o">=</span> <span class="n">WeightedSumOperator</span><span class="o">.</span><span class="n">get_required_sum_qubits</span><span class="p">(</span><span class="n">lgd</span><span class="p">)</span>
-
-<span class="c1"># create circuit factory (add Z qubits with weight/loss 0)</span>
-<span class="n">agg</span> <span class="o">=</span> <span class="n">WeightedSumOperator</span><span class="p">(</span><span class="n">n_z</span> <span class="o">+</span> <span class="n">K</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">n_z</span> <span class="o">+</span> <span class="n">lgd</span><span class="p">)</span>
+<span></span><span class="c1"># add Z qubits with weight/loss 0</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">WeightedAdder</span>
+<span class="n">agg</span> <span class="o">=</span> <span class="n">WeightedAdder</span><span class="p">(</span><span class="n">n_z</span> <span class="o">+</span> <span class="n">K</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">n_z</span> <span class="o">+</span> <span class="n">lgd</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -849,7 +842,9 @@ Conditional Value at Risk CVaR[L]: 3.0000
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># define linear objective function</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">LinearAmplitudeFunction</span>
+
+<span class="c1"># define linear objective function</span>
 <span class="n">breakpoints</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">slopes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 <span class="n">offsets</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -857,114 +852,109 @@ Conditional Value at Risk CVaR[L]: 3.0000
 <span class="n">f_max</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">lgd</span><span class="p">)</span>
 <span class="n">c_approx</span> <span class="o">=</span> <span class="mf">0.25</span>
 
-<span class="n">objective</span> <span class="o">=</span> <span class="n">PwlObjective</span><span class="p">(</span>
+<span class="n">objective</span> <span class="o">=</span> <span class="n">LinearAmplitudeFunction</span><span class="p">(</span>
     <span class="n">agg</span><span class="o">.</span><span class="n">num_sum_qubits</span><span class="p">,</span>
-    <span class="mi">0</span><span class="p">,</span>
-    <span class="mi">2</span><span class="o">**</span><span class="n">agg</span><span class="o">.</span><span class="n">num_sum_qubits</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># max value that can be reached by the qubit register (will not always be reached)</span>
-    <span class="n">breakpoints</span><span class="p">,</span>
-    <span class="n">slopes</span><span class="p">,</span>
-    <span class="n">offsets</span><span class="p">,</span>
-    <span class="n">f_min</span><span class="p">,</span>
-    <span class="n">f_max</span><span class="p">,</span>
-    <span class="n">c_approx</span>
+    <span class="n">slope</span><span class="o">=</span><span class="n">slopes</span><span class="p">,</span>
+    <span class="n">offset</span><span class="o">=</span><span class="n">offsets</span><span class="p">,</span>
+    <span class="c1"># max value that can be reached by the qubit register (will not always be reached)</span>
+    <span class="n">domain</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">**</span><span class="n">agg</span><span class="o">.</span><span class="n">num_sum_qubits</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">image</span><span class="o">=</span><span class="p">(</span><span class="n">f_min</span><span class="p">,</span> <span class="n">f_max</span><span class="p">),</span>
+    <span class="n">rescaling_factor</span><span class="o">=</span><span class="n">c_approx</span><span class="p">,</span>
+    <span class="n">breakpoints</span><span class="o">=</span><span class="n">breakpoints</span>
 <span class="p">)</span>
-
-<span class="c1"># define overall multivariate problem</span>
-<span class="n">multivariate</span> <span class="o">=</span> <span class="n">MultivariateProblem</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">agg</span><span class="p">,</span> <span class="n">objective</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<p>Antes de utilizarmos o QAE para estimar a perda esperada, validamos o circuito quântico representando a função objetiva apenas simulando-a diretamente e analisando a probabilidade de o qubit objetivo estar no estado :math:` | 1rangle <a href="#id1"><span class="problematic" id="id2">`</span></a>, ou seja, o valor QAE eventualmente se aproximará.</p>
-<div class="nbinput nblast docutils container">
+<p>Create the state preparation circuit:</p>
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">num_qubits</span> <span class="o">=</span> <span class="n">multivariate</span><span class="o">.</span><span class="n">num_target_qubits</span>
-<span class="n">num_ancillas</span> <span class="o">=</span> <span class="n">multivariate</span><span class="o">.</span><span class="n">required_ancillas</span><span class="p">()</span>
+<span></span><span class="c1"># define the registers for convenience and readability</span>
+<span class="n">qr_state</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s1">&#39;state&#39;</span><span class="p">)</span>
+<span class="n">qr_sum</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">num_sum_qubits</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>
+<span class="n">qr_carry</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">num_carry_qubits</span><span class="p">,</span> <span class="s1">&#39;carry&#39;</span><span class="p">)</span>
+<span class="n">qr_obj</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;objective&#39;</span><span class="p">)</span>
 
-<span class="n">q</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;q&#39;</span><span class="p">)</span>
-<span class="n">q_a</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">num_ancillas</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;q_a&#39;</span><span class="p">)</span>
-<span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">q_a</span><span class="p">)</span>
+<span class="c1"># define the circuit</span>
+<span class="n">state_preparation</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qr_state</span><span class="p">,</span> <span class="n">qr_obj</span><span class="p">,</span> <span class="n">qr_sum</span><span class="p">,</span> <span class="n">qr_carry</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
 
-<span class="n">multivariate</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q_a</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">qc</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+<span class="c1"># load the random variable</span>
+<span class="n">state_preparation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">to_gate</span><span class="p">(),</span> <span class="n">qr_state</span><span class="p">)</span>
+
+<span class="c1"># aggregate</span>
+<span class="n">state_preparation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">to_gate</span><span class="p">(),</span> <span class="n">qr_state</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_sum</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_carry</span><span class="p">[:])</span>
+
+<span class="c1"># linear objective function</span>
+<span class="n">state_preparation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">objective</span><span class="o">.</span><span class="n">to_gate</span><span class="p">(),</span> <span class="n">qr_sum</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_obj</span><span class="p">[:])</span>
+
+<span class="c1"># uncompute aggregation</span>
+<span class="n">state_preparation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">to_gate</span><span class="p">()</span><span class="o">.</span><span class="n">inverse</span><span class="p">(),</span> <span class="n">qr_state</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_sum</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_carry</span><span class="p">[:])</span>
+
+<span class="c1"># draw the circuit</span>
+<span class="n">state_preparation</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="word-wrap: normal;white-space: pre;background: #fff0;line-height: 1.1;font-family: &quot;Courier New&quot;,Courier,monospace">       ┌──────────────┐┌───┐┌────────────────┐┌───┐┌─────────┐┌─────────┐ ░ »
-  q_0: ┤ U3(pi/2,0,0) ├┤ X ├┤ U3(0.7907,0,0) ├┤ X ├┤0        ├┤0        ├─░─»
-       ├──────────────┤└─┬─┘└────────────────┘└─┬─┘│         ││         │ ░ »
-  q_1: ┤ U3(pi/2,0,0) ├──■──────────────────────■──┤1 LinRot ├┤1        ├─░─»
-       └──────────────┘                            │         ││  LinRot │ ░ »
-  q_2: ────────────────────────────────────────────┤2        ├┤         ├─░─»
-                                                   └─────────┘│         │ ░ »
-  q_3: ───────────────────────────────────────────────────────┤2        ├─░─»
-                                                              └─────────┘ ░ »
-  q_4: ───────────────────────────────────────────────────────────────────░─»
-                                                                          ░ »
-q_a_0: ───────────────────────────────────────────────────────────────────░─»
-                                                                          ░ »
-q_a_1: ───────────────────────────────────────────────────────────────────░─»
-                                                                          ░ »
-q_a_2: ───────────────────────────────────────────────────────────────────░─»
-                                                                          ░ »
-«       ┌────────┐ ░             ░ ┌───────────┐ ░
-«  q_0: ┤0       ├─░─────────────░─┤0          ├─░─
-«       │        │ ░             ░ │           │ ░
-«  q_1: ┤1       ├─░─────────────░─┤1          ├─░─
-«       │        │ ░             ░ │           │ ░
-«  q_2: ┤2       ├─░─────────────░─┤2          ├─░─
-«       │        │ ░             ░ │           │ ░
-«  q_3: ┤3       ├─░─────────────░─┤3          ├─░─
-«       │  adder │ ░ ┌─────────┐ ░ │  adder_dg │ ░
-«  q_4: ┤        ├─░─┤2        ├─░─┤           ├─░─
-«       │        │ ░ │         │ ░ │           │ ░
-«q_a_0: ┤4       ├─░─┤0        ├─░─┤4          ├─░─
-«       │        │ ░ │  pw_lin │ ░ │           │ ░
-«q_a_1: ┤5       ├─░─┤1        ├─░─┤5          ├─░─
-«       │        │ ░ │         │ ░ │           │ ░
-«q_a_2: ┤6       ├─░─┤3        ├─░─┤6          ├─░─
-«       └────────┘ ░ └─────────┘ ░ └───────────┘ ░ </pre></div>
+<pre style="word-wrap: normal;white-space: pre;background: #fff0;line-height: 1.1;font-family: &quot;Courier New&quot;,Courier,monospace">             ┌───────┐┌────────┐      ┌───────────┐
+    state_0: ┤0      ├┤0       ├──────┤0          ├
+             │       ││        │      │           │
+    state_1: ┤1      ├┤1       ├──────┤1          ├
+             │  P(X) ││        │      │           │
+    state_2: ┤2      ├┤2       ├──────┤2          ├
+             │       ││        │      │           │
+    state_3: ┤3      ├┤3       ├──────┤3          ├
+             └───────┘│  adder │┌────┐│  adder_dg │
+objective_0: ─────────┤        ├┤2   ├┤           ├
+                      │        ││    ││           │
+      sum_0: ─────────┤4       ├┤0 F ├┤4          ├
+                      │        ││    ││           │
+      sum_1: ─────────┤5       ├┤1   ├┤5          ├
+                      │        │└────┘│           │
+    carry_0: ─────────┤6       ├──────┤6          ├
+                      └────────┘      └───────────┘</pre></div>
 </div>
+<p>Antes de utilizarmos o QAE para estimar a perda esperada, validamos o circuito quântico representando a função objetiva apenas simulando-a diretamente e analisando a probabilidade de o qubit objetivo estar no estado :math:` | 1rangle <a href="#id1"><span class="problematic" id="id2">`</span></a>, ou seja, o valor QAE eventualmente se aproximará.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">job</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">))</span>
+<span></span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">job</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">state_preparation</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># evaluate resulting statevector</span>
 <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span><span class="o">.</span><span class="n">get_statevector</span><span class="p">()):</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{0:0</span><span class="si">%s</span><span class="s1">b}&#39;</span> <span class="o">%</span> <span class="n">multivariate</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="o">-</span><span class="n">multivariate</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">:]</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{0:0</span><span class="si">%s</span><span class="s1">b}&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qr_state</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="o">-</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qr_state</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):]</span>
     <span class="n">am</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">am</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-6</span> <span class="ow">and</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span><span class="p">:</span>
         <span class="n">value</span> <span class="o">+=</span> <span class="n">am</span><span class="o">**</span><span class="mi">2</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exact Expected Loss:   </span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">expected_loss</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exact Operator Value:  </span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mapped Operator value: </span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">multivariate</span><span class="o">.</span><span class="n">value_to_estimation</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mapped Operator value: </span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">objective</span><span class="o">.</span><span class="n">post_processing</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -980,7 +970,7 @@ Mapped Operator value: 0.6640
 </div>
 <p>A seguir, executaremos QAE para estimar a perda esperada, com uma aceleração quadrática sobre a simulador de Monte Carlo clássico.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -989,7 +979,10 @@ Mapped Operator value: 0.6640
 <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.05</span>
 
 <span class="c1"># construct amplitude estimation</span>
-<span class="n">ae</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">a_factory</span><span class="o">=</span><span class="n">multivariate</span><span class="p">)</span>
+<span class="n">ae</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">state_preparation</span><span class="o">=</span><span class="n">state_preparation</span><span class="p">,</span>
+                                  <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                                  <span class="n">objective_qubits</span><span class="o">=</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">qr_state</span><span class="p">)],</span>
+                                  <span class="n">post_processing</span><span class="o">=</span><span class="n">objective</span><span class="o">.</span><span class="n">post_processing</span><span class="p">)</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">ae</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">quantum_instance</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">),</span> <span class="n">shots</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 
 <span class="c1"># print results</span>
@@ -1006,8 +999,8 @@ Mapped Operator value: 0.6640
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Exact value:            0.6409
-Estimated value:        0.6697
-Confidence interval:    [0.6088, 0.7306]
+Estimated value:        0.6913
+Confidence interval:    [0.6224, 0.7601]
 </pre></div></div>
 </div>
 </div>
@@ -1027,21 +1020,66 @@ Confidence interval:    [0.6088, 0.7306]
 \sum_{L = x+1}^{2^{n_s}-1} \sqrt{p_{L}}|L\rangle_{n_s}|1\rangle,\]</div>
 <p>onde assumimos diretamente os valores somados de perda e as probabilidades correspondentes em vez de apresentar os detalhes do modelo de incerteza.</p>
 <p>O CDF (:math:` x <cite>) é igual a probabilidade de medir :math:</cite> | 1rangle` no qubit objetivo e QAE pode ser diretamente usado para estimá-lo.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># set x value to estimate the CDF</span>
+<span class="n">x_eval</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="n">comparator</span> <span class="o">=</span> <span class="n">IntegerComparator</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">num_sum_qubits</span><span class="p">,</span> <span class="n">x_eval</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">geq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">comparator</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="word-wrap: normal;white-space: pre;background: #fff0;line-height: 1.1;font-family: &quot;Courier New&quot;,Courier,monospace">
+  state_0: ──■──────────────■──
+             │              │
+  state_1: ──┼────■─────────┼──
+             │  ┌─┴─┐┌───┐  │
+compare_0: ──┼──┤ X ├┤ X ├──┼──
+           ┌─┴─┐└─┬─┘└───┘┌─┴─┐
+     a0_0: ┤ X ├──■───────┤ X ├
+           └───┘          └───┘</pre></div>
+</div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># define value x to evaluate the CDF(x)</span>
-<span class="k">def</span> <span class="nf">get_cdf_operator_factory</span><span class="p">(</span><span class="n">x_eval</span><span class="p">):</span>
+<span></span><span class="k">def</span> <span class="nf">get_cdf_circuit</span><span class="p">(</span><span class="n">x_eval</span><span class="p">):</span>
+    <span class="c1"># define the registers for convenience and readability</span>
+    <span class="n">qr_state</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s1">&#39;state&#39;</span><span class="p">)</span>
+    <span class="n">qr_sum</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">num_sum_qubits</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>
+    <span class="n">qr_carry</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">num_carry_qubits</span><span class="p">,</span> <span class="s1">&#39;carry&#39;</span><span class="p">)</span>
+    <span class="n">qr_obj</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;objective&#39;</span><span class="p">)</span>
+    <span class="n">qr_compare</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;compare&#39;</span><span class="p">)</span>
 
-    <span class="c1"># comparator as objective</span>
-    <span class="n">cdf_objective</span> <span class="o">=</span> <span class="n">Comparator</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">num_sum_qubits</span><span class="p">,</span> <span class="n">x_eval</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">geq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1"># define the circuit</span>
+    <span class="n">state_preparation</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qr_state</span><span class="p">,</span> <span class="n">qr_obj</span><span class="p">,</span> <span class="n">qr_sum</span><span class="p">,</span> <span class="n">qr_carry</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
 
-    <span class="c1"># define overall uncertainty problem</span>
-    <span class="n">multivariate_cdf</span> <span class="o">=</span> <span class="n">MultivariateProblem</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">agg</span><span class="p">,</span> <span class="n">cdf_objective</span><span class="p">)</span>
+    <span class="c1"># load the random variable</span>
+    <span class="n">state_preparation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">qr_state</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">multivariate_cdf</span>
+    <span class="c1"># aggregate</span>
+    <span class="n">state_preparation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">agg</span><span class="p">,</span> <span class="n">qr_state</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_sum</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_carry</span><span class="p">[:])</span>
+
+    <span class="c1"># comparator objective function</span>
+    <span class="n">comparator</span> <span class="o">=</span> <span class="n">IntegerComparator</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">num_sum_qubits</span><span class="p">,</span> <span class="n">x_eval</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">geq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">state_preparation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comparator</span><span class="p">,</span> <span class="n">qr_sum</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_obj</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_carry</span><span class="p">[:])</span>
+
+    <span class="c1"># uncompute aggregation</span>
+    <span class="n">state_preparation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">inverse</span><span class="p">(),</span> <span class="n">qr_state</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_sum</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_carry</span><span class="p">[:])</span>
+
+    <span class="k">return</span> <span class="n">state_preparation</span>
+
+<span class="n">state_preparation</span> <span class="o">=</span> <span class="n">get_cdf_circuit</span><span class="p">(</span><span class="n">x_eval</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1051,99 +1089,51 @@ Confidence interval:    [0.6088, 0.7306]
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># set x value to estimate the CDF</span>
-<span class="n">x_eval</span> <span class="o">=</span> <span class="mi">2</span>
+<span></span><span class="n">job</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">state_preparation</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># get operator</span>
-<span class="n">multivariate_cdf</span> <span class="o">=</span> <span class="n">get_cdf_operator_factory</span><span class="p">(</span><span class="n">x_eval</span><span class="p">)</span>
-
-<span class="c1"># get required number of qubits</span>
-<span class="n">num_qubits</span> <span class="o">=</span> <span class="n">multivariate_cdf</span><span class="o">.</span><span class="n">num_target_qubits</span>
-<span class="n">num_ancillas</span> <span class="o">=</span> <span class="n">multivariate_cdf</span><span class="o">.</span><span class="n">required_ancillas</span><span class="p">()</span>  <span class="c1"># TODO: why do we need two more ancillas?</span>
-
-<span class="c1"># construct circuit</span>
-<span class="n">q</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;q&#39;</span><span class="p">)</span>
-<span class="n">q_a</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">num_ancillas</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;q_a&#39;</span><span class="p">)</span>
-<span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">q_a</span><span class="p">)</span>
-
-<span class="n">multivariate_cdf</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q_a</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">job</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">))</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">qc</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+<span></span><span class="n">state_preparation</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="word-wrap: normal;white-space: pre;background: #fff0;line-height: 1.1;font-family: &quot;Courier New&quot;,Courier,monospace">       ┌──────────────┐┌───┐┌────────────────┐┌───┐┌─────────┐┌─────────┐ ░ »
-  q_0: ┤ U3(pi/2,0,0) ├┤ X ├┤ U3(0.7907,0,0) ├┤ X ├┤0        ├┤0        ├─░─»
-       ├──────────────┤└─┬─┘└────────────────┘└─┬─┘│         ││         │ ░ »
-  q_1: ┤ U3(pi/2,0,0) ├──■──────────────────────■──┤1 LinRot ├┤1        ├─░─»
-       └──────────────┘                            │         ││  LinRot │ ░ »
-  q_2: ────────────────────────────────────────────┤2        ├┤         ├─░─»
-                                                   └─────────┘│         │ ░ »
-  q_3: ───────────────────────────────────────────────────────┤2        ├─░─»
-                                                              └─────────┘ ░ »
-  q_4: ───────────────────────────────────────────────────────────────────░─»
-                                                                          ░ »
-q_a_0: ───────────────────────────────────────────────────────────────────░─»
-                                                                          ░ »
-q_a_1: ───────────────────────────────────────────────────────────────────░─»
-                                                                          ░ »
-q_a_2: ───────────────────────────────────────────────────────────────────░─»
-                                                                          ░ »
-«       ┌────────┐ ░          ░ ┌───────────┐ ░
-«  q_0: ┤0       ├─░──────────░─┤0          ├─░─
-«       │        │ ░          ░ │           │ ░
-«  q_1: ┤1       ├─░──────────░─┤1          ├─░─
-«       │        │ ░          ░ │           │ ░
-«  q_2: ┤2       ├─░──────────░─┤2          ├─░─
-«       │        │ ░          ░ │           │ ░
-«  q_3: ┤3       ├─░──────────░─┤3          ├─░─
-«       │  adder │ ░ ┌──────┐ ░ │  adder_dg │ ░
-«  q_4: ┤        ├─░─┤2     ├─░─┤           ├─░─
-«       │        │ ░ │      │ ░ │           │ ░
-«q_a_0: ┤4       ├─░─┤0     ├─░─┤4          ├─░─
-«       │        │ ░ │  cmp │ ░ │           │ ░
-«q_a_1: ┤5       ├─░─┤1     ├─░─┤5          ├─░─
-«       │        │ ░ │      │ ░ │           │ ░
-«q_a_2: ┤6       ├─░─┤3     ├─░─┤6          ├─░─
-«       └────────┘ ░ └──────┘ ░ └───────────┘ ░ </pre></div>
+<pre style="word-wrap: normal;white-space: pre;background: #fff0;line-height: 1.1;font-family: &quot;Courier New&quot;,Courier,monospace">             ┌───────┐┌────────┐        ┌───────────┐
+    state_0: ┤0      ├┤0       ├────────┤0          ├
+             │       ││        │        │           │
+    state_1: ┤1      ├┤1       ├────────┤1          ├
+             │  P(X) ││        │        │           │
+    state_2: ┤2      ├┤2       ├────────┤2          ├
+             │       ││        │        │           │
+    state_3: ┤3      ├┤3       ├────────┤3          ├
+             └───────┘│  adder │┌──────┐│  adder_dg │
+objective_0: ─────────┤        ├┤2     ├┤           ├
+                      │        ││      ││           │
+      sum_0: ─────────┤4       ├┤0     ├┤4          ├
+                      │        ││  cmp ││           │
+      sum_1: ─────────┤5       ├┤1     ├┤5          ├
+                      │        ││      ││           │
+    carry_0: ─────────┤6       ├┤3     ├┤6          ├
+                      └────────┘└──────┘└───────────┘</pre></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># evaluate resulting statevector</span>
 <span class="n">var_prob</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span><span class="o">.</span><span class="n">get_statevector</span><span class="p">()):</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{0:0</span><span class="si">%s</span><span class="s1">b}&#39;</span> <span class="o">%</span> <span class="n">multivariate_cdf</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="o">-</span><span class="n">multivariate_cdf</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">:]</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{0:0</span><span class="si">%s</span><span class="s1">b}&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qr_state</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="o">-</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qr_state</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):]</span>
     <span class="n">prob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
     <span class="k">if</span> <span class="n">prob</span> <span class="o">&gt;</span> <span class="mf">1e-6</span> <span class="ow">and</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span><span class="p">:</span>
         <span class="n">var_prob</span> <span class="o">+=</span> <span class="n">prob</span>
@@ -1163,7 +1153,7 @@ Exact    CDF(2) = 0.9591
 </div>
 <p>A seguir, executaremos QAE para estimar o CDF para um dado <span class="math notranslate nohighlight">\(x\)</span>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1172,7 +1162,9 @@ Exact    CDF(2) = 0.9591
 <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.05</span>
 
 <span class="c1"># construct amplitude estimation</span>
-<span class="n">ae_cdf</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">a_factory</span><span class="o">=</span><span class="n">multivariate_cdf</span><span class="p">)</span>
+<span class="n">ae_cdf</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">state_preparation</span><span class="o">=</span><span class="n">state_preparation</span><span class="p">,</span>
+                                      <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                                      <span class="n">objective_qubits</span><span class="o">=</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">qr_state</span><span class="p">)])</span>
 <span class="n">result_cdf</span> <span class="o">=</span> <span class="n">ae_cdf</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">quantum_instance</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">),</span> <span class="n">shots</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 
 <span class="c1"># print results</span>
@@ -1189,8 +1181,8 @@ Exact    CDF(2) = 0.9591
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Exact value:            0.9591
-Estimated value:        0.9589
-Confidence interval:    [0.9578, 0.9601]
+Estimated value:        0.9595
+Confidence interval:    [0.9584, 0.9605]
 </pre></div></div>
 </div>
 </div>
@@ -1198,15 +1190,17 @@ Confidence interval:    [0.9578, 0.9601]
 <h2>Valor em Risco<a class="headerlink" href="#Valor-em-Risco" title="Link permanente para este título">¶</a></h2>
 <p>A seguir usaremos um busca bipartida e QAE para avaliar eficientemente o CDF e estimar o valor de risco.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="k">def</span> <span class="nf">run_ae_for_cdf</span><span class="p">(</span><span class="n">x_eval</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">simulator</span><span class="o">=</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">):</span>
 
     <span class="c1"># construct amplitude estimation</span>
-    <span class="n">multivariate_var</span> <span class="o">=</span> <span class="n">get_cdf_operator_factory</span><span class="p">(</span><span class="n">x_eval</span><span class="p">)</span>
-    <span class="n">ae_var</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">a_factory</span><span class="o">=</span><span class="n">multivariate_var</span><span class="p">)</span>
+    <span class="n">state_preparation</span> <span class="o">=</span> <span class="n">get_cdf_circuit</span><span class="p">(</span><span class="n">x_eval</span><span class="p">)</span>
+    <span class="n">ae_var</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">state_preparation</span><span class="o">=</span><span class="n">state_preparation</span><span class="p">,</span>
+                                          <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                                          <span class="n">objective_qubits</span><span class="o">=</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">qr_state</span><span class="p">)])</span>
     <span class="n">result_var</span> <span class="o">=</span> <span class="n">ae_var</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">quantum_instance</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="n">simulator</span><span class="p">),</span> <span class="n">shots</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">result_var</span><span class="p">[</span><span class="s1">&#39;estimation&#39;</span><span class="p">]</span>
@@ -1214,7 +1208,7 @@ Confidence interval:    [0.9578, 0.9601]
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1282,7 +1276,7 @@ Confidence interval:    [0.9578, 0.9601]
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1304,14 +1298,14 @@ start bisection search for target value 0.950
 low_level    low_value    level    value    high_level    high_value
 --------------------------------------------------------------------
 -1           0.000         1       0.751     3            1.000
- 1           0.751         2       0.959     3            1.000
+ 1           0.751         2       0.960     3            1.000
 --------------------------------------------------------------------
 finished bisection search
 --------------------------------------------------------------------
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1329,7 +1323,7 @@ finished bisection search
 <div class="highlight"><pre>
 Estimated Value at Risk:  2
 Exact Value at Risk:      2
-Estimated Probability:    0.959
+Estimated Probability:    0.960
 Exact Probability:        0.959
 </pre></div></div>
 </div>
@@ -1343,8 +1337,8 @@ Exact Probability:        0.959
 L &amp; \text{if}\quad L &gt; VaR.
 \end{cases}\end{split}\]</div>
 <p>Para normalizar, temos que dividir o valor esperado resultante pela probabilidade de VaR, ou seja, :math:` mathbb{P}[L leq VaR] <a href="#id1"><span class="problematic" id="id2">`</span></a>.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1356,70 +1350,100 @@ L &amp; \text{if}\quad L &gt; VaR.
 <span class="n">f_max</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">-</span> <span class="n">var</span>
 <span class="n">c_approx</span> <span class="o">=</span> <span class="mf">0.25</span>
 
-<span class="n">cvar_objective</span> <span class="o">=</span> <span class="n">PwlObjective</span><span class="p">(</span>
+<span class="n">cvar_objective</span> <span class="o">=</span> <span class="n">LinearAmplitudeFunction</span><span class="p">(</span>
     <span class="n">agg</span><span class="o">.</span><span class="n">num_sum_qubits</span><span class="p">,</span>
-    <span class="mi">0</span><span class="p">,</span>
-    <span class="mi">2</span><span class="o">**</span><span class="n">agg</span><span class="o">.</span><span class="n">num_sum_qubits</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># max value that can be reached by the qubit register (will not always be reached)</span>
-    <span class="n">breakpoints</span><span class="p">,</span>
     <span class="n">slopes</span><span class="p">,</span>
     <span class="n">offsets</span><span class="p">,</span>
-    <span class="n">f_min</span><span class="p">,</span>
-    <span class="n">f_max</span><span class="p">,</span>
-    <span class="n">c_approx</span>
+    <span class="n">domain</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">**</span><span class="n">agg</span><span class="o">.</span><span class="n">num_sum_qubits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">image</span><span class="o">=</span><span class="p">(</span><span class="n">f_min</span><span class="p">,</span> <span class="n">f_max</span><span class="p">),</span>
+    <span class="n">rescaling_factor</span><span class="o">=</span><span class="n">c_approx</span><span class="p">,</span>
+    <span class="n">breakpoints</span><span class="o">=</span><span class="n">breakpoints</span>
 <span class="p">)</span>
+
+<span class="n">cvar_objective</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="word-wrap: normal;white-space: pre;background: #fff0;line-height: 1.1;font-family: &quot;Courier New&quot;,Courier,monospace">        ┌─────────┐┌──────┐┌─────────┐┌─────────┐
+q138_0: ┤0        ├┤0     ├┤0        ├┤0        ├
+        │         ││      ││         ││         │
+q138_1: ┤1 LinRot ├┤1     ├┤1 LinRot ├┤1        ├
+        │         ││      ││         ││         │
+q139_0: ┤2        ├┤  cmp ├┤2        ├┤  cmp_dg ├
+        └─────────┘│      │└────┬────┘│         │
+  a4_0: ───────────┤2     ├─────■─────┤2        ├
+                   │      │           │         │
+  a4_1: ───────────┤3     ├───────────┤3        ├
+                   └──────┘           └─────────┘</pre></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">multivariate_cvar</span> <span class="o">=</span> <span class="n">MultivariateProblem</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">agg</span><span class="p">,</span> <span class="n">cvar_objective</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">num_qubits</span> <span class="o">=</span> <span class="n">multivariate_cvar</span><span class="o">.</span><span class="n">num_target_qubits</span>
-<span class="n">num_ancillas</span> <span class="o">=</span> <span class="n">multivariate_cvar</span><span class="o">.</span><span class="n">required_ancillas</span><span class="p">()</span>
+<span></span><span class="c1"># define the registers for convenience and readability</span>
+<span class="n">qr_state</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s1">&#39;state&#39;</span><span class="p">)</span>
+<span class="n">qr_sum</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">num_sum_qubits</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>
+<span class="n">qr_carry</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">num_carry_qubits</span><span class="p">,</span> <span class="s1">&#39;carry&#39;</span><span class="p">)</span>
+<span class="n">qr_obj</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;objective&#39;</span><span class="p">)</span>
+<span class="n">qr_work</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">cvar_objective</span><span class="o">.</span><span class="n">num_ancillas</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">qr_carry</span><span class="p">),</span> <span class="s1">&#39;work&#39;</span><span class="p">)</span>
 
-<span class="n">q</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;q&#39;</span><span class="p">)</span>
-<span class="n">q_a</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">num_ancillas</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;q_a&#39;</span><span class="p">)</span>
-<span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">q_a</span><span class="p">)</span>
+<span class="c1"># define the circuit</span>
+<span class="n">state_preparation</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qr_state</span><span class="p">,</span> <span class="n">qr_obj</span><span class="p">,</span> <span class="n">qr_sum</span><span class="p">,</span> <span class="n">qr_carry</span><span class="p">,</span> <span class="n">qr_work</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
 
-<span class="n">multivariate_cvar</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q_a</span><span class="p">)</span>
+<span class="c1"># load the random variable</span>
+<span class="n">state_preparation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">qr_state</span><span class="p">)</span>
+
+<span class="c1"># aggregate</span>
+<span class="n">state_preparation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">agg</span><span class="p">,</span> <span class="n">qr_state</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_sum</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_carry</span><span class="p">[:])</span>
+
+<span class="c1"># linear objective function</span>
+<span class="n">state_preparation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cvar_objective</span><span class="p">,</span> <span class="n">qr_sum</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_obj</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_carry</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_work</span><span class="p">[:])</span>
+
+<span class="c1"># uncompute aggregation</span>
+<span class="n">state_preparation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">inverse</span><span class="p">(),</span> <span class="n">qr_state</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_sum</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_carry</span><span class="p">[:])</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;qiskit.circuit.instructionset.InstructionSet at 0x7fdc6a68f110&gt;
+</pre></div></div>
 </div>
 <p>Novamente, primeiro usaremos o simulador quântico para validar o circuito quântico.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">job</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">))</span>
+<span></span><span class="n">job</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">state_preparation</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># evaluate resulting statevector</span>
 <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span><span class="o">.</span><span class="n">get_statevector</span><span class="p">()):</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{0:0</span><span class="si">%s</span><span class="s1">b}&#39;</span> <span class="o">%</span> <span class="n">multivariate_cvar</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="o">-</span><span class="n">multivariate_cvar</span><span class="o">.</span><span class="n">num_target_qubits</span><span class="p">:]</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{0:0</span><span class="si">%s</span><span class="s1">b}&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qr_state</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="o">-</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qr_state</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):]</span>
     <span class="n">am</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">am</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-6</span> <span class="ow">and</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span><span class="p">:</span>
         <span class="n">value</span> <span class="o">+=</span> <span class="n">am</span><span class="o">**</span><span class="mi">2</span>
 
 <span class="c1"># normalize and add VaR to estimate</span>
-<span class="n">value</span> <span class="o">=</span> <span class="n">multivariate_cvar</span><span class="o">.</span><span class="n">value_to_estimation</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">cvar_objective</span><span class="o">.</span><span class="n">post_processing</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 <span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">bisection_result</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
 <span class="n">v</span> <span class="o">=</span> <span class="n">value</span> <span class="o">/</span> <span class="n">d</span> <span class="k">if</span> <span class="n">d</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
 <span class="n">normalized_value</span> <span class="o">=</span> <span class="n">v</span> <span class="o">+</span> <span class="n">var</span>
@@ -1433,13 +1457,13 @@ L &amp; \text{if}\quad L &gt; VaR.
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Estimated CVaR: 3.2782
+Estimated CVaR: 3.3121
 Exact CVaR:     3.0000
 </pre></div></div>
 </div>
 <p>A seguir executaremos QAE para estimar o CVaR.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1448,13 +1472,16 @@ Exact CVaR:     3.0000
 <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.05</span>
 
 <span class="c1"># construct amplitude estimation</span>
-<span class="n">ae_cvar</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">a_factory</span><span class="o">=</span><span class="n">multivariate_cvar</span><span class="p">)</span>
+<span class="n">ae_cvar</span> <span class="o">=</span> <span class="n">IterativeAmplitudeEstimation</span><span class="p">(</span><span class="n">state_preparation</span><span class="o">=</span><span class="n">state_preparation</span><span class="p">,</span>
+                                       <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                                       <span class="n">objective_qubits</span><span class="o">=</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">qr_state</span><span class="p">)],</span>
+                                       <span class="n">post_processing</span><span class="o">=</span><span class="n">cvar_objective</span><span class="o">.</span><span class="n">post_processing</span><span class="p">)</span>
 <span class="n">result_cvar</span> <span class="o">=</span> <span class="n">ae_cvar</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">quantum_instance</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">),</span> <span class="n">shots</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1472,11 +1499,11 @@ Exact CVaR:     3.0000
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Exact CVaR:     3.0000
-Estimated CVaR: 3.2486
+Estimated CVaR: 3.2474
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1490,8 +1517,8 @@ Estimated CVaR: 3.2486
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.16.0.dev0+1c89cc5</td></tr><tr><td>Aer</td><td>0.7.0.dev0+88fddc3</td></tr><tr><td>Ignis</td><td>0.5.0.dev0+5bdc29b</td></tr><tr><td>Aqua</td><td>0.8.0.dev0+99394e5</td></tr><tr><td>IBM Q Provider</td><td>0.9.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.4 (default, Aug 13 2019, 15:17:50)
-[Clang 4.0.1 (tags/RELEASE_401/final)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>2</td></tr><tr><td>Memory (Gb)</td><td>12.0</td></tr><tr><td colspan='2'>Fri Sep 11 11:02:42 2020 EDT</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.17.0.dev0+4ada179</td></tr><tr><td>Aer</td><td>0.6.1</td></tr><tr><td>Ignis</td><td>0.5.0.dev0+470d8cc</td></tr><tr><td>Aqua</td><td>0.9.0.dev0+5a88b59</td></tr><tr><td>IBM Q Provider</td><td>0.8.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.7 (default, May  6 2020, 04:59:01)
+[Clang 4.0.1 (tags/RELEASE_401/final)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>2</td></tr><tr><td>Memory (Gb)</td><td>16.0</td></tr><tr><td colspan='2'>Tue Oct 20 11:03:45 2020 CEST</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -1534,7 +1561,7 @@ Estimated CVaR: 3.2486
         
         &copy; Copyright 2020, Qiskit Development Team
       <span class="lastupdated">
-        Última atualização em 2020/10/19.
+        Última atualização em 2020/10/21.
       </span>
 
     </p>
