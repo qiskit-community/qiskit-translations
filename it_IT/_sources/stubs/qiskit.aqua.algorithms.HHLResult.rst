@@ -51,8 +51,8 @@ HHLResult
       HHLResult.update
       HHLResult.values
    
-      HHLResult.__getitem__
       HHLResult.__len__
+      HHLResult.__getitem__
 
    
    
