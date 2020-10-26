@@ -61,8 +61,8 @@ Choi
       Choi.to_operator
       Choi.transpose
    
-      Choi.__call__
       Choi.__mul__
+      Choi.__call__
 
    
    
