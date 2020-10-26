@@ -67,8 +67,8 @@ Clifford
       Clifford.to_operator
       Clifford.transpose
    
-      Clifford.__call__
       Clifford.__mul__
+      Clifford.__call__
 
    
    
