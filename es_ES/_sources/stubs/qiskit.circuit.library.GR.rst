@@ -168,8 +168,8 @@ GR
       GR.y
       GR.z
    
-      GR.__getitem__
       GR.__len__
+      GR.__getitem__
 
    
    
