@@ -184,8 +184,8 @@ RealAmplitudes
       RealAmplitudes.y
       RealAmplitudes.z
    
-      RealAmplitudes.__getitem__
       RealAmplitudes.__len__
+      RealAmplitudes.__getitem__
 
    
    
