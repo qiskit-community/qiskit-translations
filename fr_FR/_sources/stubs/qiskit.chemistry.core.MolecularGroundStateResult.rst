@@ -69,8 +69,8 @@ MolecularGroundStateResult
       MolecularGroundStateResult.update
       MolecularGroundStateResult.values
    
-      MolecularGroundStateResult.__len__
       MolecularGroundStateResult.__getitem__
+      MolecularGroundStateResult.__len__
 
    
    

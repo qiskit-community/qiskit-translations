@@ -168,8 +168,8 @@ GraphState
       GraphState.y
       GraphState.z
    
-      GraphState.__getitem__
       GraphState.__len__
+      GraphState.__getitem__
 
    
    
