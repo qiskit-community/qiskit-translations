@@ -74,8 +74,8 @@ PauliTable
       PauliTable.transpose
       PauliTable.unique
    
-      PauliTable.__call__
       PauliTable.__mul__
+      PauliTable.__call__
 
    
    
