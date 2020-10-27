@@ -169,8 +169,8 @@ QuadraticForm
       QuadraticForm.y
       QuadraticForm.z
    
-      QuadraticForm.__len__
       QuadraticForm.__getitem__
+      QuadraticForm.__len__
 
    
    
