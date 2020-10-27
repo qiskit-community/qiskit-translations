@@ -56,8 +56,8 @@ IterativeAmplitudeEstimationResult
       IterativeAmplitudeEstimationResult.update
       IterativeAmplitudeEstimationResult.values
    
-      IterativeAmplitudeEstimationResult.__len__
       IterativeAmplitudeEstimationResult.__getitem__
+      IterativeAmplitudeEstimationResult.__len__
 
    
    
