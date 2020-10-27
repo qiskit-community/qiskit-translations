@@ -184,8 +184,8 @@ ExcitationPreserving
       ExcitationPreserving.y
       ExcitationPreserving.z
    
-      ExcitationPreserving.__getitem__
       ExcitationPreserving.__len__
+      ExcitationPreserving.__getitem__
 
    
    
