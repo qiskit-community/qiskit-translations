@@ -61,8 +61,8 @@ Stinespring
       Stinespring.to_operator
       Stinespring.transpose
    
-      Stinespring.__mul__
       Stinespring.__call__
+      Stinespring.__mul__
 
    
    
