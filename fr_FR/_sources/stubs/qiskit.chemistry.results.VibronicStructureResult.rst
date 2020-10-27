@@ -54,8 +54,8 @@ VibronicStructureResult
       VibronicStructureResult.update
       VibronicStructureResult.values
    
-      VibronicStructureResult.__getitem__
       VibronicStructureResult.__len__
+      VibronicStructureResult.__getitem__
 
    
    
