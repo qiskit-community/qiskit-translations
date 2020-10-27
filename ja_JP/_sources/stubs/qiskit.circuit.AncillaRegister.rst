@@ -37,8 +37,8 @@ AncillaRegister
       AncillaRegister.__len__
       AncillaRegister.qasm
    
-      AncillaRegister.__getitem__
       AncillaRegister.__len__
+      AncillaRegister.__getitem__
 
    
    
