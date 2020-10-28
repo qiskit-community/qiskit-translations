@@ -61,8 +61,8 @@ PTM
       PTM.to_operator
       PTM.transpose
    
-      PTM.__call__
       PTM.__mul__
+      PTM.__call__
 
    
    
