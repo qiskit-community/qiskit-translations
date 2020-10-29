@@ -168,8 +168,8 @@ InnerProduct
       InnerProduct.y
       InnerProduct.z
    
-      InnerProduct.__len__
       InnerProduct.__getitem__
+      InnerProduct.__len__
 
    
    
