@@ -69,8 +69,8 @@ ComposedOp
       ComposedOp.traverse
    
       ComposedOp.__mul__
-      ComposedOp.__len__
       ComposedOp.__getitem__
+      ComposedOp.__len__
 
    
    
