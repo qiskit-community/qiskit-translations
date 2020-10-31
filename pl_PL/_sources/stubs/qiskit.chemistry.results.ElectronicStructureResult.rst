@@ -74,8 +74,8 @@ ElectronicStructureResult
       ElectronicStructureResult.update
       ElectronicStructureResult.values
    
-      ElectronicStructureResult.__len__
       ElectronicStructureResult.__getitem__
+      ElectronicStructureResult.__len__
 
    
    
