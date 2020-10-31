@@ -184,8 +184,8 @@ NLocal
       NLocal.y
       NLocal.z
    
-      NLocal.__len__
       NLocal.__getitem__
+      NLocal.__len__
 
    
    
