@@ -173,8 +173,8 @@ IntegerComparator
       IntegerComparator.y
       IntegerComparator.z
    
-      IntegerComparator.__getitem__
       IntegerComparator.__len__
+      IntegerComparator.__getitem__
 
    
    
