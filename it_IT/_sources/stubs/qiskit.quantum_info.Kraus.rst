@@ -61,8 +61,8 @@ Kraus
       Kraus.to_operator
       Kraus.transpose
    
-      Kraus.__mul__
       Kraus.__call__
+      Kraus.__mul__
 
    
    
