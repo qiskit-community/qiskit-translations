@@ -70,8 +70,8 @@ SummedOp
       SummedOp.traverse
    
       SummedOp.__len__
-      SummedOp.__mul__
       SummedOp.__getitem__
+      SummedOp.__mul__
 
    
    
