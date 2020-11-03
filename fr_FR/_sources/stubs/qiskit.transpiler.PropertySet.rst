@@ -36,8 +36,8 @@ PropertySet
       PropertySet.update
       PropertySet.values
    
-      PropertySet.__getitem__
       PropertySet.__len__
+      PropertySet.__getitem__
 
    
    
