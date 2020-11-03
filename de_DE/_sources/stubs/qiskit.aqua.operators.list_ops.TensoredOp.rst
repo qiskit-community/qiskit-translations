@@ -67,8 +67,8 @@ TensoredOp
       TensoredOp.to_spmatrix
       TensoredOp.traverse
    
-      TensoredOp.__mul__
       TensoredOp.__len__
+      TensoredOp.__mul__
       TensoredOp.__getitem__
 
    
