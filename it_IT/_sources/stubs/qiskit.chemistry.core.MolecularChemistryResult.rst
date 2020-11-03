@@ -48,8 +48,8 @@ MolecularChemistryResult
       MolecularChemistryResult.update
       MolecularChemistryResult.values
    
-      MolecularChemistryResult.__len__
       MolecularChemistryResult.__getitem__
+      MolecularChemistryResult.__len__
 
    
    
