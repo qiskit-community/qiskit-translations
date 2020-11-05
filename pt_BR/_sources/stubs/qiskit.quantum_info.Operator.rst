@@ -60,8 +60,8 @@ Operator
       Operator.to_operator
       Operator.transpose
    
-      Operator.__call__
       Operator.__mul__
+      Operator.__call__
 
    
    

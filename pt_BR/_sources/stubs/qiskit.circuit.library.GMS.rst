@@ -168,8 +168,8 @@ GMS
       GMS.y
       GMS.z
    
-      GMS.__len__
       GMS.__getitem__
+      GMS.__len__
 
    
    
