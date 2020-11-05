@@ -76,8 +76,8 @@ StabilizerTable
       StabilizerTable.transpose
       StabilizerTable.unique
    
-      StabilizerTable.__call__
       StabilizerTable.__len__
+      StabilizerTable.__call__
       StabilizerTable.__mul__
 
    

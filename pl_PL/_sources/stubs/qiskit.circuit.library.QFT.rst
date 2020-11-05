@@ -173,8 +173,8 @@ QFT
       QFT.y
       QFT.z
    
-      QFT.__getitem__
       QFT.__len__
+      QFT.__getitem__
 
    
    
