@@ -168,8 +168,8 @@ GRY
       GRY.y
       GRY.z
    
-      GRY.__getitem__
       GRY.__len__
+      GRY.__getitem__
 
    
    
