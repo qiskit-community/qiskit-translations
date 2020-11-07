@@ -184,8 +184,8 @@ TwoLocal
       TwoLocal.y
       TwoLocal.z
    
-      TwoLocal.__len__
       TwoLocal.__getitem__
+      TwoLocal.__len__
 
    
    
