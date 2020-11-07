@@ -169,8 +169,8 @@ MCMTVChain
       MCMTVChain.y
       MCMTVChain.z
    
-      MCMTVChain.__getitem__
       MCMTVChain.__len__
+      MCMTVChain.__getitem__
 
    
    
