@@ -60,10 +60,16 @@ quantum_circuit.draw()
 
 circuit = QuantumCircuit(5)
 circuit.append(grover_oracle, range(5))
-quantum_circuit.draw()
+circuit.draw()
 
 
 # In[7]:
+
+
+circuit.decompose().draw()
+
+
+# In[8]:
 
 
 from qiskit import QuantumCircuit
@@ -75,7 +81,7 @@ qc.measure(0, 0)
 qc.draw()
 
 
-# In[8]:
+# In[9]:
 
 
 from qiskit import QuantumCircuit, transpile
@@ -90,7 +96,7 @@ print("Duration in dt:", scheduled_circuit.duration)
 scheduled_circuit.draw(idle_wires=False)
 
 
-# In[9]:
+# In[10]:
 
 
 from numpy import pi
@@ -110,13 +116,13 @@ phi = 0
 plot_bloch_vector([x,y,z])
 
 
-# In[10]:
+# In[11]:
 
 
 plot_bloch_vector([x,y,z], coord_type="cartesian")  # Same as line above
 
 
-# In[11]:
+# In[12]:
 
 
 # Spherical coordinates, where (r,theta,phi) are spherical coordinates
@@ -124,7 +130,7 @@ plot_bloch_vector([x,y,z], coord_type="cartesian")  # Same as line above
 plot_bloch_vector([r, theta, phi], coord_type="spherical")
 
 
-# In[12]:
+# In[13]:
 
 
 from qiskit.visualization import timeline_drawer
@@ -137,7 +143,7 @@ qc.cx(0,1)
 timeline_drawer(transpile(qc, FakeAthens(), scheduling_method='alap'))
 
 
-# In[13]:
+# In[14]:
 
 
 from qiskit import execute
@@ -159,7 +165,7 @@ mitigator = mit.ExpvalMeasMitigatorFitter(result, metadata).fit()
 mitigator.plot_assignment_matrix()
 
 
-# In[14]:
+# In[15]:
 
 
 from qiskit import QuantumCircuit
@@ -187,7 +193,7 @@ print('Expval (with mitigation): {:.2f} \u00B1 {:.2f}'.format(
     expval_mit, error_mit))
 
 
-# In[15]:
+# In[16]:
 
 
 from qiskit.circuit import QuantumCircuit
@@ -199,7 +205,7 @@ repeated_qc = qc.repeat(3)
 repeated_qc.decompose().draw(output='mpl')
 
 
-# In[16]:
+# In[17]:
 
 
 from numpy import pi
@@ -229,7 +235,7 @@ my_equiv_library.add_equivalence(U2Gate(phi, lam), def_u2)
 my_equiv_library.draw()
 
 
-# In[17]:
+# In[18]:
 
 
 from qiskit.circuit import QuantumCircuit
@@ -243,7 +249,7 @@ circ1.cx(0, 1)
 circ1.compose(circ2, front=True).draw(output='mpl')
 
 
-# In[18]:
+# In[19]:
 
 
 from qiskit.circuit import QuantumCircuit
@@ -257,7 +263,7 @@ new_circ.append(custom_gate, [0, 1], [])
 new_circ.draw(output='mpl')
 
 
-# In[19]:
+# In[20]:
 
 
 from qiskit import QuantumCircuit
@@ -266,7 +272,7 @@ circuit.measure_all()
 circuit.draw(output='mpl', cregbundle=True)
 
 
-# In[20]:
+# In[21]:
 
 
 from qiskit import QuantumCircuit
@@ -275,7 +281,7 @@ circuit.measure_all()
 circuit.draw(output='mpl', initial_state=True)
 
 
-# In[21]:
+# In[22]:
 
 
 from qiskit import QuantumCircuit
@@ -283,18 +289,6 @@ from qiskit.circuit.library.standard_gates import YGate
 circuit = QuantumCircuit(2)
 circuit.append(YGate(label='A Y Gate').control(label='Y Control'), [0, 1])
 circuit.draw(output='mpl')
-
-
-# In[22]:
-
-
-from qiskit.circuit import QuantumCircuit
-
-circ = QuantumCircuit(4)
-circ.x(0)
-circ.h(1)
-circ.measure_all()
-circ.draw(output='mpl')
 
 
 # In[23]:
@@ -306,10 +300,22 @@ circ = QuantumCircuit(4)
 circ.x(0)
 circ.h(1)
 circ.measure_all()
-circ.draw(output='mpl', cregbundle=False)
+circ.draw(output='mpl')
 
 
 # In[24]:
+
+
+from qiskit.circuit import QuantumCircuit
+
+circ = QuantumCircuit(4)
+circ.x(0)
+circ.h(1)
+circ.measure_all()
+circ.draw(output='mpl', cregbundle=False)
+
+
+# In[25]:
 
 
 from qiskit import QuantumCircuit
@@ -319,7 +325,7 @@ circuit.cx(0, 1)
 circuit.draw(output='mpl', scale=0.5)
 
 
-# In[25]:
+# In[26]:
 
 
 from qiskit.circuit.library import XOR
@@ -328,7 +334,7 @@ circuit = XOR(5, seed=42)
 get_ipython().run_line_magic('circuit_library_info', 'circuit')
 
 
-# In[26]:
+# In[27]:
 
 
 from qiskit import execute
@@ -347,7 +353,7 @@ result = execute([qc, qc, qc], sim).result()
 plot_histogram(result.get_counts())
 
 
-# In[27]:
+# In[28]:
 
 
 from qiskit import QuantumCircuit
@@ -357,52 +363,52 @@ circuit.measure_all()
 circuit.draw(output='mpl', initial_state=True)
 
 
-# In[28]:
+# In[29]:
 
 
 from qiskit.quantum_info import Statevector
 
 state = Statevector.from_label('+0')
-print(state.to_dict())
-
-
-# In[29]:
-
-
-from qiskit.quantum_info import DensityMatrix
-
-state = DensityMatrix.from_label('+0')
 print(state.to_dict())
 
 
 # In[30]:
 
 
-from qiskit.quantum_info import Statevector
+from qiskit.quantum_info import DensityMatrix
 
-state = Statevector.from_label('+0')
-print(state.probabilities())
+state = DensityMatrix.from_label('+0')
+print(state.to_dict())
 
 
 # In[31]:
 
 
-from qiskit.quantum_info import DensityMatrix
+from qiskit.quantum_info import Statevector
 
-state = DensityMatrix.from_label('+0')
+state = Statevector.from_label('+0')
 print(state.probabilities())
 
 
 # In[32]:
 
 
+from qiskit.quantum_info import DensityMatrix
+
+state = DensityMatrix.from_label('+0')
+print(state.probabilities())
+
+
+# In[33]:
+
+
 from qiskit.quantum_info import Statevector
 
 state = Statevector.from_label('+0')
 print(state.probabilities_dict())
 
 
-# In[33]:
+# In[34]:
 
 
 from qiskit.quantum_info import DensityMatrix
@@ -411,7 +417,7 @@ state = DensityMatrix.from_label('+0')
 print(state.probabilities_dict())
 
 
-# In[34]:
+# In[35]:
 
 
 from qiskit.quantum_info import Statevector
@@ -432,7 +438,7 @@ counts1 = psi.sample_counts(shots, [1])
 print('Measure Qubit-1:', counts1)
 
 
-# In[35]:
+# In[36]:
 
 
 from qiskit.quantum_info import Statevector
@@ -453,7 +459,7 @@ mem1 = psi.sample_memory(shots, [1])
 print('Measure Qubit-1:', mem1)
 
 
-# In[36]:
+# In[37]:
 
 
 from qiskit.quantum_info import Statevector
@@ -471,7 +477,7 @@ print("measure([1]) outcome:", outcome, "Post-measurement state:")
 print(psi_meas)
 
 
-# In[37]:
+# In[38]:
 
 
 from qiskit.quantum_info import Statevector
@@ -489,7 +495,7 @@ print("Post reset([1]) state: ")
 print(psi_reset)
 
 
-# In[38]:
+# In[39]:
 
 
 from qiskit.visualization import visualize_transition
@@ -504,7 +510,7 @@ qc.rz(120,0)
 visualize_transition(qc, fpg=20, spg=1, trace=True)
 
 
-# In[39]:
+# In[40]:
 
 
 from qiskit import QuantumCircuit
@@ -514,7 +520,7 @@ circuit.measure_all()
 circuit.draw(output='text')
 
 
-# In[40]:
+# In[41]:
 
 
 from qiskit import QuantumCircuit
@@ -524,7 +530,7 @@ circuit.measure_all()
 circuit.draw(output='text', initial_state=True)
 
 
-# In[41]:
+# In[42]:
 
 
 from qiskit.transpiler import CouplingMap
@@ -534,7 +540,7 @@ coupling_map = CouplingMap(
 coupling_map.draw()
 
 
-# In[42]:
+# In[43]:
 
 
 from qiskit.transpiler import CouplingMap
@@ -543,7 +549,7 @@ coupling_map = CouplingMap.from_line(5)
 coupling_map.draw()
 
 
-# In[43]:
+# In[44]:
 
 
 from qiskit import QuantumCircuit
@@ -558,7 +564,7 @@ transpiled_qc = transpile(qc, FakeVigo())
 transpiled_qc.draw(output='mpl')
 
 
-# In[44]:
+# In[45]:
 
 
 from qiskit.pulse import *
