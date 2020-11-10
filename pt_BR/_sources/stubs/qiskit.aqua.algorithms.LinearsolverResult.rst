@@ -46,8 +46,8 @@ LinearsolverResult
       LinearsolverResult.update
       LinearsolverResult.values
    
-      LinearsolverResult.__getitem__
       LinearsolverResult.__len__
+      LinearsolverResult.__getitem__
 
    
    
