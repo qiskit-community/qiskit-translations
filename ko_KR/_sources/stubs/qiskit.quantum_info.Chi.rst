@@ -61,8 +61,8 @@ Chi
       Chi.to_operator
       Chi.transpose
    
-      Chi.__mul__
       Chi.__call__
+      Chi.__mul__
 
    
    
