@@ -49,8 +49,8 @@ MolecularExcitedStatesResult
       MolecularExcitedStatesResult.update
       MolecularExcitedStatesResult.values
    
-      MolecularExcitedStatesResult.__len__
       MolecularExcitedStatesResult.__getitem__
+      MolecularExcitedStatesResult.__len__
 
    
    

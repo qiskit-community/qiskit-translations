@@ -168,8 +168,8 @@ OR
       OR.y
       OR.z
    
-      OR.__len__
       OR.__getitem__
+      OR.__len__
 
    
    

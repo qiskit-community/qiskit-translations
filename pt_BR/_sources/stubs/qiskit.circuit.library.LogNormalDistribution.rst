@@ -171,8 +171,8 @@ LogNormalDistribution
       LogNormalDistribution.y
       LogNormalDistribution.z
    
-      LogNormalDistribution.__len__
       LogNormalDistribution.__getitem__
+      LogNormalDistribution.__len__
 
    
    

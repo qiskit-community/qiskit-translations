@@ -37,8 +37,8 @@ ClassicalRegister
       ClassicalRegister.__len__
       ClassicalRegister.qasm
    
-      ClassicalRegister.__len__
       ClassicalRegister.__getitem__
+      ClassicalRegister.__len__
 
    
    

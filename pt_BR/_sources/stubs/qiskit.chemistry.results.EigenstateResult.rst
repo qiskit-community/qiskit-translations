@@ -50,8 +50,8 @@ EigenstateResult
       EigenstateResult.update
       EigenstateResult.values
    
-      EigenstateResult.__len__
       EigenstateResult.__getitem__
+      EigenstateResult.__len__
 
    
    
