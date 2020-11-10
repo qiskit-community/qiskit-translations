@@ -184,8 +184,8 @@ EfficientSU2
       EfficientSU2.y
       EfficientSU2.z
    
-      EfficientSU2.__getitem__
       EfficientSU2.__len__
+      EfficientSU2.__getitem__
 
    
    
