@@ -175,8 +175,8 @@ WeightedAdder
       WeightedAdder.y
       WeightedAdder.z
    
-      WeightedAdder.__getitem__
       WeightedAdder.__len__
+      WeightedAdder.__getitem__
 
    
    
