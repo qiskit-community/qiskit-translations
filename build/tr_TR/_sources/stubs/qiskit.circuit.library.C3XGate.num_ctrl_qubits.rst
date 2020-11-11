@@ -1,0 +1,8 @@
+
+
+C3XGate.num_ctrl_qubits
+==============================================
+
+.. currentmodule:: qiskit.circuit.library
+
+.. autoproperty:: C3XGate.num_ctrl_qubits

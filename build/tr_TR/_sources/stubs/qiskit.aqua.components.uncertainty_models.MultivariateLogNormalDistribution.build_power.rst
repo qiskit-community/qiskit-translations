@@ -1,0 +1,8 @@
+
+
+MultivariateLogNormalDistribution.build_power
+=======================================================================================
+
+.. currentmodule:: qiskit.aqua.components.uncertainty_models
+
+.. automethod:: MultivariateLogNormalDistribution.build_power
