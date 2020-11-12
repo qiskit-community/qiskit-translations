@@ -188,8 +188,8 @@ ZFeatureMap
       ZFeatureMap.y
       ZFeatureMap.z
    
-      ZFeatureMap.__len__
       ZFeatureMap.__getitem__
+      ZFeatureMap.__len__
 
    
    

@@ -168,8 +168,8 @@ UniformDistribution
       UniformDistribution.y
       UniformDistribution.z
    
-      UniformDistribution.__getitem__
       UniformDistribution.__len__
+      UniformDistribution.__getitem__
 
    
    

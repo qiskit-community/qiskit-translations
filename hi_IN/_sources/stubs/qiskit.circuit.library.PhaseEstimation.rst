@@ -168,8 +168,8 @@ PhaseEstimation
       PhaseEstimation.y
       PhaseEstimation.z
    
-      PhaseEstimation.__getitem__
       PhaseEstimation.__len__
+      PhaseEstimation.__getitem__
 
    
    

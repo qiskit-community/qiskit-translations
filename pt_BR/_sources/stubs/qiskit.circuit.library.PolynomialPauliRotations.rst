@@ -175,8 +175,8 @@ PolynomialPauliRotations
       PolynomialPauliRotations.y
       PolynomialPauliRotations.z
    
-      PolynomialPauliRotations.__getitem__
       PolynomialPauliRotations.__len__
+      PolynomialPauliRotations.__getitem__
 
    
    

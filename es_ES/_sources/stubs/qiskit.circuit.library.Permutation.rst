@@ -168,8 +168,8 @@ Permutation
       Permutation.y
       Permutation.z
    
-      Permutation.__len__
       Permutation.__getitem__
+      Permutation.__len__
 
    
    

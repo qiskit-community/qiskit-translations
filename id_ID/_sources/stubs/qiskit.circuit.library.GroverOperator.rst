@@ -172,8 +172,8 @@ GroverOperator
       GroverOperator.y
       GroverOperator.z
    
-      GroverOperator.__len__
       GroverOperator.__getitem__
+      GroverOperator.__len__
 
    
    

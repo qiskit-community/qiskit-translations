@@ -171,8 +171,8 @@ NormalDistribution
       NormalDistribution.y
       NormalDistribution.z
    
-      NormalDistribution.__getitem__
       NormalDistribution.__len__
+      NormalDistribution.__getitem__
 
    
    

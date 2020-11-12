@@ -179,8 +179,8 @@ PiecewiseLinearPauliRotations
       PiecewiseLinearPauliRotations.y
       PiecewiseLinearPauliRotations.z
    
-      PiecewiseLinearPauliRotations.__len__
       PiecewiseLinearPauliRotations.__getitem__
+      PiecewiseLinearPauliRotations.__len__
 
    
    

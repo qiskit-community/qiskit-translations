@@ -168,8 +168,8 @@ GRX
       GRX.y
       GRX.z
    
-      GRX.__getitem__
       GRX.__len__
+      GRX.__getitem__
 
    
    

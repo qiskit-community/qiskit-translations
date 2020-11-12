@@ -68,8 +68,8 @@ SparsePauliOp
       SparsePauliOp.to_operator
       SparsePauliOp.transpose
    
-      SparsePauliOp.__mul__
       SparsePauliOp.__call__
+      SparsePauliOp.__mul__
 
    
    

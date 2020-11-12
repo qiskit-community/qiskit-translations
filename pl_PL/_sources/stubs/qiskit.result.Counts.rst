@@ -39,8 +39,8 @@ Counts
       Counts.update
       Counts.values
    
-      Counts.__getitem__
       Counts.__len__
+      Counts.__getitem__
 
    
    

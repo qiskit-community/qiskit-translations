@@ -188,8 +188,8 @@ PauliFeatureMap
       PauliFeatureMap.y
       PauliFeatureMap.z
    
-      PauliFeatureMap.__getitem__
       PauliFeatureMap.__len__
+      PauliFeatureMap.__getitem__
 
    
    

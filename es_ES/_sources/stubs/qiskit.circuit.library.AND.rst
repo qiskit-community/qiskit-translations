@@ -168,8 +168,8 @@ AND
       AND.y
       AND.z
    
-      AND.__len__
       AND.__getitem__
+      AND.__len__
 
    
    

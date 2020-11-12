@@ -61,8 +61,8 @@ SuperOp
       SuperOp.to_operator
       SuperOp.transpose
    
-      SuperOp.__mul__
       SuperOp.__call__
+      SuperOp.__mul__
 
    
    

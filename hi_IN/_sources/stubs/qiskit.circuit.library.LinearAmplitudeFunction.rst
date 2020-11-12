@@ -169,8 +169,8 @@ LinearAmplitudeFunction
       LinearAmplitudeFunction.y
       LinearAmplitudeFunction.z
    
-      LinearAmplitudeFunction.__getitem__
       LinearAmplitudeFunction.__len__
+      LinearAmplitudeFunction.__getitem__
 
    
    

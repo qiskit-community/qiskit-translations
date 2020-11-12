@@ -58,8 +58,8 @@ ScalarOp
       ScalarOp.to_operator
       ScalarOp.transpose
    
-      ScalarOp.__mul__
       ScalarOp.__call__
+      ScalarOp.__mul__
 
    
    

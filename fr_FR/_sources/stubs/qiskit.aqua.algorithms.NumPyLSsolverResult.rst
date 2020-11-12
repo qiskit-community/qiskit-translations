@@ -47,8 +47,8 @@ NumPyLSsolverResult
       NumPyLSsolverResult.update
       NumPyLSsolverResult.values
    
-      NumPyLSsolverResult.__getitem__
       NumPyLSsolverResult.__len__
+      NumPyLSsolverResult.__getitem__
 
    
    

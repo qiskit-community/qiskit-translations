@@ -37,8 +37,8 @@ QuantumRegister
       QuantumRegister.__len__
       QuantumRegister.qasm
    
-      QuantumRegister.__len__
       QuantumRegister.__getitem__
+      QuantumRegister.__len__
 
    
    

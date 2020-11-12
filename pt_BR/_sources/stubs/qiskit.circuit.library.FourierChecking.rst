@@ -168,8 +168,8 @@ FourierChecking
       FourierChecking.y
       FourierChecking.z
    
-      FourierChecking.__getitem__
       FourierChecking.__len__
+      FourierChecking.__getitem__
 
    
    
