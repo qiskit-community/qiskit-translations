@@ -1,45 +1,37 @@
-﻿
-
-InstructionScheduleMap
+﻿qiskit.pulse.InstructionScheduleMap
 ===================================
 
 .. currentmodule:: qiskit.pulse
 
 .. autoclass:: InstructionScheduleMap
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      InstructionScheduleMap.instructions
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      InstructionScheduleMap.add
-      InstructionScheduleMap.assert_has
-      InstructionScheduleMap.get
-      InstructionScheduleMap.get_parameters
-      InstructionScheduleMap.has
-      InstructionScheduleMap.pop
-      InstructionScheduleMap.qubit_instructions
-      InstructionScheduleMap.qubits_with_instruction
-      InstructionScheduleMap.remove
+      ~InstructionScheduleMap.__init__
+      ~InstructionScheduleMap.add
+      ~InstructionScheduleMap.assert_has
+      ~InstructionScheduleMap.get
+      ~InstructionScheduleMap.get_parameters
+      ~InstructionScheduleMap.has
+      ~InstructionScheduleMap.pop
+      ~InstructionScheduleMap.qubit_instructions
+      ~InstructionScheduleMap.qubits_with_instruction
+      ~InstructionScheduleMap.remove
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~InstructionScheduleMap.instructions
    
    

@@ -1,30 +1,24 @@
-﻿
-
-LongDivision
+﻿qiskit.aqua.components.reciprocals.LongDivision
 ===============================================
 
 .. currentmodule:: qiskit.aqua.components.reciprocals
 
 .. autoclass:: LongDivision
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      LongDivision.construct_circuit
-      LongDivision.sv_to_resvec
+      ~LongDivision.__init__
+      ~LongDivision.construct_circuit
+      ~LongDivision.sv_to_resvec
+   
    
 
+   
    
    

@@ -1,7 +1,5 @@
-﻿
-
-circuit_to_gate
-=================================
+﻿qiskit.converters.circuit\_to\_gate
+===================================
 
 .. currentmodule:: qiskit.converters
 

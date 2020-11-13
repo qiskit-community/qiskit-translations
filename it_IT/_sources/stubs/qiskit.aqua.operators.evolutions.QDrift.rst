@@ -1,37 +1,29 @@
-﻿
-
-QDrift
+﻿qiskit.aqua.operators.evolutions.QDrift
 =======================================
 
 .. currentmodule:: qiskit.aqua.operators.evolutions
 
 .. autoclass:: QDrift
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      QDrift.reps
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      QDrift.convert
+      ~QDrift.__init__
+      ~QDrift.convert
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~QDrift.reps
    
    

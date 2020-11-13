@@ -1,30 +1,24 @@
-﻿
-
-QobjHeader
+﻿qiskit.qobj.QobjHeader
 ======================
 
 .. currentmodule:: qiskit.qobj
 
 .. autoclass:: QobjHeader
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      QobjHeader.from_dict
-      QobjHeader.to_dict
+      ~QobjHeader.__init__
+      ~QobjHeader.from_dict
+      ~QobjHeader.to_dict
+   
    
 
+   
    
    

@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.quantum_info.operators.measures &mdash; Dokumentasi Qiskit 0.23.0</title>
+  <title>qiskit.quantum_info.operators.measures &mdash; Dokumentasi Qiskit 0.23.1</title>
   
 
   
@@ -507,12 +507,13 @@
     <span class="n">c_i</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">bmat</span><span class="p">([[</span><span class="n">cvxpy</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">iden</span><span class="p">,</span> <span class="n">r0_i</span><span class="p">),</span> <span class="n">x_i</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="n">x_i</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">iden</span><span class="p">,</span> <span class="n">r1_i</span><span class="p">)]])</span>
     <span class="n">c</span> <span class="o">=</span> <span class="n">cvx_bmat</span><span class="p">(</span><span class="n">c_r</span><span class="p">,</span> <span class="n">c_i</span><span class="p">)</span>
 
-    <span class="c1"># Transpose out Choi-matrix to row-vec convention and vectorize.</span>
-    <span class="n">choi_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span>
+    <span class="c1"># Convert col-vec convention Choi-matrix to row-vec convention and</span>
+    <span class="c1"># then take Transpose: Choi_C -&gt; Choi_R.T</span>
+    <span class="n">choi_rt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">choi</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">dim_in</span><span class="p">,</span> <span class="n">dim_out</span><span class="p">,</span> <span class="n">dim_in</span><span class="p">,</span> <span class="n">dim_out</span><span class="p">)),</span>
-        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
-    <span class="n">choi_vec_r</span> <span class="o">=</span> <span class="n">choi_vec</span><span class="o">.</span><span class="n">real</span>
-    <span class="n">choi_vec_i</span> <span class="o">=</span> <span class="n">choi_vec</span><span class="o">.</span><span class="n">imag</span>
+        <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">choi</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">choi_rt_r</span> <span class="o">=</span> <span class="n">choi_rt</span><span class="o">.</span><span class="n">real</span>
+    <span class="n">choi_rt_i</span> <span class="o">=</span> <span class="n">choi_rt</span><span class="o">.</span><span class="n">imag</span>
 
     <span class="c1"># Constraints</span>
     <span class="n">cons</span> <span class="o">=</span> <span class="p">[</span>
@@ -522,7 +523,7 @@
     <span class="p">]</span>
 
     <span class="c1"># Objective function</span>
-    <span class="n">obj</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">choi_vec_r</span> <span class="o">*</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">vec</span><span class="p">(</span><span class="n">x_r</span><span class="p">)</span> <span class="o">-</span> <span class="n">choi_vec_i</span> <span class="o">*</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">vec</span><span class="p">(</span><span class="n">x_i</span><span class="p">))</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">cvxpy</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">choi_rt_r</span> <span class="o">@</span> <span class="n">x_r</span><span class="p">)</span> <span class="o">+</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">choi_rt_i</span> <span class="o">@</span> <span class="n">x_i</span><span class="p">))</span>
     <span class="n">prob</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">cons</span><span class="p">)</span>
     <span class="n">sol</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">sol</span></div>
@@ -558,7 +559,7 @@
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Qiskit Development Team.
-      Terakhir diperbarui pada 2020/11/11.
+      Terakhir diperbarui pada 2020/11/13.
 
     </p>
   </div>

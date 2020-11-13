@@ -1,6 +1,4 @@
-﻿
-
-IBMQError
+﻿qiskit.providers.ibmq.IBMQError
 ===============================
 
 .. currentmodule:: qiskit.providers.ibmq

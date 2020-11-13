@@ -1,7 +1,5 @@
-﻿
-
-gate_error
-==============================
+﻿qiskit.quantum\_info.gate\_error
+================================
 
 .. currentmodule:: qiskit.quantum_info
 

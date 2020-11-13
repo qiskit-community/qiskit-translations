@@ -1,7 +1,5 @@
-﻿
-
-plot_circuit_layout
-========================================
+﻿qiskit.visualization.plot\_circuit\_layout
+==========================================
 
 .. currentmodule:: qiskit.visualization
 

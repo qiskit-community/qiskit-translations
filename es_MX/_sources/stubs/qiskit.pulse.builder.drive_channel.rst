@@ -1,7 +1,5 @@
-﻿
-
-drive_channel
-==================================
+﻿qiskit.pulse.builder.drive\_channel
+===================================
 
 .. currentmodule:: qiskit.pulse.builder
 

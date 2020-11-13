@@ -1,7 +1,5 @@
-﻿
-
-qubit_channels
-===================================
+﻿qiskit.pulse.builder.qubit\_channels
+====================================
 
 .. currentmodule:: qiskit.pulse.builder
 

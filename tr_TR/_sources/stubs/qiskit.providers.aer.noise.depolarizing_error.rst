@@ -1,7 +1,5 @@
-﻿
-
-depolarizing_error
-=============================================
+﻿qiskit.providers.aer.noise.depolarizing\_error
+==============================================
 
 .. currentmodule:: qiskit.providers.aer.noise
 

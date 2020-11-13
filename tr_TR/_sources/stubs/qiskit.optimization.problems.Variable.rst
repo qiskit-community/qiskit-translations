@@ -1,41 +1,33 @@
-﻿
-
-Variable
+﻿qiskit.optimization.problems.Variable
 =====================================
 
 .. currentmodule:: qiskit.optimization.problems
 
 .. autoclass:: Variable
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      Variable.lowerbound
-      Variable.name
-      Variable.quadratic_program
-      Variable.upperbound
-      Variable.vartype
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Variable.as_tuple
+      ~Variable.__init__
+      ~Variable.as_tuple
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Variable.lowerbound
+      ~Variable.name
+      ~Variable.quadratic_program
+      ~Variable.upperbound
+      ~Variable.vartype
    
    

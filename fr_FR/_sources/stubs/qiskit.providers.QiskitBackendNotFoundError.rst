@@ -1,6 +1,4 @@
-﻿
-
-QiskitBackendNotFoundError
+﻿qiskit.providers.QiskitBackendNotFoundError
 ===========================================
 
 .. currentmodule:: qiskit.providers

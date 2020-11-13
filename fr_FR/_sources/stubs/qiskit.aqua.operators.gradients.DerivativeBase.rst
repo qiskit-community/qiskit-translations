@@ -1,31 +1,25 @@
-﻿
-
-DerivativeBase
+﻿qiskit.aqua.operators.gradients.DerivativeBase
 ==============================================
 
 .. currentmodule:: qiskit.aqua.operators.gradients
 
 .. autoclass:: DerivativeBase
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      DerivativeBase.convert
-      DerivativeBase.gradient_wrapper
-      DerivativeBase.parameter_expression_grad
+      ~DerivativeBase.__init__
+      ~DerivativeBase.convert
+      ~DerivativeBase.gradient_wrapper
+      ~DerivativeBase.parameter_expression_grad
+   
    
 
+   
    
    

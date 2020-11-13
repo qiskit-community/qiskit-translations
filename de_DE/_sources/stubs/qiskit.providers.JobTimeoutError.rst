@@ -1,6 +1,4 @@
-﻿
-
-JobTimeoutError
+﻿qiskit.providers.JobTimeoutError
 ================================
 
 .. currentmodule:: qiskit.providers

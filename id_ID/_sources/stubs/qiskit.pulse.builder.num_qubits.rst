@@ -1,7 +1,5 @@
-﻿
-
-num_qubits
-===============================
+﻿qiskit.pulse.builder.num\_qubits
+================================
 
 .. currentmodule:: qiskit.pulse.builder
 

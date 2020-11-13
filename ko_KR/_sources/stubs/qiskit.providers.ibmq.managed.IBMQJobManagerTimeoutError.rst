@@ -1,6 +1,4 @@
-﻿
-
-IBMQJobManagerTimeoutError
+﻿qiskit.providers.ibmq.managed.IBMQJobManagerTimeoutError
 ========================================================
 
 .. currentmodule:: qiskit.providers.ibmq.managed

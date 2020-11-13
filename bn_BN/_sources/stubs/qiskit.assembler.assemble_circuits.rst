@@ -1,7 +1,5 @@
-﻿
-
-assemble_circuits
-==================================
+﻿qiskit.assembler.assemble\_circuits
+===================================
 
 .. currentmodule:: qiskit.assembler
 

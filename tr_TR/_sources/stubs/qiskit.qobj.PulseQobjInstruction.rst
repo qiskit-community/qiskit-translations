@@ -1,30 +1,24 @@
-﻿
-
-PulseQobjInstruction
+﻿qiskit.qobj.PulseQobjInstruction
 ================================
 
 .. currentmodule:: qiskit.qobj
 
 .. autoclass:: PulseQobjInstruction
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      PulseQobjInstruction.from_dict
-      PulseQobjInstruction.to_dict
+      ~PulseQobjInstruction.__init__
+      ~PulseQobjInstruction.from_dict
+      ~PulseQobjInstruction.to_dict
+   
    
 
+   
    
    

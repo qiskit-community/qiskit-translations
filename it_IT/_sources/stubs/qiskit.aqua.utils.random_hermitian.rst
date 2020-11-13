@@ -1,7 +1,5 @@
-﻿
-
-random_hermitian
-==================================
+﻿qiskit.aqua.utils.random\_hermitian
+===================================
 
 .. currentmodule:: qiskit.aqua.utils
 

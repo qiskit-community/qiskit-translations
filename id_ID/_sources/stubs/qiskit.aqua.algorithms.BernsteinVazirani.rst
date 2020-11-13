@@ -1,41 +1,33 @@
-﻿
-
-BernsteinVazirani
+﻿qiskit.aqua.algorithms.BernsteinVazirani
 ========================================
 
 .. currentmodule:: qiskit.aqua.algorithms
 
 .. autoclass:: BernsteinVazirani
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      BernsteinVazirani.backend
-      BernsteinVazirani.quantum_instance
-      BernsteinVazirani.random
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      BernsteinVazirani.construct_circuit
-      BernsteinVazirani.run
-      BernsteinVazirani.set_backend
+      ~BernsteinVazirani.__init__
+      ~BernsteinVazirani.construct_circuit
+      ~BernsteinVazirani.run
+      ~BernsteinVazirani.set_backend
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~BernsteinVazirani.backend
+      ~BernsteinVazirani.quantum_instance
+      ~BernsteinVazirani.random
    
    

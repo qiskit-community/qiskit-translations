@@ -1,30 +1,24 @@
-﻿
-
-DifferentialExtrapolator
-=================================================================
+﻿qiskit.chemistry.algorithms.pes\_samplers.DifferentialExtrapolator
+==================================================================
 
 .. currentmodule:: qiskit.chemistry.algorithms.pes_samplers
 
 .. autoclass:: DifferentialExtrapolator
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      DifferentialExtrapolator.extrapolate
-      DifferentialExtrapolator.factory
+      ~DifferentialExtrapolator.__init__
+      ~DifferentialExtrapolator.extrapolate
+      ~DifferentialExtrapolator.factory
+   
    
 
+   
    
    

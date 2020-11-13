@@ -1,7 +1,5 @@
-﻿
-
-job_monitor
-========================
+﻿qiskit.tools.job\_monitor
+=========================
 
 .. currentmodule:: qiskit.tools
 

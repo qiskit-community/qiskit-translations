@@ -1,7 +1,5 @@
-﻿
-
-readout_error_values
-======================================================
+﻿qiskit.providers.aer.noise.device.readout\_error\_values
+========================================================
 
 .. currentmodule:: qiskit.providers.aer.noise.device
 

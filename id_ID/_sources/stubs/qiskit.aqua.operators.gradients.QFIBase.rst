@@ -1,39 +1,31 @@
-﻿
-
-QFIBase
+﻿qiskit.aqua.operators.gradients.QFIBase
 =======================================
 
 .. currentmodule:: qiskit.aqua.operators.gradients
 
 .. autoclass:: QFIBase
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      QFIBase.qfi_method
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      QFIBase.convert
-      QFIBase.gradient_wrapper
-      QFIBase.parameter_expression_grad
+      ~QFIBase.__init__
+      ~QFIBase.convert
+      ~QFIBase.gradient_wrapper
+      ~QFIBase.parameter_expression_grad
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~QFIBase.qfi_method
    
    

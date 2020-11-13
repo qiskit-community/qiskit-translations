@@ -1,39 +1,31 @@
-﻿
-
-FullAncillaAllocation
+﻿qiskit.transpiler.passes.FullAncillaAllocation
 ==============================================
 
 .. currentmodule:: qiskit.transpiler.passes
 
 .. autoclass:: FullAncillaAllocation
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      FullAncillaAllocation.is_analysis_pass
-      FullAncillaAllocation.is_transformation_pass
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      FullAncillaAllocation.name
-      FullAncillaAllocation.run
+      ~FullAncillaAllocation.__init__
+      ~FullAncillaAllocation.name
+      ~FullAncillaAllocation.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~FullAncillaAllocation.is_analysis_pass
+      ~FullAncillaAllocation.is_transformation_pass
    
    

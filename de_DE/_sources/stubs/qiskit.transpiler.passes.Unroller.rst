@@ -1,39 +1,31 @@
-﻿
-
-Unroller
+﻿qiskit.transpiler.passes.Unroller
 =================================
 
 .. currentmodule:: qiskit.transpiler.passes
 
 .. autoclass:: Unroller
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      Unroller.is_analysis_pass
-      Unroller.is_transformation_pass
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Unroller.name
-      Unroller.run
+      ~Unroller.__init__
+      ~Unroller.name
+      ~Unroller.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Unroller.is_analysis_pass
+      ~Unroller.is_transformation_pass
    
    

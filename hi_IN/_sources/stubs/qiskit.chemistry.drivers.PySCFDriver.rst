@@ -1,40 +1,32 @@
-﻿
-
-PySCFDriver
+﻿qiskit.chemistry.drivers.PySCFDriver
 ====================================
 
 .. currentmodule:: qiskit.chemistry.drivers
 
 .. autoclass:: PySCFDriver
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      PySCFDriver.basis
-      PySCFDriver.hf_method
-      PySCFDriver.molecule
-      PySCFDriver.supports_molecule
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      PySCFDriver.run
+      ~PySCFDriver.__init__
+      ~PySCFDriver.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PySCFDriver.basis
+      ~PySCFDriver.hf_method
+      ~PySCFDriver.molecule
+      ~PySCFDriver.supports_molecule
    
    

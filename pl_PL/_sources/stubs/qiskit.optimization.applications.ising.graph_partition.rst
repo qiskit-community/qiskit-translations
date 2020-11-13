@@ -1,9 +1,11 @@
-﻿
-
-qiskit.optimization.applications.ising.graph_partition
-======================================================
+﻿qiskit.optimization.applications.ising.graph\_partition
+=======================================================
 
 .. automodule:: qiskit.optimization.applications.ising.graph_partition
+
+   
+   
+   
 
    
    
@@ -24,3 +26,6 @@ qiskit.optimization.applications.ising.graph_partition
    
    
    
+
+
+

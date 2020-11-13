@@ -1,28 +1,22 @@
-﻿
-
-PassManagerConfig
+﻿qiskit.transpiler.PassManagerConfig
 ===================================
 
 .. currentmodule:: qiskit.transpiler
 
 .. autoclass:: PassManagerConfig
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
+   
+      ~PassManagerConfig.__init__
    
    
 
+   
    
    

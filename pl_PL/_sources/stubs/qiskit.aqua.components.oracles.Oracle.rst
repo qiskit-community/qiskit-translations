@@ -1,40 +1,32 @@
-﻿
-
-Oracle
+﻿qiskit.aqua.components.oracles.Oracle
 =====================================
 
 .. currentmodule:: qiskit.aqua.components.oracles
 
 .. autoclass:: Oracle
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      Oracle.ancillary_register
-      Oracle.circuit
-      Oracle.output_register
-      Oracle.variable_register
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Oracle.construct_circuit
+      ~Oracle.__init__
+      ~Oracle.construct_circuit
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Oracle.ancillary_register
+      ~Oracle.circuit
+      ~Oracle.output_register
+      ~Oracle.variable_register
    
    

@@ -1,7 +1,5 @@
-﻿
-
-phase_offset
-=================================
+﻿qiskit.pulse.builder.phase\_offset
+==================================
 
 .. currentmodule:: qiskit.pulse.builder
 

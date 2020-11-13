@@ -1,6 +1,4 @@
-﻿
-
-JobError
+﻿qiskit.providers.JobError
 =========================
 
 .. currentmodule:: qiskit.providers

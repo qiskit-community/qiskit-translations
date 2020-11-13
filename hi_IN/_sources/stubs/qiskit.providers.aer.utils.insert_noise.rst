@@ -1,7 +1,5 @@
-﻿
-
-insert_noise
-=======================================
+﻿qiskit.providers.aer.utils.insert\_noise
+========================================
 
 .. currentmodule:: qiskit.providers.aer.utils
 

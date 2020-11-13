@@ -1,7 +1,5 @@
-﻿
-
-map_label_to_class_name
-=========================================
+﻿qiskit.aqua.utils.map\_label\_to\_class\_name
+=============================================
 
 .. currentmodule:: qiskit.aqua.utils
 

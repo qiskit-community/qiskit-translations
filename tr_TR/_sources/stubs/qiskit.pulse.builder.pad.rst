@@ -1,6 +1,4 @@
-﻿
-
-pad
+﻿qiskit.pulse.builder.pad
 ========================
 
 .. currentmodule:: qiskit.pulse.builder

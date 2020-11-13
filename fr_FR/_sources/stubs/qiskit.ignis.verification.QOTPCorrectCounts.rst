@@ -1,6 +1,4 @@
-﻿
-
-QOTPCorrectCounts
+﻿qiskit.ignis.verification.QOTPCorrectCounts
 ===========================================
 
 .. currentmodule:: qiskit.ignis.verification

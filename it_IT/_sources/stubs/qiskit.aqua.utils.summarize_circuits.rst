@@ -1,7 +1,5 @@
-﻿
-
-summarize_circuits
-====================================
+﻿qiskit.aqua.utils.summarize\_circuits
+=====================================
 
 .. currentmodule:: qiskit.aqua.utils
 

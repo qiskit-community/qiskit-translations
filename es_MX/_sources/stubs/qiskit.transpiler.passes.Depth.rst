@@ -1,39 +1,31 @@
-﻿
-
-Depth
+﻿qiskit.transpiler.passes.Depth
 ==============================
 
 .. currentmodule:: qiskit.transpiler.passes
 
 .. autoclass:: Depth
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      Depth.is_analysis_pass
-      Depth.is_transformation_pass
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Depth.name
-      Depth.run
+      ~Depth.__init__
+      ~Depth.name
+      ~Depth.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Depth.is_analysis_pass
+      ~Depth.is_transformation_pass
    
    

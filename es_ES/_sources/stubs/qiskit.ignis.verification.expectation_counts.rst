@@ -1,7 +1,5 @@
-﻿
-
-expectation_counts
-============================================
+﻿qiskit.ignis.verification.expectation\_counts
+=============================================
 
 .. currentmodule:: qiskit.ignis.verification
 

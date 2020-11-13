@@ -1,6 +1,4 @@
-﻿
-
-MissingOptionalLibraryError
+﻿qiskit.aqua.MissingOptionalLibraryError
 =======================================
 
 .. currentmodule:: qiskit.aqua

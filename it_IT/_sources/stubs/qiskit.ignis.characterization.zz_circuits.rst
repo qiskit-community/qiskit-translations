@@ -1,7 +1,5 @@
-﻿
-
-zz_circuits
-=========================================
+﻿qiskit.ignis.characterization.zz\_circuits
+==========================================
 
 .. currentmodule:: qiskit.ignis.characterization
 

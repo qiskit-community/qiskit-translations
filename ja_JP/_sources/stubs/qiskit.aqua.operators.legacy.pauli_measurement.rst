@@ -1,7 +1,5 @@
-﻿
-
-pauli_measurement
-==============================================
+﻿qiskit.aqua.operators.legacy.pauli\_measurement
+===============================================
 
 .. currentmodule:: qiskit.aqua.operators.legacy
 

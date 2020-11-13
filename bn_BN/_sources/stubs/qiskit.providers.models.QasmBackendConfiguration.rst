@@ -1,38 +1,30 @@
-﻿
-
-QasmBackendConfiguration
+﻿qiskit.providers.models.QasmBackendConfiguration
 ================================================
 
 .. currentmodule:: qiskit.providers.models
 
 .. autoclass:: QasmBackendConfiguration
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      QasmBackendConfiguration.num_qubits
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      QasmBackendConfiguration.from_dict
-      QasmBackendConfiguration.to_dict
+      ~QasmBackendConfiguration.__init__
+      ~QasmBackendConfiguration.from_dict
+      ~QasmBackendConfiguration.to_dict
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~QasmBackendConfiguration.num_qubits
    
    

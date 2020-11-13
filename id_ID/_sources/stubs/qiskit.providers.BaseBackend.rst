@@ -1,35 +1,29 @@
-﻿
-
-BaseBackend
+﻿qiskit.providers.BaseBackend
 ============================
 
 .. currentmodule:: qiskit.providers
 
 .. autoclass:: BaseBackend
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      BaseBackend.configuration
-      BaseBackend.name
-      BaseBackend.properties
-      BaseBackend.provider
-      BaseBackend.run
-      BaseBackend.status
-      BaseBackend.version
+      ~BaseBackend.__init__
+      ~BaseBackend.configuration
+      ~BaseBackend.name
+      ~BaseBackend.properties
+      ~BaseBackend.provider
+      ~BaseBackend.run
+      ~BaseBackend.status
+      ~BaseBackend.version
+   
    
 
+   
    
    

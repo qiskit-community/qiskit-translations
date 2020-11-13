@@ -1,6 +1,4 @@
-﻿
-
-TranspilerError
+﻿qiskit.transpiler.TranspilerError
 =================================
 
 .. currentmodule:: qiskit.transpiler

@@ -1,7 +1,5 @@
-﻿
-
-rho_to_fidelity
-=========================================
+﻿qiskit.ignis.verification.rho\_to\_fidelity
+===========================================
 
 .. currentmodule:: qiskit.ignis.verification
 

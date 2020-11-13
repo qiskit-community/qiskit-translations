@@ -1,29 +1,23 @@
-﻿
-
-DictToCircuitSum
+﻿qiskit.aqua.operators.converters.DictToCircuitSum
 =================================================
 
 .. currentmodule:: qiskit.aqua.operators.converters
 
 .. autoclass:: DictToCircuitSum
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      DictToCircuitSum.convert
+      ~DictToCircuitSum.__init__
+      ~DictToCircuitSum.convert
+   
    
 
+   
    
    

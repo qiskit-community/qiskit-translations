@@ -1,7 +1,5 @@
-﻿
-
-plot_error_map
-===================================
+﻿qiskit.visualization.plot\_error\_map
+=====================================
 
 .. currentmodule:: qiskit.visualization
 

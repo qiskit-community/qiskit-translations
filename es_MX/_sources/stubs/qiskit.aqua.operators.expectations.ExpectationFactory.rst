@@ -1,29 +1,23 @@
-﻿
-
-ExpectationFactory
+﻿qiskit.aqua.operators.expectations.ExpectationFactory
 =====================================================
 
 .. currentmodule:: qiskit.aqua.operators.expectations
 
 .. autoclass:: ExpectationFactory
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      ExpectationFactory.build
+      ~ExpectationFactory.__init__
+      ~ExpectationFactory.build
+   
    
 
+   
    
    

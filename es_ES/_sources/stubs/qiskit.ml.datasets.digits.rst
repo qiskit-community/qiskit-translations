@@ -1,6 +1,4 @@
-﻿
-
-digits
+﻿qiskit.ml.datasets.digits
 =========================
 
 .. currentmodule:: qiskit.ml.datasets

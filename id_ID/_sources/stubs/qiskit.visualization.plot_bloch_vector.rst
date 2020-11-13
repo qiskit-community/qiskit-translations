@@ -1,7 +1,5 @@
-﻿
-
-plot_bloch_vector
-======================================
+﻿qiskit.visualization.plot\_bloch\_vector
+========================================
 
 .. currentmodule:: qiskit.visualization
 

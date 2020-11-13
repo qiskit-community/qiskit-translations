@@ -1,36 +1,28 @@
-﻿
-
-QuadraticProgramElement
+﻿qiskit.optimization.problems.QuadraticProgramElement
 ====================================================
 
 .. currentmodule:: qiskit.optimization.problems
 
 .. autoclass:: QuadraticProgramElement
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      QuadraticProgramElement.quadratic_program
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
+   
+      ~QuadraticProgramElement.__init__
    
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~QuadraticProgramElement.quadratic_program
    
    

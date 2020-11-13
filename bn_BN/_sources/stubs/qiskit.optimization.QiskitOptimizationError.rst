@@ -1,6 +1,4 @@
-﻿
-
-QiskitOptimizationError
+﻿qiskit.optimization.QiskitOptimizationError
 ===========================================
 
 .. currentmodule:: qiskit.optimization

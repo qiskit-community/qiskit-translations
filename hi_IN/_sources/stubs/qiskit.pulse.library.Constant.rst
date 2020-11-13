@@ -1,43 +1,35 @@
-
-
-Constant
+qiskit.pulse.library.Constant
 =============================
 
 .. currentmodule:: qiskit.pulse.library
 
 .. autoclass:: Constant
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      Constant.amp
-      Constant.id
-      Constant.parameters
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Constant.assign_parameters
-      Constant.draw
-      Constant.get_sample_pulse
-      Constant.get_waveform
-      Constant.validate_parameters
+      ~Constant.__init__
+      ~Constant.assign_parameters
+      ~Constant.draw
+      ~Constant.get_sample_pulse
+      ~Constant.get_waveform
+      ~Constant.validate_parameters
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Constant.amp
+      ~Constant.id
+      ~Constant.parameters
    
    

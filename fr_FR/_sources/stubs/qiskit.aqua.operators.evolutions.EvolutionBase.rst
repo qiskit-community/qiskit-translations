@@ -1,29 +1,23 @@
-﻿
-
-EvolutionBase
+﻿qiskit.aqua.operators.evolutions.EvolutionBase
 ==============================================
 
 .. currentmodule:: qiskit.aqua.operators.evolutions
 
 .. autoclass:: EvolutionBase
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      EvolutionBase.convert
+      ~EvolutionBase.__init__
+      ~EvolutionBase.convert
+   
    
 
+   
    
    

@@ -1,6 +1,4 @@
-﻿
-
-cx
+﻿qiskit.pulse.builder.cx
 =======================
 
 .. currentmodule:: qiskit.pulse.builder

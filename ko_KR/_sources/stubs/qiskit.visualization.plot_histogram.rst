@@ -1,7 +1,5 @@
-﻿
-
-plot_histogram
-===================================
+﻿qiskit.visualization.plot\_histogram
+====================================
 
 .. currentmodule:: qiskit.visualization
 

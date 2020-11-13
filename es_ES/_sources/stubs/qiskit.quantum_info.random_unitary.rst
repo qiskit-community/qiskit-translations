@@ -1,7 +1,5 @@
-﻿
-
-random_unitary
-==================================
+﻿qiskit.quantum\_info.random\_unitary
+====================================
 
 .. currentmodule:: qiskit.quantum_info
 

@@ -1,41 +1,33 @@
-﻿
-
-RawFeatureVector
-====================================================
+﻿qiskit.aqua.components.feature\_maps.RawFeatureVector
+=====================================================
 
 .. currentmodule:: qiskit.aqua.components.feature_maps
 
 .. autoclass:: RawFeatureVector
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      RawFeatureVector.feature_dimension
-      RawFeatureVector.num_qubits
-      RawFeatureVector.support_parameterized_circuit
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      RawFeatureVector.construct_circuit
-      RawFeatureVector.get_entangler_map
-      RawFeatureVector.validate_entangler_map
+      ~RawFeatureVector.__init__
+      ~RawFeatureVector.construct_circuit
+      ~RawFeatureVector.get_entangler_map
+      ~RawFeatureVector.validate_entangler_map
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RawFeatureVector.feature_dimension
+      ~RawFeatureVector.num_qubits
+      ~RawFeatureVector.support_parameterized_circuit
    
    

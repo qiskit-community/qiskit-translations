@@ -1,29 +1,23 @@
-﻿
-
-ConverterBase
+﻿qiskit.aqua.operators.converters.ConverterBase
 ==============================================
 
 .. currentmodule:: qiskit.aqua.operators.converters
 
 .. autoclass:: ConverterBase
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      ConverterBase.convert
+      ~ConverterBase.__init__
+      ~ConverterBase.convert
+   
    
 
+   
    
    

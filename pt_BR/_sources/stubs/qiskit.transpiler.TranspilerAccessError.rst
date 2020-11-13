@@ -1,6 +1,4 @@
-﻿
-
-TranspilerAccessError
+﻿qiskit.transpiler.TranspilerAccessError
 =======================================
 
 .. currentmodule:: qiskit.transpiler

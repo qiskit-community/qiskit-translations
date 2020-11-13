@@ -1,7 +1,5 @@
-﻿
-
-circuit_to_instruction
-========================================
+﻿qiskit.converters.circuit\_to\_instruction
+==========================================
 
 .. currentmodule:: qiskit.converters
 

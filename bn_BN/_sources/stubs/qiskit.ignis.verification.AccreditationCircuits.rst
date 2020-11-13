@@ -1,30 +1,24 @@
-﻿
-
-AccreditationCircuits
+﻿qiskit.ignis.verification.AccreditationCircuits
 ===============================================
 
 .. currentmodule:: qiskit.ignis.verification
 
 .. autoclass:: AccreditationCircuits
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      AccreditationCircuits.generate_circuits
-      AccreditationCircuits.target_circuit
+      ~AccreditationCircuits.__init__
+      ~AccreditationCircuits.generate_circuits
+      ~AccreditationCircuits.target_circuit
+   
    
 
+   
    
    

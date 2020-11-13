@@ -1,39 +1,31 @@
-﻿
-
-Collect2qBlocks
+﻿qiskit.transpiler.passes.Collect2qBlocks
 ========================================
 
 .. currentmodule:: qiskit.transpiler.passes
 
 .. autoclass:: Collect2qBlocks
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      Collect2qBlocks.is_analysis_pass
-      Collect2qBlocks.is_transformation_pass
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Collect2qBlocks.name
-      Collect2qBlocks.run
+      ~Collect2qBlocks.__init__
+      ~Collect2qBlocks.name
+      ~Collect2qBlocks.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Collect2qBlocks.is_analysis_pass
+      ~Collect2qBlocks.is_transformation_pass
    
    

@@ -1,37 +1,29 @@
-﻿
-
-ClassicalAlgorithm
+﻿qiskit.aqua.algorithms.ClassicalAlgorithm
 =========================================
 
 .. currentmodule:: qiskit.aqua.algorithms
 
 .. autoclass:: ClassicalAlgorithm
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      ClassicalAlgorithm.random
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      ClassicalAlgorithm.run
+      ~ClassicalAlgorithm.__init__
+      ~ClassicalAlgorithm.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ClassicalAlgorithm.random
    
    

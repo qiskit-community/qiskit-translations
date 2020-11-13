@@ -1,7 +1,5 @@
-﻿
-
-breast_cancer
-================================
+﻿qiskit.ml.datasets.breast\_cancer
+=================================
 
 .. currentmodule:: qiskit.ml.datasets
 

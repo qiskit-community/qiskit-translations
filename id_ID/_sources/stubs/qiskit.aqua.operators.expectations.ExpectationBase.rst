@@ -1,30 +1,24 @@
-﻿
-
-ExpectationBase
+﻿qiskit.aqua.operators.expectations.ExpectationBase
 ==================================================
 
 .. currentmodule:: qiskit.aqua.operators.expectations
 
 .. autoclass:: ExpectationBase
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      ExpectationBase.compute_variance
-      ExpectationBase.convert
+      ~ExpectationBase.__init__
+      ~ExpectationBase.compute_variance
+      ~ExpectationBase.convert
+   
    
 
+   
    
    

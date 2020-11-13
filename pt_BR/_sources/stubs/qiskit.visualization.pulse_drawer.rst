@@ -1,7 +1,5 @@
-﻿
-
-pulse_drawer
-=================================
+﻿qiskit.visualization.pulse\_drawer
+==================================
 
 .. currentmodule:: qiskit.visualization
 

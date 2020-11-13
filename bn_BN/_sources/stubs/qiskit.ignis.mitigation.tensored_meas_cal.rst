@@ -1,7 +1,5 @@
-﻿
-
-tensored_meas_cal
-=========================================
+﻿qiskit.ignis.mitigation.tensored\_meas\_cal
+===========================================
 
 .. currentmodule:: qiskit.ignis.mitigation
 

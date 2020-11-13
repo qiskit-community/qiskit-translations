@@ -1,7 +1,5 @@
-﻿
-
-process_fidelity
-====================================
+﻿qiskit.quantum\_info.process\_fidelity
+======================================
 
 .. currentmodule:: qiskit.quantum_info
 

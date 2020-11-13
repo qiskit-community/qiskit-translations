@@ -1,6 +1,4 @@
-﻿
-
-IBMQAccountCredentialsNotFound
+﻿qiskit.providers.ibmq.IBMQAccountCredentialsNotFound
 ====================================================
 
 .. currentmodule:: qiskit.providers.ibmq

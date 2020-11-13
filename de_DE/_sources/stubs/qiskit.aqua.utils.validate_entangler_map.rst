@@ -1,7 +1,5 @@
-﻿
-
-validate_entangler_map
-========================================
+﻿qiskit.aqua.utils.validate\_entangler\_map
+==========================================
 
 .. currentmodule:: qiskit.aqua.utils
 

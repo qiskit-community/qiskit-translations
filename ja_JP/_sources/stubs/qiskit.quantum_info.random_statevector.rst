@@ -1,7 +1,5 @@
-﻿
-
-random_statevector
-======================================
+﻿qiskit.quantum\_info.random\_statevector
+========================================
 
 .. currentmodule:: qiskit.quantum_info
 

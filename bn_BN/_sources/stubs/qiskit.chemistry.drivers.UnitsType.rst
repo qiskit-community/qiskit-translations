@@ -1,28 +1,23 @@
-﻿
-
-UnitsType
+﻿qiskit.chemistry.drivers.UnitsType
 ==================================
 
 .. currentmodule:: qiskit.chemistry.drivers
 
 .. autoclass:: UnitsType
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
+
+   
+   .. automethod:: __init__
 
    
    
 
+   
+   
    .. rubric:: Attributes
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      UnitsType.ANGSTROM
-      UnitsType.BOHR
-   
-   
-
-   
+      ~UnitsType.ANGSTROM
+      ~UnitsType.BOHR
    
    

@@ -1,6 +1,4 @@
-﻿
-
-DAGCircuitError
+﻿qiskit.dagcircuit.DAGCircuitError
 =================================
 
 .. currentmodule:: qiskit.dagcircuit

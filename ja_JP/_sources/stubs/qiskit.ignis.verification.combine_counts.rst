@@ -1,7 +1,5 @@
-﻿
-
-combine_counts
-========================================
+﻿qiskit.ignis.verification.combine\_counts
+=========================================
 
 .. currentmodule:: qiskit.ignis.verification
 

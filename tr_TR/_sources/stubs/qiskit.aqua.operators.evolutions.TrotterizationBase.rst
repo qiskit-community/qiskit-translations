@@ -1,37 +1,29 @@
-﻿
-
-TrotterizationBase
+﻿qiskit.aqua.operators.evolutions.TrotterizationBase
 ===================================================
 
 .. currentmodule:: qiskit.aqua.operators.evolutions
 
 .. autoclass:: TrotterizationBase
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      TrotterizationBase.reps
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      TrotterizationBase.convert
+      ~TrotterizationBase.__init__
+      ~TrotterizationBase.convert
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~TrotterizationBase.reps
    
    

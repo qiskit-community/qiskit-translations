@@ -1,55 +1,44 @@
-﻿
-
-AmplitudeEstimationAlgorithmResult
+﻿qiskit.aqua.algorithms.AmplitudeEstimationAlgorithmResult
 =========================================================
 
 .. currentmodule:: qiskit.aqua.algorithms
 
 .. autoclass:: AmplitudeEstimationAlgorithmResult
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      AmplitudeEstimationAlgorithmResult.a_estimation
-      AmplitudeEstimationAlgorithmResult.confidence_interval
-      AmplitudeEstimationAlgorithmResult.estimation
-      AmplitudeEstimationAlgorithmResult.num_oracle_queries
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      AmplitudeEstimationAlgorithmResult.__getitem__
-      AmplitudeEstimationAlgorithmResult.__len__
-      AmplitudeEstimationAlgorithmResult.clear
-      AmplitudeEstimationAlgorithmResult.combine
-      AmplitudeEstimationAlgorithmResult.copy
-      AmplitudeEstimationAlgorithmResult.from_dict
-      AmplitudeEstimationAlgorithmResult.fromkeys
-      AmplitudeEstimationAlgorithmResult.get
-      AmplitudeEstimationAlgorithmResult.items
-      AmplitudeEstimationAlgorithmResult.keys
-      AmplitudeEstimationAlgorithmResult.pop
-      AmplitudeEstimationAlgorithmResult.popitem
-      AmplitudeEstimationAlgorithmResult.setdefault
-      AmplitudeEstimationAlgorithmResult.update
-      AmplitudeEstimationAlgorithmResult.values
+      ~AmplitudeEstimationAlgorithmResult.__init__
+      ~AmplitudeEstimationAlgorithmResult.clear
+      ~AmplitudeEstimationAlgorithmResult.combine
+      ~AmplitudeEstimationAlgorithmResult.copy
+      ~AmplitudeEstimationAlgorithmResult.from_dict
+      ~AmplitudeEstimationAlgorithmResult.fromkeys
+      ~AmplitudeEstimationAlgorithmResult.get
+      ~AmplitudeEstimationAlgorithmResult.items
+      ~AmplitudeEstimationAlgorithmResult.keys
+      ~AmplitudeEstimationAlgorithmResult.pop
+      ~AmplitudeEstimationAlgorithmResult.popitem
+      ~AmplitudeEstimationAlgorithmResult.setdefault
+      ~AmplitudeEstimationAlgorithmResult.update
+      ~AmplitudeEstimationAlgorithmResult.values
    
-      AmplitudeEstimationAlgorithmResult.__len__
+   
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~AmplitudeEstimationAlgorithmResult.a_estimation
+      ~AmplitudeEstimationAlgorithmResult.confidence_interval
+      ~AmplitudeEstimationAlgorithmResult.estimation
+      ~AmplitudeEstimationAlgorithmResult.num_oracle_queries
    
    

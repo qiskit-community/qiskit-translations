@@ -1,7 +1,5 @@
-﻿
-
-mixed_unitary_error
-==============================================
+﻿qiskit.providers.aer.noise.mixed\_unitary\_error
+================================================
 
 .. currentmodule:: qiskit.providers.aer.noise
 

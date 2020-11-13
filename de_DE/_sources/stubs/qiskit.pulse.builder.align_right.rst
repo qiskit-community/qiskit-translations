@@ -1,7 +1,5 @@
-﻿
-
-align_right
-================================
+﻿qiskit.pulse.builder.align\_right
+=================================
 
 .. currentmodule:: qiskit.pulse.builder
 

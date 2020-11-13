@@ -1,7 +1,5 @@
-﻿
-
-optimize_svm
-==============================
+﻿qiskit.aqua.utils.optimize\_svm
+===============================
 
 .. currentmodule:: qiskit.aqua.utils
 

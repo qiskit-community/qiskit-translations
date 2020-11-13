@@ -1,39 +1,31 @@
-﻿
-
-CheckMap
+﻿qiskit.transpiler.passes.CheckMap
 =================================
 
 .. currentmodule:: qiskit.transpiler.passes
 
 .. autoclass:: CheckMap
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      CheckMap.is_analysis_pass
-      CheckMap.is_transformation_pass
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      CheckMap.name
-      CheckMap.run
+      ~CheckMap.__init__
+      ~CheckMap.name
+      ~CheckMap.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CheckMap.is_analysis_pass
+      ~CheckMap.is_transformation_pass
    
    

@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Device backend noise model simulations &mdash; Qiskit 0.23.0 Dokumentation</title>
+  <title>Device backend noise model simulations &mdash; Qiskit 0.23.1 Dokumentation</title>
   
 
   
@@ -498,12 +498,10 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">Aer</span><span class="p">,</span> <span class="n">IBMQ</span><span class="p">,</span> <span class="n">execute</span>
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">ClassicalRegister</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">IBMQ</span><span class="p">,</span> <span class="n">execute</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers.aer</span> <span class="kn">import</span> <span class="n">QasmSimulator</span>
 <span class="kn">from</span> <span class="nn">qiskit.tools.visualization</span> <span class="kn">import</span> <span class="n">plot_histogram</span>
-<span class="kn">from</span> <span class="nn">qiskit.tools.monitor</span> <span class="kn">import</span> <span class="n">job_monitor</span>
-
-<span class="kn">from</span> <span class="nn">qiskit.providers.aer.noise</span> <span class="kn">import</span> <span class="n">NoiseModel</span>
 </pre></div>
 </div>
 </div>
@@ -519,19 +517,14 @@ div.rendered_html tbody tr:hover {
 </ul>
 <div class="section" id="Terra-Mock-Backends">
 <h3>Terra Mock Backends<a class="headerlink" href="#Terra-Mock-Backends" title="Link zu dieser Überschrift">¶</a></h3>
-<p>We will use real noise data for an IBM Quantum device using the date stored in Qiskit Terra</p>
-<p>We will use the <code class="docutils literal notranslate"><span class="pre">ibmq_vigo</span></code> device for this tutorial. We will also want to get the <code class="docutils literal notranslate"><span class="pre">coupling_map</span></code> for the device from its <code class="docutils literal notranslate"><span class="pre">configuration</span></code> to use when compiling circuits for simulation to most closely mimic the gates that will be executed on a real device.</p>
+<p>We will use real noise data for an IBM Quantum device using the date stored in Qiskit Terra. Specifically, in this tutorial, the device is <code class="docutils literal notranslate"><span class="pre">ibmq_vigo</span></code>.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">qiskit.test.mock</span> <span class="kn">import</span> <span class="n">FakeVigo</span>
 <span class="n">device_backend</span> <span class="o">=</span> <span class="n">FakeVigo</span><span class="p">()</span>
-
-<span class="c1"># The device coupling map is needed for transpiling to correct</span>
-<span class="c1"># CNOT gates before simulation</span>
-<span class="n">coupling_map</span> <span class="o">=</span> <span class="n">device_backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">coupling_map</span>
 </pre></div>
 </div>
 </div>
@@ -540,7 +533,7 @@ div.rendered_html tbody tr:hover {
 <h3>Test circuit for device and simulation comparison<a class="headerlink" href="#Test-circuit-for-device-and-simulation-comparison" title="Link zu dieser Überschrift">¶</a></h3>
 <p>Now we construct a test circuit to compare the output of the real device with the noisy output simulated on the Qiskit Aer <code class="docutils literal notranslate"><span class="pre">QasmSimulator</span></code>. We will prepare a 3-qubit GHZ state <span class="math notranslate nohighlight">\(\frac{1}{2}(|0,0,0\rangle + |1,1,1\rangle)\)</span> on qubits 0, 1 and 2. Before running with noise or on the device we show the ideal expected output with no noise.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -551,32 +544,38 @@ div.rendered_html tbody tr:hover {
 <span class="n">circ</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 <span class="n">circ</span><span class="o">.</span><span class="n">measure</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 
-<span class="c1"># Select the QasmSimulator from the Aer provider</span>
-<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">)</span>
+<span class="n">ideal_simulator</span> <span class="o">=</span> <span class="n">QasmSimulator</span><span class="p">()</span>
 
 <span class="c1"># Execute and get counts</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">ideal_simulator</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
 <span class="n">counts</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
 <span class="n">plot_histogram</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Ideal counts for 3-qubit GHZ state&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_simulators_2_device_noise_simulation_7_0.png" src="../../_images/tutorials_simulators_2_device_noise_simulation_7_0.png" />
+<img alt="../../_images/tutorials_simulators_2_device_noise_simulation_6_0.png" src="../../_images/tutorials_simulators_2_device_noise_simulation_6_0.png" />
 </div>
 </div>
 </div>
 </div>
-<div class="section" id="Generating-a-device-backend-noise-model">
-<h2>Generating a device backend noise model<a class="headerlink" href="#Generating-a-device-backend-noise-model" title="Link zu dieser Überschrift">¶</a></h2>
-<p>Noise models in Qiskit Aer are presented using the <code class="docutils literal notranslate"><span class="pre">NoiseModel</span></code> object from the <code class="docutils literal notranslate"><span class="pre">noise</span></code> module. The <code class="docutils literal notranslate"><span class="pre">NoiseModel</span></code> class has a <code class="docutils literal notranslate"><span class="pre">from_backend</span></code> method which will return a basic approximate <code class="docutils literal notranslate"><span class="pre">NoiseModel</span></code> object configured from a devices <code class="docutils literal notranslate"><span class="pre">BackendProperties</span></code>.</p>
-<div class="section" id="Backend-noise-model">
-<h3>Backend noise model<a class="headerlink" href="#Backend-noise-model" title="Link zu dieser Überschrift">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">NoiseModel.from_backend</span></code> method constructs an approximate noise model consisting of:</p>
+<div class="section" id="Generating-a-simulator-that-mimics-a-device">
+<h2>Generating a simulator that mimics a device<a class="headerlink" href="#Generating-a-simulator-that-mimics-a-device" title="Link zu dieser Überschrift">¶</a></h2>
+<p>We call <code class="docutils literal notranslate"><span class="pre">from_backend</span></code> to create a simulator for <code class="docutils literal notranslate"><span class="pre">ibmq_vigo</span></code>:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">vigo_simulator</span> <span class="o">=</span> <span class="n">QasmSimulator</span><span class="o">.</span><span class="n">from_backend</span><span class="p">(</span><span class="n">device_backend</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>By storing the device properties in <code class="docutils literal notranslate"><span class="pre">vigo_simulator</span></code>, we ensure that the appropriate basis gates and coupling map are used when compiling circuits for simulation, thereby most closely mimicking the gates that will be executed on a real device. In addition <code class="docutils literal notranslate"><span class="pre">vigo_simulator</span></code> contains an approximate noise model consisting of:</p>
 <ul class="simple">
 <li><p><strong>Single-qubit gate errors</strong> consisting of a single qubit depolarizing error followed by a single qubit thermal relaxation error.</p></li>
 <li><p><strong>Two-qubit gate errors</strong> consisting of a two-qubit depolarizing error followed by single-qubit thermal relaxation errors on both qubits in the gate.</p></li>
@@ -585,73 +584,28 @@ div.rendered_html tbody tr:hover {
 <p>For the gate errors the error parameter of the thermal relaxation errors is derived using the <code class="docutils literal notranslate"><span class="pre">thermal_relaxation_error</span></code> function from <code class="docutils literal notranslate"><span class="pre">aer.noise.errors</span></code> module, along with the individual qubit <span class="math notranslate nohighlight">\(T_1\)</span> and <span class="math notranslate nohighlight">\(T_2\)</span> parameters, and the <code class="docutils literal notranslate"><span class="pre">gate_time</span></code> parameter from the device backend properties. The probability of the depolarizing error is then set so that the combined average gate infidelity from the depolarizing error followed by the thermal relaxation is equal to the <code class="docutils literal notranslate"><span class="pre">gate_error</span></code>
 value from the backend properties.</p>
 <p>For the readout errors the probability that the recorded classical bit value will be flipped from the true outcome after a measurement is given by the qubit <code class="docutils literal notranslate"><span class="pre">readout_errors</span></code>.</p>
-<p>Let us construct the device noise model.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Construct the noise model from backend properties</span>
-<span class="n">noise_model</span> <span class="o">=</span> <span class="n">NoiseModel</span><span class="o">.</span><span class="n">from_backend</span><span class="p">(</span><span class="n">device_backend</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">noise_model</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-NoiseModel:
-  Basis gates: [&#39;cx&#39;, &#39;id&#39;, &#39;u2&#39;, &#39;u3&#39;]
-  Instructions with noise: [&#39;id&#39;, &#39;cx&#39;, &#39;u2&#39;, &#39;measure&#39;, &#39;u3&#39;]
-  Qubits with noise: [0, 1, 2, 3, 4]
-  Specific qubit errors: [(&#39;id&#39;, [0]), (&#39;id&#39;, [1]), (&#39;id&#39;, [2]), (&#39;id&#39;, [3]), (&#39;id&#39;, [4]), (&#39;u2&#39;, [0]), (&#39;u2&#39;, [1]), (&#39;u2&#39;, [2]), (&#39;u2&#39;, [3]), (&#39;u2&#39;, [4]), (&#39;u3&#39;, [0]), (&#39;u3&#39;, [1]), (&#39;u3&#39;, [2]), (&#39;u3&#39;, [3]), (&#39;u3&#39;, [4]), (&#39;cx&#39;, [0, 1]), (&#39;cx&#39;, [1, 0]), (&#39;cx&#39;, [1, 2]), (&#39;cx&#39;, [1, 3]), (&#39;cx&#39;, [2, 1]), (&#39;cx&#39;, [3, 1]), (&#39;cx&#39;, [3, 4]), (&#39;cx&#39;, [4, 3]), (&#39;measure&#39;, [0]), (&#39;measure&#39;, [1]), (&#39;measure&#39;, [2]), (&#39;measure&#39;, [3]), (&#39;measure&#39;, [4])]
-</pre></div></div>
-</div>
-</div>
-</div>
-<div class="section" id="Simulating-a-quantum-circuit-with-noise">
-<h2>Simulating a quantum circuit with noise<a class="headerlink" href="#Simulating-a-quantum-circuit-with-noise" title="Link zu dieser Überschrift">¶</a></h2>
-<p>To use this noise model we must make use of several keyword arguments in the <code class="docutils literal notranslate"><span class="pre">execute</span></code> function. These are:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">noise_model</span></code>: This passes the noise model to the <code class="docutils literal notranslate"><span class="pre">QasmSimulator.run</span></code> method for noisy simulation.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">basis_gates</span></code>: A noise model is defined with respect to specific gates, we must pass these basis gates to the Qiskit compiler so that it compiles the circuit to the correct gates for the noise model. The basis gates of a noise model may be obtained from the <code class="docutils literal notranslate"><span class="pre">NoiseModel.basis_gates</span></code> property.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">coupling_map</span></code>: We also must make sure we provide the <code class="docutils literal notranslate"><span class="pre">coupling_map</span></code> for the real device so that the compiler will produce a <code class="docutils literal notranslate"><span class="pre">Qobj</span></code> for the simulator that will match the compiled experiment that can be executed on the real device.</p></li>
-</ul>
-<div class="section" id="Local-Simulator">
-<h3>Local Simulator<a class="headerlink" href="#Local-Simulator" title="Link zu dieser Überschrift">¶</a></h3>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Get the basis gates for the noise model</span>
-<span class="n">basis_gates</span> <span class="o">=</span> <span class="n">noise_model</span><span class="o">.</span><span class="n">basis_gates</span>
-
-<span class="c1"># Select the QasmSimulator from the Aer provider</span>
-<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">)</span>
-
-<span class="c1"># Execute noisy simulation and get counts</span>
-<span class="n">result_noise</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">,</span>
-                       <span class="n">noise_model</span><span class="o">=</span><span class="n">noise_model</span><span class="p">,</span>
-                       <span class="n">coupling_map</span><span class="o">=</span><span class="n">coupling_map</span><span class="p">,</span>
-                       <span class="n">basis_gates</span><span class="o">=</span><span class="n">basis_gates</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span></span><span class="c1"># Execute noisy simulation and get counts</span>
+<span class="n">result_noise</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">vigo_simulator</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
 <span class="n">counts_noise</span> <span class="o">=</span> <span class="n">result_noise</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
-<span class="n">plot_histogram</span><span class="p">(</span><span class="n">counts_noise</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Counts for 3-qubit GHZ state with depolarizing noise model&quot;</span><span class="p">)</span>
+<span class="n">plot_histogram</span><span class="p">(</span><span class="n">counts_noise</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Counts for 3-qubit GHZ state with device noise model&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_simulators_2_device_noise_simulation_11_0.png" src="../../_images/tutorials_simulators_2_device_noise_simulation_11_0.png" />
+<img alt="../../_images/tutorials_simulators_2_device_noise_simulation_10_0.png" src="../../_images/tutorials_simulators_2_device_noise_simulation_10_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -665,8 +619,8 @@ NoiseModel:
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.12.0.dev0+62adde9</td></tr><tr><td>Aer</td><td>0.4.0</td></tr><tr><td>Ignis</td><td>0.3.0.dev0+829207f</td></tr><tr><td>Aqua</td><td>0.7.0.dev0+2776c5d</td></tr><tr><td>IBM Q Provider</td><td>0.4.6rc1</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.3 | packaged by conda-forge | (default, Jul  1 2019, 14:38:56)
-[Clang 4.0.1 (tags/RELEASE_401/final)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>6</td></tr><tr><td>Memory (Gb)</td><td>32.0</td></tr><tr><td colspan='2'>Thu Feb 06 16:19:40 2020 PST</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.23.0</td></tr><tr><td>Terra</td><td>0.16.0</td></tr><tr><td>Aer</td><td>0.7.0</td></tr><tr><td>Ignis</td><td>0.5.0</td></tr><tr><td>Aqua</td><td>0.8.0</td></tr><tr><td>IBM Q Provider</td><td>0.11.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.6.8 |Anaconda, Inc.| (default, Dec 30 2018, 01:22:34)
+[GCC 7.3.0]</td></tr><tr><td>OS</td><td>Linux</td></tr><tr><td>CPUs</td><td>8</td></tr><tr><td>Memory (Gb)</td><td>62.916805267333984</td></tr><tr><td colspan='2'>Wed Nov 11 15:03:29 2020 IST</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -681,7 +635,6 @@ NoiseModel:
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span>
 </pre></div>
-</div>
 </div>
 </div>
 </div>
@@ -712,7 +665,7 @@ NoiseModel:
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Qiskit Development Team.
-      Zuletzt aktualisiert am 2020/11/11.
+      Zuletzt aktualisiert am 2020/11/13.
 
     </p>
   </div>
@@ -738,14 +691,7 @@ NoiseModel:
 <li><a class="reference internal" href="#Test-circuit-for-device-and-simulation-comparison">Test circuit for device and simulation comparison</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#Generating-a-device-backend-noise-model">Generating a device backend noise model</a><ul>
-<li><a class="reference internal" href="#Backend-noise-model">Backend noise model</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#Simulating-a-quantum-circuit-with-noise">Simulating a quantum circuit with noise</a><ul>
-<li><a class="reference internal" href="#Local-Simulator">Local Simulator</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#Generating-a-simulator-that-mimics-a-device">Generating a simulator that mimics a device</a></li>
 </ul>
 </li>
 </ul>

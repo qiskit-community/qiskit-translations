@@ -1,7 +1,5 @@
-﻿
-
-process_tomography_circuits
-=====================================================
+﻿qiskit.ignis.verification.process\_tomography\_circuits
+=======================================================
 
 .. currentmodule:: qiskit.ignis.verification
 

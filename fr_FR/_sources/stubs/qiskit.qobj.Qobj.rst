@@ -1,30 +1,24 @@
-﻿
-
-Qobj
+﻿qiskit.qobj.Qobj
 ================
 
 .. currentmodule:: qiskit.qobj
 
 .. autoclass:: Qobj
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Qobj.from_dict
-      Qobj.to_dict
+      ~Qobj.__init__
+      ~Qobj.from_dict
+      ~Qobj.to_dict
+   
    
 
+   
    
    

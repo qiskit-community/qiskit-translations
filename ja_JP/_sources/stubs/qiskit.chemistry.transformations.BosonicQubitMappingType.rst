@@ -1,27 +1,22 @@
-﻿
-
-BosonicQubitMappingType
+﻿qiskit.chemistry.transformations.BosonicQubitMappingType
 ========================================================
 
 .. currentmodule:: qiskit.chemistry.transformations
 
 .. autoclass:: BosonicQubitMappingType
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
+
+   
+   .. automethod:: __init__
 
    
    
 
+   
+   
    .. rubric:: Attributes
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      BosonicQubitMappingType.DIRECT
-   
-   
-
-   
+      ~BosonicQubitMappingType.DIRECT
    
    

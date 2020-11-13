@@ -1,7 +1,5 @@
-﻿
-
-assemble_schedules
-===================================
+﻿qiskit.assembler.assemble\_schedules
+====================================
 
 .. currentmodule:: qiskit.assembler
 

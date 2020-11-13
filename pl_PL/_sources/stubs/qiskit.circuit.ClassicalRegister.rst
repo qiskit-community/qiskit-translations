@@ -1,44 +1,32 @@
-﻿
-
-ClassicalRegister
+﻿qiskit.circuit.ClassicalRegister
 ================================
 
 .. currentmodule:: qiskit.circuit
 
 .. autoclass:: ClassicalRegister
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      ClassicalRegister.instances_counter
-      ClassicalRegister.name
-      ClassicalRegister.prefix
-      ClassicalRegister.size
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      ClassicalRegister.__getitem__
-      ClassicalRegister.__len__
-      ClassicalRegister.qasm
+      ~ClassicalRegister.__init__
+      ~ClassicalRegister.qasm
    
-      ClassicalRegister.__len__
-      ClassicalRegister.__getitem__
+   
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ClassicalRegister.instances_counter
+      ~ClassicalRegister.name
+      ~ClassicalRegister.prefix
+      ~ClassicalRegister.size
    
    

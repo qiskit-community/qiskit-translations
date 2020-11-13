@@ -1,38 +1,30 @@
-﻿
-
-MemorySlot
+﻿qiskit.pulse.MemorySlot
 =======================
 
 .. currentmodule:: qiskit.pulse
 
 .. autoclass:: MemorySlot
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      MemorySlot.index
-      MemorySlot.name
-      MemorySlot.prefix
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
+   
+      ~MemorySlot.__init__
    
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemorySlot.index
+      ~MemorySlot.name
+      ~MemorySlot.prefix
    
    

@@ -1,9 +1,11 @@
-﻿
-
-schedule_circuit
-=================================
+﻿qiskit.scheduler.schedule\_circuit
+==================================
 
 .. automodule:: qiskit.scheduler.schedule_circuit
+
+   
+   
+   
 
    
    
@@ -22,3 +24,6 @@ schedule_circuit
    
    
    
+
+
+

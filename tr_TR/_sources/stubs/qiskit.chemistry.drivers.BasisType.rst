@@ -1,29 +1,24 @@
-﻿
-
-BasisType
+﻿qiskit.chemistry.drivers.BasisType
 ==================================
 
 .. currentmodule:: qiskit.chemistry.drivers
 
 .. autoclass:: BasisType
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
+
+   
+   .. automethod:: __init__
 
    
    
 
+   
+   
    .. rubric:: Attributes
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      BasisType.B631G
-      BasisType.B631GSS
-      BasisType.BSTO3G
-   
-   
-
-   
+      ~BasisType.B631G
+      ~BasisType.B631GSS
+      ~BasisType.BSTO3G
    
    

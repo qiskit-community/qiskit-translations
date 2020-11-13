@@ -1,28 +1,22 @@
-﻿
-
-ADMMState
+﻿qiskit.optimization.algorithms.ADMMState
 ========================================
 
 .. currentmodule:: qiskit.optimization.algorithms
 
 .. autoclass:: ADMMState
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
+   
+      ~ADMMState.__init__
    
    
 
+   
    
    

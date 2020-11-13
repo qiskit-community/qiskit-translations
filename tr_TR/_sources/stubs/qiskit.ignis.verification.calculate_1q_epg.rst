@@ -1,7 +1,5 @@
-﻿
-
-calculate_1q_epg
-==========================================
+﻿qiskit.ignis.verification.calculate\_1q\_epg
+============================================
 
 .. currentmodule:: qiskit.ignis.verification
 

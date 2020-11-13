@@ -1,9 +1,11 @@
-﻿
-
-qiskit.optimization.applications.ising.partition
+﻿qiskit.optimization.applications.ising.partition
 ================================================
 
 .. automodule:: qiskit.optimization.applications.ising.partition
+
+   
+   
+   
 
    
    
@@ -23,3 +25,6 @@ qiskit.optimization.applications.ising.partition
    
    
    
+
+
+

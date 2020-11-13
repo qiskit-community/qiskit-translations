@@ -1,7 +1,5 @@
-﻿
-
-name_args
-===========================
+﻿qiskit.aqua.utils.name\_args
+============================
 
 .. currentmodule:: qiskit.aqua.utils
 

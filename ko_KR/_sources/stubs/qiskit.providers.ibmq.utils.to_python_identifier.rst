@@ -1,7 +1,5 @@
-﻿
-
-to_python_identifier
-================================================
+﻿qiskit.providers.ibmq.utils.to\_python\_identifier
+==================================================
 
 .. currentmodule:: qiskit.providers.ibmq.utils
 

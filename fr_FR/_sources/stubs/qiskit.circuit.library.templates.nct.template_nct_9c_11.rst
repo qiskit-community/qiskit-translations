@@ -1,7 +1,5 @@
-﻿
-
-template_nct_9c_11
-=======================================================
+﻿qiskit.circuit.library.templates.nct.template\_nct\_9c\_11
+==========================================================
 
 .. currentmodule:: qiskit.circuit.library.templates.nct
 

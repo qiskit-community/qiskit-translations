@@ -1,6 +1,4 @@
-﻿
-
-IBMQBackendApiProtocolError
+﻿qiskit.providers.ibmq.IBMQBackendApiProtocolError
 =================================================
 
 .. currentmodule:: qiskit.providers.ibmq

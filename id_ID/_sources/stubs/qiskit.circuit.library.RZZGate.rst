@@ -1,56 +1,48 @@
-﻿
-
-RZZGate
+﻿qiskit.circuit.library.RZZGate
 ==============================
 
 .. currentmodule:: qiskit.circuit.library
 
 .. autoclass:: RZZGate
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      RZZGate.decompositions
-      RZZGate.definition
-      RZZGate.duration
-      RZZGate.label
-      RZZGate.params
-      RZZGate.unit
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      RZZGate.add_decomposition
-      RZZGate.assemble
-      RZZGate.broadcast_arguments
-      RZZGate.c_if
-      RZZGate.control
-      RZZGate.copy
-      RZZGate.inverse
-      RZZGate.is_parameterized
-      RZZGate.mirror
-      RZZGate.power
-      RZZGate.qasm
-      RZZGate.repeat
-      RZZGate.reverse_ops
-      RZZGate.to_matrix
-      RZZGate.validate_parameter
+      ~RZZGate.__init__
+      ~RZZGate.add_decomposition
+      ~RZZGate.assemble
+      ~RZZGate.broadcast_arguments
+      ~RZZGate.c_if
+      ~RZZGate.control
+      ~RZZGate.copy
+      ~RZZGate.inverse
+      ~RZZGate.is_parameterized
+      ~RZZGate.mirror
+      ~RZZGate.power
+      ~RZZGate.qasm
+      ~RZZGate.repeat
+      ~RZZGate.reverse_ops
+      ~RZZGate.to_matrix
+      ~RZZGate.validate_parameter
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RZZGate.decompositions
+      ~RZZGate.definition
+      ~RZZGate.duration
+      ~RZZGate.label
+      ~RZZGate.params
+      ~RZZGate.unit
    
    

@@ -1,7 +1,5 @@
-﻿
-
-expectation_value
-=========================================
+﻿qiskit.ignis.mitigation.expectation\_value
+==========================================
 
 .. currentmodule:: qiskit.ignis.mitigation
 

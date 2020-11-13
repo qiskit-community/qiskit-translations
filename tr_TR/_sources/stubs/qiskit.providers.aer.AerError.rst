@@ -1,6 +1,4 @@
-﻿
-
-AerError
+﻿qiskit.providers.aer.AerError
 =============================
 
 .. currentmodule:: qiskit.providers.aer

@@ -1,7 +1,5 @@
-﻿
-
-validate_json_against_schema
-=========================================================
+﻿qiskit.validation.jsonschema.validate\_json\_against\_schema
+============================================================
 
 .. currentmodule:: qiskit.validation.jsonschema
 

@@ -1,7 +1,5 @@
-﻿
-
-validate_job_tags
-=============================================
+﻿qiskit.providers.ibmq.utils.validate\_job\_tags
+===============================================
 
 .. currentmodule:: qiskit.providers.ibmq.utils
 

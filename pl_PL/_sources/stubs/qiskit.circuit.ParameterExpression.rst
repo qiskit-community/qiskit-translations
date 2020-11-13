@@ -1,41 +1,32 @@
-﻿
-
-ParameterExpression
+﻿qiskit.circuit.ParameterExpression
 ==================================
 
 .. currentmodule:: qiskit.circuit
 
 .. autoclass:: ParameterExpression
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      ParameterExpression.parameters
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      ParameterExpression.__mul__
-      ParameterExpression.assign
-      ParameterExpression.bind
-      ParameterExpression.conjugate
-      ParameterExpression.subs
+      ~ParameterExpression.__init__
+      ~ParameterExpression.assign
+      ~ParameterExpression.bind
+      ~ParameterExpression.conjugate
+      ~ParameterExpression.subs
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ParameterExpression.parameters
    
    

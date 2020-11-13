@@ -1,7 +1,5 @@
-﻿
-
-anglecal_cx_circuits
-==================================================
+﻿qiskit.ignis.characterization.anglecal\_cx\_circuits
+====================================================
 
 .. currentmodule:: qiskit.ignis.characterization
 

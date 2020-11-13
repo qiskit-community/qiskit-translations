@@ -1,7 +1,5 @@
-﻿
-
-has_aer
-=========================
+﻿qiskit.aqua.utils.has\_aer
+==========================
 
 .. currentmodule:: qiskit.aqua.utils
 

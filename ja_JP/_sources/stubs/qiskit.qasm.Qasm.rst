@@ -1,31 +1,25 @@
-﻿
-
-Qasm
+﻿qiskit.qasm.Qasm
 ================
 
 .. currentmodule:: qiskit.qasm
 
 .. autoclass:: Qasm
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Qasm.generate_tokens
-      Qasm.parse
-      Qasm.return_filename
+      ~Qasm.__init__
+      ~Qasm.generate_tokens
+      ~Qasm.parse
+      ~Qasm.return_filename
+   
    
 
+   
    
    

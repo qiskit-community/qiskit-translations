@@ -1,7 +1,5 @@
-﻿
-
-thermal_relaxation_error
-===================================================
+﻿qiskit.providers.aer.noise.thermal\_relaxation\_error
+=====================================================
 
 .. currentmodule:: qiskit.providers.aer.noise
 

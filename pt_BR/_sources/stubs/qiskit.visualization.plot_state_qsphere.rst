@@ -1,7 +1,5 @@
-﻿
-
-plot_state_qsphere
-=======================================
+﻿qiskit.visualization.plot\_state\_qsphere
+=========================================
 
 .. currentmodule:: qiskit.visualization
 

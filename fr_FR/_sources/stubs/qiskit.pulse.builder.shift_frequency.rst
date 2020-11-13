@@ -1,7 +1,5 @@
-﻿
-
-shift_frequency
-====================================
+﻿qiskit.pulse.builder.shift\_frequency
+=====================================
 
 .. currentmodule:: qiskit.pulse.builder
 

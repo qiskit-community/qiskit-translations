@@ -1,7 +1,5 @@
-﻿
-
-dag_drawer
-===============================
+﻿qiskit.visualization.dag\_drawer
+================================
 
 .. currentmodule:: qiskit.visualization
 

@@ -1,7 +1,5 @@
-﻿
-
-frequency_offset
-=====================================
+﻿qiskit.pulse.builder.frequency\_offset
+======================================
 
 .. currentmodule:: qiskit.pulse.builder
 

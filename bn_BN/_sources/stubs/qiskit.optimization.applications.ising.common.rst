@@ -1,9 +1,11 @@
-﻿
-
-qiskit.optimization.applications.ising.common
+﻿qiskit.optimization.applications.ising.common
 =============================================
 
 .. automodule:: qiskit.optimization.applications.ising.common
+
+   
+   
+   
 
    
    
@@ -27,3 +29,6 @@ qiskit.optimization.applications.ising.common
    
    
    
+
+
+

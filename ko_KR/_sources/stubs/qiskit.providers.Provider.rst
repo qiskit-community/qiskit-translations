@@ -1,36 +1,28 @@
-﻿
-
-Provider
+﻿qiskit.providers.Provider
 =========================
 
 .. currentmodule:: qiskit.providers
 
 .. autoclass:: Provider
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      Provider.version
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
+   
+      ~Provider.__init__
    
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Provider.version
    
    

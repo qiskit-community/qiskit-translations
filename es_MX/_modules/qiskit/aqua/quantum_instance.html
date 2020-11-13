@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.quantum_instance &mdash; documentación de Qiskit - 0.23.0</title>
+  <title>qiskit.aqua.quantum_instance &mdash; documentación de Qiskit - 0.23.1</title>
   
 
   
@@ -242,12 +242,23 @@
 
 <span class="sd">&quot;&quot;&quot; Quantum Instance module &quot;&quot;&quot;</span>
 
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
+<span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">BaseBackend</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler</span> <span class="kn">import</span> <span class="n">CouplingMap</span><span class="p">,</span> <span class="n">PassManager</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler.layout</span> <span class="kn">import</span> <span class="n">Layout</span>
 <span class="kn">from</span> <span class="nn">qiskit.assembler.run_config</span> <span class="kn">import</span> <span class="n">RunConfig</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span> <span class="nn">qiskit.qobj</span> <span class="kn">import</span> <span class="n">Qobj</span>
 <span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">compiler</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">qiskit.providers.aer.noise</span> <span class="kn">import</span> <span class="n">NoiseModel</span>  <span class="c1"># pylint: disable=unused-import</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+    <span class="k">pass</span>
 
 <span class="kn">from</span> <span class="nn">.aqua_error</span> <span class="kn">import</span> <span class="n">AquaError</span>
 <span class="kn">from</span> <span class="nn">.utils.backend_utils</span> <span class="kn">import</span> <span class="p">(</span><span class="n">is_ibmq_provider</span><span class="p">,</span>
@@ -255,6 +266,7 @@
                                   <span class="n">is_simulator_backend</span><span class="p">,</span>
                                   <span class="n">is_local_backend</span><span class="p">,</span>
                                   <span class="n">is_aer_qasm</span><span class="p">,</span>
+                                  <span class="n">is_basicaer_provider</span><span class="p">,</span>
                                   <span class="n">support_backend_options</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.utils.circuit_utils</span> <span class="kn">import</span> <span class="n">summarize_circuits</span>
 
@@ -265,7 +277,7 @@
     <span class="sd">&quot;&quot;&quot;Quantum Backend including execution setting.&quot;&quot;&quot;</span>
 
     <span class="n">_BACKEND_CONFIG</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;basis_gates&#39;</span><span class="p">,</span> <span class="s1">&#39;coupling_map&#39;</span><span class="p">]</span>
-    <span class="n">_COMPILE_CONFIG</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;pass_manager&#39;</span><span class="p">,</span> <span class="s1">&#39;initial_layout&#39;</span><span class="p">,</span> <span class="s1">&#39;seed_transpiler&#39;</span><span class="p">,</span> <span class="s1">&#39;optimization_level&#39;</span><span class="p">]</span>
+    <span class="n">_COMPILE_CONFIG</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;initial_layout&#39;</span><span class="p">,</span> <span class="s1">&#39;seed_transpiler&#39;</span><span class="p">,</span> <span class="s1">&#39;optimization_level&#39;</span><span class="p">]</span>
     <span class="n">_RUN_CONFIG</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;shots&#39;</span><span class="p">,</span> <span class="s1">&#39;max_credits&#39;</span><span class="p">,</span> <span class="s1">&#39;memory&#39;</span><span class="p">,</span> <span class="s1">&#39;seed_simulator&#39;</span><span class="p">]</span>
     <span class="n">_QJOB_CONFIG</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;timeout&#39;</span><span class="p">,</span> <span class="s1">&#39;wait&#39;</span><span class="p">]</span>
     <span class="n">_NOISE_CONFIG</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;noise_model&#39;</span><span class="p">]</span>
@@ -276,60 +288,68 @@
                         <span class="s2">&quot;max_parallel_experiments&quot;</span><span class="p">,</span> <span class="s2">&quot;statevector_parallel_threshold&quot;</span><span class="p">,</span>
                         <span class="s2">&quot;statevector_hpc_gate_opt&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">_BACKEND_OPTIONS_QASM_ONLY</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span>
+<div class="viewcode-block" id="QuantumInstance.__init__"><a class="viewcode-back" href="../../../stubs/qiskit.aqua.QuantumInstance.html#qiskit.aqua.QuantumInstance.__init__">[documentos]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">backend</span><span class="p">:</span> <span class="n">BaseBackend</span><span class="p">,</span>
                  <span class="c1"># run config</span>
-                 <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_credits</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                 <span class="n">shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1024</span><span class="p">,</span>
+                 <span class="n">seed_simulator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">max_credits</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
                  <span class="c1"># backend properties</span>
-                 <span class="n">basis_gates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coupling_map</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">basis_gates</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">coupling_map</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">CouplingMap</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="c1"># transpile</span>
-                 <span class="n">initial_layout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pass_manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">seed_transpiler</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">optimization_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">initial_layout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Layout</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">pass_manager</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PassManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">seed_transpiler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">optimization_level</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="c1"># simulation</span>
-                 <span class="n">backend_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">backend_options</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">noise_model</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s1">&#39;NoiseModel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="c1"># job</span>
-                 <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                 <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">wait</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.</span><span class="p">,</span>
                  <span class="c1"># others</span>
-                 <span class="n">skip_qobj_validation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                 <span class="n">measurement_error_mitigation_cls</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cals_matrix_refresh_period</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
-                 <span class="n">measurement_error_mitigation_shots</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">job_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                 <span class="n">skip_qobj_validation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="n">measurement_error_mitigation_cls</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">cals_matrix_refresh_period</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
+                 <span class="n">measurement_error_mitigation_shots</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">job_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Quantum Instance holds a Qiskit Terra backend as well as configuration for circuit</span>
 <span class="sd">        transpilation and execution. When provided to an Aqua algorithm the algorithm will</span>
 <span class="sd">        execute the circuits it needs to run using the instance.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            backend (BaseBackend): Instance of selected backend</span>
-<span class="sd">            shots (int, optional): Number of repetitions of each circuit, for sampling</span>
-<span class="sd">            seed_simulator (int, optional): Random seed for simulators</span>
-<span class="sd">            max_credits (int, optional): Maximum credits to use</span>
-<span class="sd">            basis_gates (list[str], optional): List of basis gate names supported by the</span>
+<span class="sd">            backend: Instance of selected backend</span>
+<span class="sd">            shots: Number of repetitions of each circuit, for sampling</span>
+<span class="sd">            seed_simulator: Random seed for simulators</span>
+<span class="sd">            max_credits: Maximum credits to use</span>
+<span class="sd">            basis_gates: List of basis gate names supported by the</span>
 <span class="sd">                                               target. Defaults to basis gates of the backend.</span>
-<span class="sd">            coupling_map (CouplingMap or list[list]): Coupling map (perhaps custom) to</span>
+<span class="sd">            coupling_map: Coupling map (perhaps custom) to</span>
 <span class="sd">                                                      target in mapping</span>
-<span class="sd">            initial_layout (Layout or dict or list, optional): Initial layout of qubits in mapping</span>
-<span class="sd">            pass_manager (PassManager, optional): Pass manager to handle how to compile the circuits</span>
-<span class="sd">            seed_transpiler (int, optional): The random seed for circuit mapper</span>
-<span class="sd">            optimization_level (int, optional): How much optimization to perform on the circuits.</span>
+<span class="sd">            initial_layout: Initial layout of qubits in mapping</span>
+<span class="sd">            pass_manager: Pass manager to handle how to compile the circuits</span>
+<span class="sd">            seed_transpiler: The random seed for circuit mapper</span>
+<span class="sd">            optimization_level: How much optimization to perform on the circuits.</span>
 <span class="sd">                Higher levels generate more optimized circuits, at the expense of longer</span>
 <span class="sd">                transpilation time.</span>
-<span class="sd">            backend_options (dict, optional): All running options for backend, please refer</span>
+<span class="sd">            backend_options: All running options for backend, please refer</span>
 <span class="sd">                to the provider of the backend for information as to what options it supports.</span>
-<span class="sd">            noise_model (qiskit.provider.aer.noise.noise_model.NoiseModel, optional): noise model</span>
-<span class="sd">                                                                                      for simulator</span>
-<span class="sd">            timeout (float, optional): Seconds to wait for job. If None, wait indefinitely.</span>
-<span class="sd">            wait (float, optional): Seconds between queries for job result</span>
-<span class="sd">            skip_qobj_validation (bool, optional): Bypass Qobj validation to decrease circuit</span>
+<span class="sd">            noise_model: noise model for simulator</span>
+<span class="sd">            timeout: Seconds to wait for job. If None, wait indefinitely.</span>
+<span class="sd">            wait: Seconds between queries for job result</span>
+<span class="sd">            skip_qobj_validation: Bypass Qobj validation to decrease circuit</span>
 <span class="sd">                processing time during submission to backend.</span>
-<span class="sd">            measurement_error_mitigation_cls (Callable, optional): The approach to mitigate</span>
+<span class="sd">            measurement_error_mitigation_cls: The approach to mitigate</span>
 <span class="sd">                measurement errors. Qiskit Ignis provides fitter classes for this functionality</span>
 <span class="sd">                and CompleteMeasFitter from qiskit.ignis.mitigation.measurement module can be used</span>
 <span class="sd">                here. (TensoredMeasFitter is not supported).</span>
-<span class="sd">            cals_matrix_refresh_period (int, optional): How often to refresh the calibration</span>
+<span class="sd">            cals_matrix_refresh_period: How often to refresh the calibration</span>
 <span class="sd">                matrix in measurement mitigation. in minutes</span>
-<span class="sd">            measurement_error_mitigation_shots (int, optional): The number of shots number for</span>
+<span class="sd">            measurement_error_mitigation_shots: The number of shots number for</span>
 <span class="sd">                building calibration matrix. If None, the main `shots` parameter value is used.</span>
-<span class="sd">            job_callback (Callable, optional): Optional user supplied callback which can be used</span>
+<span class="sd">            job_callback: Optional user supplied callback which can be used</span>
 <span class="sd">                to monitor job progress as jobs are submitted for processing by an Aqua algorithm.</span>
 <span class="sd">                The callback is provided the following arguments: `job_id, job_status,</span>
 <span class="sd">                queue_position, job`</span>
@@ -340,6 +360,7 @@
 <span class="sd">            AquaError: set backend_options but the backend does not support that</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span> <span class="o">=</span> <span class="n">backend</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pass_manager</span> <span class="o">=</span> <span class="n">pass_manager</span>
 
         <span class="c1"># setup run config</span>
         <span class="k">if</span> <span class="n">shots</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -353,7 +374,7 @@
                                 <span class="s1">&#39;but you specified </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">max_shots</span><span class="p">,</span> <span class="n">shots</span><span class="p">))</span>
 
         <span class="n">run_config</span> <span class="o">=</span> <span class="n">RunConfig</span><span class="p">(</span><span class="n">shots</span><span class="o">=</span><span class="n">shots</span><span class="p">,</span> <span class="n">max_credits</span><span class="o">=</span><span class="n">max_credits</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">seed_simulator</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">seed_simulator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">run_config</span><span class="o">.</span><span class="n">seed_simulator</span> <span class="o">=</span> <span class="n">seed_simulator</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_run_config</span> <span class="o">=</span> <span class="n">run_config</span>
@@ -368,7 +389,6 @@
 
         <span class="c1"># setup compile config</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_compile_config</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;pass_manager&#39;</span><span class="p">:</span> <span class="n">pass_manager</span><span class="p">,</span>
             <span class="s1">&#39;initial_layout&#39;</span><span class="p">:</span> <span class="n">initial_layout</span><span class="p">,</span>
             <span class="s1">&#39;seed_transpiler&#39;</span><span class="p">:</span> <span class="n">seed_transpiler</span><span class="p">,</span>
             <span class="s1">&#39;optimization_level&#39;</span><span class="p">:</span> <span class="n">optimization_level</span>
@@ -381,7 +401,7 @@
         <span class="c1"># setup noise config</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_noise_config</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">noise_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">is_aer_qasm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">is_simulator_backend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_basicaer_provider</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_noise_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;noise_model&#39;</span><span class="p">:</span> <span class="n">noise_model</span><span class="p">}</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s2">&quot;The noise model is not supported on the selected backend </span><span class="si">{}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2">) &quot;</span>
@@ -405,7 +425,7 @@
                                 <span class="s2">&quot;with the statevector simulation.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_meas_error_mitigation_cls</span> <span class="o">=</span> <span class="n">measurement_error_mitigation_cls</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_meas_error_mitigation_fitters</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meas_error_mitigation_fitters</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c1"># TODO: support different fitting method in error mitigation?</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_meas_error_mitigation_method</span> <span class="o">=</span> <span class="s1">&#39;least_squares&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cals_matrix_refresh_period</span> <span class="o">=</span> <span class="n">cals_matrix_refresh_period</span>
@@ -430,7 +450,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_skip_qobj_validation</span> <span class="o">=</span> <span class="n">skip_qobj_validation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_summary</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_job_callback</span> <span class="o">=</span> <span class="n">job_callback</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Overload string.</span>
@@ -449,17 +469,22 @@
 
         <span class="k">return</span> <span class="n">info</span>
 
-<div class="viewcode-block" id="QuantumInstance.transpile"><a class="viewcode-back" href="../../../stubs/qiskit.aqua.QuantumInstance.transpile.html#qiskit.aqua.QuantumInstance.transpile">[documentos]</a>    <span class="k">def</span> <span class="nf">transpile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuits</span><span class="p">):</span>
+<div class="viewcode-block" id="QuantumInstance.transpile"><a class="viewcode-back" href="../../../stubs/qiskit.aqua.QuantumInstance.html#qiskit.aqua.QuantumInstance.transpile">[documentos]</a>    <span class="k">def</span> <span class="nf">transpile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">circuits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A wrapper to transpile circuits to allow algorithm access the transpiled circuits.</span>
 <span class="sd">        Args:</span>
-<span class="sd">            circuits (QuantumCircuit or list[QuantumCircuit]): circuits to transpile</span>
+<span class="sd">            circuits: circuits to transpile</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            list[QuantumCircuit]: the transpiled circuits, it is always a list even though</span>
-<span class="sd">                                  the length is one.</span>
+<span class="sd">            The transpiled circuits, it is always a list even though the length is one.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">transpiled_circuits</span> <span class="o">=</span> <span class="n">compiler</span><span class="o">.</span><span class="n">transpile</span><span class="p">(</span><span class="n">circuits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend_config</span><span class="p">,</span>
-                                                 <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_compile_config</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pass_manager</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">transpiled_circuits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pass_manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuits</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">transpiled_circuits</span> <span class="o">=</span> <span class="n">compiler</span><span class="o">.</span><span class="n">transpile</span><span class="p">(</span><span class="n">circuits</span><span class="p">,</span>
+                                                     <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">,</span>
+                                                     <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend_config</span><span class="p">,</span>
+                                                     <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_compile_config</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transpiled_circuits</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">transpiled_circuits</span> <span class="o">=</span> <span class="p">[</span><span class="n">transpiled_circuits</span><span class="p">]</span>
 
@@ -472,20 +497,23 @@
 
         <span class="k">return</span> <span class="n">transpiled_circuits</span></div>
 
-<div class="viewcode-block" id="QuantumInstance.assemble"><a class="viewcode-back" href="../../../stubs/qiskit.aqua.QuantumInstance.assemble.html#qiskit.aqua.QuantumInstance.assemble">[documentos]</a>    <span class="k">def</span> <span class="nf">assemble</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuits</span><span class="p">):</span>
+<div class="viewcode-block" id="QuantumInstance.assemble"><a class="viewcode-back" href="../../../stubs/qiskit.aqua.QuantumInstance.html#qiskit.aqua.QuantumInstance.assemble">[documentos]</a>    <span class="k">def</span> <span class="nf">assemble</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">circuits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Qobj</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot; assemble circuits &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">compiler</span><span class="o">.</span><span class="n">assemble</span><span class="p">(</span><span class="n">circuits</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_run_config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span></div>
 
-<div class="viewcode-block" id="QuantumInstance.execute"><a class="viewcode-back" href="../../../stubs/qiskit.aqua.QuantumInstance.execute.html#qiskit.aqua.QuantumInstance.execute">[documentos]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuits</span><span class="p">,</span> <span class="n">had_transpiled</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="QuantumInstance.execute"><a class="viewcode-back" href="../../../stubs/qiskit.aqua.QuantumInstance.html#qiskit.aqua.QuantumInstance.execute">[documentos]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">circuits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]],</span>
+                <span class="n">had_transpiled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Qobj</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A wrapper to interface with quantum backend.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            circuits (QuantumCircuit or list[QuantumCircuit]): circuits to execute</span>
-<span class="sd">            had_transpiled (bool, optional): whether or not circuits had been transpiled</span>
+<span class="sd">            circuits: circuits to execute</span>
+<span class="sd">            had_transpiled: whether or not circuits had been transpiled</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Result: Result object</span>
+<span class="sd">            Result object</span>
 
 <span class="sd">        TODO: Maybe we can combine the circuits for the main ones and calibration circuits before</span>
 <span class="sd">              assembling to the qobj.</span>
@@ -606,7 +634,7 @@
 
         <span class="k">return</span> <span class="n">result</span></div>
 
-<div class="viewcode-block" id="QuantumInstance.set_config"><a class="viewcode-back" href="../../../stubs/qiskit.aqua.QuantumInstance.set_config.html#qiskit.aqua.QuantumInstance.set_config">[documentos]</a>    <span class="k">def</span> <span class="nf">set_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="QuantumInstance.set_config"><a class="viewcode-back" href="../../../stubs/qiskit.aqua.QuantumInstance.html#qiskit.aqua.QuantumInstance.set_config">[documentos]</a>    <span class="k">def</span> <span class="nf">set_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set configurations for the quantum instance.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">QuantumInstance</span><span class="o">.</span><span class="n">_RUN_CONFIG</span><span class="p">:</span>
@@ -630,7 +658,7 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_backend_options</span><span class="p">[</span><span class="s1">&#39;backend_options&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_backend_options</span><span class="p">[</span><span class="s1">&#39;backend_options&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
             <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">QuantumInstance</span><span class="o">.</span><span class="n">_NOISE_CONFIG</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_aer_qasm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_simulator_backend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">)</span> <span class="ow">or</span> <span class="n">is_basicaer_provider</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span>
                         <span class="s2">&quot;The noise model is not supported on the selected backend </span><span class="si">{}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2">) &quot;</span>
                         <span class="s2">&quot;only certain backends, such as Aer qasm support &quot;</span>
@@ -746,7 +774,7 @@
         <span class="sd">&quot;&quot;&quot; sets skip qobj validation flag &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_skip_qobj_validation</span> <span class="o">=</span> <span class="n">new_value</span>
 
-<div class="viewcode-block" id="QuantumInstance.maybe_refresh_cals_matrix"><a class="viewcode-back" href="../../../stubs/qiskit.aqua.QuantumInstance.maybe_refresh_cals_matrix.html#qiskit.aqua.QuantumInstance.maybe_refresh_cals_matrix">[documentos]</a>    <span class="k">def</span> <span class="nf">maybe_refresh_cals_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="QuantumInstance.maybe_refresh_cals_matrix"><a class="viewcode-back" href="../../../stubs/qiskit.aqua.QuantumInstance.html#qiskit.aqua.QuantumInstance.maybe_refresh_cals_matrix">[documentos]</a>    <span class="k">def</span> <span class="nf">maybe_refresh_cals_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the time difference from the query of last time.</span>
 
@@ -762,7 +790,7 @@
 
         <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="QuantumInstance.cals_matrix"><a class="viewcode-back" href="../../../stubs/qiskit.aqua.QuantumInstance.cals_matrix.html#qiskit.aqua.QuantumInstance.cals_matrix">[documentos]</a>    <span class="k">def</span> <span class="nf">cals_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit_index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="QuantumInstance.cals_matrix"><a class="viewcode-back" href="../../../stubs/qiskit.aqua.QuantumInstance.html#qiskit.aqua.QuantumInstance.cals_matrix">[documentos]</a>    <span class="k">def</span> <span class="nf">cals_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit_index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the stored calibration matrices and its timestamp.</span>
 
@@ -803,7 +831,7 @@
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Qiskit Development Team.
-      Actualizado por última vez en 2020/11/11.
+      Actualizado por última vez en 2020/11/13.
 
     </p>
   </div>

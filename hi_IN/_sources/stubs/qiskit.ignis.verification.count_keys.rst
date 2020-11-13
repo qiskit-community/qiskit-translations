@@ -1,7 +1,5 @@
-﻿
-
-count_keys
-====================================
+﻿qiskit.ignis.verification.count\_keys
+=====================================
 
 .. currentmodule:: qiskit.ignis.verification
 

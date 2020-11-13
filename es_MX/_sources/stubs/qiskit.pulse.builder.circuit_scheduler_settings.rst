@@ -1,7 +1,5 @@
-﻿
-
-circuit_scheduler_settings
-===============================================
+﻿qiskit.pulse.builder.circuit\_scheduler\_settings
+=================================================
 
 .. currentmodule:: qiskit.pulse.builder
 

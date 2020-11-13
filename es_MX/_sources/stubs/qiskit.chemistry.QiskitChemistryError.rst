@@ -1,6 +1,4 @@
-﻿
-
-QiskitChemistryError
+﻿qiskit.chemistry.QiskitChemistryError
 =====================================
 
 .. currentmodule:: qiskit.chemistry

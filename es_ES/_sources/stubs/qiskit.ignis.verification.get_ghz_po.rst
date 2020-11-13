@@ -1,7 +1,5 @@
-﻿
-
-get_ghz_po
-====================================
+﻿qiskit.ignis.verification.get\_ghz\_po
+======================================
 
 .. currentmodule:: qiskit.ignis.verification
 

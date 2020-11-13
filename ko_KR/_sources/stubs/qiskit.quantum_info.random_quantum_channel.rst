@@ -1,7 +1,5 @@
-﻿
-
-random_quantum_channel
-==========================================
+﻿qiskit.quantum\_info.random\_quantum\_channel
+=============================================
 
 .. currentmodule:: qiskit.quantum_info
 

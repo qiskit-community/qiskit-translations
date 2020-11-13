@@ -1,6 +1,4 @@
-﻿
-
-IBMQJobManagerUnknownJobSet
+﻿qiskit.providers.ibmq.managed.IBMQJobManagerUnknownJobSet
 =========================================================
 
 .. currentmodule:: qiskit.providers.ibmq.managed

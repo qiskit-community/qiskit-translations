@@ -1,6 +1,4 @@
-﻿
-
-IBMQJobManagerInvalidStateError
+﻿qiskit.providers.ibmq.managed.IBMQJobManagerInvalidStateError
 =============================================================
 
 .. currentmodule:: qiskit.providers.ibmq.managed

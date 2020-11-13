@@ -1,39 +1,31 @@
-﻿
-
-NumPyEigensolverFactory
+﻿qiskit.chemistry.algorithms.NumPyEigensolverFactory
 ===================================================
 
 .. currentmodule:: qiskit.chemistry.algorithms
 
 .. autoclass:: NumPyEigensolverFactory
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      NumPyEigensolverFactory.filter_criterion
-      NumPyEigensolverFactory.k
-      NumPyEigensolverFactory.use_default_filter_criterion
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      NumPyEigensolverFactory.get_solver
+      ~NumPyEigensolverFactory.__init__
+      ~NumPyEigensolverFactory.get_solver
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NumPyEigensolverFactory.filter_criterion
+      ~NumPyEigensolverFactory.k
+      ~NumPyEigensolverFactory.use_default_filter_criterion
    
    

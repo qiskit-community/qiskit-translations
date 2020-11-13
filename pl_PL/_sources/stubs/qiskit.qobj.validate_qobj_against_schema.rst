@@ -1,7 +1,5 @@
-﻿
-
-validate_qobj_against_schema
-========================================
+﻿qiskit.qobj.validate\_qobj\_against\_schema
+===========================================
 
 .. currentmodule:: qiskit.qobj
 

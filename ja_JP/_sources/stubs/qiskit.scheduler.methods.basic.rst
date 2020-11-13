@@ -1,9 +1,11 @@
-﻿
-
-basic
+﻿qiskit.scheduler.methods.basic
 ==============================
 
 .. automodule:: qiskit.scheduler.methods.basic
+
+   
+   
+   
 
    
    
@@ -23,3 +25,6 @@ basic
    
    
    
+
+
+

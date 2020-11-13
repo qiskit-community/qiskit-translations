@@ -1,47 +1,39 @@
-﻿
-
-StatevectorSimulatorPy
+﻿qiskit.providers.basicaer.StatevectorSimulatorPy
 ================================================
 
 .. currentmodule:: qiskit.providers.basicaer
 
 .. autoclass:: StatevectorSimulatorPy
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      StatevectorSimulatorPy.DEFAULT_CONFIGURATION
-      StatevectorSimulatorPy.DEFAULT_OPTIONS
-      StatevectorSimulatorPy.MAX_QUBITS_MEMORY
-      StatevectorSimulatorPy.SHOW_FINAL_STATE
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      StatevectorSimulatorPy.configuration
-      StatevectorSimulatorPy.name
-      StatevectorSimulatorPy.properties
-      StatevectorSimulatorPy.provider
-      StatevectorSimulatorPy.run
-      StatevectorSimulatorPy.run_experiment
-      StatevectorSimulatorPy.status
-      StatevectorSimulatorPy.version
+      ~StatevectorSimulatorPy.__init__
+      ~StatevectorSimulatorPy.configuration
+      ~StatevectorSimulatorPy.name
+      ~StatevectorSimulatorPy.properties
+      ~StatevectorSimulatorPy.provider
+      ~StatevectorSimulatorPy.run
+      ~StatevectorSimulatorPy.run_experiment
+      ~StatevectorSimulatorPy.status
+      ~StatevectorSimulatorPy.version
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~StatevectorSimulatorPy.DEFAULT_CONFIGURATION
+      ~StatevectorSimulatorPy.DEFAULT_OPTIONS
+      ~StatevectorSimulatorPy.MAX_QUBITS_MEMORY
+      ~StatevectorSimulatorPy.SHOW_FINAL_STATE
    
    

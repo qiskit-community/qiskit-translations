@@ -1,7 +1,5 @@
-﻿
-
-kraus_error
-======================================
+﻿qiskit.providers.aer.noise.kraus\_error
+=======================================
 
 .. currentmodule:: qiskit.providers.aer.noise
 

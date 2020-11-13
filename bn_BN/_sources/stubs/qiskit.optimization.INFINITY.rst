@@ -1,6 +1,4 @@
-﻿
-
-INFINITY
+﻿qiskit.optimization.INFINITY
 ============================
 
 .. currentmodule:: qiskit.optimization

@@ -1,30 +1,24 @@
-﻿
-
-BasicAerProvider
+﻿qiskit.providers.basicaer.BasicAerProvider
 ==========================================
 
 .. currentmodule:: qiskit.providers.basicaer
 
 .. autoclass:: BasicAerProvider
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      BasicAerProvider.backends
-      BasicAerProvider.get_backend
+      ~BasicAerProvider.__init__
+      ~BasicAerProvider.backends
+      ~BasicAerProvider.get_backend
+   
    
 
+   
    
    

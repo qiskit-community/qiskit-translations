@@ -1,7 +1,5 @@
-﻿
-
-approximate_quantum_error
-====================================================
+﻿qiskit.providers.aer.utils.approximate\_quantum\_error
+======================================================
 
 .. currentmodule:: qiskit.providers.aer.utils
 

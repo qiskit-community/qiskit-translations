@@ -1,7 +1,5 @@
-﻿
-
-row_echelon_F2
-===========================================
+﻿qiskit.aqua.operators.legacy.row\_echelon\_F2
+=============================================
 
 .. currentmodule:: qiskit.aqua.operators.legacy
 

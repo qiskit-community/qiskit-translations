@@ -1,7 +1,5 @@
-﻿
-
-shift_phase
-================================
+﻿qiskit.pulse.builder.shift\_phase
+=================================
 
 .. currentmodule:: qiskit.pulse.builder
 

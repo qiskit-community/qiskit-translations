@@ -1,31 +1,25 @@
-﻿
-
-RecursiveMinimumEigenOptimizer
+﻿qiskit.optimization.algorithms.RecursiveMinimumEigenOptimizer
 =============================================================
 
 .. currentmodule:: qiskit.optimization.algorithms
 
 .. autoclass:: RecursiveMinimumEigenOptimizer
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      RecursiveMinimumEigenOptimizer.get_compatibility_msg
-      RecursiveMinimumEigenOptimizer.is_compatible
-      RecursiveMinimumEigenOptimizer.solve
+      ~RecursiveMinimumEigenOptimizer.__init__
+      ~RecursiveMinimumEigenOptimizer.get_compatibility_msg
+      ~RecursiveMinimumEigenOptimizer.is_compatible
+      ~RecursiveMinimumEigenOptimizer.solve
+   
    
 
+   
    
    

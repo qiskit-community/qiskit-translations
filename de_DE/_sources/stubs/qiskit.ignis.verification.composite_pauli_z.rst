@@ -1,7 +1,5 @@
-﻿
-
-composite_pauli_z
-===========================================
+﻿qiskit.ignis.verification.composite\_pauli\_z
+=============================================
 
 .. currentmodule:: qiskit.ignis.verification
 

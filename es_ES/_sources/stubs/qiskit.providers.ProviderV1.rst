@@ -1,38 +1,30 @@
-﻿
-
-ProviderV1
+﻿qiskit.providers.ProviderV1
 ===========================
 
 .. currentmodule:: qiskit.providers
 
 .. autoclass:: ProviderV1
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      ProviderV1.version
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      ProviderV1.backends
-      ProviderV1.get_backend
+      ~ProviderV1.__init__
+      ~ProviderV1.backends
+      ~ProviderV1.get_backend
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ProviderV1.version
    
    

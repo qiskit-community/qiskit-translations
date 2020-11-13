@@ -1,38 +1,30 @@
-﻿
-
-Suzuki
+﻿qiskit.aqua.operators.evolutions.Suzuki
 =======================================
 
 .. currentmodule:: qiskit.aqua.operators.evolutions
 
 .. autoclass:: Suzuki
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      Suzuki.order
-      Suzuki.reps
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Suzuki.convert
+      ~Suzuki.__init__
+      ~Suzuki.convert
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Suzuki.order
+      ~Suzuki.reps
    
    

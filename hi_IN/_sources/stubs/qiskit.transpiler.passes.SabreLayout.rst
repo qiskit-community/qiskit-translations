@@ -1,39 +1,31 @@
-﻿
-
-SabreLayout
+﻿qiskit.transpiler.passes.SabreLayout
 ====================================
 
 .. currentmodule:: qiskit.transpiler.passes
 
 .. autoclass:: SabreLayout
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      SabreLayout.is_analysis_pass
-      SabreLayout.is_transformation_pass
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      SabreLayout.name
-      SabreLayout.run
+      ~SabreLayout.__init__
+      ~SabreLayout.name
+      ~SabreLayout.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SabreLayout.is_analysis_pass
+      ~SabreLayout.is_transformation_pass
    
    

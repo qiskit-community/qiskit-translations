@@ -1,31 +1,25 @@
-﻿
-
-Plotter
+﻿qiskit.ignis.verification.Plotter
 =================================
 
 .. currentmodule:: qiskit.ignis.verification
 
 .. autoclass:: Plotter
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Plotter.get_fourier_info
-      Plotter.sin_plotter
-      Plotter.title_maker
+      ~Plotter.__init__
+      ~Plotter.get_fourier_info
+      ~Plotter.sin_plotter
+      ~Plotter.title_maker
+   
    
 
+   
    
    

@@ -1,47 +1,39 @@
-﻿
-
-UnitarySimulator
+﻿qiskit.providers.aer.UnitarySimulator
 =====================================
 
 .. currentmodule:: qiskit.providers.aer
 
 .. autoclass:: UnitarySimulator
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      UnitarySimulator.options
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      UnitarySimulator.available_methods
-      UnitarySimulator.clear_options
-      UnitarySimulator.configuration
-      UnitarySimulator.defaults
-      UnitarySimulator.name
-      UnitarySimulator.properties
-      UnitarySimulator.provider
-      UnitarySimulator.run
-      UnitarySimulator.set_options
-      UnitarySimulator.status
-      UnitarySimulator.version
+      ~UnitarySimulator.__init__
+      ~UnitarySimulator.available_methods
+      ~UnitarySimulator.clear_options
+      ~UnitarySimulator.configuration
+      ~UnitarySimulator.defaults
+      ~UnitarySimulator.name
+      ~UnitarySimulator.properties
+      ~UnitarySimulator.provider
+      ~UnitarySimulator.run
+      ~UnitarySimulator.set_options
+      ~UnitarySimulator.status
+      ~UnitarySimulator.version
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~UnitarySimulator.options
    
    

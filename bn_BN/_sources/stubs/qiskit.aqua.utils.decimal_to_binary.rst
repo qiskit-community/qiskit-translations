@@ -1,7 +1,5 @@
-﻿
-
-decimal_to_binary
-===================================
+﻿qiskit.aqua.utils.decimal\_to\_binary
+=====================================
 
 .. currentmodule:: qiskit.aqua.utils
 

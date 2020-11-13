@@ -1,7 +1,5 @@
-﻿
-
-plot_gate_map
-==================================
+﻿qiskit.visualization.plot\_gate\_map
+====================================
 
 .. currentmodule:: qiskit.visualization
 

@@ -1,7 +1,5 @@
-﻿
-
-plot_state_city
-====================================
+﻿qiskit.visualization.plot\_state\_city
+======================================
 
 .. currentmodule:: qiskit.visualization
 

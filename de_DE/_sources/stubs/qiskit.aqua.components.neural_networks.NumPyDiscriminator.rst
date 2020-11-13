@@ -1,42 +1,34 @@
-﻿
-
-NumPyDiscriminator
-=========================================================
+﻿qiskit.aqua.components.neural\_networks.NumPyDiscriminator
+==========================================================
 
 .. currentmodule:: qiskit.aqua.components.neural_networks
 
 .. autoclass:: NumPyDiscriminator
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      NumPyDiscriminator.discriminator_net
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      NumPyDiscriminator.get_label
-      NumPyDiscriminator.load_model
-      NumPyDiscriminator.loss
-      NumPyDiscriminator.save_model
-      NumPyDiscriminator.set_seed
-      NumPyDiscriminator.train
+      ~NumPyDiscriminator.__init__
+      ~NumPyDiscriminator.get_label
+      ~NumPyDiscriminator.load_model
+      ~NumPyDiscriminator.loss
+      ~NumPyDiscriminator.save_model
+      ~NumPyDiscriminator.set_seed
+      ~NumPyDiscriminator.train
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NumPyDiscriminator.discriminator_net
    
    

@@ -1,7 +1,5 @@
-﻿
-
-twoQ_clifford_error
-=============================================
+﻿qiskit.ignis.verification.twoQ\_clifford\_error
+===============================================
 
 .. currentmodule:: qiskit.ignis.verification
 

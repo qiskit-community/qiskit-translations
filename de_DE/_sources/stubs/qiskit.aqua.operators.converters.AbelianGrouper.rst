@@ -1,30 +1,24 @@
-﻿
-
-AbelianGrouper
+﻿qiskit.aqua.operators.converters.AbelianGrouper
 ===============================================
 
 .. currentmodule:: qiskit.aqua.operators.converters
 
 .. autoclass:: AbelianGrouper
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      AbelianGrouper.convert
-      AbelianGrouper.group_subops
+      ~AbelianGrouper.__init__
+      ~AbelianGrouper.convert
+      ~AbelianGrouper.group_subops
+   
    
 
+   
    
    

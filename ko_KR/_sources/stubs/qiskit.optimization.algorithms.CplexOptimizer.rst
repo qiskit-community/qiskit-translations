@@ -1,40 +1,32 @@
-﻿
-
-CplexOptimizer
+﻿qiskit.optimization.algorithms.CplexOptimizer
 =============================================
 
 .. currentmodule:: qiskit.optimization.algorithms
 
 .. autoclass:: CplexOptimizer
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      CplexOptimizer.disp
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      CplexOptimizer.get_compatibility_msg
-      CplexOptimizer.is_compatible
-      CplexOptimizer.is_cplex_installed
-      CplexOptimizer.solve
+      ~CplexOptimizer.__init__
+      ~CplexOptimizer.get_compatibility_msg
+      ~CplexOptimizer.is_compatible
+      ~CplexOptimizer.is_cplex_installed
+      ~CplexOptimizer.solve
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CplexOptimizer.disp
    
    

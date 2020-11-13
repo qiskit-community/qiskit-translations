@@ -1,7 +1,5 @@
-﻿
-
-measure_all
-================================
+﻿qiskit.pulse.builder.measure\_all
+=================================
 
 .. currentmodule:: qiskit.pulse.builder
 

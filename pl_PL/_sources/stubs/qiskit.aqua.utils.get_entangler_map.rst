@@ -1,7 +1,5 @@
-﻿
-
-get_entangler_map
-===================================
+﻿qiskit.aqua.utils.get\_entangler\_map
+=====================================
 
 .. currentmodule:: qiskit.aqua.utils
 

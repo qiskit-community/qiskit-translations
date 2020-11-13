@@ -1,39 +1,31 @@
-﻿
-
-CXCancellation
+﻿qiskit.transpiler.passes.CXCancellation
 =======================================
 
 .. currentmodule:: qiskit.transpiler.passes
 
 .. autoclass:: CXCancellation
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      CXCancellation.is_analysis_pass
-      CXCancellation.is_transformation_pass
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      CXCancellation.name
-      CXCancellation.run
+      ~CXCancellation.__init__
+      ~CXCancellation.name
+      ~CXCancellation.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CXCancellation.is_analysis_pass
+      ~CXCancellation.is_transformation_pass
    
    

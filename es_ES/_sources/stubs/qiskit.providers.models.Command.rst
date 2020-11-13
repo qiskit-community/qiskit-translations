@@ -1,30 +1,24 @@
-﻿
-
-Command
+﻿qiskit.providers.models.Command
 ===============================
 
 .. currentmodule:: qiskit.providers.models
 
 .. autoclass:: Command
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Command.from_dict
-      Command.to_dict
+      ~Command.__init__
+      ~Command.from_dict
+      ~Command.to_dict
+   
    
 
+   
    
    

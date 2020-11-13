@@ -1,7 +1,5 @@
-﻿
-
-align_func
-===============================
+﻿qiskit.pulse.builder.align\_func
+================================
 
 .. currentmodule:: qiskit.pulse.builder
 

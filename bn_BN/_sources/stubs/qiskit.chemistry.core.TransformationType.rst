@@ -1,28 +1,23 @@
-﻿
-
-TransformationType
+﻿qiskit.chemistry.core.TransformationType
 ========================================
 
 .. currentmodule:: qiskit.chemistry.core
 
 .. autoclass:: TransformationType
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
+
+   
+   .. automethod:: __init__
 
    
    
 
+   
+   
    .. rubric:: Attributes
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      TransformationType.FULL
-      TransformationType.PARTICLE_HOLE
-   
-   
-
-   
+      ~TransformationType.FULL
+      ~TransformationType.PARTICLE_HOLE
    
    

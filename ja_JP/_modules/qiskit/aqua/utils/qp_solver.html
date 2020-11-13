@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.utils.qp_solver &mdash; Qiskit 0.23.0 ドキュメント</title>
+  <title>qiskit.aqua.utils.qp_solver &mdash; Qiskit 0.23.1 ドキュメント</title>
   
 
   
@@ -263,7 +263,8 @@
                  <span class="n">scaling</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span>
                  <span class="n">show_progress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-                 <span class="n">max_iters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+                 <span class="n">max_iters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">lambda2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Solving quadratic programming problem for SVM; thus, some constraints are fixed.</span>
 
@@ -275,6 +276,7 @@
 <span class="sd">        maxiter: number of iterations for QP solver</span>
 <span class="sd">        show_progress: showing the progress of QP solver</span>
 <span class="sd">        max_iters: Deprecated, use maxiter.</span>
+<span class="sd">        lambda2: L2 Norm regularization factor</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        np.ndarray: Sx1 array, where S is the number of supports</span>
@@ -311,12 +313,13 @@
     <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">H</span><span class="p">)</span>
     <span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
     <span class="n">G</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">I</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
     <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
     <span class="n">A</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
     <span class="n">prob</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span>
-        <span class="n">cvxpy</span><span class="o">.</span><span class="n">Minimize</span><span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">quad_form</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span> <span class="o">+</span> <span class="n">q</span><span class="o">.</span><span class="n">T</span><span class="nd">@x</span><span class="p">),</span>
+        <span class="n">cvxpy</span><span class="o">.</span><span class="n">Minimize</span><span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">quad_form</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span> <span class="o">+</span> <span class="n">q</span><span class="o">.</span><span class="n">T</span><span class="nd">@x</span> <span class="o">+</span> <span class="n">lambda2</span> <span class="o">*</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">quad_form</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">I</span><span class="p">)),</span>
         <span class="p">[</span><span class="n">G</span><span class="nd">@x</span> <span class="o">&lt;=</span> <span class="n">h</span><span class="p">,</span>
          <span class="n">A</span><span class="nd">@x</span> <span class="o">==</span> <span class="n">b</span><span class="p">])</span>
     <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">show_progress</span><span class="p">,</span> <span class="n">qcp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -346,7 +349,7 @@
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Qiskit Development Team.
-      最終更新: 2020/11/11
+      最終更新: 2020/11/13
 
     </p>
   </div>

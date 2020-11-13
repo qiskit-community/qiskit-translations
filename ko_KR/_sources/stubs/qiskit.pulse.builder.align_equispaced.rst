@@ -1,7 +1,5 @@
-﻿
-
-align_equispaced
-=====================================
+﻿qiskit.pulse.builder.align\_equispaced
+======================================
 
 .. currentmodule:: qiskit.pulse.builder
 

@@ -1,7 +1,5 @@
-﻿
-
-complete_meas_cal
-=========================================
+﻿qiskit.ignis.mitigation.complete\_meas\_cal
+===========================================
 
 .. currentmodule:: qiskit.ignis.mitigation
 

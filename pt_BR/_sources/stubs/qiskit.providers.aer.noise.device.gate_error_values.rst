@@ -1,7 +1,5 @@
-﻿
-
-gate_error_values
-===================================================
+﻿qiskit.providers.aer.noise.device.gate\_error\_values
+=====================================================
 
 .. currentmodule:: qiskit.providers.aer.noise.device
 

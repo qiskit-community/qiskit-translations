@@ -1,7 +1,5 @@
-﻿
-
-align_measures
-======================================
+﻿qiskit.pulse.transforms.align\_measures
+=======================================
 
 .. currentmodule:: qiskit.pulse.transforms
 

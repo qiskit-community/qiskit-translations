@@ -1,7 +1,5 @@
-﻿
-
-backend_monitor
-============================
+﻿qiskit.tools.backend\_monitor
+=============================
 
 .. currentmodule:: qiskit.tools
 

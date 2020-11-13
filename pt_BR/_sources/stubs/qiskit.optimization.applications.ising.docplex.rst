@@ -1,9 +1,11 @@
-﻿
-
-qiskit.optimization.applications.ising.docplex
+﻿qiskit.optimization.applications.ising.docplex
 ==============================================
 
 .. automodule:: qiskit.optimization.applications.ising.docplex
+
+   
+   
+   
 
    
    
@@ -22,3 +24,6 @@ qiskit.optimization.applications.ising.docplex
    
    
    
+
+
+

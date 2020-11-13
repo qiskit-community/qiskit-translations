@@ -1,29 +1,23 @@
-﻿
-
-ExcitedStatesSolver
+﻿qiskit.chemistry.algorithms.ExcitedStatesSolver
 ===============================================
 
 .. currentmodule:: qiskit.chemistry.algorithms
 
 .. autoclass:: ExcitedStatesSolver
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      ExcitedStatesSolver.solve
+      ~ExcitedStatesSolver.__init__
+      ~ExcitedStatesSolver.solve
+   
    
 
+   
    
    

@@ -1,7 +1,5 @@
-﻿
-
-ast_to_dag
-============================
+﻿qiskit.converters.ast\_to\_dag
+==============================
 
 .. currentmodule:: qiskit.converters
 

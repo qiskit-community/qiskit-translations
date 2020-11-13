@@ -1,7 +1,5 @@
-﻿
-
-align_sequential
-=====================================
+﻿qiskit.pulse.builder.align\_sequential
+======================================
 
 .. currentmodule:: qiskit.pulse.builder
 

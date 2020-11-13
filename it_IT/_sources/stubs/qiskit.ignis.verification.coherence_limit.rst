@@ -1,7 +1,5 @@
-﻿
-
-coherence_limit
-=========================================
+﻿qiskit.ignis.verification.coherence\_limit
+==========================================
 
 .. currentmodule:: qiskit.ignis.verification
 

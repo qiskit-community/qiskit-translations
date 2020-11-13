@@ -1,7 +1,5 @@
-﻿
-
-get_subsystems_counts
-=======================================
+﻿qiskit.aqua.utils.get\_subsystems\_counts
+=========================================
 
 .. currentmodule:: qiskit.aqua.utils
 

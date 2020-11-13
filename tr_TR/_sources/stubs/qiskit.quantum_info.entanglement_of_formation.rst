@@ -1,7 +1,5 @@
-﻿
-
-entanglement_of_formation
-=============================================
+﻿qiskit.quantum\_info.entanglement\_of\_formation
+================================================
 
 .. currentmodule:: qiskit.quantum_info
 

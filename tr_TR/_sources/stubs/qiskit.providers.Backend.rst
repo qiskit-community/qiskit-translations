@@ -1,36 +1,28 @@
-﻿
-
-Backend
+﻿qiskit.providers.Backend
 ========================
 
 .. currentmodule:: qiskit.providers
 
 .. autoclass:: Backend
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      Backend.version
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
+   
+      ~Backend.__init__
    
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Backend.version
    
    

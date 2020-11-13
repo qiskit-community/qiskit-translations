@@ -1,6 +1,4 @@
-﻿
-
-IBMQAccountCredentialsInvalidFormat
+﻿qiskit.providers.ibmq.IBMQAccountCredentialsInvalidFormat
 =========================================================
 
 .. currentmodule:: qiskit.providers.ibmq

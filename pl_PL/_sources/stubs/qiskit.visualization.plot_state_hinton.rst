@@ -1,7 +1,5 @@
-﻿
-
-plot_state_hinton
-======================================
+﻿qiskit.visualization.plot\_state\_hinton
+========================================
 
 .. currentmodule:: qiskit.visualization
 

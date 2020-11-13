@@ -1,32 +1,26 @@
-﻿
-
-IntegerToBinary
+﻿qiskit.optimization.converters.IntegerToBinary
 ==============================================
 
 .. currentmodule:: qiskit.optimization.converters
 
 .. autoclass:: IntegerToBinary
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      IntegerToBinary.convert
-      IntegerToBinary.decode
-      IntegerToBinary.encode
-      IntegerToBinary.interpret
+      ~IntegerToBinary.__init__
+      ~IntegerToBinary.convert
+      ~IntegerToBinary.decode
+      ~IntegerToBinary.encode
+      ~IntegerToBinary.interpret
+   
    
 
+   
    
    

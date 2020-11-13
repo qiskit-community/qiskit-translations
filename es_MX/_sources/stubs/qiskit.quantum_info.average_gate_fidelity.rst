@@ -1,7 +1,5 @@
-﻿
-
-average_gate_fidelity
-=========================================
+﻿qiskit.quantum\_info.average\_gate\_fidelity
+============================================
 
 .. currentmodule:: qiskit.quantum_info
 

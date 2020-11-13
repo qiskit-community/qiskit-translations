@@ -1,7 +1,5 @@
-﻿
-
-count_gates
-=====================================
+﻿qiskit.ignis.verification.count\_gates
+======================================
 
 .. currentmodule:: qiskit.ignis.verification
 

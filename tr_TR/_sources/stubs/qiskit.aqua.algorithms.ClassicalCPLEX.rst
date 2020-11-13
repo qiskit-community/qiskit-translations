@@ -1,38 +1,30 @@
-﻿
-
-ClassicalCPLEX
+﻿qiskit.aqua.algorithms.ClassicalCPLEX
 =====================================
 
 .. currentmodule:: qiskit.aqua.algorithms
 
 .. autoclass:: ClassicalCPLEX
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      ClassicalCPLEX.random
-      ClassicalCPLEX.solution
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      ClassicalCPLEX.run
+      ~ClassicalCPLEX.__init__
+      ~ClassicalCPLEX.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ClassicalCPLEX.random
+      ~ClassicalCPLEX.solution
    
    

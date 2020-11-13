@@ -1,41 +1,33 @@
-﻿
-
-Optimize1qGates
+﻿qiskit.transpiler.passes.Optimize1qGates
 ========================================
 
 .. currentmodule:: qiskit.transpiler.passes
 
 .. autoclass:: Optimize1qGates
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      Optimize1qGates.is_analysis_pass
-      Optimize1qGates.is_transformation_pass
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Optimize1qGates.compose_u3
-      Optimize1qGates.name
-      Optimize1qGates.run
-      Optimize1qGates.yzy_to_zyz
+      ~Optimize1qGates.__init__
+      ~Optimize1qGates.compose_u3
+      ~Optimize1qGates.name
+      ~Optimize1qGates.run
+      ~Optimize1qGates.yzy_to_zyz
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Optimize1qGates.is_analysis_pass
+      ~Optimize1qGates.is_transformation_pass
    
    

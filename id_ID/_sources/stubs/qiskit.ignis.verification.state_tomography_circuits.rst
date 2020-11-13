@@ -1,7 +1,5 @@
-﻿
-
-state_tomography_circuits
-===================================================
+﻿qiskit.ignis.verification.state\_tomography\_circuits
+=====================================================
 
 .. currentmodule:: qiskit.ignis.verification
 

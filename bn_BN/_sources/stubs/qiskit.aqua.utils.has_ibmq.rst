@@ -1,7 +1,5 @@
-﻿
-
-has_ibmq
-==========================
+﻿qiskit.aqua.utils.has\_ibmq
+===========================
 
 .. currentmodule:: qiskit.aqua.utils
 

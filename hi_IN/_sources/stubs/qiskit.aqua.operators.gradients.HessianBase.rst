@@ -1,39 +1,31 @@
-﻿
-
-HessianBase
+﻿qiskit.aqua.operators.gradients.HessianBase
 ===========================================
 
 .. currentmodule:: qiskit.aqua.operators.gradients
 
 .. autoclass:: HessianBase
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      HessianBase.hess_method
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      HessianBase.convert
-      HessianBase.gradient_wrapper
-      HessianBase.parameter_expression_grad
+      ~HessianBase.__init__
+      ~HessianBase.convert
+      ~HessianBase.gradient_wrapper
+      ~HessianBase.parameter_expression_grad
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~HessianBase.hess_method
    
    

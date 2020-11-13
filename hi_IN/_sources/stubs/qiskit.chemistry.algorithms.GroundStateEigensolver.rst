@@ -1,40 +1,32 @@
-﻿
-
-GroundStateEigensolver
+﻿qiskit.chemistry.algorithms.GroundStateEigensolver
 ==================================================
 
 .. currentmodule:: qiskit.chemistry.algorithms
 
 .. autoclass:: GroundStateEigensolver
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      GroundStateEigensolver.solver
-      GroundStateEigensolver.transformation
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      GroundStateEigensolver.evaluate_operators
-      GroundStateEigensolver.returns_groundstate
-      GroundStateEigensolver.solve
+      ~GroundStateEigensolver.__init__
+      ~GroundStateEigensolver.evaluate_operators
+      ~GroundStateEigensolver.returns_groundstate
+      ~GroundStateEigensolver.solve
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GroundStateEigensolver.solver
+      ~GroundStateEigensolver.transformation
    
    

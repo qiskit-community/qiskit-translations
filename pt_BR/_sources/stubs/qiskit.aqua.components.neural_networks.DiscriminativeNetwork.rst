@@ -1,32 +1,26 @@
-﻿
-
-DiscriminativeNetwork
-============================================================
+﻿qiskit.aqua.components.neural\_networks.DiscriminativeNetwork
+=============================================================
 
 .. currentmodule:: qiskit.aqua.components.neural_networks
 
 .. autoclass:: DiscriminativeNetwork
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      DiscriminativeNetwork.get_label
-      DiscriminativeNetwork.loss
-      DiscriminativeNetwork.set_seed
-      DiscriminativeNetwork.train
+      ~DiscriminativeNetwork.__init__
+      ~DiscriminativeNetwork.get_label
+      ~DiscriminativeNetwork.loss
+      ~DiscriminativeNetwork.set_seed
+      ~DiscriminativeNetwork.train
+   
    
 
+   
    
    

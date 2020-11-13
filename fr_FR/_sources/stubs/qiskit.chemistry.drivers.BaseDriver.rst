@@ -1,39 +1,31 @@
-﻿
-
-BaseDriver
+﻿qiskit.chemistry.drivers.BaseDriver
 ===================================
 
 .. currentmodule:: qiskit.chemistry.drivers
 
 .. autoclass:: BaseDriver
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      BaseDriver.basis
-      BaseDriver.hf_method
-      BaseDriver.molecule
-      BaseDriver.supports_molecule
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
+   
+      ~BaseDriver.__init__
    
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~BaseDriver.basis
+      ~BaseDriver.hf_method
+      ~BaseDriver.molecule
+      ~BaseDriver.supports_molecule
    
    

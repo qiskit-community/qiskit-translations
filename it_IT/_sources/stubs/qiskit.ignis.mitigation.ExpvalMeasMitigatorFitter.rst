@@ -1,37 +1,29 @@
-﻿
-
-ExpvalMeasMitigatorFitter
+﻿qiskit.ignis.mitigation.ExpvalMeasMitigatorFitter
 =================================================
 
 .. currentmodule:: qiskit.ignis.mitigation
 
 .. autoclass:: ExpvalMeasMitigatorFitter
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      ExpvalMeasMitigatorFitter.mitigator
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      ExpvalMeasMitigatorFitter.fit
+      ~ExpvalMeasMitigatorFitter.__init__
+      ~ExpvalMeasMitigatorFitter.fit
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ExpvalMeasMitigatorFitter.mitigator
    
    

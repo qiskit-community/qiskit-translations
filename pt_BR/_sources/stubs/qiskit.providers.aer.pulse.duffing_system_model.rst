@@ -1,7 +1,5 @@
-﻿
-
-duffing_system_model
-===============================================
+﻿qiskit.providers.aer.pulse.duffing\_system\_model
+=================================================
 
 .. currentmodule:: qiskit.providers.aer.pulse
 

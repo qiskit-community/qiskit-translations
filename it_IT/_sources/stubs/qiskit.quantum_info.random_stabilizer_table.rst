@@ -1,7 +1,5 @@
-﻿
-
-random_stabilizer_table
-===========================================
+﻿qiskit.quantum\_info.random\_stabilizer\_table
+==============================================
 
 .. currentmodule:: qiskit.quantum_info
 

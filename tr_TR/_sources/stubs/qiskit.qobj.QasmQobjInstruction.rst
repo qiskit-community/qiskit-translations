@@ -1,30 +1,24 @@
-﻿
-
-QasmQobjInstruction
+﻿qiskit.qobj.QasmQobjInstruction
 ===============================
 
 .. currentmodule:: qiskit.qobj
 
 .. autoclass:: QasmQobjInstruction
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      QasmQobjInstruction.from_dict
-      QasmQobjInstruction.to_dict
+      ~QasmQobjInstruction.__init__
+      ~QasmQobjInstruction.from_dict
+      ~QasmQobjInstruction.to_dict
+   
    
 
+   
    
    

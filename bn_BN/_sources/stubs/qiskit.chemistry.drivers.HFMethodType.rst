@@ -1,29 +1,24 @@
-﻿
-
-HFMethodType
+﻿qiskit.chemistry.drivers.HFMethodType
 =====================================
 
 .. currentmodule:: qiskit.chemistry.drivers
 
 .. autoclass:: HFMethodType
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
+
+   
+   .. automethod:: __init__
 
    
    
 
+   
+   
    .. rubric:: Attributes
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      HFMethodType.RHF
-      HFMethodType.ROHF
-      HFMethodType.UHF
-   
-   
-
-   
+      ~HFMethodType.RHF
+      ~HFMethodType.ROHF
+      ~HFMethodType.UHF
    
    

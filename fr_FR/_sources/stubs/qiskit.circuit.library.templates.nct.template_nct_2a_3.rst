@@ -1,7 +1,5 @@
-﻿
-
-template_nct_2a_3
-======================================================
+﻿qiskit.circuit.library.templates.nct.template\_nct\_2a\_3
+=========================================================
 
 .. currentmodule:: qiskit.circuit.library.templates.nct
 

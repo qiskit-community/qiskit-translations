@@ -1,7 +1,5 @@
-﻿
-
-plot_state_paulivec
-========================================
+﻿qiskit.visualization.plot\_state\_paulivec
+==========================================
 
 .. currentmodule:: qiskit.visualization
 

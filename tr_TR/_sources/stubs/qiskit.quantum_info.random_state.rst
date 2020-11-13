@@ -1,7 +1,5 @@
-﻿
-
-random_state
-================================
+﻿qiskit.quantum\_info.random\_state
+==================================
 
 .. currentmodule:: qiskit.quantum_info
 

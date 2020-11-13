@@ -1,6 +1,4 @@
-﻿
-
-assemble
+﻿qiskit.compiler.assemble
 ========================
 
 .. currentmodule:: qiskit.compiler

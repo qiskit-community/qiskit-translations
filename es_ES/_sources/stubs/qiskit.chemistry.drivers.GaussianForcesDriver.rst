@@ -1,40 +1,32 @@
-﻿
-
-GaussianForcesDriver
+﻿qiskit.chemistry.drivers.GaussianForcesDriver
 =============================================
 
 .. currentmodule:: qiskit.chemistry.drivers
 
 .. autoclass:: GaussianForcesDriver
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      GaussianForcesDriver.basis
-      GaussianForcesDriver.hf_method
-      GaussianForcesDriver.molecule
-      GaussianForcesDriver.supports_molecule
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      GaussianForcesDriver.run
+      ~GaussianForcesDriver.__init__
+      ~GaussianForcesDriver.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GaussianForcesDriver.basis
+      ~GaussianForcesDriver.hf_method
+      ~GaussianForcesDriver.molecule
+      ~GaussianForcesDriver.supports_molecule
    
    

@@ -1,42 +1,34 @@
-﻿
-
-VQEUVCCSDFactory
+﻿qiskit.chemistry.algorithms.VQEUVCCSDFactory
 ============================================
 
 .. currentmodule:: qiskit.chemistry.algorithms
 
 .. autoclass:: VQEUVCCSDFactory
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      VQEUVCCSDFactory.expectation
-      VQEUVCCSDFactory.include_custom
-      VQEUVCCSDFactory.initial_point
-      VQEUVCCSDFactory.optimizer
-      VQEUVCCSDFactory.quantum_instance
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      VQEUVCCSDFactory.get_solver
-      VQEUVCCSDFactory.supports_aux_operators
+      ~VQEUVCCSDFactory.__init__
+      ~VQEUVCCSDFactory.get_solver
+      ~VQEUVCCSDFactory.supports_aux_operators
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~VQEUVCCSDFactory.expectation
+      ~VQEUVCCSDFactory.include_custom
+      ~VQEUVCCSDFactory.initial_point
+      ~VQEUVCCSDFactory.optimizer
+      ~VQEUVCCSDFactory.quantum_instance
    
    

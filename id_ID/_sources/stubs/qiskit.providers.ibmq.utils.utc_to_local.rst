@@ -1,7 +1,5 @@
-﻿
-
-utc_to_local
-========================================
+﻿qiskit.providers.ibmq.utils.utc\_to\_local
+==========================================
 
 .. currentmodule:: qiskit.providers.ibmq.utils
 

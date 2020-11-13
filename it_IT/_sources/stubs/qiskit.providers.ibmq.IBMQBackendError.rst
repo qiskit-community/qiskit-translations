@@ -1,6 +1,4 @@
-﻿
-
-IBMQBackendError
+﻿qiskit.providers.ibmq.IBMQBackendError
 ======================================
 
 .. currentmodule:: qiskit.providers.ibmq

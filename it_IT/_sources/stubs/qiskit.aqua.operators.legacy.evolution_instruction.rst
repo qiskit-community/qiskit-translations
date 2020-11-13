@@ -1,7 +1,5 @@
-﻿
-
-evolution_instruction
-==================================================
+﻿qiskit.aqua.operators.legacy.evolution\_instruction
+===================================================
 
 .. currentmodule:: qiskit.aqua.operators.legacy
 

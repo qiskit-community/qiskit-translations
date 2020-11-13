@@ -1,29 +1,23 @@
-﻿
-
-BosonicBasis
-======================================================
+﻿qiskit.chemistry.components.bosonic\_bases.BosonicBasis
+=======================================================
 
 .. currentmodule:: qiskit.chemistry.components.bosonic_bases
 
 .. autoclass:: BosonicBasis
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      BosonicBasis.convert
+      ~BosonicBasis.__init__
+      ~BosonicBasis.convert
+   
    
 
+   
    
    

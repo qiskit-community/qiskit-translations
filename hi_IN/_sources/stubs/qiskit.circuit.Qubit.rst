@@ -1,37 +1,29 @@
-﻿
-
-Qubit
+﻿qiskit.circuit.Qubit
 ====================
 
 .. currentmodule:: qiskit.circuit
 
 .. autoclass:: Qubit
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      Qubit.index
-      Qubit.register
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
+   
+      ~Qubit.__init__
    
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Qubit.index
+      ~Qubit.register
    
    

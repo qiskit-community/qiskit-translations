@@ -1,7 +1,5 @@
-﻿
-
-samples_to_seconds
-=======================================
+﻿qiskit.pulse.builder.samples\_to\_seconds
+=========================================
 
 .. currentmodule:: qiskit.pulse.builder
 

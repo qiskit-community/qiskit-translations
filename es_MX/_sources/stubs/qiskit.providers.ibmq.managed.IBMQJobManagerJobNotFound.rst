@@ -1,6 +1,4 @@
-﻿
-
-IBMQJobManagerJobNotFound
+﻿qiskit.providers.ibmq.managed.IBMQJobManagerJobNotFound
 =======================================================
 
 .. currentmodule:: qiskit.providers.ibmq.managed

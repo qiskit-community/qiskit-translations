@@ -1,9 +1,11 @@
-﻿
-
-qcstyle
+﻿qiskit.visualization.pulse.qcstyle
 ==================================
 
 .. automodule:: qiskit.visualization.pulse.qcstyle
+
+   
+   
+   
 
    
    
@@ -25,3 +27,6 @@ qcstyle
    
    
    
+
+
+

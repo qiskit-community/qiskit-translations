@@ -1,32 +1,26 @@
-﻿
-
-GraphDecoder
+﻿qiskit.ignis.verification.GraphDecoder
 ======================================
 
 .. currentmodule:: qiskit.ignis.verification
 
 .. autoclass:: GraphDecoder
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      GraphDecoder.get_logical_prob
-      GraphDecoder.make_error_graph
-      GraphDecoder.matching
-      GraphDecoder.weight_syndrome_graph
+      ~GraphDecoder.__init__
+      ~GraphDecoder.get_logical_prob
+      ~GraphDecoder.make_error_graph
+      ~GraphDecoder.matching
+      ~GraphDecoder.weight_syndrome_graph
+   
    
 
+   
    
    

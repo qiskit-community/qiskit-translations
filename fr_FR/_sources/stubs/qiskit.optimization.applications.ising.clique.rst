@@ -1,9 +1,11 @@
-﻿
-
-qiskit.optimization.applications.ising.clique
+﻿qiskit.optimization.applications.ising.clique
 =============================================
 
 .. automodule:: qiskit.optimization.applications.ising.clique
+
+   
+   
+   
 
    
    
@@ -24,3 +26,6 @@ qiskit.optimization.applications.ising.clique
    
    
    
+
+
+

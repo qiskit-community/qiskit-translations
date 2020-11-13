@@ -1,39 +1,31 @@
-﻿
-
-DenseLayout
+﻿qiskit.transpiler.passes.DenseLayout
 ====================================
 
 .. currentmodule:: qiskit.transpiler.passes
 
 .. autoclass:: DenseLayout
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      DenseLayout.is_analysis_pass
-      DenseLayout.is_transformation_pass
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      DenseLayout.name
-      DenseLayout.run
+      ~DenseLayout.__init__
+      ~DenseLayout.name
+      ~DenseLayout.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DenseLayout.is_analysis_pass
+      ~DenseLayout.is_transformation_pass
    
    

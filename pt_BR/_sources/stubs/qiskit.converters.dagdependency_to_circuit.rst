@@ -1,7 +1,5 @@
-﻿
-
-dagdependency_to_circuit
-==========================================
+﻿qiskit.converters.dagdependency\_to\_circuit
+============================================
 
 .. currentmodule:: qiskit.converters
 

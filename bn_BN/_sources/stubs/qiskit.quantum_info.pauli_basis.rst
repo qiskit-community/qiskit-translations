@@ -1,7 +1,5 @@
-﻿
-
-pauli_basis
-===============================
+﻿qiskit.quantum\_info.pauli\_basis
+=================================
 
 .. currentmodule:: qiskit.quantum_info
 

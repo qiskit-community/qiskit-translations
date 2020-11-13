@@ -1,7 +1,5 @@
-﻿
-
-set_frequency
-==================================
+﻿qiskit.pulse.builder.set\_frequency
+===================================
 
 .. currentmodule:: qiskit.pulse.builder
 

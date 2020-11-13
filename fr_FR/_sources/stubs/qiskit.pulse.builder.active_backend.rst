@@ -1,7 +1,5 @@
-﻿
-
-active_backend
-===================================
+﻿qiskit.pulse.builder.active\_backend
+====================================
 
 .. currentmodule:: qiskit.pulse.builder
 

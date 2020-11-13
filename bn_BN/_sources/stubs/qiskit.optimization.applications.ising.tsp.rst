@@ -1,9 +1,11 @@
-﻿
-
-qiskit.optimization.applications.ising.tsp
+﻿qiskit.optimization.applications.ising.tsp
 ==========================================
 
 .. automodule:: qiskit.optimization.applications.ising.tsp
+
+   
+   
+   
 
    
    
@@ -34,3 +36,6 @@ qiskit.optimization.applications.ising.tsp
    
    
    
+
+
+

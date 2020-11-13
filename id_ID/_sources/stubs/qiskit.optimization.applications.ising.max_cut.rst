@@ -1,9 +1,11 @@
-﻿
-
-qiskit.optimization.applications.ising.max_cut
-==============================================
+﻿qiskit.optimization.applications.ising.max\_cut
+===============================================
 
 .. automodule:: qiskit.optimization.applications.ising.max_cut
+
+   
+   
+   
 
    
    
@@ -24,3 +26,6 @@ qiskit.optimization.applications.ising.max_cut
    
    
    
+
+
+

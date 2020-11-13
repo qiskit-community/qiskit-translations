@@ -1,6 +1,4 @@
-﻿
-
-library
+﻿qiskit.pulse.library
 ====================
 
 .. automodule:: qiskit.pulse.library
@@ -16,3 +14,10 @@ library
    
    
    
+
+   
+   
+   
+
+
+

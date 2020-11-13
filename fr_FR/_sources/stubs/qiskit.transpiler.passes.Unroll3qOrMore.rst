@@ -1,39 +1,31 @@
-﻿
-
-Unroll3qOrMore
+﻿qiskit.transpiler.passes.Unroll3qOrMore
 =======================================
 
 .. currentmodule:: qiskit.transpiler.passes
 
 .. autoclass:: Unroll3qOrMore
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      Unroll3qOrMore.is_analysis_pass
-      Unroll3qOrMore.is_transformation_pass
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Unroll3qOrMore.name
-      Unroll3qOrMore.run
+      ~Unroll3qOrMore.__init__
+      ~Unroll3qOrMore.name
+      ~Unroll3qOrMore.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Unroll3qOrMore.is_analysis_pass
+      ~Unroll3qOrMore.is_transformation_pass
    
    

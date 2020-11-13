@@ -1,40 +1,32 @@
-﻿
-
-CustomCircuitOracle
+﻿qiskit.aqua.components.oracles.CustomCircuitOracle
 ==================================================
 
 .. currentmodule:: qiskit.aqua.components.oracles
 
 .. autoclass:: CustomCircuitOracle
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      CustomCircuitOracle.ancillary_register
-      CustomCircuitOracle.circuit
-      CustomCircuitOracle.output_register
-      CustomCircuitOracle.variable_register
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      CustomCircuitOracle.construct_circuit
+      ~CustomCircuitOracle.__init__
+      ~CustomCircuitOracle.construct_circuit
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CustomCircuitOracle.ancillary_register
+      ~CustomCircuitOracle.circuit
+      ~CustomCircuitOracle.output_register
+      ~CustomCircuitOracle.variable_register
    
    

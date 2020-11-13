@@ -1,6 +1,4 @@
-﻿
-
-transpile
+﻿qiskit.compiler.transpile
 =========================
 
 .. currentmodule:: qiskit.compiler

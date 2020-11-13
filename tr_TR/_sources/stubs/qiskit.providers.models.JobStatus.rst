@@ -1,30 +1,24 @@
-﻿
-
-JobStatus
+﻿qiskit.providers.models.JobStatus
 =================================
 
 .. currentmodule:: qiskit.providers.models
 
 .. autoclass:: JobStatus
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      JobStatus.from_dict
-      JobStatus.to_dict
+      ~JobStatus.__init__
+      ~JobStatus.from_dict
+      ~JobStatus.to_dict
+   
    
 
+   
    
    

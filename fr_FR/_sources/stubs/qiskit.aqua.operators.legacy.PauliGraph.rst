@@ -1,36 +1,28 @@
-﻿
-
-PauliGraph
+﻿qiskit.aqua.operators.legacy.PauliGraph
 =======================================
 
 .. currentmodule:: qiskit.aqua.operators.legacy
 
 .. autoclass:: PauliGraph
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      PauliGraph.grouped_paulis
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
+   
+      ~PauliGraph.__init__
    
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PauliGraph.grouped_paulis
    
    

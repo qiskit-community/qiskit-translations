@@ -1,6 +1,4 @@
-﻿
-
-iris
+﻿qiskit.ml.datasets.iris
 =======================
 
 .. currentmodule:: qiskit.ml.datasets

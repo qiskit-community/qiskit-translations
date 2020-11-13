@@ -1,9 +1,11 @@
-﻿
-
-qiskit.finance.applications.ising.portfolio_diversification
-===========================================================
+﻿qiskit.finance.applications.ising.portfolio\_diversification
+============================================================
 
 .. automodule:: qiskit.finance.applications.ising.portfolio_diversification
+
+   
+   
+   
 
    
    
@@ -24,3 +26,6 @@ qiskit.finance.applications.ising.portfolio_diversification
    
    
    
+
+
+

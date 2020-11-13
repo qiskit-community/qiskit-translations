@@ -1,7 +1,5 @@
-﻿
-
-diamond_norm
-================================
+﻿qiskit.quantum\_info.diamond\_norm
+==================================
 
 .. currentmodule:: qiskit.quantum_info
 

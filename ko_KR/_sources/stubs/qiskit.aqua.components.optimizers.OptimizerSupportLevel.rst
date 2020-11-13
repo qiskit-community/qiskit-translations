@@ -1,30 +1,25 @@
-﻿
-
-OptimizerSupportLevel
+﻿qiskit.aqua.components.optimizers.OptimizerSupportLevel
 =======================================================
 
 .. currentmodule:: qiskit.aqua.components.optimizers
 
 .. autoclass:: OptimizerSupportLevel
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
+
+   
+   .. automethod:: __init__
 
    
    
 
+   
+   
    .. rubric:: Attributes
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      OptimizerSupportLevel.ignored
-      OptimizerSupportLevel.not_supported
-      OptimizerSupportLevel.required
-      OptimizerSupportLevel.supported
-   
-   
-
-   
+      ~OptimizerSupportLevel.ignored
+      ~OptimizerSupportLevel.not_supported
+      ~OptimizerSupportLevel.required
+      ~OptimizerSupportLevel.supported
    
    

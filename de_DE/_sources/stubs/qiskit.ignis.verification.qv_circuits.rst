@@ -1,7 +1,5 @@
-﻿
-
-qv_circuits
-=====================================
+﻿qiskit.ignis.verification.qv\_circuits
+======================================
 
 .. currentmodule:: qiskit.ignis.verification
 

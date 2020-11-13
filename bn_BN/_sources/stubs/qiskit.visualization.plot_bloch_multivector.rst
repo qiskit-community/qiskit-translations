@@ -1,7 +1,5 @@
-﻿
-
-plot_bloch_multivector
-===========================================
+﻿qiskit.visualization.plot\_bloch\_multivector
+=============================================
 
 .. currentmodule:: qiskit.visualization
 

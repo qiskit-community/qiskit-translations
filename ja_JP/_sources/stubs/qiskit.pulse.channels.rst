@@ -1,9 +1,11 @@
-﻿
-
-channels
+﻿qiskit.pulse.channels
 =====================
 
 .. automodule:: qiskit.pulse.channels
+
+   
+   
+   
 
    
    
@@ -30,3 +32,6 @@ channels
    
    
    
+
+
+

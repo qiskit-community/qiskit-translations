@@ -1,6 +1,4 @@
-﻿
-
-schedule
+﻿qiskit.compiler.schedule
 ========================
 
 .. currentmodule:: qiskit.compiler

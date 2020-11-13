@@ -1,7 +1,5 @@
-﻿
-
-t2_circuits
-=========================================
+﻿qiskit.ignis.characterization.t2\_circuits
+==========================================
 
 .. currentmodule:: qiskit.ignis.characterization
 

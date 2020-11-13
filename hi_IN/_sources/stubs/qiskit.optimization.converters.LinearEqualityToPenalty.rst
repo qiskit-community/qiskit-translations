@@ -1,40 +1,32 @@
-﻿
-
-LinearEqualityToPenalty
+﻿qiskit.optimization.converters.LinearEqualityToPenalty
 ======================================================
 
 .. currentmodule:: qiskit.optimization.converters
 
 .. autoclass:: LinearEqualityToPenalty
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      LinearEqualityToPenalty.penalty
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      LinearEqualityToPenalty.convert
-      LinearEqualityToPenalty.decode
-      LinearEqualityToPenalty.encode
-      LinearEqualityToPenalty.interpret
+      ~LinearEqualityToPenalty.__init__
+      ~LinearEqualityToPenalty.convert
+      ~LinearEqualityToPenalty.decode
+      ~LinearEqualityToPenalty.encode
+      ~LinearEqualityToPenalty.interpret
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~LinearEqualityToPenalty.penalty
    
    

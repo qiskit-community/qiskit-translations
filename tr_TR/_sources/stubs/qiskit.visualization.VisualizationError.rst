@@ -1,6 +1,4 @@
-﻿
-
-VisualizationError
+﻿qiskit.visualization.VisualizationError
 =======================================
 
 .. currentmodule:: qiskit.visualization

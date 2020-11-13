@@ -1,7 +1,5 @@
-﻿
-
-random_unitary
-================================
+﻿qiskit.aqua.utils.random\_unitary
+=================================
 
 .. currentmodule:: qiskit.aqua.utils
 

@@ -1,6 +1,4 @@
-﻿
-
-IBMQAccountCredentialsInvalidUrl
+﻿qiskit.providers.ibmq.IBMQAccountCredentialsInvalidUrl
 ======================================================
 
 .. currentmodule:: qiskit.providers.ibmq

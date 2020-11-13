@@ -1,7 +1,5 @@
-﻿
-
-random_clifford
-===================================
+﻿qiskit.quantum\_info.random\_clifford
+=====================================
 
 .. currentmodule:: qiskit.quantum_info
 

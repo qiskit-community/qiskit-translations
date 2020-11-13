@@ -1,7 +1,5 @@
-﻿
-
-parallel_map
-=========================
+﻿qiskit.tools.parallel\_map
+==========================
 
 .. currentmodule:: qiskit.tools
 

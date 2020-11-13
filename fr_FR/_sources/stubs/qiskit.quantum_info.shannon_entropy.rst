@@ -1,7 +1,5 @@
-﻿
-
-shannon_entropy
-===================================
+﻿qiskit.quantum\_info.shannon\_entropy
+=====================================
 
 .. currentmodule:: qiskit.quantum_info
 

@@ -1,32 +1,26 @@
-﻿
-
-IBMQJobManager
+﻿qiskit.providers.ibmq.managed.IBMQJobManager
 ============================================
 
 .. currentmodule:: qiskit.providers.ibmq.managed
 
 .. autoclass:: IBMQJobManager
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      IBMQJobManager.job_sets
-      IBMQJobManager.report
-      IBMQJobManager.retrieve_job_set
-      IBMQJobManager.run
+      ~IBMQJobManager.__init__
+      ~IBMQJobManager.job_sets
+      ~IBMQJobManager.report
+      ~IBMQJobManager.retrieve_job_set
+      ~IBMQJobManager.run
+   
    
 
+   
    
    

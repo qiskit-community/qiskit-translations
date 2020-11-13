@@ -1,43 +1,33 @@
-﻿
-
-Parameter
+﻿qiskit.circuit.Parameter
 ========================
 
 .. currentmodule:: qiskit.circuit
 
 .. autoclass:: Parameter
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      Parameter.name
-      Parameter.parameters
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Parameter.__mul__
-      Parameter.assign
-      Parameter.bind
-      Parameter.conjugate
-      Parameter.subs
+      ~Parameter.__init__
+      ~Parameter.assign
+      ~Parameter.bind
+      ~Parameter.conjugate
+      ~Parameter.subs
    
-      Parameter.__mul__
+   
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Parameter.name
+      ~Parameter.parameters
    
    

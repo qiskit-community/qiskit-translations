@@ -1,9 +1,11 @@
-﻿
-
-qiskit.optimization.applications.ising.exact_cover
-==================================================
+﻿qiskit.optimization.applications.ising.exact\_cover
+===================================================
 
 .. automodule:: qiskit.optimization.applications.ising.exact_cover
+
+   
+   
+   
 
    
    
@@ -24,3 +26,6 @@ qiskit.optimization.applications.ising.exact_cover
    
    
    
+
+
+

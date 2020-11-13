@@ -1,38 +1,30 @@
-﻿
-
-ControlChannel
+﻿qiskit.pulse.ControlChannel
 ===========================
 
 .. currentmodule:: qiskit.pulse
 
 .. autoclass:: ControlChannel
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      ControlChannel.index
-      ControlChannel.name
-      ControlChannel.prefix
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
+   
+      ~ControlChannel.__init__
    
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ControlChannel.index
+      ~ControlChannel.name
+      ~ControlChannel.prefix
    
    

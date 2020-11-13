@@ -1,7 +1,5 @@
-﻿
-
-randomized_benchmarking_seq
-=====================================================
+﻿qiskit.ignis.verification.randomized\_benchmarking\_seq
+=======================================================
 
 .. currentmodule:: qiskit.ignis.verification
 

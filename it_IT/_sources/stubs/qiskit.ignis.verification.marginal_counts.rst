@@ -1,7 +1,5 @@
-﻿
-
-marginal_counts
-=========================================
+﻿qiskit.ignis.verification.marginal\_counts
+==========================================
 
 .. currentmodule:: qiskit.ignis.verification
 

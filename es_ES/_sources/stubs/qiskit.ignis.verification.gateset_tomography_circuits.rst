@@ -1,7 +1,5 @@
-﻿
-
-gateset_tomography_circuits
-=====================================================
+﻿qiskit.ignis.verification.gateset\_tomography\_circuits
+=======================================================
 
 .. currentmodule:: qiskit.ignis.verification
 

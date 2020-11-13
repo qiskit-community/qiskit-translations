@@ -1,29 +1,23 @@
-﻿
-
-BOPESSampler
-=====================================================
+﻿qiskit.chemistry.algorithms.pes\_samplers.BOPESSampler
+======================================================
 
 .. currentmodule:: qiskit.chemistry.algorithms.pes_samplers
 
 .. autoclass:: BOPESSampler
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      BOPESSampler.sample
+      ~BOPESSampler.__init__
+      ~BOPESSampler.sample
+   
    
 
+   
    
    

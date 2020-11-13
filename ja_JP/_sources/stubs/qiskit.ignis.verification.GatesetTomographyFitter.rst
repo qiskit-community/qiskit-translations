@@ -1,30 +1,24 @@
-﻿
-
-GatesetTomographyFitter
+﻿qiskit.ignis.verification.GatesetTomographyFitter
 =================================================
 
 .. currentmodule:: qiskit.ignis.verification
 
 .. autoclass:: GatesetTomographyFitter
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      GatesetTomographyFitter.fit
-      GatesetTomographyFitter.linear_inversion
+      ~GatesetTomographyFitter.__init__
+      ~GatesetTomographyFitter.fit
+      ~GatesetTomographyFitter.linear_inversion
+   
    
 
+   
    
    

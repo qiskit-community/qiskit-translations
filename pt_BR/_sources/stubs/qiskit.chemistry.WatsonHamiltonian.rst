@@ -1,37 +1,29 @@
-﻿
-
-WatsonHamiltonian
+﻿qiskit.chemistry.WatsonHamiltonian
 ==================================
 
 .. currentmodule:: qiskit.chemistry
 
 .. autoclass:: WatsonHamiltonian
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      WatsonHamiltonian.data
-      WatsonHamiltonian.num_modes
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
+   
+      ~WatsonHamiltonian.__init__
    
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~WatsonHamiltonian.data
+      ~WatsonHamiltonian.num_modes
    
    

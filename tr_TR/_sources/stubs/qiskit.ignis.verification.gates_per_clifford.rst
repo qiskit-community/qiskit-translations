@@ -1,7 +1,5 @@
-﻿
-
-gates_per_clifford
-============================================
+﻿qiskit.ignis.verification.gates\_per\_clifford
+==============================================
 
 .. currentmodule:: qiskit.ignis.verification
 

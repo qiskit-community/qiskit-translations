@@ -1,9 +1,11 @@
-﻿
-
-qiskit.optimization.applications.ising.set_packing
-==================================================
+﻿qiskit.optimization.applications.ising.set\_packing
+===================================================
 
 .. automodule:: qiskit.optimization.applications.ising.set_packing
+
+   
+   
+   
 
    
    
@@ -24,3 +26,6 @@ qiskit.optimization.applications.ising.set_packing
    
    
    
+
+
+

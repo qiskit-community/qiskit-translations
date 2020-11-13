@@ -1,7 +1,5 @@
-﻿
-
-least_busy
-================================
+﻿qiskit.providers.ibmq.least\_busy
+=================================
 
 .. currentmodule:: qiskit.providers.ibmq
 

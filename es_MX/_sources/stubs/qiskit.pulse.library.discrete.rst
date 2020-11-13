@@ -1,9 +1,11 @@
-﻿
-
-discrete
+﻿qiskit.pulse.library.discrete
 =============================
 
 .. automodule:: qiskit.pulse.library.discrete
+
+   
+   
+   
 
    
    
@@ -34,3 +36,6 @@ discrete
    
    
    
+
+
+

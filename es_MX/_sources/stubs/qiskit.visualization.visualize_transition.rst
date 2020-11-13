@@ -1,7 +1,5 @@
-﻿
-
-visualize_transition
-=========================================
+﻿qiskit.visualization.visualize\_transition
+==========================================
 
 .. currentmodule:: qiskit.visualization
 

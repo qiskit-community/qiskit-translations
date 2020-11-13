@@ -1,38 +1,30 @@
-﻿
-
-BackendConfiguration
+﻿qiskit.providers.models.BackendConfiguration
 ============================================
 
 .. currentmodule:: qiskit.providers.models
 
 .. autoclass:: BackendConfiguration
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      BackendConfiguration.num_qubits
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      BackendConfiguration.from_dict
-      BackendConfiguration.to_dict
+      ~BackendConfiguration.__init__
+      ~BackendConfiguration.from_dict
+      ~BackendConfiguration.to_dict
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~BackendConfiguration.num_qubits
    
    

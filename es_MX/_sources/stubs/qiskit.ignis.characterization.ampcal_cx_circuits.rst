@@ -1,7 +1,5 @@
-﻿
-
-ampcal_cx_circuits
-================================================
+﻿qiskit.ignis.characterization.ampcal\_cx\_circuits
+==================================================
 
 .. currentmodule:: qiskit.ignis.characterization
 

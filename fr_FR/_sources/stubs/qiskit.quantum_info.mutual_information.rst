@@ -1,7 +1,5 @@
-﻿
-
-mutual_information
-======================================
+﻿qiskit.quantum\_info.mutual\_information
+========================================
 
 .. currentmodule:: qiskit.quantum_info
 

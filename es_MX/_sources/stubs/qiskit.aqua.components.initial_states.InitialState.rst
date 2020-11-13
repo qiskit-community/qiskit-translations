@@ -1,37 +1,29 @@
-﻿
-
-InitialState
-==================================================
+﻿qiskit.aqua.components.initial\_states.InitialState
+===================================================
 
 .. currentmodule:: qiskit.aqua.components.initial_states
 
 .. autoclass:: InitialState
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      InitialState.bitstr
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      InitialState.construct_circuit
+      ~InitialState.__init__
+      ~InitialState.construct_circuit
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~InitialState.bitstr
    
    

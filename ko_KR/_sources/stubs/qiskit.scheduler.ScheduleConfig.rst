@@ -1,28 +1,22 @@
-﻿
-
-ScheduleConfig
+﻿qiskit.scheduler.ScheduleConfig
 ===============================
 
 .. currentmodule:: qiskit.scheduler
 
 .. autoclass:: ScheduleConfig
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
+   
+      ~ScheduleConfig.__init__
    
    
 
+   
    
    

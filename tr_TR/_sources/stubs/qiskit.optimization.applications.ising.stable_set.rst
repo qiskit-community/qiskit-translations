@@ -1,9 +1,11 @@
-﻿
-
-qiskit.optimization.applications.ising.stable_set
-=================================================
+﻿qiskit.optimization.applications.ising.stable\_set
+==================================================
 
 .. automodule:: qiskit.optimization.applications.ising.stable_set
+
+   
+   
+   
 
    
    
@@ -24,3 +26,6 @@ qiskit.optimization.applications.ising.stable_set
    
    
    
+
+
+

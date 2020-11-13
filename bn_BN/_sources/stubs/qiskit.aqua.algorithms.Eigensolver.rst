@@ -1,39 +1,31 @@
-﻿
-
-Eigensolver
+﻿qiskit.aqua.algorithms.Eigensolver
 ==================================
 
 .. currentmodule:: qiskit.aqua.algorithms
 
 .. autoclass:: Eigensolver
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      Eigensolver.aux_operators
-      Eigensolver.operator
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      Eigensolver.compute_eigenvalues
-      Eigensolver.supports_aux_operators
+      ~Eigensolver.__init__
+      ~Eigensolver.compute_eigenvalues
+      ~Eigensolver.supports_aux_operators
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Eigensolver.aux_operators
+      ~Eigensolver.operator
    
    

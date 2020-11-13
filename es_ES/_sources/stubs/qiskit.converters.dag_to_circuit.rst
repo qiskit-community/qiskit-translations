@@ -1,7 +1,5 @@
-﻿
-
-dag_to_circuit
-================================
+﻿qiskit.converters.dag\_to\_circuit
+==================================
 
 .. currentmodule:: qiskit.converters
 

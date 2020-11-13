@@ -1,30 +1,22 @@
-﻿
-
-FencedPropertySet
+﻿qiskit.transpiler.FencedPropertySet
 ===================================
 
 .. currentmodule:: qiskit.transpiler
 
 .. autoclass:: FencedPropertySet
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      FencedPropertySet.__getitem__
+      ~FencedPropertySet.__init__
    
-      FencedPropertySet.__getitem__
+   
 
+   
    
    

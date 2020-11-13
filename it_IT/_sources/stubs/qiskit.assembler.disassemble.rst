@@ -1,6 +1,4 @@
-﻿
-
-disassemble
+﻿qiskit.assembler.disassemble
 ============================
 
 .. currentmodule:: qiskit.assembler

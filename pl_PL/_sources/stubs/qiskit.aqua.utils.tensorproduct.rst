@@ -1,6 +1,4 @@
-﻿
-
-tensorproduct
+﻿qiskit.aqua.utils.tensorproduct
 ===============================
 
 .. currentmodule:: qiskit.aqua.utils

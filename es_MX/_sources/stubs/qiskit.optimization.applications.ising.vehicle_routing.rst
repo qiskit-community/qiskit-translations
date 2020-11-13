@@ -1,9 +1,11 @@
-﻿
-
-qiskit.optimization.applications.ising.vehicle_routing
-======================================================
+﻿qiskit.optimization.applications.ising.vehicle\_routing
+=======================================================
 
 .. automodule:: qiskit.optimization.applications.ising.vehicle_routing
+
+   
+   
+   
 
    
    
@@ -25,3 +27,6 @@ qiskit.optimization.applications.ising.vehicle_routing
    
    
    
+
+
+

@@ -1,41 +1,33 @@
-﻿
-
-DeutschJozsa
+﻿qiskit.aqua.algorithms.DeutschJozsa
 ===================================
 
 .. currentmodule:: qiskit.aqua.algorithms
 
 .. autoclass:: DeutschJozsa
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      DeutschJozsa.backend
-      DeutschJozsa.quantum_instance
-      DeutschJozsa.random
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      DeutschJozsa.construct_circuit
-      DeutschJozsa.run
-      DeutschJozsa.set_backend
+      ~DeutschJozsa.__init__
+      ~DeutschJozsa.construct_circuit
+      ~DeutschJozsa.run
+      ~DeutschJozsa.set_backend
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DeutschJozsa.backend
+      ~DeutschJozsa.quantum_instance
+      ~DeutschJozsa.random
    
    

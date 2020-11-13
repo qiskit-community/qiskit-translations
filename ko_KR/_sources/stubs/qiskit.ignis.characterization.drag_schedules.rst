@@ -1,7 +1,5 @@
-﻿
-
-drag_schedules
-============================================
+﻿qiskit.ignis.characterization.drag\_schedules
+=============================================
 
 .. currentmodule:: qiskit.ignis.characterization
 

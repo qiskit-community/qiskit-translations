@@ -1,29 +1,23 @@
-﻿
-
-TrotterizationFactory
+﻿qiskit.aqua.operators.evolutions.TrotterizationFactory
 ======================================================
 
 .. currentmodule:: qiskit.aqua.operators.evolutions
 
 .. autoclass:: TrotterizationFactory
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      TrotterizationFactory.build
+      ~TrotterizationFactory.__init__
+      ~TrotterizationFactory.build
+   
    
 
+   
    
    

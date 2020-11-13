@@ -1,29 +1,23 @@
-﻿
-
-CircuitGradient
+﻿qiskit.aqua.operators.gradients.CircuitGradient
 ===============================================
 
 .. currentmodule:: qiskit.aqua.operators.gradients
 
 .. autoclass:: CircuitGradient
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      CircuitGradient.convert
+      ~CircuitGradient.__init__
+      ~CircuitGradient.convert
+   
    
 
+   
    
    

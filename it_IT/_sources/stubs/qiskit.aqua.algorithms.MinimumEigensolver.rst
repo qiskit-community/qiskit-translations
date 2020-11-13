@@ -1,39 +1,31 @@
-﻿
-
-MinimumEigensolver
+﻿qiskit.aqua.algorithms.MinimumEigensolver
 =========================================
 
 .. currentmodule:: qiskit.aqua.algorithms
 
 .. autoclass:: MinimumEigensolver
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      MinimumEigensolver.aux_operators
-      MinimumEigensolver.operator
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      MinimumEigensolver.compute_minimum_eigenvalue
-      MinimumEigensolver.supports_aux_operators
+      ~MinimumEigensolver.__init__
+      ~MinimumEigensolver.compute_minimum_eigenvalue
+      ~MinimumEigensolver.supports_aux_operators
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MinimumEigensolver.aux_operators
+      ~MinimumEigensolver.operator
    
    

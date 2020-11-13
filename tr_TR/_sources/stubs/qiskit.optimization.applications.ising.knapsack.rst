@@ -1,9 +1,11 @@
-﻿
-
-qiskit.optimization.applications.ising.knapsack
+﻿qiskit.optimization.applications.ising.knapsack
 ===============================================
 
 .. automodule:: qiskit.optimization.applications.ising.knapsack
+
+   
+   
+   
 
    
    
@@ -24,3 +26,6 @@ qiskit.optimization.applications.ising.knapsack
    
    
    
+
+
+

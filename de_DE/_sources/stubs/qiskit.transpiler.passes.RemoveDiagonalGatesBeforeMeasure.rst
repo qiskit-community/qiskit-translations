@@ -1,39 +1,31 @@
-﻿
-
-RemoveDiagonalGatesBeforeMeasure
+﻿qiskit.transpiler.passes.RemoveDiagonalGatesBeforeMeasure
 =========================================================
 
 .. currentmodule:: qiskit.transpiler.passes
 
 .. autoclass:: RemoveDiagonalGatesBeforeMeasure
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      RemoveDiagonalGatesBeforeMeasure.is_analysis_pass
-      RemoveDiagonalGatesBeforeMeasure.is_transformation_pass
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      RemoveDiagonalGatesBeforeMeasure.name
-      RemoveDiagonalGatesBeforeMeasure.run
+      ~RemoveDiagonalGatesBeforeMeasure.__init__
+      ~RemoveDiagonalGatesBeforeMeasure.name
+      ~RemoveDiagonalGatesBeforeMeasure.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RemoveDiagonalGatesBeforeMeasure.is_analysis_pass
+      ~RemoveDiagonalGatesBeforeMeasure.is_transformation_pass
    
    

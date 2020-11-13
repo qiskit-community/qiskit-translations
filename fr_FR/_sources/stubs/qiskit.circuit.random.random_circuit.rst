@@ -1,7 +1,5 @@
-﻿
-
-random_circuit
-====================================
+﻿qiskit.circuit.random.random\_circuit
+=====================================
 
 .. currentmodule:: qiskit.circuit.random
 

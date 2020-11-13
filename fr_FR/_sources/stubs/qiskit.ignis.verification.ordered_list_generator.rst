@@ -1,7 +1,5 @@
-﻿
-
-ordered_list_generator
-================================================
+﻿qiskit.ignis.verification.ordered\_list\_generator
+==================================================
 
 .. currentmodule:: qiskit.ignis.verification
 

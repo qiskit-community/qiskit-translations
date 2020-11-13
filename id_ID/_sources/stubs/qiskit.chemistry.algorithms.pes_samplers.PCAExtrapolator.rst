@@ -1,30 +1,24 @@
-﻿
-
-PCAExtrapolator
-========================================================
+﻿qiskit.chemistry.algorithms.pes\_samplers.PCAExtrapolator
+=========================================================
 
 .. currentmodule:: qiskit.chemistry.algorithms.pes_samplers
 
 .. autoclass:: PCAExtrapolator
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      PCAExtrapolator.extrapolate
-      PCAExtrapolator.factory
+      ~PCAExtrapolator.__init__
+      ~PCAExtrapolator.extrapolate
+      ~PCAExtrapolator.factory
+   
    
 
+   
    
    

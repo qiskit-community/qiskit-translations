@@ -1,7 +1,5 @@
-﻿
-
-add_implicit_acquires
-=============================================
+﻿qiskit.pulse.transforms.add\_implicit\_acquires
+===============================================
 
 .. currentmodule:: qiskit.pulse.transforms
 

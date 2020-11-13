@@ -1,7 +1,5 @@
-﻿
-
-circuit_drawer
-===================================
+﻿qiskit.visualization.circuit\_drawer
+====================================
 
 .. currentmodule:: qiskit.visualization
 

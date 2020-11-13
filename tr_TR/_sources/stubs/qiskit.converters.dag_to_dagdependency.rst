@@ -1,7 +1,5 @@
-﻿
-
-dag_to_dagdependency
-======================================
+﻿qiskit.converters.dag\_to\_dagdependency
+========================================
 
 .. currentmodule:: qiskit.converters
 

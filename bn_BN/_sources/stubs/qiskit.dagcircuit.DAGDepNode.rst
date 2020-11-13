@@ -1,53 +1,45 @@
-﻿
-
-DAGDepNode
+﻿qiskit.dagcircuit.DAGDepNode
 ============================
 
 .. currentmodule:: qiskit.dagcircuit
 
 .. autoclass:: DAGDepNode
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      DAGDepNode.cargs
-      DAGDepNode.cindices
-      DAGDepNode.condition
-      DAGDepNode.isblocked
-      DAGDepNode.matchedwith
-      DAGDepNode.name
-      DAGDepNode.node_id
-      DAGDepNode.op
-      DAGDepNode.predecessors
-      DAGDepNode.qargs
-      DAGDepNode.qindices
-      DAGDepNode.reachable
-      DAGDepNode.sort_key
-      DAGDepNode.successors
-      DAGDepNode.successorstovisit
-      DAGDepNode.type
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      DAGDepNode.copy
-      DAGDepNode.semantic_eq
+      ~DAGDepNode.__init__
+      ~DAGDepNode.copy
+      ~DAGDepNode.semantic_eq
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DAGDepNode.cargs
+      ~DAGDepNode.cindices
+      ~DAGDepNode.condition
+      ~DAGDepNode.isblocked
+      ~DAGDepNode.matchedwith
+      ~DAGDepNode.name
+      ~DAGDepNode.node_id
+      ~DAGDepNode.op
+      ~DAGDepNode.predecessors
+      ~DAGDepNode.qargs
+      ~DAGDepNode.qindices
+      ~DAGDepNode.reachable
+      ~DAGDepNode.sort_key
+      ~DAGDepNode.successors
+      ~DAGDepNode.successorstovisit
+      ~DAGDepNode.type
    
    

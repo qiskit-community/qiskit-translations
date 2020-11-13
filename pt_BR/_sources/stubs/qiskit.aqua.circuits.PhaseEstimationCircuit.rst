@@ -1,39 +1,31 @@
-﻿
-
-PhaseEstimationCircuit
+﻿qiskit.aqua.circuits.PhaseEstimationCircuit
 ===========================================
 
 .. currentmodule:: qiskit.aqua.circuits
 
 .. autoclass:: PhaseEstimationCircuit
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      PhaseEstimationCircuit.ancillary_register
-      PhaseEstimationCircuit.auxiliary_register
-      PhaseEstimationCircuit.state_register
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      PhaseEstimationCircuit.construct_circuit
+      ~PhaseEstimationCircuit.__init__
+      ~PhaseEstimationCircuit.construct_circuit
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PhaseEstimationCircuit.ancillary_register
+      ~PhaseEstimationCircuit.auxiliary_register
+      ~PhaseEstimationCircuit.state_register
    
    

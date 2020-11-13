@@ -1,7 +1,5 @@
-﻿
-
-ad_hoc_data
-==============================
+﻿qiskit.ml.datasets.ad\_hoc\_data
+================================
 
 .. currentmodule:: qiskit.ml.datasets
 

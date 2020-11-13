@@ -1,40 +1,32 @@
-﻿
-
-PSI4Driver
+﻿qiskit.chemistry.drivers.PSI4Driver
 ===================================
 
 .. currentmodule:: qiskit.chemistry.drivers
 
 .. autoclass:: PSI4Driver
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      PSI4Driver.basis
-      PSI4Driver.hf_method
-      PSI4Driver.molecule
-      PSI4Driver.supports_molecule
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      PSI4Driver.run
+      ~PSI4Driver.__init__
+      ~PSI4Driver.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PSI4Driver.basis
+      ~PSI4Driver.hf_method
+      ~PSI4Driver.molecule
+      ~PSI4Driver.supports_molecule
    
    

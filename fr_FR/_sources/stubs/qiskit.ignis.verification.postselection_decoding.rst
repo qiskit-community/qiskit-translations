@@ -1,7 +1,5 @@
-﻿
-
-postselection_decoding
-================================================
+﻿qiskit.ignis.verification.postselection\_decoding
+=================================================
 
 .. currentmodule:: qiskit.ignis.verification
 

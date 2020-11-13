@@ -1,7 +1,5 @@
-﻿
-
-pass_manager_drawer
-========================================
+﻿qiskit.visualization.pass\_manager\_drawer
+==========================================
 
 .. currentmodule:: qiskit.visualization
 

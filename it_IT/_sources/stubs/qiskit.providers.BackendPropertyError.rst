@@ -1,6 +1,4 @@
-﻿
-
-BackendPropertyError
+﻿qiskit.providers.BackendPropertyError
 =====================================
 
 .. currentmodule:: qiskit.providers

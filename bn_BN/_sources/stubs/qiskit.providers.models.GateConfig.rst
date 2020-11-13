@@ -1,30 +1,24 @@
-﻿
-
-GateConfig
+﻿qiskit.providers.models.GateConfig
 ==================================
 
 .. currentmodule:: qiskit.providers.models
 
 .. autoclass:: GateConfig
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      GateConfig.from_dict
-      GateConfig.to_dict
+      ~GateConfig.__init__
+      ~GateConfig.from_dict
+      ~GateConfig.to_dict
+   
    
 
+   
    
    

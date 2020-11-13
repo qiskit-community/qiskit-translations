@@ -1,9 +1,11 @@
-﻿
-
-interpolation
+﻿qiskit.visualization.pulse.interpolation
 ========================================
 
 .. automodule:: qiskit.visualization.pulse.interpolation
+
+   
+   
+   
 
    
    
@@ -23,3 +25,6 @@ interpolation
    
    
    
+
+
+

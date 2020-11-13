@@ -1,41 +1,33 @@
-﻿
-
-SlsqpOptimizer
+﻿qiskit.optimization.algorithms.SlsqpOptimizer
 =============================================
 
 .. currentmodule:: qiskit.optimization.algorithms
 
 .. autoclass:: SlsqpOptimizer
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      SlsqpOptimizer.clip
-      SlsqpOptimizer.trials
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      SlsqpOptimizer.get_compatibility_msg
-      SlsqpOptimizer.is_compatible
-      SlsqpOptimizer.multi_start_solve
-      SlsqpOptimizer.solve
+      ~SlsqpOptimizer.__init__
+      ~SlsqpOptimizer.get_compatibility_msg
+      ~SlsqpOptimizer.is_compatible
+      ~SlsqpOptimizer.multi_start_solve
+      ~SlsqpOptimizer.solve
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SlsqpOptimizer.clip
+      ~SlsqpOptimizer.trials
    
    

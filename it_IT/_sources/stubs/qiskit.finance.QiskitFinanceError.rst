@@ -1,6 +1,4 @@
-﻿
-
-QiskitFinanceError
+﻿qiskit.finance.QiskitFinanceError
 =================================
 
 .. currentmodule:: qiskit.finance

@@ -1,39 +1,31 @@
-﻿
-
-CXDirection
+﻿qiskit.transpiler.passes.CXDirection
 ====================================
 
 .. currentmodule:: qiskit.transpiler.passes
 
 .. autoclass:: CXDirection
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      CXDirection.is_analysis_pass
-      CXDirection.is_transformation_pass
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      CXDirection.name
-      CXDirection.run
+      ~CXDirection.__init__
+      ~CXDirection.name
+      ~CXDirection.run
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CXDirection.is_analysis_pass
+      ~CXDirection.is_transformation_pass
    
    

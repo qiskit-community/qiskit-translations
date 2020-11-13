@@ -1,6 +1,4 @@
-﻿
-
-u3
+﻿qiskit.pulse.builder.u3
 =======================
 
 .. currentmodule:: qiskit.pulse.builder

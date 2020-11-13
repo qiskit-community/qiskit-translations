@@ -1,39 +1,31 @@
-﻿
-
-GradientBase
+﻿qiskit.aqua.operators.gradients.GradientBase
 ============================================
 
 .. currentmodule:: qiskit.aqua.operators.gradients
 
 .. autoclass:: GradientBase
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      GradientBase.grad_method
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      GradientBase.convert
-      GradientBase.gradient_wrapper
-      GradientBase.parameter_expression_grad
+      ~GradientBase.__init__
+      ~GradientBase.convert
+      ~GradientBase.gradient_wrapper
+      ~GradientBase.parameter_expression_grad
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GradientBase.grad_method
    
    

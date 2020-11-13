@@ -1,6 +1,4 @@
-﻿
-
-delay
+﻿qiskit.pulse.builder.delay
 ==========================
 
 .. currentmodule:: qiskit.pulse.builder

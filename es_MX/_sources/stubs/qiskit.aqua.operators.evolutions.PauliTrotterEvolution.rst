@@ -1,39 +1,31 @@
-﻿
-
-PauliTrotterEvolution
+﻿qiskit.aqua.operators.evolutions.PauliTrotterEvolution
 ======================================================
 
 .. currentmodule:: qiskit.aqua.operators.evolutions
 
 .. autoclass:: PauliTrotterEvolution
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-      :toctree: ../stubs/
-   
-      PauliTrotterEvolution.trotter
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      PauliTrotterEvolution.convert
-      PauliTrotterEvolution.evolution_for_abelian_paulisum
-      PauliTrotterEvolution.evolution_for_pauli
+      ~PauliTrotterEvolution.__init__
+      ~PauliTrotterEvolution.convert
+      ~PauliTrotterEvolution.evolution_for_abelian_paulisum
+      ~PauliTrotterEvolution.evolution_for_pauli
+   
    
 
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PauliTrotterEvolution.trotter
    
    

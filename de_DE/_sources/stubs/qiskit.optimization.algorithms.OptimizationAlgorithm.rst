@@ -1,31 +1,25 @@
-﻿
-
-OptimizationAlgorithm
+﻿qiskit.optimization.algorithms.OptimizationAlgorithm
 ====================================================
 
 .. currentmodule:: qiskit.optimization.algorithms
 
 .. autoclass:: OptimizationAlgorithm
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      OptimizationAlgorithm.get_compatibility_msg
-      OptimizationAlgorithm.is_compatible
-      OptimizationAlgorithm.solve
+      ~OptimizationAlgorithm.__init__
+      ~OptimizationAlgorithm.get_compatibility_msg
+      ~OptimizationAlgorithm.is_compatible
+      ~OptimizationAlgorithm.solve
+   
    
 
+   
    
    

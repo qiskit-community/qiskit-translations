@@ -1,30 +1,24 @@
-﻿
-
-MatrixExpectation
+﻿qiskit.aqua.operators.expectations.MatrixExpectation
 ====================================================
 
 .. currentmodule:: qiskit.aqua.operators.expectations
 
 .. autoclass:: MatrixExpectation
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      MatrixExpectation.compute_variance
-      MatrixExpectation.convert
+      ~MatrixExpectation.__init__
+      ~MatrixExpectation.compute_variance
+      ~MatrixExpectation.convert
+   
    
 
+   
    
    

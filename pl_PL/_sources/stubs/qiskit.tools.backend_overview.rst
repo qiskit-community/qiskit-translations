@@ -1,7 +1,5 @@
-﻿
-
-backend_overview
-=============================
+﻿qiskit.tools.backend\_overview
+==============================
 
 .. currentmodule:: qiskit.tools
 

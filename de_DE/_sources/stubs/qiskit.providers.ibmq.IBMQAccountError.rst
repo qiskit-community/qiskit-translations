@@ -1,6 +1,4 @@
-﻿
-
-IBMQAccountError
+﻿qiskit.providers.ibmq.IBMQAccountError
 ======================================
 
 .. currentmodule:: qiskit.providers.ibmq

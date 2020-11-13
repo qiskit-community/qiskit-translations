@@ -1,32 +1,26 @@
-﻿
-
-InstructionDurations
+﻿qiskit.transpiler.InstructionDurations
 ======================================
 
 .. currentmodule:: qiskit.transpiler
 
 .. autoclass:: InstructionDurations
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      InstructionDurations.from_backend
-      InstructionDurations.get
-      InstructionDurations.units_used
-      InstructionDurations.update
+      ~InstructionDurations.__init__
+      ~InstructionDurations.from_backend
+      ~InstructionDurations.get
+      ~InstructionDurations.units_used
+      ~InstructionDurations.update
+   
    
 
+   
    
    

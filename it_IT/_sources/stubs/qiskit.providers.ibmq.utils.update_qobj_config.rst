@@ -1,7 +1,5 @@
-﻿
-
-update_qobj_config
-==============================================
+﻿qiskit.providers.ibmq.utils.update\_qobj\_config
+================================================
 
 .. currentmodule:: qiskit.providers.ibmq.utils
 

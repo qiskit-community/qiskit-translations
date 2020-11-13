@@ -1,7 +1,5 @@
-﻿
-
-random_density_matrix
-=========================================
+﻿qiskit.quantum\_info.random\_density\_matrix
+============================================
 
 .. currentmodule:: qiskit.quantum_info
 

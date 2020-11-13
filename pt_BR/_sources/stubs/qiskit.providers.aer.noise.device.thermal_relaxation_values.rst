@@ -1,7 +1,5 @@
-﻿
-
-thermal_relaxation_values
-===========================================================
+﻿qiskit.providers.aer.noise.device.thermal\_relaxation\_values
+=============================================================
 
 .. currentmodule:: qiskit.providers.aer.noise.device
 

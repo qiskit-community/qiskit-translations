@@ -1,7 +1,5 @@
-﻿
-
-transpiler_settings
-========================================
+﻿qiskit.pulse.builder.transpiler\_settings
+=========================================
 
 .. currentmodule:: qiskit.pulse.builder
 

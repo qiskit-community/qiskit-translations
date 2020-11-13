@@ -1,6 +1,4 @@
-﻿
-
-ResultError
+﻿qiskit.result.ResultError
 =========================
 
 .. currentmodule:: qiskit.result

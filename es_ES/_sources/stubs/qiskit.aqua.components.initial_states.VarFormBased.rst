@@ -1,29 +1,23 @@
-﻿
-
-VarFormBased
-==================================================
+﻿qiskit.aqua.components.initial\_states.VarFormBased
+===================================================
 
 .. currentmodule:: qiskit.aqua.components.initial_states
 
 .. autoclass:: VarFormBased
-   :no-members:
-   :no-inherited-members:
-   :no-special-members:
 
    
-   
-   
+   .. automethod:: __init__
 
    
-   
-
    .. rubric:: Methods
 
    .. autosummary::
-      :toctree: ../stubs/
    
-      VarFormBased.construct_circuit
+      ~VarFormBased.__init__
+      ~VarFormBased.construct_circuit
+   
    
 
+   
    
    

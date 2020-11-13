@@ -1,9 +1,11 @@
-﻿
-
-qiskit.finance.applications.ising.portfolio
+﻿qiskit.finance.applications.ising.portfolio
 ===========================================
 
 .. automodule:: qiskit.finance.applications.ising.portfolio
+
+   
+   
+   
 
    
    
@@ -26,3 +28,6 @@ qiskit.finance.applications.ising.portfolio
    
    
    
+
+
+

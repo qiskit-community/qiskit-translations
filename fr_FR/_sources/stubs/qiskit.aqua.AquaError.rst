@@ -1,6 +1,4 @@
-﻿
-
-AquaError
+﻿qiskit.aqua.AquaError
 =====================
 
 .. currentmodule:: qiskit.aqua
