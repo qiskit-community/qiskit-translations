@@ -7,17 +7,11 @@ on:
      types: [ gh-pages ]
 
 jobs:
-  build:
+  build_docs:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        language: [de_DE, ja_JP, es_ES]
     if: contains( github.event.pull_request.labels.*.name, 'gh-pages' )
     steps:
     - uses: actions/checkout@v2
-
-    - name: Cancel previous Runs
-      uses: everphone-gmbh/cancel-previous-workflows@v5
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -36,18 +30,55 @@ jobs:
         TRANSLATION_LANG: ${{ matrix.language }}
       run: |
         tools/staging_translated_documentation.sh
+    - name: Compress artifact
+      run: |
+        mkdir artifacts
+        tar -zcvf translated_docs_${{matrix.language}}.tar.gz build
+        mv translated_docs_${{matrix.language}}.tar.gz artifacts/.
+    - name: Upload artifact
+      uses: actions/upload-artifact@master
+      with:
+        name: qiskit-translated-docs
+        path: artifacts
+    strategy:
+      matrix:
+        language:
+          - bn_BN
+          - fr_FR
+          - de_DE
+          - hi_IN
+          - id_ID
+          - it_IT
+          - ja_JP
+          - ko_KR
+          - pl_PL
+          - pt_BR
+          - es_ES
+          - es_MX
+          - tr_TR
 
+  deploy_docs:
+    runs-on: ubuntu-latest
+    needs: build_docs
+    steps:
+    - uses: actions/checkout@master
+    - name: Download artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: qiskit-translated-docs
+    - name: Decompress artifact
+      run: |
+        for f in *.tar.gz; do tar -xvf "$f"; done
     - name: Install SSH Client
       uses: webfactory/ssh-agent@v0.2.0
       with:
           ssh-private-key: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
 
     - name: Deploy to gh-pages
-      uses: JamesIves/github-pages-deploy-action@3.5.9
+      uses: JamesIves/github-pages-deploy-action@3.6.2
       with:
         BASE_BRANCH: master
         BRANCH: gh-pages
         FOLDER: build
         CLEAN_EXCLUDE: '["README.md", "index.html", "qiskit_header.png"]'
-        ACTIONS_STEP_DEBUG: true
         SSH: true
