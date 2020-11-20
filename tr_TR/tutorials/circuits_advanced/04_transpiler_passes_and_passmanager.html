@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Transpiler Passes and Pass Manager &mdash; Qiskit 0.23.1 belgelendirmesi</title>
+  <title>Transpiler Geçişleri ve Geçiş Yöneticisi &mdash; Qiskit 0.23.1 belgelendirmesi</title>
   
 
   
@@ -40,7 +40,7 @@
   <link rel="stylesheet" href="../../_static/panels-variables.ade9f9d55df9d2893fc676ecd59723a1.css" type="text/css" />
     <link rel="index" title="Dizin" href="../../genindex.html" />
     <link rel="search" title="Ara" href="../../search.html" />
-    <link rel="next" title="Getting Started with OpenPulse" href="05_getting_started_with_pulse.html" />
+    <link rel="next" title="Openpulse ile Çalışmaya Başlarken" href="05_getting_started_with_pulse.html" />
     <link rel="prev" title="Visualizing a Quantum Circuit" href="03_advanced_circuit_visualization.html" /> 
 
   
@@ -203,7 +203,7 @@
         
           <li><a href="index.html">Advanced Circuit Tutorials</a> &gt;</li>
         
-      <li>Transpiler Passes and Pass Manager</li>
+      <li>Transpiler Geçişleri ve Geçiş Yöneticisi</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
@@ -486,14 +486,14 @@ div.rendered_html tbody tr:hover {
 <p>This page was generated from <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/circuits_advanced/04_transpiler_passes_and_passmanager.ipynb">tutorials/circuits_advanced/04_transpiler_passes_and_passmanager.ipynb</a>.</p>
 <p>Run interactively in the <a class="reference external" href="https://quantum-computing.ibm.com/jupyter/tutorial/circuits_advanced/04_transpiler_passes_and_passmanager.ipynb">IBM Quantum lab</a>.</p>
 </div>
-<div class="section" id="Transpiler-Passes-and-Pass-Manager">
-<h1>Transpiler Passes and Pass Manager<a class="headerlink" href="#Transpiler-Passes-and-Pass-Manager" title="Bu başlık için kalıcı bağlantı">¶</a></h1>
+<div class="section" id="Transpiler-Geçişleri-ve-Geçiş-Yöneticisi">
+<h1>Transpiler Geçişleri ve Geçiş Yöneticisi<a class="headerlink" href="#Transpiler-Geçişleri-ve-Geçiş-Yöneticisi" title="Bu başlık için kalıcı bağlantı">¶</a></h1>
 <div class="section" id="Introduction">
 <h2>Introduction<a class="headerlink" href="#Introduction" title="Bu başlık için kalıcı bağlantı">¶</a></h2>
 <p>A central component of Qiskit Terra is the transpiler, which is designed for modularity and extensibility. The goal is to be able to easily write new circuit transformations (known as transpiler <strong>passes</strong>), and combine them with other existing passes. Which passes are chained together and in which order has a major effect on the final outcome. This pipeline is determined by a <strong>pass manager</strong>, which schedules the passes and also allows passes to communicate with each other by providing a shared
 space. In this way, the transpiler opens up the door for research into aggressive optimization of quantum circuits.</p>
 <p>In this notebook, we look at the built-in passes, how to use the pass manager, and develop a simple custom transpiler pass. In order to do the latter, we first need to introduce the internal representation of quantum circuits in Qiskit, in the form of a Directed Acyclic Graph, or <strong>DAG</strong>. Then, we illustrate a simple swap mapper pass, which transforms an input circuit to be compatible with a limited-connectivity quantum device.</p>
-<p><strong>*Before you start*</strong>: You may need to install the <code class="docutils literal notranslate"><span class="pre">pydot</span></code> library and the <code class="docutils literal notranslate"><span class="pre">graphviz</span></code> library for the DAG plotting routines. If you are using Anaconda Python, you can install both with the <code class="docutils literal notranslate"><span class="pre">conda</span></code> command. If you use your system’s native Python interpreter, install <code class="docutils literal notranslate"><span class="pre">pydot</span></code> using the <code class="docutils literal notranslate"><span class="pre">pip</span></code> command, and install <code class="docutils literal notranslate"><span class="pre">graphviz</span></code> using your system’s native package manager (e.g. <code class="docutils literal notranslate"><span class="pre">yum</span></code>, <code class="docutils literal notranslate"><span class="pre">apt</span></code>, <code class="docutils literal notranslate"><span class="pre">dnf</span></code>, <code class="docutils literal notranslate"><span class="pre">brew</span></code>, etc.).</p>
+<p><strong>*Başlamadan önce*</strong>: DAG çizim yordamı için <code class="docutils literal notranslate"><span class="pre">pydot</span></code> ve <code class="docutils literal notranslate"><span class="pre">graphviz</span></code> kütüphanelerini kurmanız gerekebilir. Eğer Anaconda Python kullanıyorsanız <code class="docutils literal notranslate"><span class="pre">conda</span></code> komutu ile ikisini de kurabilirsiniz. Eğer sisteminizin yerel Python yorumlayıcısını kullanıyorsanız <code class="docutils literal notranslate"><span class="pre">pip</span></code> komutu kullanarak <code class="docutils literal notranslate"><span class="pre">pydot</span></code> u ve sisteminizin yerel paket yöneticisini (örn. <code class="docutils literal notranslate"><span class="pre">yum</span></code>, <code class="docutils literal notranslate"><span class="pre">apt</span></code>, <code class="docutils literal notranslate"><span class="pre">dnf</span></code>, <code class="docutils literal notranslate"><span class="pre">brew</span></code>, vb.) kullanarak <code class="docutils literal notranslate"><span class="pre">graphviz</span></code> i kurun.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -507,9 +507,9 @@ space. In this way, the transpiler opens up the door for research into aggressiv
 </div>
 </div>
 </div>
-<div class="section" id="PassManager-object">
-<h2>PassManager object<a class="headerlink" href="#PassManager-object" title="Bu başlık için kalıcı bağlantı">¶</a></h2>
-<p>Lets you specify the set of passes you want.</p>
+<div class="section" id="PassManager-nesnesi">
+<h2>PassManager nesnesi<a class="headerlink" href="#PassManager-nesnesi" title="Bu başlık için kalıcı bağlantı">¶</a></h2>
+<p>İstediğiniz geçiş kümesini belirtmenize izin verir.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -550,7 +550,7 @@ space. In this way, the transpiler opens up the door for research into aggressiv
 <img alt="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_6_0.png" src="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_6_0.png" />
 </div>
 </div>
-<p>All of Qiskit’s transpiler passes are accessible from <code class="docutils literal notranslate"><span class="pre">qiskit.transpiler.passes</span></code>.</p>
+<p>Tüm Qiskit’in transpiler geçişlerine <code class="docutils literal notranslate"><span class="pre">qiskit.transpiler.passes</span></code> adresinden erişilebilir.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -618,10 +618,10 @@ space. In this way, the transpiler opens up the door for research into aggressiv
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Different-Variants-of-the-Same-Pass">
-<h2>Different Variants of the Same Pass<a class="headerlink" href="#Different-Variants-of-the-Same-Pass" title="Bu başlık için kalıcı bağlantı">¶</a></h2>
-<p>There can be passes that do the same job, but in different ways. For example, the <code class="docutils literal notranslate"><span class="pre">TrivialLayout</span></code>, <code class="docutils literal notranslate"><span class="pre">DenseLayout</span></code> and <code class="docutils literal notranslate"><span class="pre">NoiseAdaptiveLayout</span></code> all choose a layout (binding of virtual qubits to physical qubits), but use different algorithms and objectives. Similarly, the <code class="docutils literal notranslate"><span class="pre">BasicSwap</span></code>, <code class="docutils literal notranslate"><span class="pre">LookaheadSwap</span></code> and <code class="docutils literal notranslate"><span class="pre">StochasticSwap</span></code> all insert swaps to make the circuit compatible with the coupling map. The modularity of the transpiler allows plug-and-play replacements for each pass.</p>
-<p>Below, we show the swapper passes all applied to the same circuit, to transform it to match a linear chain topology. You can see differences in performance, where the <code class="docutils literal notranslate"><span class="pre">StochasticSwap</span></code> is clearly the best. However, this can vary depending on the input circuit.</p>
+<div class="section" id="Aynı-Geçişin-Farklı-Çeşitleri">
+<h2>Aynı Geçişin Farklı Çeşitleri<a class="headerlink" href="#Aynı-Geçişin-Farklı-Çeşitleri" title="Bu başlık için kalıcı bağlantı">¶</a></h2>
+<p>Aynı işi fakat farklı yollarla yapan geçişler olabilir. Örneğin, <code class="docutils literal notranslate"><span class="pre">TrivialLayout</span></code>, <code class="docutils literal notranslate"><span class="pre">DenseLayout</span></code> ve <code class="docutils literal notranslate"><span class="pre">NoiseAdaptiveLayout</span></code> hepsi farklı bir layout/yerleşim (sanal kubitlerin fiziksel kubitler bağlanması) seçer fakat farklı algoritmalar ve objeler kullanır. Benzer şekilde, <code class="docutils literal notranslate"><span class="pre">BasicSwap</span></code>, <code class="docutils literal notranslate"><span class="pre">LookaheadSwap</span></code> ve <code class="docutils literal notranslate"><span class="pre">StochasticSwap</span></code> hepsi devreyi bağlantılı harita ile uyumlu hale getirmek için değişimler(swap) ekler. Transpiler modularitesi, her geçiş için tak ve çalıştır değiştirmelerine izin verir.</p>
+<p>Aşağıda, bir lineer zincir topolojisine uyacak şekilde dönüştürmek için aynı devreye uygulanan bütün takas geçişlerini gösteriyoruz. <code class="docutils literal notranslate"><span class="pre">StochasticSwap</span></code> ın net bir şekilde en iyi olduğu performans farklarını görebilirsiniz. Ancak, bu girilen devreye göre değişiklik gösterebilir.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
@@ -725,15 +725,15 @@ space. In this way, the transpiler opens up the door for research into aggressiv
 </div>
 </div>
 </div>
-<div class="section" id="Preset-Pass-Managers">
-<h2>Preset Pass Managers<a class="headerlink" href="#Preset-Pass-Managers" title="Bu başlık için kalıcı bağlantı">¶</a></h2>
-<p>Qiskit comes with several pre-defined pass managers, corresponding to various levels of optimization achieved through different pipelines of passes. Currently <code class="docutils literal notranslate"><span class="pre">optimization_level</span></code> 0 through 3 are supported; the higher the number, the more optimized it is, at the expense of more time. Choosing a good pass manager may take trial and error, as it depends heavily on the circuit being transpiled and the backend being targeted.</p>
-<p>Here we illustrate the different levels by looking at a state synthesis circuit. We initialize four qubits to an arbitrary state, and then try to optimize the circuit that achieves this.</p>
+<div class="section" id="Ön-Ayarlı-Geçiş-Yöneticileri">
+<h2>Ön Ayarlı Geçiş Yöneticileri<a class="headerlink" href="#Ön-Ayarlı-Geçiş-Yöneticileri" title="Bu başlık için kalıcı bağlantı">¶</a></h2>
+<p>Qiskit, farklı pipeline/veri hattı geçişleri ile elde edilen çeşitli seviyelerde optimizasyona karşılık gelen birçok önceden tanımlı geçiş yöneticileri ile gelir. Şu anda <code class="docutils literal notranslate"><span class="pre">optimization_level</span></code> 0 ile 3 arasında destekleniyor; sayı ne kadar yüksek olursa daha fazla zaman harcayarak o kadar iyi bir optimizasyon elde edilir. İyi bir geçiş yöneticisi seçmek, ağırlıklı olarak aktarılan devreye ve hedeflenilen backende bağlı olduğu için deneme yanılma gerektirebilir.</p>
+<p>Burada, bir durum sentez devresine bakarak farklı seviyeleri gözümüzde canlandırıyoruz. 4 kübiti rastgele durum haline getiririz ve daha sonra bunu elde eden devreyi optimize etmeye çalışırız.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=0</span></code>: just maps the circuit to the backend, with no explicit optimization (except whatever optimizations the mapper does).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=1</span></code>: maps the circuit, but also does light-weight optimizations by collapsing adjacent gates.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=2</span></code>: medium-weight optimization, including a noise-adaptive layout and a gate-cancellation procedure based on gate commutation relationships.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=3</span></code>: heavy-weight optimization, which in addition to previous steps, does resynthesis of two-qubit blocks of gates in the circuit.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=0</span></code>: sadece devreyi backende eşler, belirli bir optimizasyon olmadan (eşleştiren kişinin yaptığı optimizasyonlar hariç).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=1</span></code>: devreyi eşler, fakat ayrıca komşu kapıları daraltarak hafif optimizasyonlar yapar.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=2</span></code>: orta ağırlıklı optimizasyon, kapı değişme ilkeleri temeline dayalı bir kapı iptali ve gürültü-adaptif layout/yerleşim dahil.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">optimization_level=3</span></code>: ağır optimizasyon, önceki adımlara ek olarak devredeki iki kübitli kapı bloklarının yeniden sentezini yapar.</p></li>
 </ul>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
@@ -825,7 +825,7 @@ q_9: »
 «q_9: ──────────────────────────────────────────────────────────────────────────────
 «                                                                                   </pre></div>
 </div>
-<p>Now map this to the 20-qubit Tokyo device, with different optimization levels:</p>
+<p>Şimdi bunu 20-kübitli Tokyo cihazı ile farklı optimizasyon seviyelerinde eşleştirelim:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
@@ -907,10 +907,10 @@ depth =  38
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Introducing-the-DAG">
-<h2>Introducing the DAG<a class="headerlink" href="#Introducing-the-DAG" title="Bu başlık için kalıcı bağlantı">¶</a></h2>
-<p>In Qiskit, we represent circuits internally using a Directed Acyclic Graph (DAG). The advantage of this representation over a pure list of gates (i.e., <em>netlist</em>) is that the flow of information between operations are explicit, making it easier for passes to make transformation decisions without changing the semantics of the circuit.</p>
-<p>Let’s start by building a simple circuit, and examining its DAG.</p>
+<div class="section" id="DAG'nin-tanıtılması">
+<h2>DAG’nin tanıtılması<a class="headerlink" href="#DAG'nin-tanıtılması" title="Bu başlık için kalıcı bağlantı">¶</a></h2>
+<p>Qiskit’te, devreleri bir Yönlendirilmiş Asiklik Grafı(DAG) kullanarak dahili olarak temsil ediyoruz. Bu gösterimin saf bir kapı listesine (yani, <em>netlist</em>) göre avantajı, işlemler arasındaki bilgi akışının açık olması ve geçişlerin devrenin anlamını değiştirmeden dönüşüm kararları almasını kolaylaştırmasıdır.</p>
+<p>Basit bir devre inşa ederek ve DAG ‘ ini inceleyerek başlayalım.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
@@ -937,7 +937,7 @@ depth =  38
 <img alt="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_25_0.png" src="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_25_0.png" />
 </div>
 </div>
-<p>In the DAG, there are three kinds of graph nodes: qubit/clbit input nodes (green), operation nodes (blue), and output nodes (red). Each edge indicates data flow (or dependency) between two nodes.</p>
+<p>DAG’da üç çeşit graf düğümü vardır: qubit/clbit giriş düğümleri (yeşil), işlem düğümleri (mavi) ve çıkış düğümleri (kırmızı). Her kenar, iki düğüm arasındaki veri akışını (veya bağımlılığını) gösterir.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
@@ -958,8 +958,8 @@ depth =  38
 <img alt="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_27_0.png" src="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_27_0.png" />
 </div>
 </div>
-<p>Therefore, writing a transpiler pass means using Qiskit’s DAGCircuit API to analyze or transform the circuit. Let’s see some examples of this.</p>
-<p><strong>a. Get all op nodes in the DAG:</strong></p>
+<p>Bu nedenle, bir transpiler geçişi yazmak, devreyi analiz etmek veya dönüştürmek için Qiskit’in DAGCircuit API’sini kullanmak anlamına gelir. Bunun bazı örneklerini görelim.</p>
+<p><strong>a. DAG’daki tüm op düğümlerini alın:</strong></p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
@@ -981,7 +981,7 @@ depth =  38
  &lt;qiskit.dagcircuit.dagnode.DAGNode at 0x7f1eebb876d0&gt;]
 </pre></div></div>
 </div>
-<p>Each node is an instance of the <code class="docutils literal notranslate"><span class="pre">DAGNode</span></code> class. Let’s examine the information stored in the second op node.</p>
+<p>Her düğüm <code class="docutils literal notranslate"><span class="pre">DAGNode</span></code> sınıfının bir örneğidir. İkinci op düğümünde saklanan bilgileri inceleyelim.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
@@ -1008,7 +1008,7 @@ node cargs:  []
 node condition:  (ClassicalRegister(3, &#39;c&#39;), 2)
 </pre></div></div>
 </div>
-<p><strong>b. Add an operation to the back:</strong></p>
+<p><strong>b. Arkaya bir işlem ekleyin:</strong></p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
@@ -1028,7 +1028,7 @@ node condition:  (ClassicalRegister(3, &#39;c&#39;), 2)
 <img alt="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_34_0.png" src="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_34_0.png" />
 </div>
 </div>
-<p><strong>c. Add an operation to the front:</strong></p>
+<p><strong>c. Öne bir işlem ekleyin:</strong></p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
@@ -1048,7 +1048,7 @@ node condition:  (ClassicalRegister(3, &#39;c&#39;), 2)
 <img alt="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_36_0.png" src="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_36_0.png" />
 </div>
 </div>
-<p><strong>d. Substitute a node with a subcircuit:</strong></p>
+<p><strong>d. Bir düğümü bir alt devre ile değiştirin:</strong></p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
@@ -1076,7 +1076,7 @@ node condition:  (ClassicalRegister(3, &#39;c&#39;), 2)
 <img alt="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_38_0.png" src="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_38_0.png" />
 </div>
 </div>
-<p>Finally, after all transformations are complete, we can convert back to a regular QuantumCircuit object. This is what the transpiler does! It takes a circuit, operates on it in DAG form, and outputs a transformed circuit.</p>
+<p>Son olarak, tüm dönüşümler tamamlandıktan sonra, normal bir QuantumCircuit nesnesine geri dönüş yapabiliriz. Transpiler’ın yaptığı iş budur! Bir devre alır, üzerinde DAG formunda çalışır ve çıktı olarak dönüştürülmüş bir devre verir.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
@@ -1097,10 +1097,10 @@ node condition:  (ClassicalRegister(3, &#39;c&#39;), 2)
 </div>
 </div>
 </div>
-<div class="section" id="Implementing-a-BasicMapper-Pass">
-<h2>Implementing a BasicMapper Pass<a class="headerlink" href="#Implementing-a-BasicMapper-Pass" title="Bu başlık için kalıcı bağlantı">¶</a></h2>
-<p>Now that we are familiar with the DAG, let’s use it to write a transpiler pass. Here we will implement a basic pass for mapping an arbitrary circuit to a device with limited qubit connectivity. We call this the BasicMapper. This pass is included in Qiskit Terra as well.</p>
-<p>The first thing to do when writing a transpiler pass is to decide whether the pass class derives from a <code class="docutils literal notranslate"><span class="pre">TransformationPass</span></code> or <code class="docutils literal notranslate"><span class="pre">AnalysisPass</span></code>. Transformation passes modify the circuit, while analysis passes only collect information about a circuit (to be used by other passes). Then, the <code class="docutils literal notranslate"><span class="pre">run(dag)</span></code> method is implemented, which does the main task. Finally, the pass is registered inside the <code class="docutils literal notranslate"><span class="pre">qiskit.transpiler.passes</span></code> module.</p>
+<div class="section" id="Bir-BasicMapper-Geçişinin-uygulanması">
+<h2>Bir BasicMapper Geçişinin uygulanması<a class="headerlink" href="#Bir-BasicMapper-Geçişinin-uygulanması" title="Bu başlık için kalıcı bağlantı">¶</a></h2>
+<p>Şimdi DAG’ı bildiğimize göre, bir transpiler geçişi yazmak için kullanalım. Burada, sınırlı kübit bağlantısı olan bir cihaza keyfi bir devre eşlemek için temel bir geçiş yapacağız. Buna BasicMapper diyoruz. Bu geçiş Qiskit Terra’da da mevcuttur.</p>
+<p>Bir transpiler geçişi yazarken yapılacak ilk şey, geçiş sınıfının <code class="docutils literal notranslate"><span class="pre">TransformationPass</span></code> veya <code class="docutils literal notranslate"><span class="pre">AnalysisPass</span></code> dan türetilmiş olup olmadığına karar vermektir. Analiz geçişleri sadece bir devre (diğer geçişler tarafından kullanılacak) hakkında bilgi toplarken, dönüşüm geçişleri devreyi değiştirir. Ardından, ana görevi yapan <code class="docutils literal notranslate"><span class="pre">run(dag)</span></code> yöntemi uygulanır. Son olarak, geçiş <code class="docutils literal notranslate"><span class="pre">qiskit.transpiler.passes</span></code> modülüne kaydedilir.</p>
 <p>This pass functions as follows: it traverses the DAG layer-by-layer (each layer is a group of operations that does not act on independent qubits, so in theory all operations in a layer can be done independently). For each operation, if it does not already meet the coupling map constraints, the pass identifies a swap path and inserts swaps to bring the two qubits close to each other.</p>
 <p>Follow the comments in the code for more details.</p>
 <div class="nbinput nblast docutils container">
@@ -1298,8 +1298,8 @@ node condition:  (ClassicalRegister(3, &#39;c&#39;), 2)
 </div>
 <p>Note that this pass only inserts the swaps necessary to make every two-qubit interaction conform to the device coupling map. It does not, for example, care about the direction of interactions, or the native gate set supported by the device. This is a design philosophy of Qiskit’s transpiler: every pass performs a small, well-defined action, and the aggressive circuit optimization is achieved by the pass manager through combining multiple passes.</p>
 </div>
-<div class="section" id="Transpiler-Logging">
-<h2>Transpiler Logging<a class="headerlink" href="#Transpiler-Logging" title="Bu başlık için kalıcı bağlantı">¶</a></h2>
+<div class="section" id="Transpiler-Günlüğü">
+<h2>Transpiler Günlüğü<a class="headerlink" href="#Transpiler-Günlüğü" title="Bu başlık için kalıcı bağlantı">¶</a></h2>
 <p>Due to the complexity of the internal operations that the transpiler is performing it’s likely that you’ll end up in a situation where you’d like to debug an issue or just understand more of what is happening inside the transpiler when you call it. To facilitate this the transpiler emits log messages as part of its normal operation. This logging uses the Python standard library <code class="docutils literal notranslate"><span class="pre">logging</span></code> module to emit the log messages. Python’s standard logging was used because it allows Qiskit-Terra’s
 logging to integrate in a standard way with other applications and libraries.</p>
 <p>For a more thorough introduction to Python logging refer to the <a class="reference external" href="https://docs.python.org/3/library/logging.html">official documentation</a> and the tutorials and cookbook linked off of there.</p>
@@ -1836,7 +1836,7 @@ qiskit.compiler.transpile - MainProcess - INFO: Total Transpile Time - 172.73402
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="05_getting_started_with_pulse.html" class="btn btn-neutral float-right" title="Getting Started with OpenPulse" accesskey="n" rel="next">Next <img src="../../_static/images/chevron-right-orange.svg" class="next-page"></a>
+        <a href="05_getting_started_with_pulse.html" class="btn btn-neutral float-right" title="Openpulse ile Çalışmaya Başlarken" accesskey="n" rel="next">Next <img src="../../_static/images/chevron-right-orange.svg" class="next-page"></a>
       
       
         <a href="03_advanced_circuit_visualization.html" class="btn btn-neutral" title="Visualizing a Quantum Circuit" accesskey="p" rel="prev"><img src="../../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
@@ -1853,7 +1853,7 @@ qiskit.compiler.transpile - MainProcess - INFO: Total Transpile Time - 172.73402
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Qiskit Development Team.
-      Son güncelleme: 2020/11/14.
+      Son güncelleme: 2020/11/20.
 
     </p>
   </div>
@@ -1872,14 +1872,14 @@ qiskit.compiler.transpile - MainProcess - INFO: Total Transpile Time - 172.73402
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">Transpiler Passes and Pass Manager</a><ul>
+<li><a class="reference internal" href="#">Transpiler Geçişleri ve Geçiş Yöneticisi</a><ul>
 <li><a class="reference internal" href="#Introduction">Introduction</a></li>
-<li><a class="reference internal" href="#PassManager-object">PassManager object</a></li>
-<li><a class="reference internal" href="#Different-Variants-of-the-Same-Pass">Different Variants of the Same Pass</a></li>
-<li><a class="reference internal" href="#Preset-Pass-Managers">Preset Pass Managers</a></li>
-<li><a class="reference internal" href="#Introducing-the-DAG">Introducing the DAG</a></li>
-<li><a class="reference internal" href="#Implementing-a-BasicMapper-Pass">Implementing a BasicMapper Pass</a></li>
-<li><a class="reference internal" href="#Transpiler-Logging">Transpiler Logging</a><ul>
+<li><a class="reference internal" href="#PassManager-nesnesi">PassManager nesnesi</a></li>
+<li><a class="reference internal" href="#Aynı-Geçişin-Farklı-Çeşitleri">Aynı Geçişin Farklı Çeşitleri</a></li>
+<li><a class="reference internal" href="#Ön-Ayarlı-Geçiş-Yöneticileri">Ön Ayarlı Geçiş Yöneticileri</a></li>
+<li><a class="reference internal" href="#DAG'nin-tanıtılması">DAG’nin tanıtılması</a></li>
+<li><a class="reference internal" href="#Bir-BasicMapper-Geçişinin-uygulanması">Bir BasicMapper Geçişinin uygulanması</a></li>
+<li><a class="reference internal" href="#Transpiler-Günlüğü">Transpiler Günlüğü</a><ul>
 <li><a class="reference internal" href="#Configuring-Python-Standard-Library-Logging">Configuring Python Standard Library Logging</a></li>
 <li><a class="reference internal" href="#Adjusting-the-log-level-for-the-transpiler">Adjusting the log level for the transpiler</a></li>
 <li><a class="reference internal" href="#Setting-up-logging-to-deal-with-parallel-execution">Setting up logging to deal with parallel execution</a></li>
