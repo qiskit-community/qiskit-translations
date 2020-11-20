@@ -37,19 +37,20 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Language | Translation Leads | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
 | ---     | ---    | --- |
 | Bengali | Omar Shehab, Abhijit Mitra |  @Shehab @amitracal   |
-| Brazilian Portuguese | Jose Gilberto Biondo Junior | @Gilberto Biondo |
-| Hindi | Anupama Ray | @anupamar |
 | French | Olivier Hess | @Olivier Hess |
 | German | Joachim Schaefer | @Joachim Schwarm |
+| Hindi | Anupama Ray | @anupamar |
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
 | Japanese | Takehiko Amano | @Takehiko Amano |
 | Korean | Jinho Hwang | @Jinho Hwang |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese | Omar Costa Hamido | @OCH |
+| Portuguese, Brazilian | Jose Gilberto Biondo Junior | @Gilberto Biondo |
 | Spanish | Arturo Acuaviva Huertos, Carmen Recio Valcarce | @Arturo Acuaviva @carmenrv |
 | Spanish-Mexico | Carlos Gonzalez | @Carlos Esteban Gonzalez |
 | Turkish | Ayşin Taşdelen | @Ayshine |
+| Urdu | Muhammad Ali | @Muhammad Ali |
 
 
 ### When you find an issue in the original documentation
