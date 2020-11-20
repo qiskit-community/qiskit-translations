@@ -50,6 +50,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Spanish | Arturo Acuaviva Huertos, Carmen Recio Valcarce | @Arturo Acuaviva @carmenrv |
 | Spanish-Mexico | Carlos Gonzalez | @Carlos Esteban Gonzalez |
 | Turkish | Ayşin Taşdelen | @Ayshine |
+| Urdu | Muhammad Ali | @Muhammad Ali |
 
 
 ### When you find an issue in the original documentation
