@@ -34,7 +34,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 
 ### Translation Leads (as of Aug, 2020)
 
-| Language | Translation Leads | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
+| **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
 | Bengali | Omar Shehab, Abhijit Mitra |  @Shehab @amitracal   |
 | French | Olivier Hess | @Olivier Hess |
@@ -46,11 +46,11 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Korean | Jinho Hwang | @Jinho Hwang |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese | Omar Costa Hamido | @OCH |
-| Portuguese, Brazilian | Jose Gilberto Biondo Junior | @Gilberto Biondo |
+| Portuguese, Brazilian | Luiz Henrique Galeoti de Lima | @Luiz Galeoti |
 | Spanish | Arturo Acuaviva Huertos, Carmen Recio Valcarce | @Arturo Acuaviva @carmenrv |
 | Spanish-Mexico | Carlos Gonzalez | @Carlos Esteban Gonzalez |
 | Turkish | Ayşin Taşdelen | @Ayshine |
-| Urdu | Muhammad Ali | @Muhammad Ali |
+| Urdu | Zia Mohammad, Muhammad Ali | @Zia Mohammad @Muhammad.Ali |
 
 
 ### When you find an issue in the original documentation
