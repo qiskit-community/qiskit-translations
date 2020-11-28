@@ -32,7 +32,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Qiskit Localization Technical Lead | Soolu Thomas | @Soolu |
 
 
-### Translation Leads (as of Aug, 2020)
+### Translation Leads (as of Nov, 2020)
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
