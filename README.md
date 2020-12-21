@@ -6,21 +6,21 @@
 
 This is the staging site to view the translation progress. Following are the translation progress and the links to view the translations.
 
-| Languages | Progress |
-|-----------|----------|
-| [Bengali](https://qiskit-community.github.io/qiskit-translations/bn_BN/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/bn-BN#) |
-| [French](https://qiskit-community.github.io/qiskit-translations/fr_FR/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/fr#) |
-| [German](https://qiskit-community.github.io/qiskit-translations/de_DE/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/de#) |
-| [Hindi](https://qiskit-community.github.io/qiskit-translations/hi_IN/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/hi_IN#) |
-| [Indonesian](https://qiskit-community.github.io/qiskit-translations/id_ID/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/id_ID#) |
-| [Italian](https://qiskit-community.github.io/qiskit-translations/it_IT/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/it#) |
-| [Japanese](https://qiskit-community.github.io/qiskit-translations/ja_JP/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/ja#) |
-| [Korean](https://qiskit-community.github.io/qiskit-translations/ko_KR/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/ko#) |
-| [Portuguese](https://qiskit-community.github.io/qiskit-translations/pt_PT/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/pt-PT#) |
-| [Brazilian Portuguese](https://qiskit-community.github.io/qiskit-translations/pt_BR/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/pt-BR#) |
-| [Spanish](https://qiskit-community.github.io/qiskit-translations/es_ES/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/es-ES#) |
-| [Spanish-Mexico](https://qiskit-community.github.io/qiskit-translations/es_MX/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/es-MX#) |
-| [Turkish](https://qiskit-community.github.io/qiskit-translations/tr_TR/) | [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs/tr#) |
+| Languages |
+|-----------|
+| [Bengali](https://qiskit-community.github.io/qiskit-translations/bn_BN/) |
+| [French](https://qiskit-community.github.io/qiskit-translations/fr_FR/) |
+| [German](https://qiskit-community.github.io/qiskit-translations/de_DE/) |
+| [Hindi](https://qiskit-community.github.io/qiskit-translations/hi_IN/) |
+| [Indonesian](https://qiskit-community.github.io/qiskit-translations/id_ID/) |
+| [Italian](https://qiskit-community.github.io/qiskit-translations/it_IT/) |
+| [Japanese](https://qiskit-community.github.io/qiskit-translations/ja_JP/) |
+| [Korean](https://qiskit-community.github.io/qiskit-translations/ko_KR/) |
+| [Portuguese](https://qiskit-community.github.io/qiskit-translations/pt_PT/) |
+| [Brazilian Portuguese](https://qiskit-community.github.io/qiskit-translations/pt_BR/) |
+| [Spanish](https://qiskit-community.github.io/qiskit-translations/es_ES/) |
+| [Spanish-Mexico](https://qiskit-community.github.io/qiskit-translations/es_MX/) |
+| [Turkish](https://qiskit-community.github.io/qiskit-translations/tr_TR/) |
 
 
 # Qiskit Documentation Localization
