@@ -24,7 +24,7 @@ If you are interested in contributing to translations, please follow the instruc
 Failing to do so will result in a delay in approving your request in Crowdin and your Pull Request in GitHub. The administrators of the Crowdin project will review your request and give you access as quickly as they can.<br/>
 6. For questions regarding onboarding or strategy, to connect with other translators and receive updates regarding the project please join #qiskit-localization channel in the [Qiskit workspace](http://ibm.co/joinqiskitslack) or make an issue in this repo.
 
-### Project Leads (as of Aug, 2020)
+### Project Leads
 
 | Role | Name | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
 | ---     | ---    | --- |
@@ -32,24 +32,25 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Qiskit Localization Technical Lead | Soolu Thomas | @Soolu |
 
 
-### Translation Leads (as of Aug, 2020)
+### Translation Leads (as of Nov, 2020)
 
-| Language | Translation Leads | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
+| **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
 | Bengali | Omar Shehab, Abhijit Mitra |  @Shehab @amitracal   |
-| Brazilian Portuguese | Jose Gilberto Biondo Junior | @Gilberto Biondo |
-| Hindi | Anupama Ray | @anupamar |
 | French | Olivier Hess | @Olivier Hess |
 | German | Joachim Schaefer | @Joachim Schwarm |
+| Hindi | Anupama Ray | @anupamar |
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
 | Japanese | Takehiko Amano | @Takehiko Amano |
 | Korean | Jinho Hwang | @Jinho Hwang |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese | Omar Costa Hamido | @OCH |
+| Portuguese, Brazilian | Luiz Henrique Galeoti de Lima | @Luiz Galeoti |
 | Spanish | Arturo Acuaviva Huertos, Carmen Recio Valcarce | @Arturo Acuaviva @carmenrv |
 | Spanish-Mexico | Carlos Gonzalez | @Carlos Esteban Gonzalez |
 | Turkish | Ayşin Taşdelen | @Ayshine |
+| Urdu | Zia Mohammad, Muhammad Ali | @Zia Mohammad @Muhammad.Ali |
 
 
 ### When you find an issue in the original documentation
@@ -64,7 +65,7 @@ Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.c
 
 ### How to add a new language to translate?
 
-The Qiskit Localization Project currently supports: Brazilian Portuguese, French, German, Italian, Japanese, Korean, Polish, Portuguese, Spanish, Spanish- Mexico, and Turkish. These translations can be viewed from our [staging site](https://qiskit-community.github.io/qiskit-translations/).
+The Qiskit Localization Project currently supports: Bengali, French, German, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Brazilian Portuguese, Spanish, Spanish-Mexico, Turkish, and Urdu. These translations can be viewed from our [staging site](https://qiskit-community.github.io/qiskit-translations/).
 
 [Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html) and [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
 
