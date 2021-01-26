@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.passes.optimization.optimize_1q_decomposition &mdash; Qiskit 0.23.2 belgelendirmesi</title>
+  <title>qiskit.transpiler.passes.optimization.optimize_1q_decomposition &mdash; Qiskit 0.23.3 belgelendirmesi</title>
   
 
   
@@ -244,7 +244,6 @@
 
 <span class="sd">&quot;&quot;&quot;Optimize chains of single-qubit gates using Euler 1q decomposer&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">groupby</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -283,11 +282,11 @@
         <span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">basis</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">basis_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">basis</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">basis_name</span><span class="p">,</span> <span class="n">gates</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">euler_basis_names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">gates</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">basis_set</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">=</span> <span class="n">basis_name</span>
-                    <span class="k">break</span></div>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OneQubitEulerDecomposer</span><span class="p">(</span><span class="n">basis_name</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Optimize1qGatesDecomposition.run"><a class="viewcode-back" href="../../../../../stubs/qiskit.transpiler.passes.Optimize1qGatesDecomposition.html#qiskit.transpiler.passes.Optimize1qGatesDecomposition.run">[belgeler]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dag</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Run the Optimize1qGatesDecomposition pass on `dag`.</span>
@@ -301,48 +300,34 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">:</span>
             <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Skipping pass because no basis is set&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">dag</span>
-        <span class="n">decomposer</span> <span class="o">=</span> <span class="n">OneQubitEulerDecomposer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">)</span>
-        <span class="n">runs</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">collect_runs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">euler_basis_names</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">])</span>
-        <span class="n">runs</span> <span class="o">=</span> <span class="n">_split_runs_on_parameters</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span>
+        <span class="n">runs</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">_collect_1q_runs</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">:</span>
+            <span class="c1"># Don&#39;t try to optimize a single 1q gate</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">run</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">params</span> <span class="o">=</span> <span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">params</span>
                 <span class="c1"># Remove single identity gates</span>
-                <span class="k">if</span> <span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">euler_basis_names</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">]</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span>
-                        <span class="n">params</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">(),</span>
-                                                       <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">(),</span>
+                                                      <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">)):</span>
                     <span class="n">dag</span><span class="o">.</span><span class="n">remove_op_node</span><span class="p">(</span><span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="c1"># Don&#39;t try to optimize a single 1q gate</span>
                 <span class="k">continue</span>
+
+            <span class="n">new_circs</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">q</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;q&quot;</span><span class="p">)</span>
             <span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">gate</span> <span class="ow">in</span> <span class="n">run</span><span class="p">:</span>
-                <span class="n">qc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gate</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[])</span>
-
+                <span class="n">qc</span><span class="o">.</span><span class="n">_append</span><span class="p">(</span><span class="n">gate</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[])</span>
             <span class="n">operator</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span>
-            <span class="n">new_circ</span> <span class="o">=</span> <span class="n">decomposer</span><span class="p">(</span><span class="n">operator</span><span class="p">)</span>
-            <span class="n">new_dag</span> <span class="o">=</span> <span class="n">circuit_to_dag</span><span class="p">(</span><span class="n">new_circ</span><span class="p">)</span>
-            <span class="n">dag</span><span class="o">.</span><span class="n">substitute_node_with_dag</span><span class="p">(</span><span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">new_dag</span><span class="p">)</span>
-            <span class="c1"># Delete the other nodes in the run</span>
-            <span class="k">for</span> <span class="n">current_node</span> <span class="ow">in</span> <span class="n">run</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-                <span class="n">dag</span><span class="o">.</span><span class="n">remove_op_node</span><span class="p">(</span><span class="n">current_node</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">decomposer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">:</span>
+                <span class="n">new_circs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decomposer</span><span class="p">(</span><span class="n">operator</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">new_circs</span><span class="p">:</span>
+                <span class="n">new_circ</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">new_circs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">circ</span><span class="p">:</span> <span class="n">circ</span><span class="o">.</span><span class="n">depth</span><span class="p">())</span>
+                <span class="k">if</span> <span class="n">qc</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">new_circ</span><span class="o">.</span><span class="n">depth</span><span class="p">():</span>
+                    <span class="n">new_dag</span> <span class="o">=</span> <span class="n">circuit_to_dag</span><span class="p">(</span><span class="n">new_circ</span><span class="p">)</span>
+                    <span class="n">dag</span><span class="o">.</span><span class="n">substitute_node_with_dag</span><span class="p">(</span><span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">new_dag</span><span class="p">)</span>
+                    <span class="c1"># Delete the other nodes in the run</span>
+                    <span class="k">for</span> <span class="n">current_node</span> <span class="ow">in</span> <span class="n">run</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                        <span class="n">dag</span><span class="o">.</span><span class="n">remove_op_node</span><span class="p">(</span><span class="n">current_node</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">dag</span></div></div>
-
-
-<span class="k">def</span> <span class="nf">_split_runs_on_parameters</span><span class="p">(</span><span class="n">runs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Finds runs containing parameterized gates and splits them into sequential</span>
-<span class="sd">    runs excluding the parameterized gates.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">:</span>
-        <span class="n">groups</span> <span class="o">=</span> <span class="n">groupby</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">())</span>
-
-        <span class="k">for</span> <span class="n">group_is_parameterized</span><span class="p">,</span> <span class="n">gates</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">group_is_parameterized</span><span class="p">:</span>
-                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">gates</span><span class="p">))</span>
-
-    <span class="k">return</span> <span class="n">out</span>
 </pre></div>
 
              </article>

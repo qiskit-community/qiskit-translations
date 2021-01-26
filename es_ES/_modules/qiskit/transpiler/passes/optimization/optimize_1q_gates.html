@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.passes.optimization.optimize_1q_gates &mdash; documentación de Qiskit - 0.23.2</title>
+  <title>qiskit.transpiler.passes.optimization.optimize_1q_gates &mdash; documentación de Qiskit - 0.23.3</title>
   
 
   
@@ -249,6 +249,8 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.exceptions</span> <span class="kn">import</span> <span class="n">TranspilerError</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.p</span> <span class="kn">import</span> <span class="n">PhaseGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.u</span> <span class="kn">import</span> <span class="n">UGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.u1</span> <span class="kn">import</span> <span class="n">U1Gate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.u2</span> <span class="kn">import</span> <span class="n">U2Gate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.u3</span> <span class="kn">import</span> <span class="n">U3Gate</span>
@@ -268,7 +270,7 @@
 <span class="sd">        Args:</span>
 <span class="sd">            basis (list[str]): Basis gates to consider, e.g. `[&#39;u3&#39;, &#39;cx&#39;]`. For the effects</span>
 <span class="sd">                of this pass, the basis is the set intersection between the `basis` parameter and</span>
-<span class="sd">                the set `{&#39;u1&#39;,&#39;u2&#39;,&#39;u3&#39;}`.</span>
+<span class="sd">                the set `{&#39;u1&#39;,&#39;u2&#39;,&#39;u3&#39;, &#39;u&#39;, &#39;p&#39;}`.</span>
 <span class="sd">            eps (float): EPS to check against</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -287,27 +289,35 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            TranspilerError: if YZY and ZYZ angles do not give same rotation matrix.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">runs</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">collect_runs</span><span class="p">([</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u2&quot;</span><span class="p">,</span> <span class="s2">&quot;u3&quot;</span><span class="p">])</span>
+        <span class="n">use_u</span> <span class="o">=</span> <span class="s1">&#39;u&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span>
+        <span class="n">use_p</span> <span class="o">=</span> <span class="s1">&#39;p&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span>
+        <span class="n">runs</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">collect_runs</span><span class="p">([</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u2&quot;</span><span class="p">,</span> <span class="s2">&quot;u3&quot;</span><span class="p">,</span> <span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="s1">&#39;p&#39;</span><span class="p">])</span>
         <span class="n">runs</span> <span class="o">=</span> <span class="n">_split_runs_on_parameters</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">:</span>
-            <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u1&quot;</span>
+            <span class="k">if</span> <span class="n">use_p</span><span class="p">:</span>
+                <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;p&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u1&quot;</span>
             <span class="n">right_parameters</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># (theta, phi, lambda)</span>
             <span class="n">right_global_phase</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">for</span> <span class="n">current_node</span> <span class="ow">in</span> <span class="n">run</span><span class="p">:</span>
                 <span class="n">left_name</span> <span class="o">=</span> <span class="n">current_node</span><span class="o">.</span><span class="n">name</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">current_node</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
                         <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_node</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span>
-                        <span class="ow">or</span> <span class="n">left_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u2&quot;</span><span class="p">,</span> <span class="s2">&quot;u3&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">]):</span>
+                        <span class="ow">or</span> <span class="n">left_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u2&quot;</span><span class="p">,</span> <span class="s2">&quot;u3&quot;</span><span class="p">,</span> <span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">]):</span>
                     <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s2">&quot;internal error&quot;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">left_name</span> <span class="o">==</span> <span class="s2">&quot;u1&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">left_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">):</span>
                     <span class="n">left_parameters</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">current_node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="k">elif</span> <span class="n">left_name</span> <span class="o">==</span> <span class="s2">&quot;u2&quot;</span><span class="p">:</span>
                     <span class="n">left_parameters</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">current_node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                                        <span class="n">current_node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-                <span class="k">elif</span> <span class="n">left_name</span> <span class="o">==</span> <span class="s2">&quot;u3&quot;</span><span class="p">:</span>
+                <span class="k">elif</span> <span class="n">left_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;u3&quot;</span><span class="p">,</span> <span class="s1">&#39;u&#39;</span><span class="p">):</span>
                     <span class="n">left_parameters</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">current_node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">left_name</span> <span class="o">=</span> <span class="s2">&quot;u1&quot;</span>  <span class="c1"># replace id with u1</span>
+                    <span class="k">if</span> <span class="n">use_p</span><span class="p">:</span>
+                        <span class="n">left_name</span> <span class="o">=</span> <span class="s2">&quot;p&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">left_name</span> <span class="o">=</span> <span class="s2">&quot;u1&quot;</span>  <span class="c1"># replace id with u1</span>
                     <span class="n">left_parameters</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">current_node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">definition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
                         <span class="n">current_node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">global_phase</span><span class="p">):</span>
@@ -317,28 +327,31 @@
                 <span class="n">left_parameters</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">left_parameters</span><span class="p">])</span>
                 <span class="c1"># Compose gates</span>
                 <span class="n">name_tuple</span> <span class="o">=</span> <span class="p">(</span><span class="n">left_name</span><span class="p">,</span> <span class="n">right_name</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">name_tuple</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u1&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">name_tuple</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u1&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">)):</span>
                     <span class="c1"># u1(lambda1) * u1(lambda2) = u1(lambda1 + lambda2)</span>
                     <span class="n">right_parameters</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">right_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span>
                                         <span class="n">left_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-                <span class="k">elif</span> <span class="n">name_tuple</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u2&quot;</span><span class="p">):</span>
+                <span class="k">elif</span> <span class="n">name_tuple</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u2&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;u2&quot;</span><span class="p">)):</span>
                     <span class="c1"># u1(lambda1) * u2(phi2, lambda2) = u2(phi2 + lambda1, lambda2)</span>
                     <span class="n">right_parameters</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">right_parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span>
                                         <span class="n">left_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">right_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-                <span class="k">elif</span> <span class="n">name_tuple</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;u2&quot;</span><span class="p">,</span> <span class="s2">&quot;u1&quot;</span><span class="p">):</span>
+                <span class="k">elif</span> <span class="n">name_tuple</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;u2&quot;</span><span class="p">,</span> <span class="s2">&quot;u1&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;u2&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">)):</span>
                     <span class="c1"># u2(phi1, lambda1) * u1(lambda2) = u2(phi1, lambda1 + lambda2)</span>
                     <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u2&quot;</span>
                     <span class="n">right_parameters</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">left_parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                                         <span class="n">right_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">left_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-                <span class="k">elif</span> <span class="n">name_tuple</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u3&quot;</span><span class="p">):</span>
+                <span class="k">elif</span> <span class="n">name_tuple</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u3&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;u3&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;u&quot;</span><span class="p">)):</span>
                     <span class="c1"># u1(lambda1) * u3(theta2, phi2, lambda2) =</span>
                     <span class="c1">#     u3(theta2, phi2 + lambda1, lambda2)</span>
                     <span class="n">right_parameters</span> <span class="o">=</span> <span class="p">(</span><span class="n">right_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">right_parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span>
                                         <span class="n">left_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">right_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-                <span class="k">elif</span> <span class="n">name_tuple</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;u3&quot;</span><span class="p">,</span> <span class="s2">&quot;u1&quot;</span><span class="p">):</span>
+                <span class="k">elif</span> <span class="n">name_tuple</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;u3&quot;</span><span class="p">,</span> <span class="s2">&quot;u1&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="s1">&#39;u1&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;u3&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">)):</span>
                     <span class="c1"># u3(theta1, phi1, lambda1) * u1(lambda2) =</span>
                     <span class="c1">#     u3(theta1, phi1, lambda1 + lambda2)</span>
-                    <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u3&quot;</span>
+                    <span class="k">if</span> <span class="n">use_u</span><span class="p">:</span>
+                        <span class="n">right_name</span> <span class="o">=</span> <span class="s1">&#39;u&#39;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u3&quot;</span>
                     <span class="n">right_parameters</span> <span class="o">=</span> <span class="p">(</span><span class="n">left_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">left_parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                                         <span class="n">right_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">left_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
                 <span class="k">elif</span> <span class="n">name_tuple</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;u2&quot;</span><span class="p">,</span> <span class="s2">&quot;u2&quot;</span><span class="p">):</span>
@@ -346,7 +359,10 @@
                     <span class="c1">#    Rz(pi/2).Ry(pi-2*lambda).Rz(pi/2),</span>
                     <span class="c1"># u2(phi1, lambda1) * u2(phi2, lambda2) =</span>
                     <span class="c1">#    u3(pi - lambda1 - phi2, phi1 + pi/2, lambda2 + pi/2)</span>
-                    <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u3&quot;</span>
+                    <span class="k">if</span> <span class="n">use_u</span><span class="p">:</span>
+                        <span class="n">right_name</span> <span class="o">=</span> <span class="s1">&#39;u&#39;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u3&quot;</span>
                     <span class="n">right_parameters</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">left_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span>
                                         <span class="n">right_parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">left_parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span>
                                         <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">right_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span>
@@ -358,7 +374,10 @@
                     <span class="c1"># For composing u3&#39;s or u2&#39;s with u3&#39;s, use</span>
                     <span class="c1"># u2(phi, lambda) = u3(pi/2, phi, lambda)</span>
                     <span class="c1"># together with the qiskit.mapper.compose_u3 method.</span>
-                    <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u3&quot;</span>
+                    <span class="k">if</span> <span class="n">use_u</span><span class="p">:</span>
+                        <span class="n">right_name</span> <span class="o">=</span> <span class="s1">&#39;u&#39;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u3&quot;</span>
                     <span class="c1"># Evaluate the symbolic expressions for efficiency</span>
                     <span class="n">right_parameters</span> <span class="o">=</span> <span class="n">Optimize1qGates</span><span class="o">.</span><span class="n">compose_u3</span><span class="p">(</span><span class="n">left_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                                                                   <span class="n">left_parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
@@ -392,13 +411,17 @@
 
                 <span class="c1"># Y rotation is 0 mod 2*pi, so the gate is a u1</span>
                 <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">right_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                              <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)))</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="ow">and</span> <span class="n">right_name</span> <span class="o">!=</span> <span class="s2">&quot;u1&quot;</span><span class="p">:</span>
-                    <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u1&quot;</span>
+                              <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)))</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="ow">and</span> <span class="n">right_name</span> <span class="o">!=</span> <span class="s2">&quot;u1&quot;</span> \
+                        <span class="ow">and</span> <span class="n">right_name</span> <span class="o">!=</span> <span class="s2">&quot;p&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">use_p</span><span class="p">:</span>
+                        <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;p&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u1&quot;</span>
                     <span class="n">right_parameters</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">right_parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span>
                                         <span class="n">right_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span>
                                         <span class="n">right_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="c1"># Y rotation is pi/2 or -pi/2 mod 2*pi, so the gate is a u2</span>
-                <span class="k">if</span> <span class="n">right_name</span> <span class="o">==</span> <span class="s2">&quot;u3&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">right_name</span> <span class="o">==</span> <span class="s2">&quot;u3&quot;</span> <span class="ow">or</span> <span class="s1">&#39;u&#39;</span><span class="p">:</span>
                     <span class="c1"># theta = pi/2 + 2*k*pi</span>
                     <span class="n">right_angle</span> <span class="o">=</span> <span class="n">right_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span>
                     <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">right_angle</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">:</span>
@@ -421,20 +444,31 @@
                                             <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">+</span> <span class="p">(</span><span class="n">right_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span>
                                                      <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
                 <span class="c1"># u1 and lambda is 0 mod 2*pi so gate is nop (up to a global phase)</span>
-                <span class="k">if</span> <span class="n">right_name</span> <span class="o">==</span> <span class="s2">&quot;u1&quot;</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">right_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
-                                                     <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">right_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">right_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">:</span>
                     <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;nop&quot;</span>
 
             <span class="k">if</span> <span class="n">right_name</span> <span class="o">==</span> <span class="s2">&quot;u2&quot;</span> <span class="ow">and</span> <span class="s2">&quot;u2&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">:</span>
-                <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u3&quot;</span>
-            <span class="k">if</span> <span class="n">right_name</span> <span class="o">==</span> <span class="s2">&quot;u1&quot;</span> <span class="ow">and</span> <span class="s2">&quot;u1&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">:</span>
-                <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u3&quot;</span>
+                <span class="k">if</span> <span class="n">use_u</span><span class="p">:</span>
+                    <span class="n">right_name</span> <span class="o">=</span> <span class="s1">&#39;u&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u3&quot;</span>
+            <span class="k">if</span> <span class="n">right_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">right_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">use_u</span><span class="p">:</span>
+                    <span class="n">right_name</span> <span class="o">=</span> <span class="s1">&#39;u&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">right_name</span> <span class="o">=</span> <span class="s2">&quot;u3&quot;</span>
 
             <span class="n">new_op</span> <span class="o">=</span> <span class="n">Gate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">num_qubits</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">[])</span>
             <span class="k">if</span> <span class="n">right_name</span> <span class="o">==</span> <span class="s2">&quot;u1&quot;</span><span class="p">:</span>
                 <span class="n">new_op</span> <span class="o">=</span> <span class="n">U1Gate</span><span class="p">(</span><span class="n">right_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">right_name</span> <span class="o">==</span> <span class="s2">&quot;p&quot;</span><span class="p">:</span>
+                <span class="n">new_op</span> <span class="o">=</span> <span class="n">PhaseGate</span><span class="p">(</span><span class="n">right_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">right_name</span> <span class="o">==</span> <span class="s2">&quot;u2&quot;</span><span class="p">:</span>
                 <span class="n">new_op</span> <span class="o">=</span> <span class="n">U2Gate</span><span class="p">(</span><span class="n">right_parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">right_parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">right_name</span> <span class="o">==</span> <span class="s2">&quot;u&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;u&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">:</span>
+                    <span class="n">new_op</span> <span class="o">=</span> <span class="n">UGate</span><span class="p">(</span><span class="o">*</span><span class="n">right_parameters</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">right_name</span> <span class="o">==</span> <span class="s2">&quot;u3&quot;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="s2">&quot;u3&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">:</span>
                     <span class="n">new_op</span> <span class="o">=</span> <span class="n">U3Gate</span><span class="p">(</span><span class="o">*</span><span class="n">right_parameters</span><span class="p">)</span>
