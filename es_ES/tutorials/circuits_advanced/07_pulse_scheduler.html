@@ -41,7 +41,7 @@
     <link rel="index" title="Índice" href="../../genindex.html" />
     <link rel="search" title="Búsqueda" href="../../search.html" />
     <link rel="next" title="Obtaining information about your backend" href="08_gathering_system_information.html" />
-    <link rel="prev" title="Building Pulse Instructions" href="06_building_pulse_schedules.html" /> 
+    <link rel="prev" title="Building Pulse Schedules" href="06_building_pulse_schedules.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
@@ -507,7 +507,7 @@ div.rendered_html tbody tr:hover {
 <span class="n">circ</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">circ</span><span class="o">.</span><span class="n">measure</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
 
-<span class="n">circ</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="s1">&#39;mpl&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -515,14 +515,9 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="output_area rendered_html docutils container">
-<pre style="word-wrap: normal;white-space: pre;background: #fff0;line-height: 1.1;font-family: &quot;Courier New&quot;,Courier,monospace">     ┌───┐     ┌─┐
-q_0: ┤ H ├──■──┤M├───
-     └───┘┌─┴─┐└╥┘┌─┐
-q_1: ─────┤ X ├─╫─┤M├
-          └───┘ ║ └╥┘
-c: 2/═══════════╩══╩═
-                0  1 </pre></div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_circuits_advanced_07_pulse_scheduler_1_0.png" src="../../_images/tutorials_circuits_advanced_07_pulse_scheduler_1_0.png" />
+</div>
 </div>
 <p>We’ll use the mocked backend, <code class="docutils literal notranslate"><span class="pre">FakeAlmaden</span></code>, to demonstrate how to use the scheduler. It contains default calibrations for measurement and for its basis gates. The Hadamard operation is not one of those basis gates, so we use the transpiler to compile our input circuit to an equivalent circuit in terms of the basis gates of the device.</p>
 <div class="nbinput nblast docutils container">
@@ -540,13 +535,13 @@ c: 2/═══════════╩══╩═
 </pre></div>
 </div>
 </div>
-<p>Let’s see how our schedule <code class="docutils literal notranslate"><span class="pre">schedule</span></code> built from the circuit <code class="docutils literal notranslate"><span class="pre">transpiled_circ</span></code> looks. (We select a range to plot because the measurement and acquire pulses are long.)</p>
+<p>Let’s see how our schedule <code class="docutils literal notranslate"><span class="pre">schedule</span></code> built from the circuit <code class="docutils literal notranslate"><span class="pre">transpiled_circ</span></code> looks.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">schedule</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">plot_range</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1700</span><span class="p">])</span>
+<span></span><span class="n">schedule</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">plot_range</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2000</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
@@ -562,168 +557,41 @@ c: 2/═══════════╩══╩═
 </div>
 <div class="section" id="Scheduling-with-custom-gate-definitions">
 <h2>Scheduling with custom gate definitions<a class="headerlink" href="#Scheduling-with-custom-gate-definitions" title="Enlazar permanentemente con este título">¶</a></h2>
-<p>Using the scheduler with Pulse, we are not restrained by the basis gates of the device. For instance, we can define a calibration for the Hadamard gate on qubit 0, which is used by our Bell state circuit. Our Hadamard will be a Gaussian pulse. In practice, the pulse shape and its parameters would be optimized through a series of Rabi experiments (see the <a class="reference external" href="https://qiskit.org/textbook/ch-quantum-hardware/calibrating-qubits-openpulse.html">Qiskit Textbook</a> for a walk through).</p>
-<div class="nbinput nblast docutils container">
+<p>If your input circuit has calibrations defined, it will use those calibrations when scheduling your circuit.</p>
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.pulse</span> <span class="kn">import</span> <span class="n">Schedule</span><span class="p">,</span> <span class="n">Play</span><span class="p">,</span> <span class="n">Gaussian</span><span class="p">,</span> <span class="n">DriveChannel</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">pulse</span>
 
-<span class="n">h_q0</span> <span class="o">=</span> <span class="n">Schedule</span><span class="p">(</span><span class="n">Play</span><span class="p">(</span><span class="n">Gaussian</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">amp</span><span class="o">=</span><span class="mf">0.045</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">8</span><span class="p">),</span> <span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span>
-</pre></div>
-</div>
-</div>
-<p>We add the <code class="docutils literal notranslate"><span class="pre">h_q0</span></code> calibration to the backend’s existing <code class="docutils literal notranslate"><span class="pre">InstructionScheduleMap</span></code> containing the instruction calibration lookup. It has to be added by gate name – here we use the standard gate name <code class="docutils literal notranslate"><span class="pre">'h'</span></code> – and by qubit. <strong>Remember that a gate calibrated on one qubit will not enact the same gate on another qubit.</strong></p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cals</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">defaults</span><span class="p">()</span><span class="o">.</span><span class="n">instruction_schedule_map</span>
-<span class="n">cals</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">h_q0</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">h_q0</span><span class="p">:</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">pulse</span><span class="o">.</span><span class="n">library</span><span class="o">.</span><span class="n">Gaussian</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">amp</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;custom&#39;</span><span class="p">),</span>
+               <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
 
-<span class="n">schedule</span> <span class="o">=</span> <span class="n">build_schedule</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">inst_map</span><span class="o">=</span><span class="n">cals</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<p>Notice how this time, we were able to schedule <code class="docutils literal notranslate"><span class="pre">circ</span></code>, which hasn’t been transpiled, so it still has the Hadamard gate. The new <code class="docutils literal notranslate"><span class="pre">h_q0</span></code> calibration we added was used to schedule <code class="docutils literal notranslate"><span class="pre">circ</span></code>.</p>
-</div>
-<div class="section" id="Building-circuits-with-non-standard-gates">
-<h2>Building circuits with non-standard gates<a class="headerlink" href="#Building-circuits-with-non-standard-gates" title="Enlazar permanentemente con este título">¶</a></h2>
-<p>In the previous section, we added a native definition for a standard gate. In this section, we build a totally novel gate.</p>
-<p>The first step is to create a definition for it as a Pulse <code class="docutils literal notranslate"><span class="pre">Schedule</span></code>. Below, we also demonstrate how these schedules can be built to accept parameters.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">add_calibration</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">h_q0</span><span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">qiskit.pulse</span> <span class="kn">import</span> <span class="n">Play</span><span class="p">,</span> <span class="n">Waveform</span><span class="p">,</span> <span class="n">ControlChannel</span>
-<span class="kn">from</span> <span class="nn">qiskit.pulse.schedule</span> <span class="kn">import</span> <span class="n">ParameterizedSchedule</span>
-
-<span class="k">def</span> <span class="nf">random_pulse</span><span class="p">(</span><span class="n">duration</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">duration</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Duration cannot be less than 1.&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">Waveform</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">duration</span><span class="p">))</span>
-
-<span class="k">def</span> <span class="nf">random_2q_gate</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="n">sched</span> <span class="o">=</span> <span class="n">Schedule</span><span class="p">()</span>
-    <span class="n">sched</span> <span class="o">+=</span> <span class="n">Play</span><span class="p">(</span><span class="n">random_pulse</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-    <span class="n">sched</span> <span class="o">+=</span> <span class="n">Play</span><span class="p">(</span><span class="n">random_pulse</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">ControlChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-    <span class="n">sched</span> <span class="o">+=</span> <span class="n">Play</span><span class="p">(</span><span class="n">random_pulse</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">sched</span>
-
-<span class="n">my_random_2q_gate</span> <span class="o">=</span> <span class="n">ParameterizedSchedule</span><span class="p">(</span><span class="n">random_2q_gate</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-</div>
-<p>We call our schedule operation <code class="docutils literal notranslate"><span class="pre">'my_2q'</span></code>, and define it over qubits 0 and 1 as we add it to our calibrations.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cals</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;my_2q&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">my_random_2q_gate</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<p>To prepare our circuit to use this definition, we need to create a new <code class="docutils literal notranslate"><span class="pre">Gate</span></code> with the same name that we defined above, <code class="docutils literal notranslate"><span class="pre">'my_2q'</span></code>.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">Gate</span>
-
-<span class="n">my_2q</span> <span class="o">=</span> <span class="n">Gate</span><span class="p">(</span><span class="s1">&#39;my_2q&#39;</span><span class="p">,</span> <span class="n">num_qubits</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">])</span>  <span class="c1"># Here we pass `duration`, as 100</span>
-</pre></div>
-</div>
-</div>
-<p>Now, we can build our circuit. When we use the new gate, <code class="docutils literal notranslate"><span class="pre">my_2q</span></code>, we <code class="docutils literal notranslate"><span class="pre">append</span></code> it to our circuit, and otherwise build the circuit normally.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">my_2q</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">measure</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+<span class="n">schedule</span> <span class="o">=</span> <span class="n">build_schedule</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">backend</span><span class="p">)</span>
+<span class="n">schedule</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">plot_range</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2000</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="word-wrap: normal;white-space: pre;background: #fff0;line-height: 1.1;font-family: &quot;Courier New&quot;,Courier,monospace">     ┌───┐┌─────────────┐┌───┐┌─┐
-q_0: ┤ H ├┤0            ├┤ H ├┤M├
-     └───┘│  my_2q(100) │└───┘└╥┘
-q_1: ─────┤1            ├──────╫─
-          └─────────────┘      ║
-c: 2/══════════════════════════╩═
-                               0 </pre></div>
-</div>
-<p>All of the operations in <code class="docutils literal notranslate"><span class="pre">circ</span></code> are defined in our <code class="docutils literal notranslate"><span class="pre">cals</span></code>, so we could schedule it directly, but let’s remove our qubit 0 Hadamard calibration so we can demonstrate how to use the transpiler with our novel 2Q gate.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cals</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-
-<span class="n">transpiled_circ</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span>
-                            <span class="n">coupling_map</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
-                            <span class="n">basis_gates</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">basis_gates</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;my_2q&#39;</span><span class="p">])</span>
-<span class="n">transpiled_circ</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
-</pre></div>
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="word-wrap: normal;white-space: pre;background: #fff0;line-height: 1.1;font-family: &quot;Courier New&quot;,Courier,monospace">         ┌──────────┐┌─────────────┐┌──────────┐┌─┐
-q_0 -> 0 ┤ U2(0,pi) ├┤0            ├┤ U2(0,pi) ├┤M├
-         └──────────┘│  my_2q(100) │└──────────┘└╥┘
-q_1 -> 1 ────────────┤1            ├─────────────╫─
-                     └─────────────┘             ║
-    c: 2/════════════════════════════════════════╩═
-                                                 0 </pre></div>
-</div>
-<p>Now, we can schedule our <code class="docutils literal notranslate"><span class="pre">transpiled_circ</span></code> as we did before.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">schedule</span> <span class="o">=</span> <span class="n">build_schedule</span><span class="p">(</span><span class="n">transpiled_circ</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">inst_map</span><span class="o">=</span><span class="n">cals</span><span class="p">)</span>
-
-<span class="n">schedule</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">plot_range</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">500</span><span class="p">))</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_circuits_advanced_07_pulse_scheduler_21_0.png" src="../../_images/tutorials_circuits_advanced_07_pulse_scheduler_21_0.png" />
+<img alt="../../_images/tutorials_circuits_advanced_07_pulse_scheduler_7_0.png" src="../../_images/tutorials_circuits_advanced_07_pulse_scheduler_7_0.png" />
 </div>
 </div>
+<p>Notice that the initial pulse on <code class="docutils literal notranslate"><span class="pre">D0</span></code>, the Hadamard gate, is now implemented with our custom pulse.</p>
 </div>
 <div class="section" id="Scheduler-methods">
 <h2>Scheduler methods<a class="headerlink" href="#Scheduler-methods" title="Enlazar permanentemente con este título">¶</a></h2>
 <p>The scheduler can follow multiple routines. By default, it follows an <em>as late as possible</em> (ALAP) rule. Another scheduling method is <em>as soon as possible</em>, (ASAP). For both methods, the output schedule is minimal: in the longest-duration operation path of the input circuit, the start time of each operation is the end time of the proceeding operation. The methods determine how to schedule operations outside that longest path.</p>
 <p>This is made clear through an example:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -736,58 +604,58 @@ q_1 -> 1 ────────────┤1            ├─────�
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;qiskit.circuit.instructionset.InstructionSet at 0x138758470&gt;
+&lt;qiskit.circuit.instructionset.InstructionSet at 0x12cba98e0&gt;
 </pre></div></div>
 </div>
 <p>For our mocked backend, these <span class="math notranslate nohighlight">\(X\)</span> gate operations are each the same duration (<code class="docutils literal notranslate"><span class="pre">duration</span> <span class="pre">=</span> <span class="pre">160</span> <span class="pre">dt</span></code>). For the schedule to be minimal, the two <span class="math notranslate nohighlight">\(X\)</span> operations on qubit 0 will be scheduled back-to-back, and the measurement pulse will immediately follow the second of those pulses.</p>
 <p>ALAP will choose the latest valid time to schedule lesser-constrained operations, so the <span class="math notranslate nohighlight">\(X\)</span> gate on qubit 1 will play in sync with the second <span class="math notranslate nohighlight">\(X\)</span> gate on qubit 0.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">schedule</span> <span class="o">=</span> <span class="n">build_schedule</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span>
                           <span class="n">method</span><span class="o">=</span><span class="s2">&quot;as_late_as_possible&quot;</span><span class="p">)</span>
-<span class="n">schedule</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">)],</span> <span class="n">scale</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">schedule</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">)])</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_circuits_advanced_07_pulse_scheduler_25_0.png" src="../../_images/tutorials_circuits_advanced_07_pulse_scheduler_25_0.png" />
+<img alt="../../_images/tutorials_circuits_advanced_07_pulse_scheduler_11_0.png" src="../../_images/tutorials_circuits_advanced_07_pulse_scheduler_11_0.png" />
 </div>
 </div>
 <p>On the other hand, as the name suggests, ASAP will schedule operations as soon as its resources are free. Thus, the <span class="math notranslate nohighlight">\(X\)</span> gate on qubit 1 will be scheduled at <code class="docutils literal notranslate"><span class="pre">time=0</span></code>, in sync with the first <span class="math notranslate nohighlight">\(X\)</span> gate on qubit 0.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">schedule</span> <span class="o">=</span> <span class="n">build_schedule</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span>
                           <span class="n">method</span><span class="o">=</span><span class="s2">&quot;as_soon_as_possible&quot;</span><span class="p">)</span>
-<span class="n">schedule</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">)],</span> <span class="n">scale</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">schedule</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">)])</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_circuits_advanced_07_pulse_scheduler_27_0.png" src="../../_images/tutorials_circuits_advanced_07_pulse_scheduler_27_0.png" />
+<img alt="../../_images/tutorials_circuits_advanced_07_pulse_scheduler_13_0.png" src="../../_images/tutorials_circuits_advanced_07_pulse_scheduler_13_0.png" />
 </div>
 </div>
 <p>ALAP is the default because it allows qubits to remain idle as long as possible. In this case, the difference between ALAP and ASAP may be negligible, but in ALAP, qubit 0 has <em>no</em> time to decay from the excited state before measurement.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -801,14 +669,14 @@ q_1 -> 1 ────────────┤1            ├─────�
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.20.0</td></tr><tr><td>Terra</td><td>0.15.0</td></tr><tr><td>Aer</td><td>0.6.1</td></tr><tr><td>Ignis</td><td>0.4.0</td></tr><tr><td>Aqua</td><td>0.7.5</td></tr><tr><td>IBM Q Provider</td><td>0.8.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.3 (default, Apr 24 2020, 18:51:23)
-[Clang 11.0.3 (clang-1103.0.32.62)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>6</td></tr><tr><td>Memory (Gb)</td><td>32.0</td></tr><tr><td colspan='2'>Mon Aug 10 17:04:56 2020 EDT</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.23.2</td></tr><tr><td>Terra</td><td>0.16.2</td></tr><tr><td>Aer</td><td>0.7.2</td></tr><tr><td>Ignis</td><td>0.5.1</td></tr><tr><td>Aqua</td><td>0.8.1</td></tr><tr><td>IBM Q Provider</td><td>0.11.1</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.9.1 (default, Dec 10 2020, 10:36:35)
+[Clang 12.0.0 (clang-1200.0.32.27)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>6</td></tr><tr><td>Memory (Gb)</td><td>32.0</td></tr><tr><td colspan='2'>Tue Jan 26 15:29:54 2021 EST</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2020.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
+<div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2021.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
@@ -833,7 +701,7 @@ q_1 -> 1 ────────────┤1            ├─────�
         <a href="08_gathering_system_information.html" class="btn btn-neutral float-right" title="Obtaining information about your backend" accesskey="n" rel="next">Next <img src="../../_static/images/chevron-right-orange.svg" class="next-page"></a>
       
       
-        <a href="06_building_pulse_schedules.html" class="btn btn-neutral" title="Building Pulse Instructions" accesskey="p" rel="prev"><img src="../../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
+        <a href="06_building_pulse_schedules.html" class="btn btn-neutral" title="Building Pulse Schedules" accesskey="p" rel="prev"><img src="../../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
       
     </div>
   
@@ -869,7 +737,6 @@ q_1 -> 1 ────────────┤1            ├─────�
 <li><a class="reference internal" href="#">Using the Scheduler</a><ul>
 <li><a class="reference internal" href="#Basic-usage">Basic usage</a></li>
 <li><a class="reference internal" href="#Scheduling-with-custom-gate-definitions">Scheduling with custom gate definitions</a></li>
-<li><a class="reference internal" href="#Building-circuits-with-non-standard-gates">Building circuits with non-standard gates</a></li>
 <li><a class="reference internal" href="#Scheduler-methods">Scheduler methods</a></li>
 </ul>
 </li>
