@@ -486,15 +486,15 @@ div.rendered_html tbody tr:hover {
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p>이 페이지는 <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/circuits_advanced/04_transpiler_passes_and_passmanager.ipynb">tutorials/circuits_advanced/04_transpiler_passes_and_passmanager.ipynb</a> 로부터 생성되었다.</p>
-<p>&lt;<a class="reference external" href="https://quantum-computing.ibm.com/jupyter/tutorial/circuits_advanced/04_transpiler_passes_and_passmanager.ipynb">https://quantum-computing.ibm.com/jupyter/tutorial/circuits_advanced/04_transpiler_passes_and_passmanager.ipynb</a>&gt;`_ 에서 대화식 인터프리터로 실행.</p>
+<p><a class="reference external" href="https://quantum-computing.ibm.com/jupyter/tutorial/circuits_advanced/04_transpiler_passes_and_passmanager.ipynb">IBM 퀀텀 랩</a> 에서 대화식으로 실행하시오.</p>
 </div>
 <div class="section" id="트랜스파일러-패스-및-패스-매니저">
 <h1>트랜스파일러 패스 및 패스 매니저<a class="headerlink" href="#트랜스파일러-패스-및-패스-매니저" title="제목 주소">¶</a></h1>
 <div class="section" id="소개">
 <h2>소개<a class="headerlink" href="#소개" title="제목 주소">¶</a></h2>
-<p>키스킷 테라의 중심 구성요소는 모듈성과 확장성을 위해 설계된 트랜스파일러다. 새로운 회로 변환(트랜스파일러 <a href="#id1"><span class="problematic" id="id2">**</span></a>passes**로 알려져 있음)을 쉽게 작성할 수 있고, 이를 다른 기존 패스와 결합하는 것이 목표다. 어떤 패스가 체인으로 묶여 있고 어떤 순서가 최종 결과에 큰 영향을 미치는가. 이 파이프라인은 <a href="#id3"><span class="problematic" id="id4">**</span></a>pass manager**에 의해 결정되는데, 이 관리자는 패스를 예약하고 공유 공간을 제공하여 패스가 서로 통신할 수 있도록 한다. 이런 식으로 트랜스파일러는 적극적으로 양자 회로의 최적화에 대한 연구의 문을 연다.</p>
-<p>이 노트북에서는 내장된 패스, 패스 매니저 사용법 등을 살펴보고, 간단한 맞춤형 트랜스파일러 패스를 개발한다. 후자를 하기 위해서는 우선 <a href="#id1"><span class="problematic" id="id2">**</span></a>DAG**(Directed Acyclic Graph) 의 형태로 키스킷으로 양자 회로의 내부를 표현한다. 그런 다음 입력 회로를 제한된 연결 양자 장치와 호환되도록 변환하는 간단한 스왑 매퍼 패스를 설명한다.</p>
-<p><strong>Before you start</strong>: You may need to install the <code class="docutils literal notranslate"><span class="pre">pydot</span></code> library and the <code class="docutils literal notranslate"><span class="pre">graphviz</span></code> library for the DAG plotting routines. If you are using Anaconda Python, you can install both with the <code class="docutils literal notranslate"><span class="pre">conda</span></code> command. If you use your system’s native Python interpreter, install <code class="docutils literal notranslate"><span class="pre">pydot</span></code> using the <code class="docutils literal notranslate"><span class="pre">pip</span></code> command, and install <code class="docutils literal notranslate"><span class="pre">graphviz</span></code> using your system’s native package manager (e.g. <code class="docutils literal notranslate"><span class="pre">yum</span></code>, <code class="docutils literal notranslate"><span class="pre">apt</span></code>, <code class="docutils literal notranslate"><span class="pre">dnf</span></code>, <code class="docutils literal notranslate"><span class="pre">brew</span></code>, etc.).</p>
+<p>키스킷 테라의 중심 구성요소는 모듈성과 확장성을 위해 설계된 트랜스파일러다. 새로운 회로 변환(트랜스파일러 <strong>passes</strong> 로 알려져 있음) 을 쉽게 작성할 수 있고, 이를 다른 기존 패스와 결합하는 것이 목표다. 어떤 패스가 체인으로 묶여 있고 어떤 순서가 최종 결과에 큰 영향을 미치는가. 이 파이프라인은 <strong>pass manager</strong> 에 의해 결정되는데, 이 관리자는 패스를 예약하고 공유 공간을 제공하여 패스가 서로 통신할 수 있도록 한다. 이런 식으로 트랜스파일러는 적극적으로 양자 회로의 최적화에 대한 연구의 문을 연다.</p>
+<p>이 노트북에서는 내장된 패스, 패스 매니저 사용법 등을 살펴보고, 간단한 맞춤형 트랜스파일러 패스를 개발한다. 후자를 하기 위해서는 우선 <strong>DAG</strong> (Directed Acyclic Graph) 의 형태로 키스킷으로 양자 회로의 내부를 표현한다. 그런 다음 입력 회로를 제한된 연결 양자 장치와 호환되도록 변환하는 간단한 스왑 매퍼 패스를 설명한다.</p>
+<p><strong>시작하기 전에</strong>: DAG 플로팅 루팅을 위해 <code class="docutils literal notranslate"><span class="pre">pydot</span></code> 라이브러리와 <code class="docutils literal notranslate"><span class="pre">graphviz</span></code> 라이브러리를 설치가 필요할 수도 있습니다. Anaconda Python을 사용하는 경우 <code class="docutils literal notranslate"><span class="pre">conda</span></code> 명렁어를 통해 통해 두 가지 라이브러리를 모두 설치할 수 있습니다. 시스템의 기본 Python 인터프리터를 사용하는 경우 <code class="docutils literal notranslate"><span class="pre">pip</span></code> 명령어를 통해 <code class="docutils literal notranslate"><span class="pre">pydot</span></code> 를 설치하고 시스템의 기본 패키지 관리자를 사용하여 <code class="docutils literal notranslate"><span class="pre">graphviz</span></code> 를 설치합니다. (즉. <code class="docutils literal notranslate"><span class="pre">yum</span></code>, <code class="docutils literal notranslate"><span class="pre">apt</span></code>, <code class="docutils literal notranslate"><span class="pre">dnf</span></code>, <code class="docutils literal notranslate"><span class="pre">brew</span></code>, 등등).</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -551,7 +551,7 @@ div.rendered_html tbody tr:hover {
 <img alt="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_6_0.png" src="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_6_0.png" />
 </div>
 </div>
-<p>All of Qiskit’s transpiler passes are accessible from <code class="docutils literal notranslate"><span class="pre">qiskit.transpiler.passes</span></code>.</p>
+<p>모든 키스킷의 트랜스파일러 패스는 <code class="docutils literal notranslate"><span class="pre">qiskit.transpiler.passes</span></code> 로 부터 불러올 수 있다.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -621,8 +621,8 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="section" id="동일한-패스의-다양한-변형">
 <h2>동일한 패스의 다양한 변형<a class="headerlink" href="#동일한-패스의-다양한-변형" title="제목 주소">¶</a></h2>
-<p>동일한 기능을 제공하지만 다른 방법으로 구성되는 패스가 있을 수 있다. 예를 들어 <code class="docutils literal notranslate"><span class="pre">TrivialLayout</span></code>, <code class="docutils literal notranslate"><span class="pre">DenseLayout</span></code>》과 <code class="docutils literal notranslate"><span class="pre">NoiseAdaptiveLayout``은</span> <span class="pre">모두</span> <span class="pre">레이아웃(가상</span> <span class="pre">큐비트를</span> <span class="pre">물리적</span> <span class="pre">큐비트에</span> <span class="pre">바인딩)</span> <span class="pre">을</span> <span class="pre">선택하지만</span> <span class="pre">다른</span> <span class="pre">알고리즘과</span> <span class="pre">목표를</span> <span class="pre">사용한다.</span> <span class="pre">마찬가지로</span> <span class="pre">```BasicSwap</span></code>, <code class="docutils literal notranslate"><span class="pre">LookaheadSwap</span></code>, <a href="#id1"><span class="problematic" id="id2">``</span></a>StochasticSwap``등도 회로가 커플링 맵과 호환되도록 스왑을 삽입한다. 트랜스파일러의 모듈화는 각 패스마다 플러그 앤 플레이 교체를 허용한다.</p>
-<p>아래에서는 동일한 회로에 적용된 모든 스왑퍼의 패스를 보여 주며, 선형 체인 토폴로지와 일치하도록 변환한다. <a href="#id1"><span class="problematic" id="id2">``</span></a>StochasticSwap``이 최고의 성능을 보여주는 것을 포함해 스왑퍼 패스 간의 성능 차이를 확인할 수 있다. 그러나 이것은 입력 회로에 따라 다를 수 있다.</p>
+<p>동일한 기능을 제공하지만 다른 방법으로 구성되는 패스가 있을 수 있다. 예를 들어 <code class="docutils literal notranslate"><span class="pre">TrivialLayout</span></code>, <code class="docutils literal notranslate"><span class="pre">DenseLayout</span></code> 과 <code class="docutils literal notranslate"><span class="pre">NoiseAdaptiveLayout</span></code> 은 모두 레이아웃(가상 큐비트를 물리적 큐비트에 바인딩) 을 선택하지만 다른 알고리즘과 목표를 사용한다. 마찬가지로 <code class="docutils literal notranslate"><span class="pre">`BasicSwap</span></code>, <code class="docutils literal notranslate"><span class="pre">LookaheadSwap</span></code>, <code class="docutils literal notranslate"><span class="pre">StochasticSwap</span></code> 등도 회로가 커플링 맵과 호환되도록 스왑을 삽입한다. 트랜스파일러의 모듈화는 각 패스마다 플러그 앤 플레이 교체를 허용한다.</p>
+<p>아래에서는 동일한 회로에 적용된 모든 스왑퍼의 패스를 보여 주며, 선형 체인 토폴로지와 일치하도록 변환한다. <code class="docutils literal notranslate"><span class="pre">StochasticSwap</span></code> 이 최고의 성능을 보여주는 것을 포함해 스왑퍼 패스 간의 성능 차이를 확인할 수 있다. 그러나 이것은 입력 회로에 따라 다를 수 있다.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
@@ -826,7 +826,7 @@ q_9: »
 «q_9: ──────────────────────────────────────────────────────────────────────────────
 «                                                                                   </pre></div>
 </div>
-<p>Now map this to the 20-qubit Tokyo device, with different optimization levels:</p>
+<p>이제 이를 서로 다른 최적화 레벨을 사용하여 20-큐비트 Tokyo 디바이스에 맵핑하시오.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
@@ -911,7 +911,7 @@ depth =  38
 <div class="section" id="DAG-소개">
 <h2>DAG 소개<a class="headerlink" href="#DAG-소개" title="제목 주소">¶</a></h2>
 <p>In Qiskit, we represent circuits internally using a Directed Acyclic Graph (DAG). The advantage of this representation over a pure list of gates (i.e., <em>netlist</em>) is that the flow of information between operations are explicit, making it easier for passes to make transformation decisions without changing the semantics of the circuit.</p>
-<p>Let’s start by building a simple circuit, and examining its DAG.</p>
+<p>간단한 회로를 구축하고 DAG를 살펴보겠다.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
@@ -959,7 +959,7 @@ depth =  38
 <img alt="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_27_0.png" src="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_27_0.png" />
 </div>
 </div>
-<p>Therefore, writing a transpiler pass means using Qiskit’s DAGCircuit API to analyze or transform the circuit. Let’s see some examples of this.</p>
+<p>따라서 트랜스파일러 패스를 작성한다는 것은 키스킷의 DAGCircuit API를 사용하여 회로를 분석하거나 변환하는 것을 의미한다. 이에 대한 몇 가지 예시들을 살펴보자.</p>
 <p>** a. DAG의 모든 op 노드 가져오기: **</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
@@ -982,7 +982,7 @@ depth =  38
  &lt;qiskit.dagcircuit.dagnode.DAGNode at 0x7f1eebb876d0&gt;]
 </pre></div></div>
 </div>
-<p>Each node is an instance of the <code class="docutils literal notranslate"><span class="pre">DAGNode</span></code> class. Let’s examine the information stored in the second op node.</p>
+<p>각 노드는 <code class="docutils literal notranslate"><span class="pre">DAGNode</span></code> 클래스의 인스턴스이다. 두 번째 op 노트에 저장된 정보를 살펴보자.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
@@ -1103,7 +1103,7 @@ node condition:  (ClassicalRegister(3, &#39;c&#39;), 2)
 <p>Now that we are familiar with the DAG, let’s use it to write a transpiler pass. Here we will implement a basic pass for mapping an arbitrary circuit to a device with limited qubit connectivity. We call this the BasicMapper. This pass is included in Qiskit Terra as well.</p>
 <p>The first thing to do when writing a transpiler pass is to decide whether the pass class derives from a <code class="docutils literal notranslate"><span class="pre">TransformationPass</span></code> or <code class="docutils literal notranslate"><span class="pre">AnalysisPass</span></code>. Transformation passes modify the circuit, while analysis passes only collect information about a circuit (to be used by other passes). Then, the <code class="docutils literal notranslate"><span class="pre">run(dag)</span></code> method is implemented, which does the main task. Finally, the pass is registered inside the <code class="docutils literal notranslate"><span class="pre">qiskit.transpiler.passes</span></code> module.</p>
 <p>This pass functions as follows: it traverses the DAG layer-by-layer (each layer is a group of operations that does not act on independent qubits, so in theory all operations in a layer can be done independently). For each operation, if it does not already meet the coupling map constraints, the pass identifies a swap path and inserts swaps to bring the two qubits close to each other.</p>
-<p>Follow the comments in the code for more details.</p>
+<p>자세한 내용은 코드의 주석을 따르십시오.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
@@ -1208,7 +1208,7 @@ node condition:  (ClassicalRegister(3, &#39;c&#39;), 2)
 </pre></div>
 </div>
 </div>
-<p>Let’s test this pass on a small example circuit.</p>
+<p>간단한 예제 회로에서 이 패스를 테스트해보자.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
@@ -1305,8 +1305,8 @@ node condition:  (ClassicalRegister(3, &#39;c&#39;), 2)
 logging to integrate in a standard way with other applications and libraries.</p>
 <p>For a more thorough introduction to Python logging refer to the <a class="reference external" href="https://docs.python.org/3/library/logging.html">official documentation</a> and the tutorials and cookbook linked off of there.</p>
 <div class="alert alert-block alert-success"><p>Note: Most of the logging module functions used in this section adjust global settings. If you run commands in this section it might effect the output from other cells if they are run in a different order.</p>
-</div><div class="section" id="Configuring-Python-Standard-Library-Logging">
-<h3>Configuring Python Standard Library Logging<a class="headerlink" href="#Configuring-Python-Standard-Library-Logging" title="제목 주소">¶</a></h3>
+</div><div class="section" id="Python-Standard-Library-로깅-구성하기">
+<h3>Python Standard Library 로깅 구성하기<a class="headerlink" href="#Python-Standard-Library-로깅-구성하기" title="제목 주소">¶</a></h3>
 <p>By default Python Standard Logging only prints log messages at the <code class="docutils literal notranslate"><span class="pre">WARNING</span></code>, <code class="docutils literal notranslate"><span class="pre">ERROR</span></code>, or <code class="docutils literal notranslate"><span class="pre">CRITICAL</span></code> log levels. Since none of the logs emitted by the transpiler use these log levels (they’re all informative) you need to configure logging.</p>
 <p>이를 수행하는 가장 간단한 방법은 다음을 실행하는 것이다.</p>
 <div class="nbinput nblast docutils container">
@@ -1321,7 +1321,7 @@ logging to integrate in a standard way with other applications and libraries.</p
 </div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">basicConfig()</span></code> function (see the docs here: <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.basicConfig">https://docs.python.org/3/library/logging.html#logging.basicConfig</a>) configures a root handler and formatter. We also specify the <a class="reference external" href="https://docs.python.org/3/library/logging.html#levels">log level</a> to display with the <code class="docutils literal notranslate"><span class="pre">level</span></code> kwarg. Setting it to a level will also include and higher levels. For example, if you set it to <code class="docutils literal notranslate"><span class="pre">'INFO'</span></code> in addition to the <code class="docutils literal notranslate"><span class="pre">INFO</span></code> level this will also include the <code class="docutils literal notranslate"><span class="pre">WARNING</span></code>, <code class="docutils literal notranslate"><span class="pre">ERROR</span></code>, and <code class="docutils literal notranslate"><span class="pre">CRITICAL</span></code> log levels.</p>
-<p>Now the python environment in this notebook is configured to emit log messages to stderr when you run the transpiler. For example:</p>
+<p>이제 이 노트북의 python 환경은 트랜스파일러를 실행할 때 로그 메세지를 stderr로 내보내도록 구성되었다. 예를 들면:</p>
 <div class="alert alert-block alert-success"><p>Note: basicConfig() will only work when called the first time it’s called. It detects if a root handler and formatter have already been setup (either by using an earlier basicConfig() call or otherwise) and does nothing if they have. Further adjustments will have to by interacting with the handler directly.</p>
 </div><div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
@@ -1420,8 +1420,8 @@ INFO:qiskit.compiler.transpile:Total Transpile Time - 75.43111 (ms)
 </div>
 <p>As you can clearly see here when calling <code class="docutils literal notranslate"><span class="pre">transpile()</span></code> it now prints 2 types of log messages. The first is at the <code class="docutils literal notranslate"><span class="pre">INFO</span></code> log level and come from the pass manager. These indicate each pass that was executed and how long that took. The second are at the <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> level and come from the StochasticSwap pass and describes the internal operation of that pass. It’s useful for debugging issues in the pass’s operation.</p>
 </div>
-<div class="section" id="Adjusting-the-log-level-for-the-transpiler">
-<h3>Adjusting the log level for the transpiler<a class="headerlink" href="#Adjusting-the-log-level-for-the-transpiler" title="제목 주소">¶</a></h3>
+<div class="section" id="트랜스파일러에-대한-로그-레벨-조정하기">
+<h3>트랜스파일러에 대한 로그 레벨 조정하기<a class="headerlink" href="#트랜스파일러에-대한-로그-레벨-조정하기" title="제목 주소">¶</a></h3>
 <p>The qiskit transpiler uses a single namespace <code class="docutils literal notranslate"><span class="pre">qiskit.transpiler</span></code>, as used by <code class="docutils literal notranslate"><span class="pre">logging.getLogger('qiskit.transpiler')</span></code>). This makes it very easy to adjust the log level for just the transpiler. For example if you only wish to see log messages at the INFO level or above you can run:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
@@ -1471,10 +1471,10 @@ INFO:qiskit.compiler.transpile:Total Transpile Time - 38.27548 (ms)
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Setting-up-logging-to-deal-with-parallel-execution">
-<h3>Setting up logging to deal with parallel execution<a class="headerlink" href="#Setting-up-logging-to-deal-with-parallel-execution" title="제목 주소">¶</a></h3>
+<div class="section" id="병렬-실행을-처리하기-위해-로깅-설정하기">
+<h3>병렬 실행을 처리하기 위해 로깅 설정하기<a class="headerlink" href="#병렬-실행을-처리하기-위해-로깅-설정하기" title="제목 주소">¶</a></h3>
 <p>When running the transpiler with multiple circuits by default these circuits are transpiled in parallel. If you want to do this with logging enabled and be able to understand the output some additional steps are required.</p>
-<p>If you were just to enable logging as above and then pass <code class="docutils literal notranslate"><span class="pre">transpile()</span></code> multiple circuits you’ll get results that are difficult to decipher. For example:</p>
+<p>위와 같이 로깅을 활성화한 다음 <code class="docutils literal notranslate"><span class="pre">transpile()</span></code> 다중 회로를 통과하면 해독하기 어려운 결과를 얻을 수 있다. 예를 들면:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
 </pre></div>
@@ -1638,7 +1638,7 @@ INFO:qiskit.compiler.transpile:Total Transpile Time - 195.16397 (ms)
 </pre></div>
 </div>
 </div>
-<p>Then rerun the <code class="docutils literal notranslate"><span class="pre">transpile()</span></code> call and see the new log formatter.</p>
+<p>그런 다음 <code class="docutils literal notranslate"><span class="pre">transpile()</span></code> 호출을 다시 실행하고 새 로그 포맷터를 확인한다.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
 </pre></div>
@@ -1877,9 +1877,9 @@ qiskit.compiler.transpile - MainProcess - INFO: Total Transpile Time - 172.73402
 <li><a class="reference internal" href="#DAG-소개">DAG 소개</a></li>
 <li><a class="reference internal" href="#BasicMapper-패스-구현">BasicMapper 패스 구현</a></li>
 <li><a class="reference internal" href="#송수신기-로깅">송수신기 로깅</a><ul>
-<li><a class="reference internal" href="#Configuring-Python-Standard-Library-Logging">Configuring Python Standard Library Logging</a></li>
-<li><a class="reference internal" href="#Adjusting-the-log-level-for-the-transpiler">Adjusting the log level for the transpiler</a></li>
-<li><a class="reference internal" href="#Setting-up-logging-to-deal-with-parallel-execution">Setting up logging to deal with parallel execution</a></li>
+<li><a class="reference internal" href="#Python-Standard-Library-로깅-구성하기">Python Standard Library 로깅 구성하기</a></li>
+<li><a class="reference internal" href="#트랜스파일러에-대한-로그-레벨-조정하기">트랜스파일러에 대한 로그 레벨 조정하기</a></li>
+<li><a class="reference internal" href="#병렬-실행을-처리하기-위해-로깅-설정하기">병렬 실행을 처리하기 위해 로깅 설정하기</a></li>
 </ul>
 </li>
 </ul>
