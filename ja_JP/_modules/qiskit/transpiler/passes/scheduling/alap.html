@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.passes.scheduling.alap &mdash; Qiskit 0.23.4 ドキュメント</title>
+  <title>qiskit.transpiler.passes.scheduling.alap &mdash; Qiskit 0.23.5 ドキュメント</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../../../../../_static/css/theme-override.css" type="text/css" />
   <link rel="stylesheet" href="../../../../../_static/custom.css" type="text/css" />
   <link rel="stylesheet" href="../../../../../_static/gallery.css" type="text/css" />
-  <link rel="stylesheet" href="../../../../../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css" type="text/css" />
   <link rel="stylesheet" href="../../../../../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css" type="text/css" />
   <link rel="stylesheet" href="../../../../../_static/panels-variables.ade9f9d55df9d2893fc676ecd59723a1.css" type="text/css" />
     <link rel="index" title="索引" href="../../../../../genindex.html" />
     <link rel="search" title="検索" href="../../../../../search.html" /> 
@@ -141,6 +141,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/simulators/index.html">ハイパフォーマンス・シミュレーター</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/noise/index.html">量子システムエラー解析</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/algorithms/index.html">アルゴリズム</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/operators/index.html">Operators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/optimization/index.html">数理最適化</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/finance/index.html">金融</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/chemistry/index.html">化学</a></li>
@@ -302,12 +303,14 @@
             <span class="n">start_time</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">qubit_time_available</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span>
             <span class="n">pad_with_delays</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">qargs</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">time_unit</span><span class="p">)</span>
 
-            <span class="n">new_node</span> <span class="o">=</span> <span class="n">new_dag</span><span class="o">.</span><span class="n">apply_operation_front</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">qargs</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">cargs</span><span class="p">,</span>
-                                                     <span class="n">node</span><span class="o">.</span><span class="n">condition</span><span class="p">)</span>
             <span class="n">duration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">durations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">qargs</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">time_unit</span><span class="p">)</span>
+
             <span class="c1"># set duration for each instruction (tricky but necessary)</span>
-            <span class="n">new_node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">duration</span>
-            <span class="n">new_node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">time_unit</span>
+            <span class="n">new_op</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># need different op instance to store duration</span>
+            <span class="n">new_op</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">duration</span>
+            <span class="n">new_op</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">time_unit</span>
+
+            <span class="n">new_dag</span><span class="o">.</span><span class="n">apply_operation_front</span><span class="p">(</span><span class="n">new_op</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">qargs</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">cargs</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">condition</span><span class="p">)</span>
 
             <span class="n">stop_time</span> <span class="o">=</span> <span class="n">start_time</span> <span class="o">+</span> <span class="n">duration</span>
             <span class="c1"># update time table</span>
@@ -339,7 +342,7 @@
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Qiskit Development Team.
-      最終更新: 2021/02/08
+      最終更新: 2021/02/10
 
     </p>
   </div>

@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.optimization.applications.ising.docplex &mdash; Qiskit 0.23.4 documentation</title>
+  <title>qiskit.optimization.applications.ising.docplex &mdash; Qiskit 0.23.5 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../../../../../_static/css/theme-override.css" type="text/css" />
   <link rel="stylesheet" href="../../../../../_static/custom.css" type="text/css" />
   <link rel="stylesheet" href="../../../../../_static/gallery.css" type="text/css" />
-  <link rel="stylesheet" href="../../../../../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css" type="text/css" />
   <link rel="stylesheet" href="../../../../../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css" type="text/css" />
   <link rel="stylesheet" href="../../../../../_static/panels-variables.ade9f9d55df9d2893fc676ecd59723a1.css" type="text/css" />
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" /> 
@@ -141,6 +141,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/simulators/index.html">High-Performance Simulators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/noise/index.html">Quantum System Error Analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/algorithms/index.html">Algorithms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/operators/index.html">Operators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/optimization/index.html">Optimization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/finance/index.html">Finance</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/chemistry/index.html">Chemistry</a></li>
@@ -232,7 +233,7 @@
   <h1>Source code for qiskit.optimization.applications.ising.docplex</h1><div class="highlight"><pre>
 <span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
-<span class="c1"># (C) Copyright IBM 2019, 2020.</span>
+<span class="c1"># (C) Copyright IBM 2019, 2021.</span>
 <span class="c1">#</span>
 <span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
 <span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
@@ -289,12 +290,19 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">fsum</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">docplex.mp.constants</span> <span class="kn">import</span> <span class="n">ComparisonType</span>
+<span class="kn">from</span> <span class="nn">docplex.mp.constr</span> <span class="kn">import</span> <span class="n">LinearConstraint</span><span class="p">,</span> <span class="n">QuadraticConstraint</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># new location for 2.16.196 (Nov 2020) or newer</span>
+    <span class="kn">from</span> <span class="nn">docplex.mp.dvar</span> <span class="kn">import</span> <span class="n">Var</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># old location for 2.15.194 (Jul 2020) or before</span>
+    <span class="kn">from</span> <span class="nn">docplex.mp.linear</span> <span class="kn">import</span> <span class="n">Var</span>
 <span class="kn">from</span> <span class="nn">docplex.mp.model</span> <span class="kn">import</span> <span class="n">Model</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">Pauli</span>
 
@@ -345,8 +353,8 @@
     <span class="c1"># initialize Hamiltonian.</span>
     <span class="n">num_nodes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">q_d</span><span class="p">)</span>
     <span class="n">pauli_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">shift</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">zero</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+    <span class="n">shift</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="n">zero</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
 
     <span class="c1"># convert a constant part of the object function into Hamiltonian.</span>
     <span class="n">shift</span> <span class="o">+=</span> <span class="n">mdl</span><span class="o">.</span><span class="n">get_objective_expr</span><span class="p">()</span><span class="o">.</span><span class="n">get_constant</span><span class="p">()</span> <span class="o">*</span> <span class="n">sign</span>
@@ -354,7 +362,7 @@
     <span class="c1"># convert linear parts of the object function into Hamiltonian.</span>
     <span class="n">l_itr</span> <span class="o">=</span> <span class="n">mdl</span><span class="o">.</span><span class="n">get_objective_expr</span><span class="p">()</span><span class="o">.</span><span class="n">iter_terms</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">l_itr</span><span class="p">:</span>
-        <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">q_d</span><span class="p">[</span><span class="n">j</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
         <span class="n">weight</span> <span class="o">=</span> <span class="n">j</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">sign</span> <span class="o">/</span> <span class="mi">2</span>
         <span class="n">z_p</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
@@ -372,16 +380,16 @@
         <span class="k">if</span> <span class="n">index1</span> <span class="o">==</span> <span class="n">index2</span><span class="p">:</span>
             <span class="n">shift</span> <span class="o">+=</span> <span class="n">weight</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+            <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
             <span class="n">z_p</span><span class="p">[</span><span class="n">index1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">z_p</span><span class="p">[</span><span class="n">index2</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">pauli_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">weight</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">(</span><span class="n">z_p</span><span class="p">,</span> <span class="n">zero</span><span class="p">)])</span>
 
-        <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
         <span class="n">z_p</span><span class="p">[</span><span class="n">index1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">pauli_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="n">weight</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">(</span><span class="n">z_p</span><span class="p">,</span> <span class="n">zero</span><span class="p">)])</span>
 
-        <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
         <span class="n">z_p</span><span class="p">[</span><span class="n">index2</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">pauli_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="n">weight</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">(</span><span class="n">z_p</span><span class="p">,</span> <span class="n">zero</span><span class="p">)])</span>
 
@@ -389,14 +397,16 @@
 
     <span class="c1"># convert constraints into penalty terms.</span>
     <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">mdl</span><span class="o">.</span><span class="n">iter_constraints</span><span class="p">():</span>
-        <span class="n">constant</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">cplex_num_rhs</span><span class="p">()</span>
+        <span class="n">right_cst</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">get_right_expr</span><span class="p">()</span><span class="o">.</span><span class="n">get_constant</span><span class="p">()</span>
+        <span class="n">left_cst</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">get_left_expr</span><span class="p">()</span><span class="o">.</span><span class="n">get_constant</span><span class="p">()</span>
+        <span class="n">constant</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">right_cst</span> <span class="o">-</span> <span class="n">left_cst</span><span class="p">)</span>
 
         <span class="c1"># constant parts of penalty*(Constant-func)**2: penalty*(Constant**2)</span>
         <span class="n">shift</span> <span class="o">+=</span> <span class="n">penalty</span> <span class="o">*</span> <span class="n">constant</span> <span class="o">**</span> <span class="mi">2</span>
 
         <span class="c1"># linear parts of penalty*(Constant-func)**2: penalty*(-2*Constant*func)</span>
-        <span class="k">for</span> <span class="n">__l</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">iter_net_linear_coefs</span><span class="p">():</span>
-            <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">__l</span> <span class="ow">in</span> <span class="n">_iter_net_linear_coeffs</span><span class="p">(</span><span class="n">constraint</span><span class="p">):</span>
+            <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
             <span class="n">index</span> <span class="o">=</span> <span class="n">q_d</span><span class="p">[</span><span class="n">__l</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
             <span class="n">weight</span> <span class="o">=</span> <span class="n">__l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="n">z_p</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
@@ -405,8 +415,8 @@
             <span class="n">shift</span> <span class="o">+=</span> <span class="o">-</span><span class="n">penalty</span> <span class="o">*</span> <span class="n">constant</span> <span class="o">*</span> <span class="n">weight</span>
 
         <span class="c1"># quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)</span>
-        <span class="k">for</span> <span class="n">__l</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">iter_net_linear_coefs</span><span class="p">():</span>
-            <span class="k">for</span> <span class="n">l_2</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">iter_net_linear_coefs</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">__l</span> <span class="ow">in</span> <span class="n">_iter_net_linear_coeffs</span><span class="p">(</span><span class="n">constraint</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">l_2</span> <span class="ow">in</span> <span class="n">_iter_net_linear_coeffs</span><span class="p">(</span><span class="n">constraint</span><span class="p">):</span>
                 <span class="n">index1</span> <span class="o">=</span> <span class="n">q_d</span><span class="p">[</span><span class="n">__l</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
                 <span class="n">index2</span> <span class="o">=</span> <span class="n">q_d</span><span class="p">[</span><span class="n">l_2</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
                 <span class="n">weight1</span> <span class="o">=</span> <span class="n">__l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -416,16 +426,16 @@
                 <span class="k">if</span> <span class="n">index1</span> <span class="o">==</span> <span class="n">index2</span><span class="p">:</span>
                     <span class="n">shift</span> <span class="o">+=</span> <span class="n">penalty_weight1_weight2</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+                    <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
                     <span class="n">z_p</span><span class="p">[</span><span class="n">index1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="n">z_p</span><span class="p">[</span><span class="n">index2</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="n">pauli_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">penalty_weight1_weight2</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">(</span><span class="n">z_p</span><span class="p">,</span> <span class="n">zero</span><span class="p">)])</span>
 
-                <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+                <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
                 <span class="n">z_p</span><span class="p">[</span><span class="n">index1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="n">pauli_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="n">penalty_weight1_weight2</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">(</span><span class="n">z_p</span><span class="p">,</span> <span class="n">zero</span><span class="p">)])</span>
 
-                <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+                <span class="n">z_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
                 <span class="n">z_p</span><span class="p">[</span><span class="n">index2</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="n">pauli_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="n">penalty_weight1_weight2</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">(</span><span class="n">z_p</span><span class="p">,</span> <span class="n">zero</span><span class="p">)])</span>
 
@@ -435,6 +445,33 @@
     <span class="n">qubit_op</span> <span class="o">=</span> <span class="n">WeightedPauliOperator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="n">pauli_list</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">qubit_op</span><span class="p">,</span> <span class="n">shift</span></div>
+
+
+<span class="k">def</span> <span class="nf">_iter_net_linear_coeffs</span><span class="p">(</span><span class="n">constraint</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">LinearConstraint</span><span class="p">,</span> <span class="n">QuadraticConstraint</span><span class="p">])</span> \
+        <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Builds a list of tuples, where each tuple contains a decision variable and a</span>
+<span class="sd">    corresponding coefficient of this variable in the constraint.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        constraint: A constraint to analyze.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        A list of tuples of variables and coefficients.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">left_expr</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">get_left_expr</span><span class="p">()</span>
+    <span class="n">right_expr</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">get_right_expr</span><span class="p">()</span>
+    <span class="c1"># for linear constraints we may get an instance of Var instead of expression,</span>
+    <span class="c1"># e.g. x + y = z</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">left_expr</span><span class="p">,</span> <span class="n">Var</span><span class="p">):</span>
+        <span class="n">left_expr</span> <span class="o">=</span> <span class="n">left_expr</span> <span class="o">+</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">right_expr</span><span class="p">,</span> <span class="n">Var</span><span class="p">):</span>
+        <span class="n">right_expr</span> <span class="o">=</span> <span class="n">right_expr</span> <span class="o">+</span> <span class="mi">0</span>
+
+    <span class="n">variables</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">left_expr</span><span class="o">.</span><span class="n">iter_variables</span><span class="p">():</span>
+        <span class="n">variables</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">left_expr</span><span class="o">.</span><span class="n">get_coef</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">right_expr</span><span class="o">.</span><span class="n">iter_variables</span><span class="p">():</span>
+        <span class="n">variables</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">variables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-</span> <span class="n">right_expr</span><span class="o">.</span><span class="n">get_coef</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
 
 
 <span class="k">def</span> <span class="nf">_validate_input_model</span><span class="p">(</span><span class="n">mdl</span><span class="p">:</span> <span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -519,7 +556,7 @@
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Qiskit Development Team.
-      Last updated on 2021/02/03.
+      Last updated on 2021/02/10.
 
     </p>
   </div>
