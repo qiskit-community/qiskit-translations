@@ -41,7 +41,7 @@
     <link rel="index" title="Índice" href="../../genindex.html" />
     <link rel="search" title="Buscar" href="../../search.html" />
     <link rel="next" title="Qiskit Aer: Simulação de pulso de dois qubits usando um modelo de oscilador de Duffing" href="09_pulse_simulator_duffing_model.html" />
-    <link rel="prev" title="Using the Scheduler" href="07_pulse_scheduler.html" /> 
+    <link rel="prev" title="Usando o agendador" href="07_pulse_scheduler.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
@@ -494,16 +494,15 @@ div.rendered_html tbody tr:hover {
 <div class="section" id="Nota:-Todos-os-atributos-do-backend-estão-descritos-em-detalhes-naEspecificações-do-Backend-do-Qiskit.-Esta-página-revisa-um-subconjunto-da-especificação.">
 <h2><em>Nota: Todos os atributos do backend estão descritos em detalhes na</em><a class="reference external" href="https://arxiv.org/pdf/1809.03452.pdf">Especificações do Backend do Qiskit</a><em>. Esta página revisa um subconjunto da especificação.</em><a class="headerlink" href="#Nota:-Todos-os-atributos-do-backend-estão-descritos-em-detalhes-naEspecificações-do-Backend-do-Qiskit.-Esta-página-revisa-um-subconjunto-da-especificação." title="Link permanente para este título">¶</a></h2>
 <p>Programar um computador quântico no nível de pulso de micro-ondas requer mais informações sobre o dispositivo do que as necessárias no nível do circuito. Um circuito quântico é construído para um computador quântico abstrato – ele irá produzir o mesmo estado quântico em qualquer computador quântico (exceto para níveis variados de desempenho). Por outro lado, uma schedule de pulso é tão específica ao dispositivo, que ao rodar um programa em dois backends diferentes não se espera ter o mesmo resultado, mesmo em sistemas perfeitamente sem ruído.</p>
-<p>As a basic example, imagine a drive pulse <code class="docutils literal notranslate"><span class="pre">q0_X180</span></code> calibrated on qubit 0 to enact an <span class="math notranslate nohighlight">\(X180\)</span> pulse, which flips the state of qubit 0. If we use the samples from that pulse on qubit 1 on the same device, or qubit 0 on another device, we do not know what the resulting state will be – but we can be pretty sure it won’t be an <span class="math notranslate nohighlight">\(X180\)</span> operation. The qubits are each unique, with various drive coupling strengths. If we have specified a frequency for the drive pulse, it’s very probable that
-pulse would have little effect on another qubit, which has its own resonant frequency.</p>
-<p>With that, we have motivated why information from the backend may be very useful at times for building Pulse schedules. The information included in a <code class="docutils literal notranslate"><span class="pre">backend</span></code> is broken into three main parts:</p>
+<p>Como um exemplo básico, imagine um pulso direcionado <code class="docutils literal notranslate"><span class="pre">q0_X180</span></code> calibrado no qubit 0 para executar um pulso de <span class="math notranslate nohighlight">\(X180\)</span>, que vira o estado de qubit 0. Se usarmos as amostras desse pulso no qubit 1 no mesmo dispositivo, ou no qubit 0 em outro dispositivo, não sabemos qual será o estado resultante - mas podemos ter certeza de que não será uma operação <span class="math notranslate nohighlight">\(X180\)</span>. Os qubits são únicos, com diferentes forças de acoplamento. Se tivermos especificado uma frequência para o pulso de condução, é muito provável que o pulso tenha pouco efeito em outro qubit, que tem sua própria frequência ressonante.</p>
+<p>Com isso, motivamos a razão pela qual as informações do backend podem ser às vezes muito úteis para a construção de agendamentos do Pulse. A informação incluída em um <code class="docutils literal notranslate"><span class="pre">backend</span></code> é dividida em três partes principais:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="#Configuration">Configuration</a>: static backend features</p></li>
-<li><p><a class="reference external" href="#Properties">Properties</a>: measured and reported backend characteristics</p></li>
-<li><p><a class="reference external" href="#Defaults">Defaults</a>: default settings for the OpenPulse-enabled backend</p></li>
+<li><p><a class="reference external" href="#Configuration">Configuration</a>: recursos de backend estáticos</p></li>
+<li><p><a class="reference external" href="#Properties">Properties</a>: características de backend medidas e relatadas</p></li>
+<li><p><a class="reference external" href="#Defaults">Defaults</a>: configurações padrão para o backend habilitado pelo OpenPulse</p></li>
 </ul>
-<p>which are each covered in the following sections. While all three of these contain interesting data for Pulse users, the defaults are <em>only</em> provided for backends enabled with OpenPulse.</p>
-<p>The first thing you’ll need to do is grab a backend to inspect. Here we use a mocked backend that contains a snapshot of data from the real OpenPulse-enabled backend.</p>
+<p>que são abordadas cada uma nas seguintes seções. Embora todos estas três partes contenham dados interessantes para usuários do Pulse, os padrões são fornecidos <em>apenas</em> para backends habilitados com OpenPulse.</p>
+<p>A primeira coisa que você precisa fazer é acessar um backend para inspecionar. Aqui usamos um backend simulado (mocked, em inglês) que contém um instantâneo dos dados de um backend real habilitado por um OpenPulse.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -515,10 +514,10 @@ pulse would have little effect on another qubit, which has its own resonant freq
 </pre></div>
 </div>
 </div>
-<div class="section" id="Configuration">
-<h3>Configuration<a class="headerlink" href="#Configuration" title="Link permanente para este título">¶</a></h3>
-<p>The configuration is where you’ll find data about the static setup of the device, such as its name, version, the number of qubits, and the types of features it supports.</p>
-<p>Let’s build a description of our backend using information from the <code class="docutils literal notranslate"><span class="pre">backend</span></code>’s config.</p>
+<div class="section" id="Configuração">
+<h3>Configuração<a class="headerlink" href="#Configuração" title="Link permanente para este título">¶</a></h3>
+<p>A configuração é onde você encontrará dados sobre a configuração estática do dispositivo, como o seu nome, versão, o número de qubits e os tipos de recursos que ele suporta.</p>
+<p>Vamos construir uma descrição do nosso backend usando as informações da configuração do <code class="docutils literal notranslate"><span class="pre">backend</span></code>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -546,8 +545,8 @@ pulse would have little effect on another qubit, which has its own resonant freq
 This backend is called fake_almaden, and is on version 1.4.6. It has 20 qubits. It supports OpenPulse programs. The basis gates supported on this device are [&#39;id&#39;, &#39;u1&#39;, &#39;u2&#39;, &#39;u3&#39;, &#39;cx&#39;].
 </pre></div></div>
 </div>
-<p>Neat! All of the above configuration is available for any backend, whether enabled with OpenPulse or not, although it is not an exhaustive list. There are additional attributes available on Pulse backends. Let’s go into a bit more detail with those.</p>
-<p>The <strong>timescale</strong>, <code class="docutils literal notranslate"><span class="pre">dt</span></code>, is backend dependent. Think of this as the inverse sampling rate of the control rack’s arbitrary waveform generators. Each sample point and duration in a Pulse <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> is given in units of this timescale.</p>
+<p>Legal! Toda a configuração acima está disponível para qualquer backend, seja habilitado com OpenPulse ou não, embora não seja uma lista exaustiva. Existem atributos adicionais disponíveis no backend do Pulse. Vamos entrar um pouco mais em detalhes destes.</p>
+<p>O <strong>intervalo de tempo</strong>, <code class="docutils literal notranslate"><span class="pre">dt</span></code>, é dependente do backend. Pense nisso como a inversa da taxa de amostragem dos geradores de formas de onda arbitrárias do rack de controle. Cada ponto de amostragem e duração em um Pulse <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> é fornecido em unidades desta periodicidade.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -566,7 +565,7 @@ This backend is called fake_almaden, and is on version 1.4.6. It has 20 qubits. 
 2.2222222222222221e-10
 </pre></div></div>
 </div>
-<p>The configuration also provides information that is useful for building measurements. Pulse supports three measurement levels: <code class="docutils literal notranslate"><span class="pre">0:</span> <span class="pre">RAW</span></code>, <code class="docutils literal notranslate"><span class="pre">1:</span> <span class="pre">KERNELED</span></code>, and <code class="docutils literal notranslate"><span class="pre">2:</span> <span class="pre">DISCRIMINATED</span></code>. The <code class="docutils literal notranslate"><span class="pre">meas_levels</span></code> attribute tells us which of those are supported by this backend. To learn how to execute programs with these different levels, see this page – COMING SOON.</p>
+<p>A configuração também fornece informações que são úteis para a construção de medições. Pulse suporta três níveis de medição: <code class="docutils literal notranslate"><span class="pre">0:</span> <span class="pre">RAW</span></code>, <code class="docutils literal notranslate"><span class="pre">1:</span> <span class="pre">KERNELED</span></code>, e <code class="docutils literal notranslate"><span class="pre">2:</span> <span class="pre">DISCRIMINATED</span></code>. O atributo <code class="docutils literal notranslate"><span class="pre">meas_levels</span></code> nos diz quais destes são suportados por este backend. Para saber como executar programas com esses níveis diferentes, consulte esta página – EM BREVE.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -585,7 +584,7 @@ This backend is called fake_almaden, and is on version 1.4.6. It has 20 qubits. 
 [1, 2]
 </pre></div></div>
 </div>
-<p>For backends which support measurement level 0, the sampling rate of the control rack’s analog-to-digital converters (ADCs) also becomes relevant. The configuration also has this info, where <code class="docutils literal notranslate"><span class="pre">dtm</span></code> is the time per sample returned:</p>
+<p>Para os backends com suporte a medições de nível 0, a taxa de amostragem da plataforma de controle dos conversores analógico-digitais (ADCs) também se torna relevante. A configuração também possui essa informação, onde <code class="docutils literal notranslate"><span class="pre">dtm</span></code> é o tempo por amostra retornada:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
@@ -604,7 +603,7 @@ This backend is called fake_almaden, and is on version 1.4.6. It has 20 qubits. 
 2.2222222222222221e-10
 </pre></div></div>
 </div>
-<p>The measurement map, explained in detail on [this page COMING SOON], is also found here.</p>
+<p>O mapa de medição, explicado em detalhes na [esta página EM BREVE], também é encontrado aqui.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
@@ -623,7 +622,7 @@ This backend is called fake_almaden, and is on version 1.4.6. It has 20 qubits. 
 [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]
 </pre></div></div>
 </div>
-<p>The configuration also supplies convenient methods for getting channels for your schedule programs. For instance:</p>
+<p>A configuração também fornece métodos convenientes para obter canais para seus programas schedule. Por exemplo:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
@@ -678,11 +677,11 @@ MeasureChannel(0)
 AcquireChannel(0)
 </pre></div></div>
 </div>
-<p>It is a matter of style and personal preference whether you use <code class="docutils literal notranslate"><span class="pre">config.drive(0)</span></code> or <code class="docutils literal notranslate"><span class="pre">DriveChannel(0)</span></code>.</p>
+<p>É uma questão de estilo e preferência pessoal se você usa <code class="docutils literal notranslate"><span class="pre">config.drive(0)</span></code> ou <code class="docutils literal notranslate"><span class="pre">DriveChannel(0)</span></code>.</p>
 </div>
-<div class="section" id="Properties">
-<h3>Properties<a class="headerlink" href="#Properties" title="Link permanente para este título">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">backend</span></code> properties contain data that was measured and optionally reported by the provider. Let’s see what kind of information is reported for qubit 0.</p>
+<div class="section" id="Propriedades">
+<h3>Propriedades<a class="headerlink" href="#Propriedades" title="Link permanente para este título">¶</a></h3>
+<p>As propriedades <code class="docutils literal notranslate"><span class="pre">backend</span></code> contêm dados que foram medidos e opcionalmente relatados pelo provedor. Vamos ver que tipo de informação é reportada para o qubit 0.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
@@ -735,11 +734,11 @@ Qubit 0 has a
   - resonant frequency of 4.85648672471907 GHz
 </pre></div></div>
 </div>
-<p>Properties are not guaranteed to be reported, but backends without Pulse access typically also provide this data.</p>
+<p>As propriedades não têm a garantia de serem relatadas, mas os backends sem acesso ao Pulse normalmente também fornecem esses dados.</p>
 </div>
-<div class="section" id="Defaults">
-<h3>Defaults<a class="headerlink" href="#Defaults" title="Link permanente para este título">¶</a></h3>
-<p>Unlike the other two sections, <code class="docutils literal notranslate"><span class="pre">PulseDefaults</span></code> are only available for Pulse-enabled backends. It contains the default program settings run on the device.</p>
+<div class="section" id="Padrões">
+<h3>Padrões<a class="headerlink" href="#Padrões" title="Link permanente para este título">¶</a></h3>
+<p>Ao contrário das outras duas seções, o <code class="docutils literal notranslate"><span class="pre">PulseDefaults</span></code> está disponível apenas para backends habilitados pelo Pulse. Ele contém as configurações padrão do programa que são executadas no dispositivo.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
@@ -749,9 +748,9 @@ Qubit 0 has a
 </pre></div>
 </div>
 </div>
-<div class="section" id="Drive-frequencies">
-<h4>Drive frequencies<a class="headerlink" href="#Drive-frequencies" title="Link permanente para este título">¶</a></h4>
-<p>Defaults contains the default frequency settings for the drive and measurement signal channels:</p>
+<div class="section" id="Frequências-de-acionamento">
+<h4>Frequências de acionamento<a class="headerlink" href="#Frequências-de-acionamento" title="Link permanente para este título">¶</a></h4>
+<p>Os padrões contém as configurações de frequência padrão para os canais de sinal de acionamento e medição:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
@@ -776,9 +775,9 @@ MeasureChannel(0) defaults to a modulation frequency of 7.264856891000002 GHz.
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Pulse-Schedule-definitions-for-QuantumCircuit-instructions">
-<h4>Pulse Schedule definitions for QuantumCircuit instructions<a class="headerlink" href="#Pulse-Schedule-definitions-for-QuantumCircuit-instructions" title="Link permanente para este título">¶</a></h4>
-<p>Finally, one of the most important aspects of the <code class="docutils literal notranslate"><span class="pre">backend</span></code> for <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> building is the <code class="docutils literal notranslate"><span class="pre">InstructionScheduleMap</span></code>. This is a basic mapping from a circuit operation’s name and qubit to the default pulse-level implementation of that instruction.</p>
+<div class="section" id="Definição-de-agendamento-de-pulso-para-instruções-QuantumCircuit">
+<h4>Definição de agendamento de pulso para instruções QuantumCircuit<a class="headerlink" href="#Definição-de-agendamento-de-pulso-para-instruções-QuantumCircuit" title="Link permanente para este título">¶</a></h4>
+<p>Por fim, um dos aspectos mais importantes para a construção da <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> do <code class="docutils literal notranslate"><span class="pre">backend</span></code> é o <code class="docutils literal notranslate"><span class="pre">InstructionScheduleMap</span></code>. Este é um mapeamento básico do nome de uma operação do circuito e qubit para a implementação padrão a nível de pulso dessa instrução.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
@@ -866,7 +865,7 @@ Multi qubit instructions:
 )&gt;
 </pre></div></div>
 </div>
-<p>Rather than build a measurement schedule from scratch, let’s see what was calibrated by the backend to measure the qubits on this device:</p>
+<p>Ao invés de criar uma schedule de medição do zero, vamos ver o que foi calibrado pelo backend para medir os qubits neste dispositivo:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
@@ -885,8 +884,8 @@ Multi qubit instructions:
 <img alt="../../_images/tutorials_circuits_advanced_08_gathering_system_information_26_0.png" src="../../_images/tutorials_circuits_advanced_08_gathering_system_information_26_0.png" />
 </div>
 </div>
-<p>This can easily be appended to your own Pulse <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> (<code class="docutils literal notranslate"><span class="pre">sched</span> <span class="pre">+=</span> <span class="pre">calibrations.get('measure',</span> <span class="pre">&lt;qubits&gt;)</span> <span class="pre">&lt;&lt;</span> <span class="pre">sched.duration</span></code>)!</p>
-<p>Likewise, each qubit will have a <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> defined for each basis gate, and they can be appended directly to any <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> you build.</p>
+<p>Isto pode facilmente ser adicionado ao seu próprio <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> Pulse (<code class="docutils literal notranslate"><span class="pre">sched</span> <span class="pre">+=</span> <span class="pre">calibrations.get('measure',</span> <span class="pre">&lt;qubits&gt;)</span> <span class="pre">&lt;&lt;</span> <span class="pre">sched.duration</span></code>)!</p>
+<p>Da mesma forma, cada qubit terá uma <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> definida para cada porta base e elas podem ser anexadas diretamente a qualquer <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> que você construir.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
@@ -925,8 +924,8 @@ True
 Schedule((0, ShiftPhase(-3.1415, DriveChannel(0))), (0, ShiftPhase(-3.1415, ControlChannel(1))), name=&#34;u1&#34;)
 </pre></div></div>
 </div>
-<p>While building your schedule, you can also use <code class="docutils literal notranslate"><span class="pre">calibrations.add(name,</span> <span class="pre">qubits,</span> <span class="pre">schedule)</span></code> to store useful <code class="docutils literal notranslate"><span class="pre">Schedule</span></code>s that you’ve made yourself.</p>
-<p>On the <a class="reference external" href="10_pulse_scheduler.ipynb">next page</a>, we’ll show how to schedule <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code>s into Pulse <code class="docutils literal notranslate"><span class="pre">Schedule</span></code>s.</p>
+<p>Ao criar sua schedule, você também pode usar <code class="docutils literal notranslate"><span class="pre">calibrations.add(name,</span> <span class="pre">qubits,</span> <span class="pre">schedule)</span></code> para armazenar <code class="docutils literal notranslate"><span class="pre">Schedule</span></code>s úteis que você mesmo preparou.</p>
+<p>Na <a class="reference external" href="10_pulse_scheduler.ipynb">próxima página</a>, mostraremos como agendar <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code>s em Pulse <code class="docutils literal notranslate"><span class="pre">Schedule</span></code>s.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
@@ -967,7 +966,7 @@ Schedule((0, ShiftPhase(-3.1415, DriveChannel(0))), (0, ShiftPhase(-3.1415, Cont
         <a href="09_pulse_simulator_duffing_model.html" class="btn btn-neutral float-right" title="Qiskit Aer: Simulação de pulso de dois qubits usando um modelo de oscilador de Duffing" accesskey="n" rel="next">Next <img src="../../_static/images/chevron-right-orange.svg" class="next-page"></a>
       
       
-        <a href="07_pulse_scheduler.html" class="btn btn-neutral" title="Using the Scheduler" accesskey="p" rel="prev"><img src="../../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
+        <a href="07_pulse_scheduler.html" class="btn btn-neutral" title="Usando o agendador" accesskey="p" rel="prev"><img src="../../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
       
     </div>
   
@@ -981,7 +980,7 @@ Schedule((0, ShiftPhase(-3.1415, DriveChannel(0))), (0, ShiftPhase(-3.1415, Cont
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Qiskit Development Team.
-      Última atualização em 2021/02/12.
+      Última atualização em 2021/02/17.
 
     </p>
   </div>
@@ -1002,11 +1001,11 @@ Schedule((0, ShiftPhase(-3.1415, DriveChannel(0))), (0, ShiftPhase(-3.1415, Cont
               <ul>
 <li><a class="reference internal" href="#">Obtendo informações sobre o seu <code class="docutils literal notranslate"><span class="pre">backend</span></code></a><ul>
 <li><a class="reference internal" href="#Nota:-Todos-os-atributos-do-backend-estão-descritos-em-detalhes-naEspecificações-do-Backend-do-Qiskit.-Esta-página-revisa-um-subconjunto-da-especificação."><em>Nota: Todos os atributos do backend estão descritos em detalhes na</em>Especificações do Backend do Qiskit<em>. Esta página revisa um subconjunto da especificação.</em></a><ul>
-<li><a class="reference internal" href="#Configuration">Configuration</a></li>
-<li><a class="reference internal" href="#Properties">Properties</a></li>
-<li><a class="reference internal" href="#Defaults">Defaults</a><ul>
-<li><a class="reference internal" href="#Drive-frequencies">Drive frequencies</a></li>
-<li><a class="reference internal" href="#Pulse-Schedule-definitions-for-QuantumCircuit-instructions">Pulse Schedule definitions for QuantumCircuit instructions</a></li>
+<li><a class="reference internal" href="#Configuração">Configuração</a></li>
+<li><a class="reference internal" href="#Propriedades">Propriedades</a></li>
+<li><a class="reference internal" href="#Padrões">Padrões</a><ul>
+<li><a class="reference internal" href="#Frequências-de-acionamento">Frequências de acionamento</a></li>
+<li><a class="reference internal" href="#Definição-de-agendamento-de-pulso-para-instruções-QuantumCircuit">Definição de agendamento de pulso para instruções QuantumCircuit</a></li>
 </ul>
 </li>
 </ul>
@@ -1023,9 +1022,8 @@ Schedule((0, ShiftPhase(-3.1415, DriveChannel(0))), (0, ShiftPhase(-3.1415, Cont
 
   <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
-    <span class="fa fa-book"> Você está visualizando</span>
-    lang: pt_BR
-    <span class="fa fa-caret-down"></span>
+    <span class="rst-current-version-label">pt_BR</span>
+    <span class="rst-versions-dropdown-icon"></span>
   </span>
   <div class="rst-other-versions">
     
