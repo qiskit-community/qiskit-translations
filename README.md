@@ -21,6 +21,7 @@ This is the staging site to view the translation progress. **Only the approved (
 | [Portuguese, Brazilian](https://qiskit-community.github.io/qiskit-translations/pt_BR/) |
 | [Spanish](https://qiskit-community.github.io/qiskit-translations/es_ES/) |
 | [Spanish, Mexico](https://qiskit-community.github.io/qiskit-translations/es_MX/) |
+| [Tamil](https://qiskit-community.github.io/qiskit-translations/ta_IN/) |
 | [Turkish](https://qiskit-community.github.io/qiskit-translations/tr_TR/) |
 | [Urdu](https://qiskit-community.github.io/qiskit-translations/ur_UR/) |
 | [Vietnamese](https://qiskit-community.github.io/qiskit-translations/vi_VN/) |
