@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Portfolio Diversification &mdash; Dokumentasi Qiskit 0.23.6</title>
+  <title>Diversifikasi Portofolio &mdash; Dokumentasi Qiskit 0.23.6</title>
   
 
   
@@ -239,7 +239,7 @@
         
           <li><a href="index.html">Finance Tutorials</a> &gt;</li>
         
-      <li><em>Portfolio Diversification</em></li>
+      <li><em>Diversifikasi Portofolio</em></li>
     
     
       <li class="pytorch-breadcrumbs-aside">
@@ -519,65 +519,61 @@ div.rendered_html tbody tr:hover {
 </style>
 <div class="admonition note">
 <p class="admonition-title">Catatan</p>
-<p>This page was generated from <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/finance/02_portfolio_diversification.ipynb">tutorials/finance/02_portfolio_diversification.ipynb</a>.</p>
-<p>Run interactively in the <a class="reference external" href="https://quantum-computing.ibm.com/jupyter/tutorial/finance/02_portfolio_diversification.ipynb">IBM Quantum lab</a>.</p>
+<p>Halaman ini dibuat dari <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/finance/02_portfolio_diversification.ipynb">tutorials/finance/02_portfolio_diversification.ipynb</a>.</p>
+<p>Jalankan secara interaktif di <a class="reference external" href="https://quantum-computing.ibm.com/jupyter/tutorial/finance/02_portfolio_diversification.ipynb">IBM Quantum lab</a>.</p>
 </div>
-<div class="section" id="Portfolio-Diversification">
-<h1><em>Portfolio Diversification</em><a class="headerlink" href="#Portfolio-Diversification" title="Link permanen untuk headline ini">¶</a></h1>
-<div class="section" id="Introduction">
-<h2>Introduction<a class="headerlink" href="#Introduction" title="Link permanen untuk headline ini">¶</a></h2>
-<p>In asset management, there are broadly two approaches: active and passive investment management. Within passive investment management, there are index-tracking funds and there are approaches based on portfolio diversification, which aim at representing a portfolio with a large number of assets by a smaller number of representative stocks. This notebook illustrates a portfolio diversification problem, which has recently become popular for two reasons: 1. it makes it possible to mimic the
-performance of an index (or a similarly large set of assets) with a limited budget, at limited transaction costs. That is: traditional index-tracking may purchase all assets in the index, ideally with the same weights as in the index. This may be impractical for a number of reasons: the total of even a single round lot per asset may amount to more than the assets under management, the large scale of the index-tracking problem with integrality constraints may render the optimization problem
-difficult, and the transaction costs of the frequent rebalancing to adjust the positions to the weights in the index may render the approach expensive. Thus, a popular approach is to select a portfolio of <span class="math notranslate nohighlight">\(q\)</span> assets that represent the market with <span class="math notranslate nohighlight">\(n\)</span> assets, where <span class="math notranslate nohighlight">\(q\)</span> is significantly smaller than <span class="math notranslate nohighlight">\(n\)</span>, but where the portfolio replicates the behavior of the underlying market. To determine how to group assets into <span class="math notranslate nohighlight">\(q\)</span> clusters and how to determine which <span class="math notranslate nohighlight">\(q\)</span>
-assets should represent the <span class="math notranslate nohighlight">\(q\)</span> clusters amounts to solving a large-scale optimization problem. In the following we describe the mathematical model for the portfolio diversification problem as introduced in [Cornuejols &amp; Tutuncu, 2006] 2. it allows for similarity measures between time-series beyond the covariance matrix. Notice that traditionally, modern portfolio theory considers the covariance matrix as a measure of similarity between the assets. As such, however, the covariance matrix
-is imperfect. Consider, for instance, a company listed both in London and New York. Although both listings should be very similar, only parts of the time series of the prices of the two listings will overlap, because of the partial overlap of the times the markets open. Instead of covariance, one can consider, for example, dynamic time warping of [Berndt and Clifford, 1994] as a measure of similarity between two time series, which allows for the fact that for some time periods, the data are
-captured by only one of the time series, while for others, both time series exhibit the similarity due to the parallel evolution of the stock price.</p>
-<p>The overall workflow we demonstrate comprises:</p>
+<div class="section" id="Diversifikasi-Portofolio">
+<h1><em>Diversifikasi Portofolio</em><a class="headerlink" href="#Diversifikasi-Portofolio" title="Link permanen untuk headline ini">¶</a></h1>
+<div class="section" id="Pendahuluan">
+<h2>Pendahuluan<a class="headerlink" href="#Pendahuluan" title="Link permanen untuk headline ini">¶</a></h2>
+<p>Pada manajemen aset, secara garis besar ada dua pendekatan: manajemen investasi aktif dan pasif. Di dalam manajemen investasi pasif, ada proses mengikuti (tracking) indeks dan terdapat beberapa pendekatan berdasarkan diversifikasi portofolio, yang bertujuan untuk merepresentasikan suatu portofolio dengan jumlah aset yang besar lewat beberapa saham dalam jumlah yang lebih kecil. Notebook ini menggambarkan sebuah permasalahan diversifikasi portofolio, yang dewasa ini menjadi populer akibat dua alasan: 1. dengan hal ini, kita dapat membuat tiruan performa sebuah indeks (atau sebuah kumpulan aset besar yang serupa) dengan budget terbatas, dan dengan biaya transaksi yang terbatas. Yaitu: mengikuti (tracking) indeks secara tradisional dapat membeli seluruh aset pada indeks, yang idealnya dengan berat yang sama seperti yang terdapat pada indeks. Hal ini dapat menjadi tidak praktis karena beberapa alasan: total dari hanya satu lot bulat per aset bisa saja bernilai lebih dari nilai aset yang dikelola, permasalahan yang besar dalam mengikuti indeks dengan batasan integrality dapat menyebabkan kesulitan dalam kasus optimisasi, dan biaya transaksi berulang dari seringnya melakukan penyeimbangan ulang untuk mengatur posisi berat pada indeks dapat menyebabkan mahalnya pendekatan ini. Maka dari itu, pendekatan yang populer adalah dengan memilih sebuah portofolio dengan aset <span class="math notranslate nohighlight">\(q\)</span> yang merepresentasikan market dengan aset <span class="math notranslate nohighlight">\(n\)</span>, dengan nilai <span class="math notranslate nohighlight">\(q\)</span> jauh lebih kecil dibandingkan nilai <span class="math notranslate nohighlight">\(n\)</span>, namun kondisinya adalah portofolio meniru perilaku dari market yang mendasarinya. Untuk menentukan bagaimana cara mengelompokkan aset menjadi sejumlah kluster <span class="math notranslate nohighlight">\(q\)</span> dan bagaimana menentukan aset <span class="math notranslate nohighlight">\(q\)</span> yang mana yang dapat merepresentasikan kluster <span class="math notranslate nohighlight">\(q\)</span>, berujung pada sebuah permasalahan optimisasi skala besar. Pada bagian selanjutnya, kami akan menjelaskan model matematis untuk kasus diversifikasi portofolio seperti yang diperkenalkan di [Cornuejols &amp; Tutuncu, 2006] 2. hal ini dapat menunjukkan ukuran kemiripan antara seri-waktu di luar matriks covariance. Perlu diperhatikan bahwa secara tradisional, teori portofolio modern menganggap matriks covariance sebagai ukuran kemiripan antaraset. Walaupun demikian, matriks covariance tidaklah sempurna. Sebagai contoh, bayangkan sebuah perusahaan yang terdaftar di London dan New York. Meskipun keduanya seharusnya sangat mirip, hanya beberapa bagian dari seri waktu dari harga kedua kondisi tersebut yang sama antara satu sama lain, karena hanya di sebagian waktu marketnya buka secara bersamaan. Alih-alih menggunakan covariance, kita dapat menggunakan, misalnya, dynamic time warping yang diusulkan oleh [Berndt dan Clifford, 1994] sebagai ukuran kemiripan antara dua seri waktu, yang membuka kemungkinan bahwa untuk suatu periode waktu tertentu, data yang terekam oleh satu seri waktu saja, sedangkan untuk periode lainnya, kedua seri waktu menunjukkan kemiripan akibat perubahan paralel dari harga saham.</p>
+<p>Alur kerja secara keseluruhan yang kami tunjukkan terdiri dari:</p>
 <ol class="arabic simple">
-<li><p>pick the ground set of assets. In our case, this is a small number of US stocks.</p></li>
-<li><p>load the time series capturing the evolution of the prices of assets. In our case, this is a simplistic load of adjusted daily closing price data from Wikipedia or Nasdaq or LSE or EuroNext, whereas in a real asset management, a much higher frequency may be considered.</p></li>
-<li><p>compute the pair-wise similarity among the time series. In our case, we run a linear-time approximation of the dynamic time warping, still on the classical computer.</p></li>
-<li><p>compute the actual portfolio of <span class="math notranslate nohighlight">\(q\)</span> representative assets, based on the similarity measure. This step is run twice, actually. First, we obtain a reference value by a run of an IBM solver (IBM ILOG CPLEX or the Exact Eigensolver) on the classical computer. Second, we run an alternative, hybrid algorithm partly on the quantum computer.</p></li>
-<li><p>visualization of the results. In our case, this is again a simplistic plot.</p></li>
+<li><p>Pilih sejumlah aset dasar. Dalam kasus kami, ini adalah sejumlah kecil saham US.</p></li>
+<li><p>Memuat jangka waktu yang menunjukkan perubahan harga aset. Dalam hal ini, memuat secara sederhana penutupan harga harian yang telah disesuaikan dari Wikipedia atau Nasdaq, LSE atau EuroNext, sedangkan dalam manajemen aset riil, frekuensi yang jauh lebih tinggi dapat dipertimbangkan.</p></li>
+<li><p>Menghitung kemiripan yang berpasangan dari waktu ke waktu. Dalam kasus kami, kami menjalankan pendekatan waktu secara linear dari kurva waktu yang dinamis, masih pada komputer klasik.</p></li>
+<li><p>menghitung portofolio aktual dari aset :math:` q ` perwakilan, berdasarkan ukuran kesamaan. Langkah ini dijalankan dua kali, sebenarnya. Pertama, kita mendapatkan nilai referensi dengan menjalankan sebuah solver IBM (IBM ILOG CPLEX atau Exact Eigensolver) pada komputer klasik. Kedua, kita jalankan alternatif, algoritma hybrid sebagian pada komputer kuantum.</p></li>
+<li><p>visualisasi hasil. Dalam kasus ini, ini adalah plot yang sederhana.</p></li>
 </ol>
-<p>In the following, we first explain the model used in (4) above, before we proceed with the installation of the pre-requisites and the data loading.</p>
+<p>Berikut ini, pertamatama kami menjelaskan model yang digunakan dalam (4) di atas, sebelum kita melanjutkan dengan pemasangan pra sayarat (pre-requisites) dan pemuatan data (load data).</p>
 </div>
-<div class="section" id="The-Model">
-<h2>The Model<a class="headerlink" href="#The-Model" title="Link permanen untuk headline ini">¶</a></h2>
-<p>As discussed in [Cornuejols &amp; Tutuncu, 2006], we describe a mathematical model that clusters assets into groups of similar ones and selects one representative asset from each group to be included in the index fund portfolio. The model is based on the following data, which we will discuss in more detail later:</p>
+<div class="section" id="Model">
+<h2>Model<a class="headerlink" href="#Model" title="Link permanen untuk headline ini">¶</a></h2>
+<p>Seperti yang dibahas dalam [Cornuejols &amp; Tutuncu, 2006]], kami menggambarkan model matematika yang mengelompokkan aset ke dalam kelompok yang serupa dan memilih satu aset perwakilan dari masing-masing kelompok untuk dimasukkan dalam portofolio dana indeks. Model ini didasarkan pada data berikut, yang akan kita bahas secara lebih rinci kemudian:</p>
 <div class="math notranslate nohighlight">
 \[\rho_{ij} = \textrm{similarity}\, \textrm{between}\, \textrm{stock}\, i \, \textrm{and}\, \textrm{stock}\, j.\]</div>
-<p>For example, <span class="math notranslate nohighlight">\(\rho_{ii} = 1\)</span>, <span class="math notranslate nohighlight">\(\rho_{ij} \leq 1\)</span> for <span class="math notranslate nohighlight">\(i \neq j\)</span> and <span class="math notranslate nohighlight">\(\rho_{ij}\)</span> is larger for more similar stocks. An example of this is the correlation between the returns of stocks <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(j\)</span>. But one could choose other similarity indices <span class="math notranslate nohighlight">\(\rho_{ij}\)</span>.</p>
-<p>The problem that we are interested in solving is:</p>
+<p>Sebagai contoh, <span class="math notranslate nohighlight">\(\rho_{ii} = 1\)</span>, <span class="math notranslate nohighlight">\(\rho_{ij} \leq 1\)</span> untuk <span class="math notranslate nohighlight">\(i \neq j\)</span> dan <span class="math notranslate nohighlight">\(\rho_{ij}\)</span> lebih besar daripada saham serupa. Contoh ini merupakan korelasi antara pengembalian saham <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(j\)</span>.
+Tetapi seseorang dapat memilih indeks kesamaan lainnya <span class="math notranslate nohighlight">\(\rho_{ij}\)</span>.</p>
+<p>Masalah yang ingin kami pecahkan adalah:</p>
 <div class="math notranslate nohighlight">
 \[(M) \quad  f = \max_{x_{ij}, y_{j}} \,\, \sum_{i=1}^n \sum_{j=1}^n \rho_{ij} x_{ij}\]</div>
-<p>subject to the clustering constraint:</p>
+<p>Tunduk pada kendala pengelompokkan:</p>
 <div class="math notranslate nohighlight">
 \[\sum_{j=1}^n y_j = q,\]</div>
-<p>to consistency constraints:</p>
+<p>untuk batasan konsistensi:</p>
 <div class="math notranslate nohighlight">
 \[\sum_{j=1}^n x_{ij} = 1, \,\textrm{ for }\,  i = 1,\ldots, n,
 \quad x_{ij} \leq y_j,\,\textrm{ for }\,  i = 1,\ldots, n; \, j = 1,\ldots, n,
 \quad x_{jj} = y_j,\,\textrm{ for }\,  j = 1,\ldots, n,\]</div>
-<p>and integral constraints:</p>
+<p>dan batasan integral:</p>
 <div class="math notranslate nohighlight">
 \[\quad  x_{ij}, y_j \in\{0,1\}, \,\textrm{ for }\,  i = 1,\ldots, n; \, j = 1,\ldots, n.\]</div>
-<p>The variables <span class="math notranslate nohighlight">\(y_j\)</span> describe which stocks <span class="math notranslate nohighlight">\(j\)</span> are in the index fund (<span class="math notranslate nohighlight">\(y_j = 1\)</span> if <span class="math notranslate nohighlight">\(j\)</span> is selected in the fund, <span class="math notranslate nohighlight">\(0\)</span> otherwise). For each stock <span class="math notranslate nohighlight">\(i = 1,\dots,n\)</span>, the variable <span class="math notranslate nohighlight">\(x_{ij}\)</span> indicates which stock <span class="math notranslate nohighlight">\(j\)</span> in the index fund is most similar to <span class="math notranslate nohighlight">\(i\)</span> (<span class="math notranslate nohighlight">\(x_{ij} = 1\)</span> if <span class="math notranslate nohighlight">\(j\)</span> is the most similar stock in the index fund, <span class="math notranslate nohighlight">\(0\)</span> otherwise).</p>
-<p>The first constraint selects <span class="math notranslate nohighlight">\(q\)</span> stocks in the fund. The second constraint imposes that each stock <span class="math notranslate nohighlight">\(i\)</span> has exactly one representative stock <span class="math notranslate nohighlight">\(j\)</span> in the fund. The third and fourth constraints guarantee that stock <span class="math notranslate nohighlight">\(i\)</span> can be represented by stock <span class="math notranslate nohighlight">\(j\)</span> only if <span class="math notranslate nohighlight">\(j\)</span> is in the fund. The objective of the model maximizes the similarity between the <span class="math notranslate nohighlight">\(n\)</span> stocks and their representatives in the fund. Different cost functions can also be considered.</p>
-<p>Let us concatenate the decision variables in one vector</p>
+<p>Variabel <span class="math notranslate nohighlight">\(y_j\)</span> menjelaskan saham yang mana <span class="math notranslate nohighlight">\(j\)</span> termasuk dalam reksa dana indeks (<span class="math notranslate nohighlight">\(y_j = 1\)</span> jika <span class="math notranslate nohighlight">\(j\)</span> dipilih dalam reksa dana tersebut, <span class="math notranslate nohighlight">\(0\)</span> sebaliknya). Untuk setiap saham <span class="math notranslate nohighlight">\(i = 1,\dots,n\)</span>, variabel <span class="math notranslate nohighlight">\(x_{ij}\)</span> mengindikasikan saham yang mana <span class="math notranslate nohighlight">\(j\)</span> dalam dana indeks paling mirip dengan <span class="math notranslate nohighlight">\(i\)</span> (<span class="math notranslate nohighlight">\(x_{ij} = 1\)</span> jika <span class="math notranslate nohighlight">\(j\)</span> adalah saham paling mirip di reksa dana indeks, <span class="math notranslate nohighlight">\(0\)</span> sebaliknya).</p>
+<p>Batasan pertama memilih saham-saham <span class="math notranslate nohighlight">\(q\)</span> dalam dana tersebut. Batasan kedua menetapkan bahwa setiap saham <span class="math notranslate nohighlight">\(i\)</span> memiliki tepat satu saham representatif <span class="math notranslate nohighlight">\(j\)</span> dalam dana tersebut. Batasan ketiga dan keempat memastikan bahwa saham <span class="math notranslate nohighlight">\(i\)</span> dapat direpresentasikan oleh saham <span class="math notranslate nohighlight">\(j\)</span> hanya jika <span class="math notranslate nohighlight">\(j\)</span> berada dalam dana tersebut. Tujuan dari model memaksimalkan kemiripan antara saham-saham <span class="math notranslate nohighlight">\(n\)</span> dan representasinya di dalam dana tersebut. Perbedaan fungsi biaya juga dapat dipertimbangkan.</p>
+<p>Mari kita gabungkan variabel keputusan dalam satu vektor</p>
 <div class="math notranslate nohighlight">
 \[{\bf z} = [x_{11},x_{12},\ldots,x_{11}, x_{22},\ldots,x_{nn}, y_{1},\ldots,y_{n}],\]</div>
-<p>whose dimension is <span class="math notranslate nohighlight">\({\bf z} \in \{0,1\}^N\)</span>, with <span class="math notranslate nohighlight">\(N = n (n+1)\)</span> and denote the optimal solution with <span class="math notranslate nohighlight">\({\bf z}^*\)</span>, and the optimal cost <span class="math notranslate nohighlight">\(f^*\)</span>.</p>
+<p>yang dimensinya adalah <span class="math notranslate nohighlight">\({\bf z} \in \{0,1\}^N\)</span>, dengan <span class="math notranslate nohighlight">\(N = n (n+1)\)</span> dan menyatakan solusi optimal dengan <span class="math notranslate nohighlight">\({\bf z}^*\)</span>, dan biaya optimal <span class="math notranslate nohighlight">\(f^*\)</span>.</p>
 </div>
-<div class="section" id="A-Hybrid-Approach">
-<h2>A Hybrid Approach<a class="headerlink" href="#A-Hybrid-Approach" title="Link permanen untuk headline ini">¶</a></h2>
-<p>Here, we demonstrate an approach that combines classical and quantum computing steps, following the quantum approximate optimization approach of Farhi, Goldstone, and Gutman (2014).</p>
-<div class="section" id="Construct-a-binary-polynomial-optimization">
-<h3>Construct a binary polynomial optimization<a class="headerlink" href="#Construct-a-binary-polynomial-optimization" title="Link permanen untuk headline ini">¶</a></h3>
-<p>From <span class="math notranslate nohighlight">\((M)\)</span> one can construct a binary polynomial optimization with equality constraints only, by substituting the <span class="math notranslate nohighlight">\(x_{ij} \leq y_j\)</span> inequality constraints with the equivalent equality constraints <span class="math notranslate nohighlight">\(x_{ij} (1- y_j) = 0\)</span>. Then the problem becomes:</p>
+<div class="section" id="Pendekatan-hybrid">
+<h2>Pendekatan hybrid<a class="headerlink" href="#Pendekatan-hybrid" title="Link permanen untuk headline ini">¶</a></h2>
+<p>Di sini, kita menunjukkan pendekatan yang menggabungkan langkah komputasi klasik dan kuantum, mengikuti pendekatan optimisasi kuantum perkiraan Farhi, Goldstone, dan Gutman (2014).</p>
+<div class="section" id="Membangun-optimisasi-polinomial-biner">
+<h3>Membangun optimisasi polinomial biner<a class="headerlink" href="#Membangun-optimisasi-polinomial-biner" title="Link permanen untuk headline ini">¶</a></h3>
+<p>Dari <span class="math notranslate nohighlight">\((M)\)</span> seseorang dapat membangun sebuah optimasi polinomial biner dengan batasan persamaan saja, dengan mensubstitusikan batasan pertidaksamaan <span class="math notranslate nohighlight">\(x_{ij}\leq y_j\)</span> dengan batasan persamaan <span class="math notranslate nohighlight">\(x_{ij} (1- y_j) = 0\)</span> yang ekivalen. Maka permasalahannya menjadi:</p>
 <div class="math notranslate nohighlight">
 \[(BPO) \quad  f = \max_{x_{ij}, y_{j}} \,\, \sum_{i=1}^n \sum_{j=1}^n \rho_{ij} x_{ij}\]</div>
-<p>subject to the clustering constraint, the integral constraints, and the following modified consistency constraints:</p>
+<p>tunduk pada batasan clustering, batasan integral, dan batasan konsistensi yang dimodifikasi berikut:</p>
 <div class="math notranslate nohighlight">
 \[\sum_{j=1}^n x_{ij} = 1, \,\textrm{ for }\,  i = 1,\ldots, n,\]</div>
 <div class="math notranslate nohighlight">
@@ -585,50 +581,50 @@ captured by only one of the time series, while for others, both time series exhi
 <div class="math notranslate nohighlight">
 \[\quad x_{jj} = y_j,\,\textrm{ for }\,  j = 1,\ldots, n.\]</div>
 </div>
-<div class="section" id="Construct-the-Ising-Hamiltonian">
-<h3>Construct the Ising Hamiltonian<a class="headerlink" href="#Construct-the-Ising-Hamiltonian" title="Link permanen untuk headline ini">¶</a></h3>
-<p>We can now construct the Ising Hamiltonian (QUBO) by penalty methods (introducing a penalty coefficient <span class="math notranslate nohighlight">\(A\)</span> for each equality constraint) as</p>
+<div class="section" id="Membangun-Hamiltonian-Ising">
+<h3>Membangun Hamiltonian Ising<a class="headerlink" href="#Membangun-Hamiltonian-Ising" title="Link permanen untuk headline ini">¶</a></h3>
+<p>Kita sekarang dapat membangun Hamiltonian Ising (QUBO) dengan metode hukuman (memperkenalkan koefisien penalti :math:` A ` untuk setiap batasan kesetaraan) sebagai</p>
 <div class="math notranslate nohighlight">
 \[(IH) \quad H = \sum_{i=1}^n \sum_{j=1}^n \rho_{ij} x_{ij} + A\Big( \sum_{j=1}^n y_j - q\Big)^2 + \sum_{i=1}^n A\Big( \sum_{j=1}^n x_{ij} - 1\Big)^2 + \sum_{j=1}^n A (x_{jj}-y_j)^2 +\sum_{i=1}^n \sum_{j=1}^n A \left(x_{ij} (1- y_j)\right).\]</div>
 </div>
-<div class="section" id="From-Hamiltonian-to-Quadratic-Programming-(QP)-formulation">
-<h3>From Hamiltonian to Quadratic Programming (QP) formulation<a class="headerlink" href="#From-Hamiltonian-to-Quadratic-Programming-(QP)-formulation" title="Link permanen untuk headline ini">¶</a></h3>
-<p>In the vector <span class="math notranslate nohighlight">\({\bf z}\)</span>, the Ising Hamiltonian elements can be rewritten as follows,</p>
-<p>First term:</p>
+<div class="section" id="Dari-Hamiltonian-ke-formulasi-Quadratic-Programming-(QP)">
+<h3>Dari Hamiltonian ke formulasi Quadratic Programming (QP)<a class="headerlink" href="#Dari-Hamiltonian-ke-formulasi-Quadratic-Programming-(QP)" title="Link permanen untuk headline ini">¶</a></h3>
+<p>Dalam vektor <span class="math notranslate nohighlight">\({\bf z}\)</span>, elemen Hamiltonian Ising dapat ditulis ulang sebagai berikut,</p>
+<p>Term pertama:</p>
 <div class="math notranslate nohighlight">
 \[\sum_{i=1}^n \sum_{j=1}^n \rho_{ij} x_{ij} = [\rho_{11},\rho_{12},\ldots,\rho_{11}, \rho_{22},\ldots,\rho_{nn}|{\bf 0}_n ]{\bf z} =: {\bf c}_0^T {\bf z}\]</div>
-<p>Second term:</p>
+<p>Term kedua:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}A\Big( \sum_{j=1}^n y_j - q\Big)^2 = A \Big(\sum_{j=1}^n y_j\Big)^2 - 2 A \sum_{j=1}^n y_j + A q^2 = A {\bf z}^T \left[\begin{array}{c}{\bf 0}_{n^2} \\ \hline  {\bf 1}_n  \end{array}\right]\left[\begin{array}{cc}{\bf 0}_{n^2} | {\bf 1}_n  \end{array}\right]{\bf z} - 2 A q [{\bf 0}_{n^2}|{\bf 1}_n]{\bf z} + A q^2 =: {\bf z}^T {\bf Q}_0 {\bf z} + {\bf c}_1^T {\bf z} + r_0\end{split}\]</div>
-<p>Third term:</p>
+<p>Term ketiga:</p>
 <div class="math notranslate nohighlight">
 \[\sum_{i=1}^n A\Big( \sum_{j=1}^n x_{ij} - 1\Big)^2 = A\sum_{i=1}^n \Big(\sum_{j=1}^n x_{ij}\Big)^2 - 2 A \sum_{i=1}^n\sum_{j=1}^n x_{ij} + n A = \qquad\qquad\qquad\qquad\qquad\qquad\qquad\]</div>
-<p>which is equivalent to:</p>
+<p>yang setara dengan:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\qquad\qquad\qquad\qquad\qquad\qquad\qquad = A {\bf z}^T \left(\sum_{i=1}^n \left[\begin{array}{c}{\bf 0}_{n(i-1)}  \\ {\bf 1}_n  \\ {\bf 0}_{n(n-i)} \\ \hline {\bf 0}_{n} \end{array}\right]\left[\begin{array}{cccc}{\bf 0}_{n(i-1)} &amp; {\bf 1}_n  &amp; {\bf 0}_{n(n-i)} &amp; | {\bf 0}_{n} \end{array}\right]\right){\bf z} - 2 A [{\bf 1}_{n^2}|{\bf 0}_n]{\bf z} + n A =: {\bf z}^T {\bf Q}_1 {\bf z} + {\bf c}_2^T {\bf z} + r_1\end{split}\]</div>
-<p>Fourth term:</p>
+<p>Term keempat:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}A \sum_{j=1}^n  (x_{jj}-y_j)^2 = A {\bf z}^T  \left(\sum_{j=0}^{n-1} \left[\begin{array}{c}{\bf 0}_{nj + j}  \\ 1  \\ {\bf 0}_{n^2-(nj+j+1)} \\ \hline {\bf 0}_{j} \\ -1 \\ {\bf 0}_{n-j-1} \end{array}\right]\left[\begin{array}{cccccc}{\bf 0}_{nj + j} &amp; 1  &amp; {\bf 0}_{n^2-(nj+j+1)} &amp; | {\bf 0}_{j} &amp; -1 &amp; {\bf 0}_{n-j-1}  \end{array}\right]\right){\bf z} = A {\bf z}^T {\bf Q}_2 {\bf z}\end{split}\]</div>
-<p>Fifth term:</p>
+<p>Term kelima:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\sum_{i=1}^n \sum_{j=1}^n A \left(x_{ij} (1- y_j)\right) = A [{\bf 1}_{n^2}|{\bf 0}_n]{\bf z} + A {\bf z}^T \left( \sum_{i=1}^n \sum_{j=1}^n \left[\begin{array}{ccc|c}  &amp;  &amp; &amp; \\ &amp; {\bf 0}_{n^2\times n^2} &amp; &amp; -1/2_{(ij,j)}  \\ &amp; &amp; &amp; \\ \hline &amp; -1/2_{(j, ij)} &amp;  &amp; {\bf 0}_{n} \end{array}\right] \right) {\bf z} =:  {\bf z}^T {\bf Q}_3 {\bf z} + {\bf c}_3^T {\bf z}\end{split}\]</div>
-<p>Therefore, the formulation becomes,</p>
+<p>Oleh karena itu, formulasinya menjadi,</p>
 <div class="math notranslate nohighlight">
 \[(IH-QP)\quad \max_{{\bf z}\in\{0,1\}^{n(n+1)}} \, {\bf z}^T ({\bf Q}_0+{\bf Q}_1+ {\bf Q}_2 + {\bf Q}_3 ){\bf z} + ({\bf c}_0+{\bf c}_1+{\bf c}_2+{\bf c}_3)^T {\bf z} +r_0+r_1+r_2\]</div>
-<p>which can be passed to the variational quantum eigensolver.</p>
+<p>yang dapat diteruskan ke eigensolver kuantum variasional.</p>
 </div>
 </div>
-<div class="section" id="References">
-<h2>References<a class="headerlink" href="#References" title="Link permanen untuk headline ini">¶</a></h2>
-<p>[1] G. Cornuejols, M. L. Fisher, and G. L. Nemhauser, <em>Location of bank accounts to optimize float: an analytical study of exact and approximate algorithms</em>, Management Science, vol. 23(8), 1997</p>
+<div class="section" id="Daftar-pustaka">
+<h2>Daftar pustaka<a class="headerlink" href="#Daftar-pustaka" title="Link permanen untuk headline ini">¶</a></h2>
+<p>[1] G. Cornuejols, M. L. Fisher, dan G. L. Nemhauser, <a href="#id1"><span class="problematic" id="id2">*</span></a>Lokasi dari akun bank untuk mengoptimalkan float: sebuah studi analitis yang tepat dan perkiraan algoritma <a href="#id3"><span class="problematic" id="id4">*</span></a>, Manajemen Sains, vol. 23 (8), 1997</p>
 <p>[2] E. Farhi, J. Goldstone, S. Gutmann e-print <a class="reference external" href="https://arxiv.org/abs/1411.4028">arXiv 1411.4028, 2014</a></p>
 <p>[3] G. Cornuejols and R. Tutuncu, <a class="reference external" href="http://web.math.ku.dk/~rolf/CT_FinOpt.pdf">Optimization methods in finance</a>, 2006</p>
-<p>[4] DJ. Berndt and J. Clifford, <em>Using dynamic time warping to find patterns in time series</em>. In KDD workshop 1994 (Vol. 10, No. 16, pp. 359-370).</p>
+<p>[4] DJ. Berndt and J. Clifford, <em>Using dynamic time warping to find patterns in time series</em>. In KDD workshop 1994 (Vol. 10, No. 16, pp. 359-370).</p>
 <p>[5] <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/optimization/6_examples_max_cut_and_tsp.ipynb">6_examples_max_cut_and_tsp.ipynb</a></p>
 </div>
-<div class="section" id="The-Implementation">
-<h2>The Implementation<a class="headerlink" href="#The-Implementation" title="Link permanen untuk headline ini">¶</a></h2>
-<p>First, we import the requisite modules.</p>
+<div class="section" id="Implementasi">
+<h2>Implementasi<a class="headerlink" href="#Implementasi" title="Link permanen untuk headline ini">¶</a></h2>
+<p>Pertama, kami mengimpor modul yang diperlukan.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -662,7 +658,7 @@ captured by only one of the time series, while for others, both time series exhi
 </pre></div>
 </div>
 </div>
-<p>Next, we download price data for two stocks and compute their pair-wise similarity matrix (dynamic time warping distance normalized to (0,1] by taking the reciprocal). If this fails, e.g., due to you being offline or exceeding the daily limit for accesses to the stock-market data, we consider a constant matrix instead.</p>
+<p>Selanjutnya, kita mengunduh data harga untuk dua buah saham dan menghitung matriks kemiripan pasangan mereka (jarak kelengkungan waktu dinamis dinormalisasi ke (0,1] dengan mengambil kebalikannya). Jika ini gagal, misalnya, karena Anda sedang offline atau melebihi batas harian untuk mengakses data pasar modal, kita mempertimbangkan sebuah matriks konstanta sebagai gantinya.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -686,7 +682,7 @@ captured by only one of the time series, while for others, both time series exhi
 </pre></div>
 </div>
 </div>
-<p>Now we decide on the number of clusters. This has to be smaller than the number of stocks we have loaded.</p>
+<p>Sekarang kami memutuskan jumlah kelompok. Jumlah ini harus lebih kecil dari jumlah saham yang telah kami muat.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -697,9 +693,9 @@ captured by only one of the time series, while for others, both time series exhi
 </div>
 </div>
 </div>
-<div class="section" id="Classical-solution-using-IBM-ILOG-CPLEX">
-<h2>Classical solution using IBM ILOG CPLEX<a class="headerlink" href="#Classical-solution-using-IBM-ILOG-CPLEX" title="Link permanen untuk headline ini">¶</a></h2>
-<p>For a classical solution, we use IBM CPLEX. CPLEX is able to find the exact solution of this problem. We first define a ClassicalOptimizer class that encodes the problem in a way that CPLEX can solve, and then instantiate the class and solve it.</p>
+<div class="section" id="Solusi-klasik-menggunakan-IBM-ILOG-CPLEX">
+<h2>Solusi klasik menggunakan IBM ILOG CPLEX<a class="headerlink" href="#Solusi-klasik-menggunakan-IBM-ILOG-CPLEX" title="Link permanen untuk headline ini">¶</a></h2>
+<p>Untuk solusi klasik, kita menggunakan IBM CPLEX. CPLEX mampu menemukan solusi yang tepat atas permasalahan ini. Pertama kita mendefinisikan sebuah kelas ClassicalOptimizer yang menerjemahkan permasalahan tersebut ke dalam bentuk yang dapat dipecahkan oleh CPLEX, dan kemudian mewujudkan kelas tersebut dan menyelesaikannya.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -843,15 +839,15 @@ Total number of combinations= 64
 </pre></div>
 </div>
 </div>
-<p>Solution shows the selected stocks via the stars and in green the links (via similarities) with other stocks that are represented in the fund by the linked stock.</p>
+<p>Solusi menunjukkan saham yang dipilih dengan bintang dan hubungan (melalui kemiripan) dengan saham lain yang direpresentasikan dalam dana melalui saham terhubung dalam warna hijau.</p>
 </div>
-<div class="section" id="Quantum-Computing-with-IBM-Q">
-<h2>Quantum Computing with IBM Q<a class="headerlink" href="#Quantum-Computing-with-IBM-Q" title="Link permanen untuk headline ini">¶</a></h2>
-<p>For the quantum solution, we use Qiskit. We first define a class QuantumOptimizer that encodes the quantum approach to solve the problem and then we instantiate it and solve it. We define the following methods inside the class:</p>
+<div class="section" id="Komputasi-Kuantum-dengan-IBM-Q">
+<h2>Komputasi Kuantum dengan IBM Q<a class="headerlink" href="#Komputasi-Kuantum-dengan-IBM-Q" title="Link permanen untuk headline ini">¶</a></h2>
+<p>Untuk solusi quantum, kami menggunakkan qiskit. Pertama, kami mendefinisikan kelas QuantumOptimizer yang mengkodekan pendekatan kuantum untuk memecahkan masalah dan kemudian kami membuat contoh dan menyelesaikannya. Kami mendefinisikan metode berikut di dalam kelas:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">exact_solution</span></code> : to make sure that the Ising Hamiltonian is correctly encoded in the <span class="math notranslate nohighlight">\(Z\)</span> basis, we can compute its eigendecomposition classically, i.e., considering a symmetric matrix of dimension <span class="math notranslate nohighlight">\(2^N \times 2^N\)</span>. For the problem at hand <span class="math notranslate nohighlight">\(n=3\)</span>, that is <span class="math notranslate nohighlight">\(N = 12\)</span>, seems to be the limit for many laptops;</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">vqe_solution</span></code> : solves the problem <span class="math notranslate nohighlight">\((M)\)</span> via the variational quantum eigensolver (VQE);</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">qaoa_solution</span></code> : solves the problem <span class="math notranslate nohighlight">\((M)\)</span> via a Quantum Approximate Optimization Algorithm (QAOA).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exact_solution</span></code>: untuk memastikan bahwa Hamiltonian Ising dikodekan secara tepat dalam basis <span class="math notranslate nohighlight">\(Z\)</span>, kita dapat menghitung dekomposisieigennya secara klasik, yaitu, mempertimbangkan sebuah matriks simetris dengan dimensi <span class="math notranslate nohighlight">\(2^N \times 2^N\)</span>. Untuk masalah <span class="math notranslate nohighlight">\(n=3\)</span>, yaitu <span class="math notranslate nohighlight">\(N = 12\)</span>, tampaknya merupakan batasan untuk banyak laptop;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vqe_solution</span></code> : memecahkan masalah <span class="math notranslate nohighlight">\((M)\)</span> melalui eigensolver kuantum variasional (variational quantum eigensolver/VQE);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qaoa_solution</span></code> : menyelesaikan permasalahan <span class="math notranslate nohighlight">\((M)\)</span> melalui sebuah Algoritme Optimasi Perkiraan Kuantum (Quantum Approximate Optimization Algorithm/QAOA).</p></li>
 </ul>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
@@ -931,9 +927,9 @@ Total number of combinations= 64
 </pre></div>
 </div>
 </div>
-<div class="section" id="Step-1">
-<h3>Step 1<a class="headerlink" href="#Step-1" title="Link permanen untuk headline ini">¶</a></h3>
-<p>Instantiate the quantum optimizer class with parameters: - the similarity matrix <code class="docutils literal notranslate"><span class="pre">rho</span></code>; - the number of assets and clusters <code class="docutils literal notranslate"><span class="pre">n</span></code> and <code class="docutils literal notranslate"><span class="pre">q</span></code>;</p>
+<div class="section" id="Langkah-1">
+<h3>Langkah 1<a class="headerlink" href="#Langkah-1" title="Link permanen untuk headline ini">¶</a></h3>
+<p>Mewujudkan kelas pengoptimal kuantum dengan parameter: - matriks kemiripan <code class="docutils literal notranslate"><span class="pre">rho</span></code>; - jumlah aset dan klaster <code class="docutils literal notranslate"><span class="pre">n</span></code> and <code class="docutils literal notranslate"><span class="pre">q</span></code>;</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
@@ -945,10 +941,10 @@ Total number of combinations= 64
 </div>
 </div>
 </div>
-<div class="section" id="Step-2">
-<h3>Step 2<a class="headerlink" href="#Step-2" title="Link permanen untuk headline ini">¶</a></h3>
-<p>Encode the problem as a binary formulation (IH-QP).</p>
-<p>Sanity check: make sure that the binary formulation in the quantum optimizer is correct (i.e., yields the same cost given the same solution).</p>
+<div class="section" id="Langkah-2">
+<h3>Langkah 2<a class="headerlink" href="#Langkah-2" title="Link permanen untuk headline ini">¶</a></h3>
+<p>Mengodekan masalah sebagai formulasi biner (IH-QP).</p>
+<p>Pemeriksaan kewajaran: pastikan bahwa formulasi biner dalam pengoptimal kuantum sudah benar (yaitu menghasilkan biaya yang sama untuk solusi yang sama).</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
@@ -979,10 +975,10 @@ Binary formulation is correct
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Step-3">
-<h3>Step 3<a class="headerlink" href="#Step-3" title="Link permanen untuk headline ini">¶</a></h3>
-<p>Encode the problem as an Ising Hamiltonian in the Z basis.</p>
-<p>Sanity check: make sure that the formulation is correct (i.e., yields the same cost given the same solution)</p>
+<div class="section" id="Langkah-3">
+<h3>Langkah 3<a class="headerlink" href="#Langkah-3" title="Link permanen untuk headline ini">¶</a></h3>
+<p>Kodekan masalah sebagai sebuah Hamiltonian Ising dalam basis Z.</p>
+<p>Pemeriksaan kewajaran: pastikan bahwa formulasi sudah benar (yaitu menghasilkan biaya yang sama dengan solusi yang sama)</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
@@ -1010,9 +1006,9 @@ Ising Hamiltonian in Z basis is correct
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Step-4">
-<h3>Step 4<a class="headerlink" href="#Step-4" title="Link permanen untuk headline ini">¶</a></h3>
-<p>Solve the problem via VQE. Notice that depending on the number of qubits, this can take a while: for 6 qubits it takes 15 minutes on a 2015 Macbook Pro, for 12 qubits it takes more than 12 hours. For longer runs, logging may be useful to observe the workings; otherwise, you just have to wait until the solution is printed.</p>
+<div class="section" id="Langkah-4">
+<h3>Langkah 4<a class="headerlink" href="#Langkah-4" title="Link permanen untuk headline ini">¶</a></h3>
+<p>Selesaikan permasalahan melalui VQE. Perhatikan bahwa tergantung pada jumlah qubit, hal ini memerlukan waktu: untuk 6 qubit diperlukan 15 menit pada sebuah Macbook Pro 2015, untuk 12 qubit diperlukan lebih dari 12 jam. Untuk proses yang lebih panjang, mencatat (logging) mungkin bermanfaat untuk mengamati pengerjaannya; jika tidak, Anda hanya perlu menunggu hingga solusi ditampilkan.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
@@ -1040,9 +1036,9 @@ VQE produces the same solution as the exact eigensolver.
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Step-5">
-<h3>Step 5<a class="headerlink" href="#Step-5" title="Link permanen untuk headline ini">¶</a></h3>
-<p>Visualize the solution</p>
+<div class="section" id="Langkah-5">
+<h3>Langkah 5<a class="headerlink" href="#Langkah-5" title="Link permanen untuk headline ini">¶</a></h3>
+<p>Visualisasikan solusi</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
@@ -1084,8 +1080,7 @@ VQE produces the same solution as the exact eigensolver.
 <img alt="../../_images/tutorials_finance_02_portfolio_diversification_25_0.png" src="../../_images/tutorials_finance_02_portfolio_diversification_25_0.png" />
 </div>
 </div>
-<p>Solution shows the selected stocks via the stars and in green the links (via similarities) with other stocks that are represented in the fund by the linked stock. Keep in mind that VQE is a heuristic working on the QP formulation of the Ising Hamiltonian, though. For suitable choices of A, local optima of the QP formulation will be feasible solutions to the ILP. While for some small instances, as above, we can find optimal solutions of the QP formulation which coincide with optima of the ILP,
-finding optimal solutions of the ILP is harder than finding local optima of the QP formulation, in general. Even within the VQE, one may provide stronger guarantees, for specific variational forms (trial wave functions).</p>
+<p>Solusi menunjukkan saham yang dipilih dengan bintang dan hubungan (melalui kemiripan) dengan saham lain yang direpresentasikan dalam dana melalui saham terhubung dalam warna hijau. Ingat bahwa VQE adalah pengerjaan heuristik pada formulasi QP dari Hamiltonian Ising. Untuk pilihan A yang sesuai, optima lokal dari formulasi QP akan menjadi solusi ILP yang mungkin. Sementara untuk beberapa kejadian kecil, seperti di atas, kita dapat menemukan solusi optimal untuk formulasi QP yang bertepatan dengan optima ILP, secara umum menemukan solusi optimal untuk ILP lebih sulit daripada menemukan optima lokal dari formulasi QP. Bahkan dalam VQE, kita dapat menyediakan jaminan yang lebih kuat untuk bentuk variasional spesifik (fungsi gelombang percobaan).</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
@@ -1167,24 +1162,24 @@ finding optimal solutions of the ILP is harder than finding local optima of the 
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#"><em>Portfolio Diversification</em></a><ul>
-<li><a class="reference internal" href="#Introduction">Introduction</a></li>
-<li><a class="reference internal" href="#The-Model">The Model</a></li>
-<li><a class="reference internal" href="#A-Hybrid-Approach">A Hybrid Approach</a><ul>
-<li><a class="reference internal" href="#Construct-a-binary-polynomial-optimization">Construct a binary polynomial optimization</a></li>
-<li><a class="reference internal" href="#Construct-the-Ising-Hamiltonian">Construct the Ising Hamiltonian</a></li>
-<li><a class="reference internal" href="#From-Hamiltonian-to-Quadratic-Programming-(QP)-formulation">From Hamiltonian to Quadratic Programming (QP) formulation</a></li>
+<li><a class="reference internal" href="#"><em>Diversifikasi Portofolio</em></a><ul>
+<li><a class="reference internal" href="#Pendahuluan">Pendahuluan</a></li>
+<li><a class="reference internal" href="#Model">Model</a></li>
+<li><a class="reference internal" href="#Pendekatan-hybrid">Pendekatan hybrid</a><ul>
+<li><a class="reference internal" href="#Membangun-optimisasi-polinomial-biner">Membangun optimisasi polinomial biner</a></li>
+<li><a class="reference internal" href="#Membangun-Hamiltonian-Ising">Membangun Hamiltonian Ising</a></li>
+<li><a class="reference internal" href="#Dari-Hamiltonian-ke-formulasi-Quadratic-Programming-(QP)">Dari Hamiltonian ke formulasi Quadratic Programming (QP)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#References">References</a></li>
-<li><a class="reference internal" href="#The-Implementation">The Implementation</a></li>
-<li><a class="reference internal" href="#Classical-solution-using-IBM-ILOG-CPLEX">Classical solution using IBM ILOG CPLEX</a></li>
-<li><a class="reference internal" href="#Quantum-Computing-with-IBM-Q">Quantum Computing with IBM Q</a><ul>
-<li><a class="reference internal" href="#Step-1">Step 1</a></li>
-<li><a class="reference internal" href="#Step-2">Step 2</a></li>
-<li><a class="reference internal" href="#Step-3">Step 3</a></li>
-<li><a class="reference internal" href="#Step-4">Step 4</a></li>
-<li><a class="reference internal" href="#Step-5">Step 5</a></li>
+<li><a class="reference internal" href="#Daftar-pustaka">Daftar pustaka</a></li>
+<li><a class="reference internal" href="#Implementasi">Implementasi</a></li>
+<li><a class="reference internal" href="#Solusi-klasik-menggunakan-IBM-ILOG-CPLEX">Solusi klasik menggunakan IBM ILOG CPLEX</a></li>
+<li><a class="reference internal" href="#Komputasi-Kuantum-dengan-IBM-Q">Komputasi Kuantum dengan IBM Q</a><ul>
+<li><a class="reference internal" href="#Langkah-1">Langkah 1</a></li>
+<li><a class="reference internal" href="#Langkah-2">Langkah 2</a></li>
+<li><a class="reference internal" href="#Langkah-3">Langkah 3</a></li>
+<li><a class="reference internal" href="#Langkah-4">Langkah 4</a></li>
+<li><a class="reference internal" href="#Langkah-5">Langkah 5</a></li>
 </ul>
 </li>
 </ul>
