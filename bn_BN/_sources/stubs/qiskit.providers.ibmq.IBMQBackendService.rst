@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~IBMQBackendService.__init__
+      ~IBMQBackendService.backends
       ~IBMQBackendService.jobs
       ~IBMQBackendService.my_reservations
       ~IBMQBackendService.retrieve_job

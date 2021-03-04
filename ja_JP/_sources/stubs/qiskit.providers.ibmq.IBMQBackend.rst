@@ -26,11 +26,18 @@
       ~IBMQBackend.reservations
       ~IBMQBackend.retrieve_job
       ~IBMQBackend.run
+      ~IBMQBackend.set_options
       ~IBMQBackend.status
-      ~IBMQBackend.version
    
    
 
    
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~IBMQBackend.options
+      ~IBMQBackend.version
    
    

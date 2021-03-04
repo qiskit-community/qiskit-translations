@@ -16,6 +16,8 @@
       ~AccountProvider.__init__
       ~AccountProvider.backends
       ~AccountProvider.get_backend
+      ~AccountProvider.service
+      ~AccountProvider.services
    
    
 
@@ -25,6 +27,9 @@
 
    .. autosummary::
    
+      ~AccountProvider.backend
       ~AccountProvider.experiment
+      ~AccountProvider.random
+      ~AccountProvider.version
    
    

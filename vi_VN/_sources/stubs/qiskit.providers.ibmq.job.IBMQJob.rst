@@ -15,12 +15,14 @@
    
       ~IBMQJob.__init__
       ~IBMQJob.backend
+      ~IBMQJob.backend_options
       ~IBMQJob.cancel
       ~IBMQJob.cancelled
+      ~IBMQJob.circuits
       ~IBMQJob.creation_date
       ~IBMQJob.done
       ~IBMQJob.error_message
-      ~IBMQJob.from_dict
+      ~IBMQJob.header
       ~IBMQJob.in_final_state
       ~IBMQJob.job_id
       ~IBMQJob.name
@@ -37,7 +39,6 @@
       ~IBMQJob.submit
       ~IBMQJob.tags
       ~IBMQJob.time_per_step
-      ~IBMQJob.to_dict
       ~IBMQJob.update_name
       ~IBMQJob.update_tags
       ~IBMQJob.wait_for_final_state
@@ -51,5 +52,7 @@
    .. autosummary::
    
       ~IBMQJob.client_version
+      ~IBMQJob.experiment_id
+      ~IBMQJob.version
    
    

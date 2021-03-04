@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.providers.ibmq.ibmqbackendservice &mdash; Qiskit 0.23.6 documentation</title>
+  <title>qiskit.providers.ibmq.ibmqbackendservice &mdash; Qiskit 0.24.0 documentation</title>
   
 
   
@@ -266,9 +266,7 @@
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
   <h1>Source code for qiskit.providers.ibmq.ibmqbackendservice</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># This code is part of Qiskit.</span>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
 <span class="c1"># (C) Copyright IBM 2019, 2020.</span>
 <span class="c1">#</span>
@@ -285,6 +283,7 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
 
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
@@ -317,17 +316,17 @@
 <span class="sd">    a specific backend::</span>
 
 <span class="sd">        backends = provider.backends()  # Invoke backends() to get the backends.</span>
-<span class="sd">        sim_backend = provider.backends.ibmq_qasm_simulator  # Get a specific backend instance.</span>
+<span class="sd">        sim_backend = provider.backend.ibmq_qasm_simulator  # Get a specific backend instance.</span>
 
 <span class="sd">    Also, you are able to retrieve jobs from a provider without specifying the backend name.</span>
 <span class="sd">    For example, to retrieve the ten most recent jobs you have submitted, regardless of the</span>
 <span class="sd">    backend they were submitted to, you could do::</span>
 
-<span class="sd">        most_recent_jobs = provider.backends.jobs(limit=10)</span>
+<span class="sd">        most_recent_jobs = provider.backend.jobs(limit=10)</span>
 
 <span class="sd">    It is also possible to retrieve a single job without specifying the backend name::</span>
 
-<span class="sd">        job = provider.backends.retrieve_job(&lt;JOB_ID&gt;)</span>
+<span class="sd">        job = provider.backend.retrieve_job(&lt;JOB_ID&gt;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="IBMQBackendService.__init__"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.IBMQBackendService.html#qiskit.providers.ibmq.IBMQBackendService.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">provider</span><span class="p">:</span> <span class="s1">&#39;accountprovider.AccountProvider&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -352,11 +351,12 @@
 
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backend_name</span><span class="p">,</span> <span class="n">backend</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
+<div class="viewcode-block" id="IBMQBackendService.backends"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.IBMQBackendService.html#qiskit.providers.ibmq.IBMQBackendService.backends">[docs]</a>    <span class="k">def</span> <span class="nf">backends</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">filters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">List</span><span class="p">[</span><span class="n">IBMQBackend</span><span class="p">]],</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">min_num_qubits</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">IBMQBackend</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return all backends accessible via this provider, subject to optional filtering.</span>
@@ -366,9 +366,11 @@
 <span class="sd">            filters: More complex filters, such as lambda functions.</span>
 <span class="sd">                For example::</span>
 
-<span class="sd">                    AccountProvider.backends(filters=lambda b: b.configuration().n_qubits &gt; 5)</span>
+<span class="sd">                    AccountProvider.backends(</span>
+<span class="sd">                        filters=lambda b: b.configuration().quantum_volume &gt; 16)</span>
 <span class="sd">            timeout: Maximum number of seconds to wait for the discovery of</span>
 <span class="sd">                remote backends.</span>
+<span class="sd">            min_num_qubits: Minimum number of qubits the backend has to have.</span>
 <span class="sd">            kwargs: Simple filters that specify a ``True``/``False`` criteria in the</span>
 <span class="sd">                backend configuration, backends status, or provider credentials.</span>
 <span class="sd">                An example to get the operational backends with 5 qubits::</span>
@@ -378,7 +380,12 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            The list of available backends that match the filter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">backends</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_backends</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">timeout</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The `timeout` keyword argument is deprecated and will &quot;</span>
+                          <span class="s2">&quot;be removed in a future release.&quot;</span><span class="p">,</span>
+                          <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">backends</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_backends</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
         <span class="c1"># Special handling of the `name` parameter, to support alias</span>
         <span class="c1"># resolution.</span>
@@ -388,7 +395,11 @@
             <span class="n">name</span> <span class="o">=</span> <span class="n">aliases</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;backend_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
 
-        <span class="k">return</span> <span class="n">filter_backends</span><span class="p">(</span><span class="n">backends</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">min_num_qubits</span><span class="p">:</span>
+            <span class="n">backends</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">b</span><span class="p">:</span> <span class="n">b</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">n_qubits</span> <span class="o">&gt;=</span> <span class="n">min_num_qubits</span><span class="p">,</span> <span class="n">backends</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">filter_backends</span><span class="p">(</span><span class="n">backends</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="IBMQBackendService.jobs"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.IBMQBackendService.html#qiskit.providers.ibmq.IBMQBackendService.jobs">[docs]</a>    <span class="k">def</span> <span class="nf">jobs</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -401,6 +412,7 @@
             <span class="n">end_datetime</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">job_tags</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">job_tags_operator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;OR&quot;</span><span class="p">,</span>
+            <span class="n">experiment_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">descending</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
             <span class="n">db_filter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">IBMQJob</span><span class="p">]:</span>
@@ -436,6 +448,7 @@
 <span class="sd">                      specified in ``job_tags`` to be included.</span>
 <span class="sd">                    * If &quot;OR&quot; is specified, then a job only needs to have any</span>
 <span class="sd">                      of the tags specified in ``job_tags`` to be included.</span>
+<span class="sd">            experiment_id: Filter by job experiment ID.</span>
 <span class="sd">            descending: If ``True``, return the jobs in descending order of the job</span>
 <span class="sd">                creation date (i.e. newest first) until the limit is reached.</span>
 <span class="sd">            db_filter: A `loopback-based filter</span>
@@ -473,12 +486,7 @@
         <span class="k">if</span> <span class="n">job_name</span><span class="p">:</span>
             <span class="n">api_filter</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;regexp&quot;</span><span class="p">:</span> <span class="n">job_name</span><span class="p">}</span>
 
-        <span class="c1"># TODO: Remove when decided the warning is no longer needed.</span>
         <span class="k">if</span> <span class="n">start_datetime</span> <span class="ow">or</span> <span class="n">end_datetime</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Unless a UTC timezone information is present, the parameters &#39;</span>
-                          <span class="s1">&#39;`start_datetime` and `end_datetime` are now expected to be in &#39;</span>
-                          <span class="s1">&#39;local time instead of UTC.&#39;</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-
             <span class="n">api_filter</span><span class="p">[</span><span class="s1">&#39;creationDate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_creation_date_filter</span><span class="p">(</span>
                 <span class="n">cur_dt_filter</span><span class="o">=</span><span class="p">{},</span>
                 <span class="n">gte_dt</span><span class="o">=</span><span class="n">local_to_utc</span><span class="p">(</span><span class="n">start_datetime</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span> <span class="k">if</span> <span class="n">start_datetime</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
@@ -498,6 +506,9 @@
                 <span class="k">raise</span> <span class="n">IBMQBackendValueError</span><span class="p">(</span>
                     <span class="s1">&#39;&quot;</span><span class="si">{}</span><span class="s1">&quot; is not a valid job_tags_operator value. &#39;</span>
                     <span class="s1">&#39;Valid values are &quot;AND&quot; and &quot;OR&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">job_tags_operator</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">experiment_id</span><span class="p">:</span>
+            <span class="n">api_filter</span><span class="p">[</span><span class="s1">&#39;experimentTag&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">experiment_id</span>
 
         <span class="k">if</span> <span class="n">db_filter</span><span class="p">:</span>
             <span class="c1"># Rather than overriding the logical operators `and`/`or`, first</span>
@@ -774,6 +785,56 @@
             <span class="s1">&#39;ibmq_16_rueschlikon&#39;</span><span class="p">:</span> <span class="s1">&#39;ibmqx5&#39;</span><span class="p">,</span>
             <span class="s1">&#39;ibmq_20_austin&#39;</span><span class="p">:</span> <span class="s1">&#39;QS1_1&#39;</span>
             <span class="p">}</span></div>
+
+
+<span class="k">def</span> <span class="nf">_issue_warning</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backends_warning_issued</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The `backends` attribute is deprecated. &quot;</span>
+                          <span class="s2">&quot;Please use `provider.backend` (singular) instead.&quot;</span><span class="p">,</span>
+                          <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_backends_warning_issued</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_wrapper</span>
+
+
+<span class="k">class</span> <span class="nc">IBMQDeprecatedBackendService</span><span class="p">:</span>
+
+    <span class="c1"># pylint: disable=W,C,R</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backend_service</span><span class="p">:</span> <span class="n">IBMQBackendService</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_backend_service</span> <span class="o">=</span> <span class="n">backend_service</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_backends_warning_issued</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="nd">@_issue_warning</span>
+    <span class="k">def</span> <span class="nf">jobs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend_service</span><span class="o">.</span><span class="n">jobs</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@_issue_warning</span>
+    <span class="k">def</span> <span class="nf">retrieve_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend_service</span><span class="o">.</span><span class="n">retrieve_job</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@_issue_warning</span>
+    <span class="k">def</span> <span class="nf">my_reservations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend_service</span><span class="o">.</span><span class="n">my_reservations</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;_backend_service&#39;</span><span class="p">,</span> <span class="s1">&#39;_backends_warning_issued&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backends_warning_issued</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The `backends` provider attribute is deprecated. &quot;</span>
+                          <span class="s2">&quot;Please use `provider.backend` (singular) instead. &quot;</span>
+                          <span class="s2">&quot;You can continue to use `provider.backends()` to &quot;</span>
+                          <span class="s2">&quot;retrieve all backends.&quot;</span><span class="p">,</span>
+                          <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_backends_warning_issued</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend_service</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend_service</span><span class="o">.</span><span class="n">backends</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </pre></div>
 
              </article>

@@ -32,8 +32,10 @@
       ~Experiment.end_datetime
       ~Experiment.group
       ~Experiment.hub
+      ~Experiment.owner
       ~Experiment.plot_names
       ~Experiment.project
+      ~Experiment.share_level
       ~Experiment.start_datetime
       ~Experiment.updated_datetime
       ~Experiment.uuid
