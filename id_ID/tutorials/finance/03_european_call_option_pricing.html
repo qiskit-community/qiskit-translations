@@ -40,7 +40,7 @@
   <link rel="stylesheet" href="../../_static/panels-variables.ade9f9d55df9d2893fc676ecd59723a1.css" type="text/css" />
     <link rel="index" title="Indeks" href="../../genindex.html" />
     <link rel="search" title="Pencarian" href="../../search.html" />
-    <link rel="next" title="Pricing European Put Options" href="04_european_put_option_pricing.html" />
+    <link rel="next" title="Menilai Harga Opsi Jual Eropa" href="04_european_put_option_pricing.html" />
     <link rel="prev" title="Diversifikasi Portofolio" href="02_portfolio_diversification.html" /> 
 
   
@@ -521,26 +521,26 @@ div.rendered_html tbody tr:hover {
 </style>
 <div class="admonition note">
 <p class="admonition-title">Catatan</p>
-<p>This page was generated from <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/finance/03_european_call_option_pricing.ipynb">tutorials/finance/03_european_call_option_pricing.ipynb</a>.</p>
-<p>Run interactively in the <a class="reference external" href="https://quantum-computing.ibm.com/jupyter/tutorial/finance/03_european_call_option_pricing.ipynb">IBM Quantum lab</a>.</p>
+<p>Halaman ini dihasilkan dari <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/finance/03_european_call_option_pricing.ipynb">tutorials/finance/01_portfolio_optimization.ipynb</a>.</p>
+<p>Jalankan secara interaktif di 'IBM Quantum lab &lt;<a class="reference external" href="https://quantum-computing.ibm.com/jupyter/tutorial/finance/01_portfolio_optimization.ipynb">https://quantum-computing.ibm.com/jupyter/tutorial/finance/01_portfolio_optimization.ipynb</a>&gt;`_.</p>
 </div>
 <div class="section" id="Pricing-European-Call-Options">
 <h1><em>Pricing European Call Options</em><a class="headerlink" href="#Pricing-European-Call-Options" title="Link permanen untuk headline ini">¶</a></h1>
-<div class="section" id="Introduction">
-<h2>Introduction<a class="headerlink" href="#Introduction" title="Link permanen untuk headline ini">¶</a></h2>
-<p>Suppose a European call option with strike price <span class="math notranslate nohighlight">\(K\)</span> and an underlying asset whose spot price at maturity <span class="math notranslate nohighlight">\(S_T\)</span> follows a given random distribution. The corresponding payoff function is defined as:</p>
+<div class="section" id="Pendahuluan">
+<h2>Pendahuluan<a class="headerlink" href="#Pendahuluan" title="Link permanen untuk headline ini">¶</a></h2>
+<p>Misalkan sebuah opsi panggilan Eropa dengan harga strike :math:` K ` dan aset pokok yang harga tunai pada saat puncak :math:` S_T ` mengikuti distribusi acak yang telah diberikan. Fungsi payoff yang sesuai didefinisikan sebagai:</p>
 <div class="math notranslate nohighlight">
 \[\max\{S_T - K, 0\}\]</div>
-<p>In the following, a quantum algorithm based on amplitude estimation is used to estimate the expected payoff, i.e., the fair price before discounting, for the option:</p>
+<p>Pada bagian berikut, sebuah algoritma kuantum yang berdasarkan estimasi amplitudo digunakan untuk memperkirakan payoff yang diharapkan, yaitu harga promosi sebelum mendapat diskon, untuk pilihan:</p>
 <div class="math notranslate nohighlight">
 \[\mathbb{E}\left[ \max\{S_T - K, 0\} \right]\]</div>
-<p>as well as the corresponding <span class="math notranslate nohighlight">\(\Delta\)</span>, i.e., the derivative of the option price with respect to the spot price, defined as:</p>
+<p>serta yang sesuai dengan :math:` Delta <a href="#id1"><span class="problematic" id="id2">`</span></a>, yaitu, turunan dari harga opsi sehubungan dengan harga tunai, yang didefinisikan sebagai:</p>
 <div class="math notranslate nohighlight">
 \[\Delta = \mathbb{P}\left[S_T \geq K\right]\]</div>
-<p>The approximation of the objective function and a general introduction to option pricing and risk analysis on quantum computers are given in the following papers:</p>
+<p>Pendekatan fungsi objektif dan pengenalan umum untuk opsi penentuan harga dan analisis risiko pada komputer kuantum diberikan dalam jurnal berikut:</p>
 <ul class="simple">
 <li><p>Quantum Risk Analysis. Woerner, Egger. 2018.</p></li>
-<li><p>Option Pricing using Quantum Computers. Stamatopoulos et al. 2019.</p></li>
+<li><p>Option Pricing using Quantum Computers. Stamatopoulos et al. 2019.</p></li>
 </ul>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -558,12 +558,12 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 </div>
-<div class="section" id="Uncertainty-Model">
-<h2>Uncertainty Model<a class="headerlink" href="#Uncertainty-Model" title="Link permanen untuk headline ini">¶</a></h2>
-<p>We construct a circuit factory to load a log-normal random distribution into a quantum state. The distribution is truncated to a given interval <span class="math notranslate nohighlight">\([\text{low}, \text{high}]\)</span> and discretized using <span class="math notranslate nohighlight">\(2^n\)</span> grid points, where <span class="math notranslate nohighlight">\(n\)</span> denotes the number of qubits used. The unitary operator corresponding to the circuit factory implements the following:</p>
+<div class="section" id="Model-Ketidakpastian">
+<h2>Model Ketidakpastian<a class="headerlink" href="#Model-Ketidakpastian" title="Link permanen untuk headline ini">¶</a></h2>
+<p>Kami membangun sebuah pabrik sirkuit untuk memuat log-normal distribusi acak menjadi sebuah state kuantum. Distribusi ini dipotong ke interval yang diberikan :math:` [text{low}, text{high}] ` dan tdidiskritkan menggunakan :math:` 2 ^ n ` grid poin, di mana :math:` n ` menandakan jumlah qubits yang digunakan. Operator uniter yang sesuai dengan pabrik sirkuit mengimplementasikan hal-hal berikut:</p>
 <div class="math notranslate nohighlight">
 \[\big|0\rangle_{n} \mapsto \big|\psi\rangle_{n} = \sum_{i=0}^{2^n-1} \sqrt{p_i}\big|i\rangle_{n},\]</div>
-<p>where <span class="math notranslate nohighlight">\(p_i\)</span> denote the probabilities corresponding to the truncated and discretized distribution and where <span class="math notranslate nohighlight">\(i\)</span> is mapped to the right interval using the affine map:</p>
+<p>di mana :math:` p_i ` menunjukkan probabilitas yang sesuai dengan distribusi yang dipotong dan didiskritkan dan di mana :math:` i ` dipetakan ke interval yang tepat menggunakan peta affine:</p>
 <div class="math notranslate nohighlight">
 \[\{0, \ldots, 2^n-1\} \ni i \mapsto \frac{\text{high} - \text{low}}{2^n - 1} * i + \text{low} \in [\text{low}, \text{high}].\]</div>
 <div class="nbinput nblast docutils container">
@@ -623,19 +623,19 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 </div>
-<div class="section" id="Payoff-Function">
-<h2>Payoff Function<a class="headerlink" href="#Payoff-Function" title="Link permanen untuk headline ini">¶</a></h2>
-<p>The payoff function equals zero as long as the spot price at maturity <span class="math notranslate nohighlight">\(S_T\)</span> is less than the strike price <span class="math notranslate nohighlight">\(K\)</span> and then increases linearly. The implementation uses a comparator, that flips an ancilla qubit from <span class="math notranslate nohighlight">\(\big|0\rangle\)</span> to <span class="math notranslate nohighlight">\(\big|1\rangle\)</span> if <span class="math notranslate nohighlight">\(S_T \geq K\)</span>, and this ancilla is used to control the linear part of the payoff function.</p>
-<p>The linear part itself is then approximated as follows. We exploit the fact that <span class="math notranslate nohighlight">\(\sin^2(y + \pi/4) \approx y + 1/2\)</span> for small <span class="math notranslate nohighlight">\(|y|\)</span>. Thus, for a given approximation rescaling factor <span class="math notranslate nohighlight">\(c_\text{approx} \in [0, 1]\)</span> and <span class="math notranslate nohighlight">\(x \in [0, 1]\)</span> we consider</p>
+<div class="section" id="Fungsi-Payoff">
+<h2>Fungsi Payoff<a class="headerlink" href="#Fungsi-Payoff" title="Link permanen untuk headline ini">¶</a></h2>
+<p>Fungsi payoff sama dengan nol asalkan harga tunai pada puncak :math:` S_T ` kurang dari harga strike :math:` K ` dan kemudian meningkat linearly. Implementasi ini menggunakan komparator, yang membalik qubit ancilla dari :math:` big | 0rangle ` ke :math:` big | 1rangle ` jika :math:` S_T geq K <a href="#id1"><span class="problematic" id="id2">`</span></a>, dan ancilla ini digunakan untuk mengontrol bagian linear dari fungsi payoff.</p>
+<p>Bagian linear itu sendiri kemudian diperkirakan sebagai berikut. Kita memanfaatkan fakta bahwa :math:` sin ^ 2 (y + pi/4) approx y + 1/2 ` for small :math:` <a href="#id1"><span class="problematic" id="id2">|</span></a>y | <cite>. Dengan demikian, untuk faktor skala perkiraan yang diberikan :math:</cite> <a href="#id2"><span class="problematic" id="id3">c_</span></a>text{approx} in [0, 1] ` dan :math:` x in [0, 1] ` kita mempertimbangkan</p>
 <div class="math notranslate nohighlight">
-\[\sin^2( \pi/2 * c_\text{approx} * ( x - 1/2 ) + \pi/4) \approx \pi/2 * c_\text{approx} * ( x - 1/2 ) + 1/2\]</div>
+\[\sin ^ 2 (\pi/2 * c_\text{approx} * (x-1/2) + \pi/4) \approx \pi/2 * c_\text{approx} * (x-1/2) + 1/2\]</div>
 <p>for small <span class="math notranslate nohighlight">\(c_\text{approx}\)</span>.</p>
-<p>We can easily construct an operator that acts as</p>
+<p>Kita dapat dengan mudah membangun sebuah operator yang bertindak sebagai</p>
 <div class="math notranslate nohighlight">
 \[\big|x\rangle \big|0\rangle \mapsto \big|x\rangle \left( \cos(a*x+b) \big|0\rangle + \sin(a*x+b) \big|1\rangle \right),\]</div>
-<p>using controlled Y-rotations.</p>
-<p>Eventually, we are interested in the probability of measuring <span class="math notranslate nohighlight">\(\big|1\rangle\)</span> in the last qubit, which corresponds to <span class="math notranslate nohighlight">\(\sin^2(a*x+b)\)</span>. Together with the approximation above, this allows to approximate the values of interest. The smaller we choose <span class="math notranslate nohighlight">\(c_\text{approx}\)</span>, the better the approximation. However, since we are then estimating a property scaled by <span class="math notranslate nohighlight">\(c_\text{approx}\)</span>, the number of evaluation qubits <span class="math notranslate nohighlight">\(m\)</span> needs to be adjusted accordingly.</p>
-<p>For more details on the approximation, we refer to: Quantum Risk Analysis. Woerner, Egger. 2018.</p>
+<p>menggunakan kontrol Y-rotasi.</p>
+<p>Akhirnya, kita tertarik pada probabilitas untuk mengukur :math:` big | 1rangle ` di qubit terakhir, yang sesuai dengan :math:` sin ^ 2 (a*x + b) <cite>. Bersama dengan perkiraan di atas, hal ini memungkinkan untuk perkiraan nilai bunga. Semakin kecil kita memilih :math:</cite> <a href="#id4"><span class="problematic" id="id5">c_</span></a>text{approx}`, semakin baik perkiraan. Namun, karena kita kemudian memperkirakan sebuah properti yang discalakan oleh :math:` <a href="#id6"><span class="problematic" id="id7">c_</span></a>text{approx}`, jumlah evaluasi qubit :math:` m ` ` perlu disesuaikan.</p>
+<p>Untuk pendekatan lebih jelasnya, kita mengacu pada: Quantum Risk Analysis. Woerner, Egger. 2018.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -745,8 +745,8 @@ exact delta value:      0.8098
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Evaluate-Expected-Payoff">
-<h2>Evaluate Expected Payoff<a class="headerlink" href="#Evaluate-Expected-Payoff" title="Link permanen untuk headline ini">¶</a></h2>
+<div class="section" id="Evaluasi-Hasil-yang-Diharapkan">
+<h2>Evaluasi Hasil yang Diharapkan<a class="headerlink" href="#Evaluasi-Hasil-yang-Diharapkan" title="Link permanen untuk headline ini">¶</a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
@@ -795,7 +795,7 @@ Estimated value:        0.1694
 Confidence interval:    [0.1633, 0.1755]
 </pre></div></div>
 </div>
-<p>Instead of constructing these circuits manually, Qiskit’s finance module offers the <code class="docutils literal notranslate"><span class="pre">EuropeanCallExpectedValue</span></code> circuit, which already implements this functionality as building block.</p>
+<p>Alih-alih membangun sirkuit ini secara manual, modul keuangan Qiskit menawarkan rangkaian ` ` EuropeanCallExpectedValue ` <a href="#id1"><span class="problematic" id="id2">`</span></a>, yang sudah menerapkan fungsi ini sebagai blok bangunan.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
@@ -847,9 +847,9 @@ Confidence interval:    [0.1656, 0.1759]
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Evaluate-Delta">
-<h2>Evaluate Delta<a class="headerlink" href="#Evaluate-Delta" title="Link permanen untuk headline ini">¶</a></h2>
-<p>The Delta is a bit simpler to evaluate than the expected payoff. Similarly to the expected payoff, we use a comparator circuit and an ancilla qubit to identify the cases where <span class="math notranslate nohighlight">\(S_T &gt; K\)</span>. However, since we are only interested in the probability of this condition being true, we can directly use this ancilla qubit as the objective qubit in amplitude estimation without any further approximation.</p>
+<div class="section" id="Mengevaluasi-Delta">
+<h2>Mengevaluasi Delta<a class="headerlink" href="#Mengevaluasi-Delta" title="Link permanen untuk headline ini">¶</a></h2>
+<p>Delta sedikit lebih sederhana untuk dievaluasi daripada hasil yang diharapkan. Sama dengan hasil yang diharapkan, kami menggunakan sirkuit komparator dan sebuah ancilla qubit untuk mengidentifikasi kasus di mana :math:` S_T &gt; K <a href="#id1"><span class="problematic" id="id2">`</span></a>. Namun, karena kita hanya tertarik pada kemungkinan kondisi ini benar, kita dapat langsung menggunakan ancilla qubit ini sebagai qubit objektif dalam estimasi amplitudo tanpa perkiraan lebih lanjut.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
@@ -1011,7 +1011,7 @@ Confidence interval:    [0.8013, 0.8123]
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="04_european_put_option_pricing.html" class="btn btn-neutral float-right" title="Pricing European Put Options" accesskey="n" rel="next">Next <img src="../../_static/images/chevron-right-orange.svg" class="next-page"></a>
+        <a href="04_european_put_option_pricing.html" class="btn btn-neutral float-right" title="Menilai Harga Opsi Jual Eropa" accesskey="n" rel="next">Next <img src="../../_static/images/chevron-right-orange.svg" class="next-page"></a>
       
       
         <a href="02_portfolio_diversification.html" class="btn btn-neutral" title="Diversifikasi Portofolio" accesskey="p" rel="prev"><img src="../../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
@@ -1048,11 +1048,11 @@ Confidence interval:    [0.8013, 0.8123]
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
 <li><a class="reference internal" href="#"><em>Pricing European Call Options</em></a><ul>
-<li><a class="reference internal" href="#Introduction">Introduction</a></li>
-<li><a class="reference internal" href="#Uncertainty-Model">Uncertainty Model</a></li>
-<li><a class="reference internal" href="#Payoff-Function">Payoff Function</a></li>
-<li><a class="reference internal" href="#Evaluate-Expected-Payoff">Evaluate Expected Payoff</a></li>
-<li><a class="reference internal" href="#Evaluate-Delta">Evaluate Delta</a></li>
+<li><a class="reference internal" href="#Pendahuluan">Pendahuluan</a></li>
+<li><a class="reference internal" href="#Model-Ketidakpastian">Model Ketidakpastian</a></li>
+<li><a class="reference internal" href="#Fungsi-Payoff">Fungsi Payoff</a></li>
+<li><a class="reference internal" href="#Evaluasi-Hasil-yang-Diharapkan">Evaluasi Hasil yang Diharapkan</a></li>
+<li><a class="reference internal" href="#Mengevaluasi-Delta">Mengevaluasi Delta</a></li>
 </ul>
 </li>
 </ul>
