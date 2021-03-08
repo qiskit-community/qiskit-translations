@@ -33,7 +33,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Soolu Thomas | @Soolu |
 
 
-### Translation Leads (as of Nov, 2020)
+### Translation Leads (as of Mar, 2021)
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
