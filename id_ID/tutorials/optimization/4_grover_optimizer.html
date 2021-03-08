@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Grover Optimizer &mdash; Dokumentasi Qiskit 0.24.0</title>
+  <title>Pengoptimal Grover &mdash; Dokumentasi Qiskit 0.24.0</title>
   
 
   
@@ -241,7 +241,7 @@
         
           <li><a href="index.html">Tutorial Optimisasi</a> &gt;</li>
         
-      <li>Grover Optimizer</li>
+      <li>Pengoptimal Grover</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
@@ -521,45 +521,43 @@ div.rendered_html tbody tr:hover {
 </style>
 <div class="admonition note">
 <p class="admonition-title">Catatan</p>
-<p>This page was generated from <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/optimization/4_grover_optimizer.ipynb">tutorials/optimization/4_grover_optimizer.ipynb</a>.</p>
-<p>Run interactively in the <a class="reference external" href="https://quantum-computing.ibm.com/jupyter/tutorial/optimization/4_grover_optimizer.ipynb">IBM Quantum lab</a>.</p>
+<p>Halaman ini dihasilkan dari ` tutorials/optimization/4_grover_optimizer.ipynb ` __.</p>
+<p>Jalankan secara interaktif dalam ' IBM Quantum lab &lt;<a class="reference external" href="https://quantum-computing.ibm.com/jupyter/tutorial/optimization/4_grover_optimizer.ipynb">https://quantum-computing.ibm.com/jupyter/tutorial/optimization/4_grover_optimizer.ipynb</a>&gt;` _.</p>
 </div>
-<div class="section" id="Grover-Optimizer">
-<h1>Grover Optimizer<a class="headerlink" href="#Grover-Optimizer" title="Link permanen untuk headline ini">¶</a></h1>
-<div class="section" id="Introduction">
-<h2>Introduction<a class="headerlink" href="#Introduction" title="Link permanen untuk headline ini">¶</a></h2>
-<p>Grover Adaptive Search (GAS) has been explored as a possible solution for combinatorial optimization problems, alongside variational algorithms such as Variational Quantum Eigensolver (VQE) and Quantum Approximate Optimization Algorithm (QAOA). The algorithm iteratively applies Grover Search to find the optimum value of an objective function, by using the best-known value from the previous run as a threshold. The adaptive oracle used in GAS recognizes all values above or below the current
-threshold (for max and min respectively), decreasing the size of the search space every iteration the threshold is updated, until an optimum is found.</p>
-<p>In this notebook we will explore each component of the <code class="docutils literal notranslate"><span class="pre">GroverOptimizer</span></code>, which utilizes the techniques described in GAS, by minimizing a Quadratic Unconstrained Binary Optimization (QUBO) problem, as described in [1]</p>
-<div class="section" id="References">
-<h3>References<a class="headerlink" href="#References" title="Link permanen untuk headline ini">¶</a></h3>
+<div class="section" id="Pengoptimal-Grover">
+<h1>Pengoptimal Grover<a class="headerlink" href="#Pengoptimal-Grover" title="Link permanen untuk headline ini">¶</a></h1>
+<div class="section" id="Pengantar">
+<h2>Pengantar<a class="headerlink" href="#Pengantar" title="Link permanen untuk headline ini">¶</a></h2>
+<p>Grover Adaptive Search (GAS) telah dieksplorasi sebagai solusi yang mungkin untuk masalah optimisasi kombinatorial, bersama dengan algoritma variasional seperti Variational Quantum Eigensolver (VQE) dan Quantum Approximate Optimization Algorithm (QAOA). Algoritma tersebut secara berulang menerapkan Pencarian Grover untuk menemukan nilai optimal dari suatu fungsi tujuan, dengan menggunakan nilai terbaik dari proses sebelumnya sebagai ambang batas. Oracle adaptif yang digunakan dalam GAS mengenali semua nilai di atas atau di bawah ambang batas saat ini (untuk maks dan min masing-masing), mengurangi ukuran ruang pencarian setiap iterasi ambang diperbarui, hingga nilai optimal ditemukan.</p>
+<p>Di notebook ini kita akan mempelajari setiap komponen `` GroverOptimizer``, yang menggunakan teknik yang dijelaskan dalam GAS, dengan meminimalkan masalah Quadratic Unconstrained Binary Optimization (QUBO), seperti yang dijelaskan di [1]</p>
+<div class="section" id="Daftar-pustaka">
+<h3>Daftar pustaka<a class="headerlink" href="#Daftar-pustaka" title="Link permanen untuk headline ini">¶</a></h3>
 <p>[1] <a class="reference external" href="https://arxiv.org/abs/1912.04088">A. Gilliam, S. Woerner, C. Gonciulea, Grover Adaptive Search for Constrained Polynomial Binary Optimization, arXiv preprint arXiv:1912.04088 (2019).</a></p>
 </div>
 </div>
-<div class="section" id="Grover-Adaptive-Search">
-<h2>Grover Adaptive Search<a class="headerlink" href="#Grover-Adaptive-Search" title="Link permanen untuk headline ini">¶</a></h2>
-<p>Grover Search, the core element of GAS, needs three ingredients:</p>
+<div class="section" id="Pencarian-Adaptif-Grover-(Grover-Adaptive-Search/GAS)">
+<h2>Pencarian Adaptif Grover (Grover Adaptive Search/GAS)<a class="headerlink" href="#Pencarian-Adaptif-Grover-(Grover-Adaptive-Search/GAS)" title="Link permanen untuk headline ini">¶</a></h2>
+<p>Pencari Grover, elemen inti dari GAS, membutuhkan tiga komponen:</p>
 <ol class="arabic simple">
-<li><p>A state preparation operator <span class="math notranslate nohighlight">\(A\)</span> to construct a superposition of all states in the search space.</p></li>
-<li><p>An oracle operator <span class="math notranslate nohighlight">\(O\)</span>, that recognizes the states of interest and multiplies their amplitudes by -1.</p></li>
-<li><p>The Grover diffusion operator <span class="math notranslate nohighlight">\(D\)</span>, that multiplies the amplitude of the <span class="math notranslate nohighlight">\(|0\rangle_n\)</span> state by -1.</p></li>
+<li><p>Sebuah operator persiapan keadaan :math:` A ` untuk membangun sebuah superposisi dari semua keadaan dalam ruang pencarian.</p></li>
+<li><p>Sebuah operator oracle :math:` O <a href="#id1"><span class="problematic" id="id2">`</span></a>, mengenali keadaan yang diperhatikan dan mengalikan amplitudo mereka dengan -1.</p></li>
+<li><p>Operator Grover difusi :math:` D <cite>, mengalikan amplitudo dari :math:</cite> | 0rangle_n ` state sebanyak -1.</p></li>
 </ol>
-<p>While implementations of GAS vary around the specific use case, the general framework still loosely follows the steps described below.</p>
-<div><p><img alt="88dbcf85c7c2459ab3a6cf4d0b96b1f1" class="no-scaled-link" src="../../_images/GAS-Algorithm.png" style="width: 400px;" /></p>
-</div><p><code class="docutils literal notranslate"><span class="pre">GroverOptimizer</span></code> uses <code class="docutils literal notranslate"><span class="pre">QuadraticProgramToNegativeValueOracle</span></code> to construct <span class="math notranslate nohighlight">\(A_y\)</span> such that it prepares a <span class="math notranslate nohighlight">\(n\)</span>-qubit register to represent the equal superposition of all <span class="math notranslate nohighlight">\(|x\rangle_n\)</span> and a <span class="math notranslate nohighlight">\(m\)</span>-qubit register to (approximately) represent the corresponding <span class="math notranslate nohighlight">\(|Q(x)-y\rangle_m\)</span>. Then, all states with <span class="math notranslate nohighlight">\((Q(x) - y)\)</span> negative should be flagged by <span class="math notranslate nohighlight">\(O_y\)</span>. Note that in the implementation discussed, the oracle operator is actually independent of <span class="math notranslate nohighlight">\(y\)</span>, but
-this is not a requirement. For clarity, we will refer to the oracle as <span class="math notranslate nohighlight">\(O\)</span> when the oracle is independent of <span class="math notranslate nohighlight">\(y\)</span>.</p>
-<p>Put formally, <code class="docutils literal notranslate"><span class="pre">QuadraticProgramToNegativeValueOracle</span></code> constructs an <span class="math notranslate nohighlight">\(A_y\)</span> and <span class="math notranslate nohighlight">\(O\)</span> such that:</p>
-<div><p><img alt="628d6203be8b44d6ae3f175c20284677" class="no-scaled-link" src="../../_images/a-o-dfn.png" style="width: 400px;" /></p>
+<p>Walaupun implementasi GAS bervariasi di sekitar kasus penggunaan spesifik, kerangka umumnya masih secara umum mengikuti langkah-langkah yang dijelaskan di bawah ini.</p>
+<div><p><img alt="bf79be62d5ae43638b907bae922b82e7" class="no-scaled-link" src="../../_images/GAS-Algorithm.png" style="width: 400px;" /></p>
+</div><p>` ` ` GroverOptimizer ` ` menggunakan ` ` QuadraticProgramToNegativeValueOracle ` ` untuk menyusun :math:` A_y ` sedemikian rupa sehingga menyiapkan register :math:` n ` n <cite>-qubit untuk mewakili superposisi yang setara dari semua :math:</cite> <a href="#id1"><span class="problematic" id="id2">|</span></a>xrangle_n ` dan sebuah :math:` m <cite>-qubit register untuk (secara aproksimasi) mewakili :math:</cite> | Q (x)-yrangle_m ` yang sesuai. Kemudian, semua keadaan dengan :math:` (Q (x)-y) ` negatif seharusnya dilabeli oleh :math:` O_y <cite>. Perlu dicatat bahwa dalam implementasi yang dibahas, operator oracle sebenarnya independen dari :math:</cite> y <cite>, tetapi ini bukan persyaratan. Untuk kejelasan, kita akan merujuk kepada oraclesebagai :math:</cite> O ` ketika oracle tersebut independen dari :math:` y <a href="#id3"><span class="problematic" id="id4">`</span></a>.</p>
+<p>Secara formal, ` ` QuadraticProgramToNegativeValueOracle ` ` ` membangun sebuah :math:` A_y ` dan :math:` O <a href="#id1"><span class="problematic" id="id2">`</span></a>sehingga:</p>
+<div><p><img alt="e5c45830c52f4e5aa4ef7a93c8f3f329" class="no-scaled-link" src="../../_images/a-o-dfn.png" style="width: 400px;" /></p>
 </div><p>where <span class="math notranslate nohighlight">\(|x\rangle\)</span> is the binary encoding of the integer <span class="math notranslate nohighlight">\(x\)</span>.</p>
-<p>At each iteration in which the threshold <span class="math notranslate nohighlight">\(y\)</span> is updated, we adapt <span class="math notranslate nohighlight">\(A_y\)</span> such that the function values are shifted up or down (for minimum and maximum respectively) by <span class="math notranslate nohighlight">\(y\)</span>. For example, in the context of finding the minimum, as the value of <span class="math notranslate nohighlight">\(y\)</span> decreases, the search space (negative values) also decreases, until only the minimum value remains. A concrete example will be explored in the next section.</p>
+<p>Pada setiap iterasi di mana threshold :math:` y ` diperbarui, kita mengadaptasi :math:` A_y ` sedemikian sehingga nilai fungsi digeser ke atas atau ke bawah (untuk minimum dan maksimum masing-masing) sebesar :math:` y <cite>. Sebagai contoh, dalam konteks menemukan minimum, sementara :math:</cite> y ` menurun, ruang pencarian (nilai negatif) juga menurun, sampai hanya nilai minimum yang tersisa. Contoh konkrit akan ditelusuri di bagian berikutnya.</p>
 </div>
-<div class="section" id="Find-the-Minimum-of-a-QUBO-Problem-using-GroverOptimizer">
-<h2>Find the Minimum of a QUBO Problem using GroverOptimizer<a class="headerlink" href="#Find-the-Minimum-of-a-QUBO-Problem-using-GroverOptimizer" title="Link permanen untuk headline ini">¶</a></h2>
-<p>The following is a toy example of a minimization problem.</p>
+<div class="section" id="Temukan-Minimum-dari-Permasalahan-QUBO-dengan-Menggunakan-GroverOptimizer">
+<h2>Temukan Minimum dari Permasalahan QUBO dengan Menggunakan GroverOptimizer<a class="headerlink" href="#Temukan-Minimum-dari-Permasalahan-QUBO-dengan-Menggunakan-GroverOptimizer" title="Link permanen untuk headline ini">¶</a></h2>
+<p>Berikut ini adalah contoh dari permasalahan minimisasi.</p>
 <p><span class="math">\begin{eqnarray}
 \min_{x \in \{0, 1\}^3} -2x_1x_3 - x_2x_3 - 1x_1 + 2x_2 - 3x_3.
 \end{eqnarray}</span></p>
-<p>For our initial steps, we create a docplex model that defines the problem above, and then use the <code class="docutils literal notranslate"><span class="pre">from_docplex()</span></code> function to convert the model to a <code class="docutils literal notranslate"><span class="pre">QuadraticProgram</span></code>, which can be used to represent a QUBO in Qiskit Optimization.</p>
+<p>Untuk langkah awal, kami membuat model docplex yang mendefinisikan permasalahan di atas dan menggunakan fungsi``from_docplex()`` untuk mengkonversi modelnya menjadi sebuah <code class="docutils literal notranslate"><span class="pre">QuadraticProgram</span></code>, yang bisa digunakan untuk merepresentasikan QUBO dalam optimasi Qiskit.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -615,7 +613,7 @@ End
 
 </pre></div></div>
 </div>
-<p>Next, we create a <code class="docutils literal notranslate"><span class="pre">GroverOptimizer</span></code> that uses 6 qubits to encode the value, and will terminate after there have been 10 iterations of GAS without progress (i.e. the value of <span class="math notranslate nohighlight">\(y\)</span> does not change). The <code class="docutils literal notranslate"><span class="pre">solve()</span></code> function takes the <code class="docutils literal notranslate"><span class="pre">QuadraticProgram</span></code> we created earlier, and returns a results object that contains information about the run.</p>
+<p>Selanjutnya, kami membuat sebuah ` ` ` GroverOptimizer ` ` yang menggunakan 6 qubit untuk meng-encode nilai, dan akan berakhir setelah 10 iteras itanpa kemajuan S (yaitu nilai :math:` y ` tidak berubah) dari GAS. Fungsi ` ` solve () ` ` mengambil ` ` QuadraticProgram ` ` yang kita buat sebelumnya, dan mengembalikan sebuah objek hasil yang berisi informasi tentang proses yang berjalan.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -637,15 +635,14 @@ x=[1 0 1]
 fval=-6.0
 </pre></div></div>
 </div>
-<p>This results in the optimal solution <span class="math notranslate nohighlight">\(x_0=1\)</span>, <span class="math notranslate nohighlight">\(x_1=0\)</span>, <span class="math notranslate nohighlight">\(x_2=1\)</span> and the optimal objective value of <span class="math notranslate nohighlight">\(-6\)</span> (most of the time, since it is a randomized algorithm). In the following, a custom visualization of the quantum state shows a possible run of <code class="docutils literal notranslate"><span class="pre">GroverOptimizer</span></code> applied to this QUBO.</p>
-<div><p><img alt="5cd94e576bb342178ada35adac1a42cd" class="no-scaled-link" src="../../_images/GAS-QUBO-Example.png" style="width: 800px;" /></p>
-</div><p>Each graph shows a single iteration of GAS, with the current values of <span class="math notranslate nohighlight">\(r\)</span> (= iteration counter) and <span class="math notranslate nohighlight">\(y\)</span> (= threshold/offset) shown in the title. The X-axis displays the integer equivalent of the input (e.g. ‘101’ <span class="math notranslate nohighlight">\(\rightarrow\)</span> 5), and the Y-axis shows the possible function values. As there are 3 binary variables, there are <span class="math notranslate nohighlight">\(2^3=8\)</span> possible solutions, which are shown in each graph. The color intensity indicates the probability of measuring a certain result (with bright
-intensity being the highest), while the actual color indicates the corresponding phase (see phase color-wheel below). Note that as <span class="math notranslate nohighlight">\(y\)</span> decreases, we shift all of the values up by that amount, meaning there are fewer and fewer negative values in the distribution, until only one remains (the minimum).</p>
-<div><p><img alt="5a5cd2ec406d40d9848a2acc9ca83abf" class="no-scaled-link" src="../../_images/color-wheel-phase.png" style="width: 200px;" /></p>
+<p>Hal ini menghasilkan solusi optimal :math:` x_0 = 1 <cite>, :math:</cite> x_1 = 0 <cite>, :math:</cite> x_2 = 1 ` dan nilai objektif optimal dari :math:` -6 ` (untuk kebanyakan waktu, karena algoritma yang digunakan merupakan algoritma yang diacak). Dalam hal berikut, visualisasi kustom dari keadaan kuantum menunjukkan sebuah contoh proses yang dijalankan dari ` ` GroverOptimizer ` ` yang diterapkan pada QUBO ini.</p>
+<div><p><img alt="66edf59d20774416a1ccbc390abec3ea" class="no-scaled-link" src="../../_images/GAS-QUBO-Example.png" style="width: 800px;" /></p>
+</div><p>Setiap grafik menunjukkan iterasi tunggal dari GAS, dengan nilai saat ini :math:` r ` (= iterasi counter) dan :math:` y ` (= ambang/offset) seperti ditunjukkan pada judul. Sumbu X menampilkan bilangan bulat yang setara dengan masukan (misalnya '101' <span class="math notranslate nohighlight">\(\rightarrow \)</span> 2 ^ 3 = 8 ` kemungkinan solusi, yang ditunjukkan dalam setiap grafik. Intensitas warna menunjukkan probabilitas pengukuran hasil tertentu (dengan warna terang menunjukkan yang tertinggi), sedangkan warna yang sebenarnya menunjukkan fase yang sesuai (lihat warna fasa-roda di bawah). Perhatikan bahwa dengan menurunnya :math:` y <a href="#id1"><span class="problematic" id="id2">`</span></a>, kita menggeser semua nilai naik dengan jumlah itu, yang berarti nilai negatif semakin sedikit dan terus mengurang pada distribusi, sampai hanya satu yang tersisa (minimum).</p>
+<div><p><img alt="4f6671efc21e41029034b05adcc81b0a" class="no-scaled-link" src="../../_images/color-wheel-phase.png" style="width: 200px;" /></p>
 </div></div>
-<div class="section" id="Check-that-GroverOptimizer-finds-the-correct-value">
-<h2>Check that GroverOptimizer finds the correct value<a class="headerlink" href="#Check-that-GroverOptimizer-finds-the-correct-value" title="Link permanen untuk headline ini">¶</a></h2>
-<p>We can verify that the algorithm is working correctly using the <code class="docutils literal notranslate"><span class="pre">MinimumEigenOptimizer</span></code> in Qiskit.</p>
+<div class="section" id="Periksa-bahwa-GroverOptimizer-telah-menemukan-nilai-yang-tepat.">
+<h2>Periksa bahwa GroverOptimizer telah menemukan nilai yang tepat.<a class="headerlink" href="#Periksa-bahwa-GroverOptimizer-telah-menemukan-nilai-yang-tepat." title="Link permanen untuk headline ini">¶</a></h2>
+<p>Kita dapat memverifikasi bahwa algoritma bekerja dengan benar dengan menggunakan ` ` MinimumEigenOptimizer ` ` pada Qiskit.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -747,14 +744,14 @@ fval=-6.0
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">Grover Optimizer</a><ul>
-<li><a class="reference internal" href="#Introduction">Introduction</a><ul>
-<li><a class="reference internal" href="#References">References</a></li>
+<li><a class="reference internal" href="#">Pengoptimal Grover</a><ul>
+<li><a class="reference internal" href="#Pengantar">Pengantar</a><ul>
+<li><a class="reference internal" href="#Daftar-pustaka">Daftar pustaka</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#Grover-Adaptive-Search">Grover Adaptive Search</a></li>
-<li><a class="reference internal" href="#Find-the-Minimum-of-a-QUBO-Problem-using-GroverOptimizer">Find the Minimum of a QUBO Problem using GroverOptimizer</a></li>
-<li><a class="reference internal" href="#Check-that-GroverOptimizer-finds-the-correct-value">Check that GroverOptimizer finds the correct value</a></li>
+<li><a class="reference internal" href="#Pencarian-Adaptif-Grover-(Grover-Adaptive-Search/GAS)">Pencarian Adaptif Grover (Grover Adaptive Search/GAS)</a></li>
+<li><a class="reference internal" href="#Temukan-Minimum-dari-Permasalahan-QUBO-dengan-Menggunakan-GroverOptimizer">Temukan Minimum dari Permasalahan QUBO dengan Menggunakan GroverOptimizer</a></li>
+<li><a class="reference internal" href="#Periksa-bahwa-GroverOptimizer-telah-menemukan-nilai-yang-tepat.">Periksa bahwa GroverOptimizer telah menemukan nilai yang tepat.</a></li>
 </ul>
 </li>
 </ul>
