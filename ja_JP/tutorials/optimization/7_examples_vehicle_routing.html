@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Vehicle Routing &mdash; Qiskit 0.24.0 ドキュメント</title>
+  <title>配車ルーティング &mdash; Qiskit 0.24.0 ドキュメント</title>
   
 
   
@@ -40,7 +40,7 @@
   <link rel="stylesheet" href="../../_static/panels-variables.ade9f9d55df9d2893fc676ecd59723a1.css" type="text/css" />
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="検索" href="../../search.html" />
-    <link rel="next" title="Improving Variational Quantum Optimization using CVaR" href="8_cvar_optimization.html" />
+    <link rel="next" title="CVaRを使用した変分量子最適化の改善" href="8_cvar_optimization.html" />
     <link rel="prev" title="最大カット問題とセールスマン巡回問題" href="6_examples_max_cut_and_tsp.html" /> 
 
   
@@ -241,7 +241,7 @@
         
           <li><a href="index.html">数理最適化のチュートリアル</a> &gt;</li>
         
-      <li><em>Vehicle Routing</em></li>
+      <li><em>配車ルーティング</em></li>
     
     
       <li class="pytorch-breadcrumbs-aside">
@@ -522,60 +522,56 @@ div.rendered_html tbody tr:hover {
 <div class="admonition note">
 <p class="admonition-title">注釈</p>
 <p>当ページは <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/optimization/7_examples_vehicle_routing.ipynb">tutorials/optimization/7_examples_vehicle_routing.ipynb</a> から生成されました。</p>
-<p>Run interactively in the <a class="reference external" href="https://quantum-computing.ibm.com/jupyter/tutorial/optimization/7_examples_vehicle_routing.ipynb">IBM Quantum lab</a>.</p>
+<p><a class="reference external" href="https://quantum-computing.ibm.com/jupyter/tutorial/optimization/7_examples_vehicle_routing.ipynb">IBM Quantum lab</a> でインタラクティブに実行します。</p>
 </div>
-<div class="section" id="Vehicle-Routing">
-<h1><em>Vehicle Routing</em><a class="headerlink" href="#Vehicle-Routing" title="このヘッドラインへのパーマリンク">¶</a></h1>
+<div class="section" id="配車ルーティング">
+<h1><em>配車ルーティング</em><a class="headerlink" href="#配車ルーティング" title="このヘッドラインへのパーマリンク">¶</a></h1>
 <div class="section" id="はじめに">
 <h2>はじめに<a class="headerlink" href="#はじめに" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>Logistics is a major industry, with some estimates valuing it at USD 8183 billion globally in 2015. Most service providers operate a number of vehicles (e.g., trucks and container ships), a number of depots, where the vehicles are based overnight, and serve a number of client locations with each vehicle during each day. There are many optimization and control problems that consider these parameters. Computationally, the key challenge is how to design routes from depots to a number of client
-locations and back to the depot, so as to minimize vehicle-miles traveled, time spent, or similar objective functions. In this notebook we formalize an idealized version of the problem and showcase its solution using the quantum approximate optimization approach of Farhi, Goldstone, and Gutman (2014).</p>
-<p>The overall workflow we demonstrate comprises:</p>
+<p>ロジスティクスは主要産業であり、2015年には世界全体で8183億米ドルと評価されています。ほとんどのサービスプロバイダーは、多数の車両（トラックやコンテナ船など）、多数のデポを運営しています。 車両は夜間に拠点を置き、毎日、各車両で多くのクライアントの場所にサービスを提供します。 これらのパラメータを考慮した最適化と制御の問題はたくさんあります。 計算上、重要な課題は、車両の走行距離、費やした時間、または同様の目的関数を最小限に抑えるために、デポから多数のクライアントの場所に戻ってデポに戻るルートをどのように設計するかです。 このノートブックでは、問題の理想化されたバージョンを形式化し、Farhi、Goldstone、およびGutman（2014）の量子近似最適化アプローチを使用してその解決策を紹介します。</p>
+<p>私たちが示す全体的なワークフローは次のとおりです。</p>
 <ol class="arabic simple">
-<li><p>establish the client locations. Normally, these would be available ahead of the day of deliveries from a database. In our use case, we generate these randomly.</p></li>
-<li><p>compute the pair-wise distances, travel times, or similar. In our case, we consider the Euclidean distance, “as the crow flies”, which is perhaps the simplest possible.</p></li>
-<li><p>compute the actual routes. This step is run twice, actually. First, we obtain a reference value by a run of a classical solver (IBM CPLEX) on the classical computer. Second, we run an alternative, hybrid algorithm partly on the quantum computer.</p></li>
-<li><p>visualization of the results. In our case, this is again a simplistic plot.</p></li>
+<li><p>クライアントの場所を確立します。 通常、これらはデータベースからの配信日の前に利用可能です。 私たちのユースケースでは、これらをランダムに生成します。</p></li>
+<li><p>ペアワイズ距離、移動時間などを計算します。 私たちの場合、「カラスが飛ぶように」ユークリッド距離を考慮します。これはおそらく最も単純な距離です。</p></li>
+<li><p>実際のルートを計算します。 このステップは、実際には2回実行されます。 最初に、古典的なコンピューターで古典的なソルバー（IBM CPLEX）を実行して参照値を取得します。 次に、量子コンピューターで部分的に代替のハイブリッドアルゴリズムを実行します。</p></li>
+<li><p>結果の視覚化。 私たちの場合、これも単純なプロットです。</p></li>
 </ol>
-<p>In the following, we first explain the model, before we proceed with the installation of the pre-requisites and the data loading.</p>
+<p>以下では、前提条件のインストールとデータのロードに進む前に、まずモデルについて説明します。</p>
 </div>
-<div class="section" id="The-Model">
-<h2>The Model<a class="headerlink" href="#The-Model" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>Mathematically speaking, the vehicle routing problem (VRP) is a combinatorial problem, wherein the best routes from a depot to a number of clients and back to the depot are sought, given a number of available vehicles. There are a number of formulations possible, extending a number of formulations of the traveling salesman problem [Applegate et al, 2006]. Here, we present a formulation known as MTZ [Miller, Tucker, Zemlin, 1960].</p>
-<p>Let <span class="math notranslate nohighlight">\(n\)</span> be the number of clients (indexed as <span class="math notranslate nohighlight">\(1,\dots,n\)</span>), and <span class="math notranslate nohighlight">\(K\)</span> be the number of available vehicles. Let <span class="math notranslate nohighlight">\(x_{ij} = \{0,1\}\)</span> be the binary decision variable which, if it is <span class="math notranslate nohighlight">\(1\)</span>, activates the segment from node <span class="math notranslate nohighlight">\(i\)</span> to node <span class="math notranslate nohighlight">\(j\)</span>. The node index runs from <span class="math notranslate nohighlight">\(0\)</span> to <span class="math notranslate nohighlight">\(n\)</span>, where <span class="math notranslate nohighlight">\(0\)</span> is (by convention) the depot. There are twice as many distinct decision variables as edges. For example, in a fully connected graph, there are <span class="math notranslate nohighlight">\(n(n+1)\)</span> binary
-decision variables.</p>
-<p>If two nodes <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(j\)</span> have a link from <span class="math notranslate nohighlight">\(i\)</span> to <span class="math notranslate nohighlight">\(j\)</span>, we write <span class="math notranslate nohighlight">\(i \sim j\)</span>. We also denote with <span class="math notranslate nohighlight">\(\delta(i)^+\)</span> the set of nodes to which <span class="math notranslate nohighlight">\(i\)</span> has a link, i.e., <span class="math notranslate nohighlight">\(j \in \delta(i)^+\)</span> if and only if <span class="math notranslate nohighlight">\(i \sim j\)</span>. Similarly, we denote with <span class="math notranslate nohighlight">\(\delta(i)^-\)</span> the set of nodes which are connected to <span class="math notranslate nohighlight">\(i\)</span>, in the sense that <span class="math notranslate nohighlight">\(j \in \delta(i)^-\)</span> if and only if <span class="math notranslate nohighlight">\(j \sim i\)</span>.</p>
-<p>In addition, we consider continuous variables, for all nodes <span class="math notranslate nohighlight">\(i = 1,\dots, n\)</span>, denoted <span class="math notranslate nohighlight">\(u_i\)</span>. These variables are needed in the MTZ formulation of the problem to eliminate sub-tours between clients.</p>
-<p>The VRP can be formulated as:</p>
+<div class="section" id="モデル">
+<h2>モデル<a class="headerlink" href="#モデル" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>数学的に言えば、配車ルート問題（vehicle routing problem、VRP）は組み合わせ問題であり、利用可能な車両の数を考慮して、デポから多数のクライアントに戻り、デポに戻る最適なルートが求められます。 巡回セールスマン問題の多くの定式化を拡張して、可能な多くの定式化があります [Applegate et al, 2006] 。 ここでは、MTZ [Miller, Tucker, Zemlin, 1960] として知られる定式化を紹介します。</p>
+<p><span class="math notranslate nohighlight">\(n\)</span> をクライアントの数（ <span class="math notranslate nohighlight">\(1,\dots,n\)</span> としてインデックス付け）、 <span class="math notranslate nohighlight">\(K\)</span> を利用可能な車両の数とします。 <span class="math notranslate nohighlight">\(x_{ij} = \{0,1\}\)</span> をバイナリ決定変数とします。これが <span class="math notranslate nohighlight">\(1\)</span> の場合、ノード <span class="math notranslate nohighlight">\(i\)</span> からノード <span class="math notranslate nohighlight">\(j\)</span> へのセグメントをアクティブにします。 ノードインデックスは <span class="math notranslate nohighlight">\(0\)</span> から <span class="math notranslate nohighlight">\(n\)</span> まで実行されます。ここで、 <span class="math notranslate nohighlight">\(0\)</span> は（慣例により）デポです。 エッジの2倍の異なる決定変数があります。 たとえば、完全接続されたグラフには、 <span class="math notranslate nohighlight">\(n(n+1)\)</span> 個のバイナリ決定変数があります。</p>
+<p>2つのノード <span class="math notranslate nohighlight">\(i\)</span> と <span class="math notranslate nohighlight">\(j\)</span> に <span class="math notranslate nohighlight">\(i\)</span> から <span class="math notranslate nohighlight">\(j\)</span> へのリンクがある場合、 <span class="math notranslate nohighlight">\(i \sim j\)</span> と記述します。 また、 <span class="math notranslate nohighlight">\(i \sim j\)</span> の場合に限り、 <span class="math notranslate nohighlight">\(i\)</span> がリンクしているノードのセットを <span class="math notranslate nohighlight">\(\delta(i)^+\)</span> で表します。つまり、<span class="math notranslate nohighlight">\(j \in \delta(i)^+\)</span> です。 同様に、 <span class="math notranslate nohighlight">\(j \sim i\)</span> の場合に限り、 <span class="math notranslate nohighlight">\(j \in \delta(i)^-\)</span> という意味で、iに接続されているノードのセットをδ（i）-で表します。</p>
+<p>さらに、 <span class="math notranslate nohighlight">\(u_i\)</span> で表されるすべてのノード <span class="math notranslate nohighlight">\(i = 1,\dots, n\)</span> について、連続変数を検討します。 これらの変数は、クライアント間のサブツアーを排除するために、問題のMTZ定式化で必要です。</p>
+<p>VRPは以下のように定式化できます:</p>
 <div class="math notranslate nohighlight">
 \[(VRP) \quad  f = \min_{\{x_{ij}\}_{i\sim j}\in \{0,1\}, \{u_i\}_{i=1,\dots,n}\in \mathbb{R}} \quad \sum_{i \sim j} w_{ij} x_{ij}\]</div>
-<p>subject to the node-visiting constraint:</p>
+<p>ノード訪問制約の対象：</p>
 <div class="math notranslate nohighlight">
 \[\sum_{j \in \delta(i)^+} x_{ij} = 1, \,\sum_{j \in \delta(i)^-} x_{ji} = 1,\, \forall i \in \{1,\dots,n\},\]</div>
-<p>the depot-visiting constraints:</p>
+<p>デポ訪問の制約：</p>
 <div class="math notranslate nohighlight">
 \[\sum_{i \in \delta(0)^+} x_{0i} = K, \, \sum_{j \in \delta(0)^+} x_{j0} = K,\]</div>
-<p>and the sub-tour elimination constraints:</p>
+<p>およびサブツアー除去の制約：</p>
 <div class="math notranslate nohighlight">
 \[u_i - u_j + Q x_{ij} \leq Q-q_j, \, \forall i \sim j, \,i ,j \neq 0, \quad q_i \leq u_i \leq Q,\, \forall i, i \neq 0.\]</div>
-<p>In particular, - The cost function is linear in the cost functions and weighs the different arches based on a positive weight <span class="math notranslate nohighlight">\(w_{ij}&gt;0\)</span> (typically the distance between node <span class="math notranslate nohighlight">\(i\)</span> and node <span class="math notranslate nohighlight">\(j\)</span>); - The first set of constraints enforce that from and to every client, only one link is allowed; - The second set of constraints enforce that from and to the depot, exactly <span class="math notranslate nohighlight">\(K\)</span> links are allowed; - The third set of constraints enforce the sub-tour elimination constraints and are
-bounds on <span class="math notranslate nohighlight">\(u_i\)</span>, with <span class="math notranslate nohighlight">\(Q&gt;q_j&gt;0\)</span>, and <span class="math notranslate nohighlight">\(Q,q_i \in \mathbb{R}\)</span>.</p>
+<p>特に、 - コスト関数はコスト関数で線形であり、正の重み <span class="math notranslate nohighlight">\(w_{ij}&gt;0\)</span> （通常はノード <span class="math notranslate nohighlight">\(i\)</span> とノード <span class="math notranslate nohighlight">\(j\)</span> の間の距離）に基づいてさまざまなアーチの重みを付けます。 - 最初の一連の制約により、すべてのクライアントとの間で、1つのリンクのみが許可されます。 - 制約の2番目のセットは、デポとの間で正確に <span class="math notranslate nohighlight">\(K\)</span> 個のリンクが許可されることを強制します。 - 制約の3番目のセットは、サブツアー除去制約を適用し、 <span class="math notranslate nohighlight">\(Q&gt;q_j&gt;0\)</span> 、および <span class="math notranslate nohighlight">\(Q,q_i \in \mathbb{R}\)</span> の境界です。</p>
 </div>
-<div class="section" id="Classical-solution">
-<h2>Classical solution<a class="headerlink" href="#Classical-solution" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>We can solve the VRP classically, e.g., by using CPLEX. CPLEX uses a branch-and-bound-and-cut method to find an approximate solution of the VRP, which, in this formulation, is a mixed-integer linear program (MILP). For the sake of notation, we pack the decision variables in one vector as</p>
+<div class="section" id="古典的なソリューション">
+<h2>古典的なソリューション<a class="headerlink" href="#古典的なソリューション" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>CPLEXを使用するなどして、VRPを古典的に解決できます。 CPLEXは、branch-and-bound-and-cut 法を使用して、VRPの近似解を見つけます。これは、この定式化では、混合整数線形計画（mixed-integer linear program、MILP）です。 表記のために、決定変数を1つのベクトルに次のようにパックします。</p>
 <div class="math notranslate nohighlight">
 \[{\bf z} = [x_{01},x_{02},\ldots,x_{10}, x_{12},\ldots,x_{n(n-1)}]^T,\]</div>
-<p>wherein <span class="math notranslate nohighlight">\({\bf z} \in \{0,1\}^N\)</span>, with <span class="math notranslate nohighlight">\(N = n (n+1)\)</span>. So the dimension of the problem scales quadratically with the number of nodes. Let us denote the optimal solution by <span class="math notranslate nohighlight">\({\bf z}^*\)</span>, and the associated optimal cost <span class="math notranslate nohighlight">\(f^*\)</span>.</p>
+<p>ここでは、 <span class="math notranslate nohighlight">\({\bf z} \in \{0,1\}^N\)</span> 、 <span class="math notranslate nohighlight">\(N = n (n+1)\)</span> です。 したがって、問題の次元はノードの数に比例して二次関数的にスケーリングします。 最適解を <span class="math notranslate nohighlight">\({\bf z}^*\)</span> で表し、関連する最適コストを <span class="math notranslate nohighlight">\(f^*\)</span> で表します。</p>
 </div>
-<div class="section" id="Quantum-solution">
-<h2>Quantum solution<a class="headerlink" href="#Quantum-solution" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>Here, we demonstrate an approach that combines classical and quantum computing steps, following the quantum approximate optimization approach of Farhi, Goldstone, and Gutman (2014). In particular, we use the variational quantum eigensolver (VQE). We stress that given the use of limited depth of the quantum circuits employed (variational forms), it is hard to discuss the speed-up of the algorithm, as the solution obtained is heuristic in nature. At the same time, due to the nature and importance
-of the target problems, it is worth investigating heuristic approaches, which may be worthwhile for some problem classes.</p>
+<div class="section" id="量子ソリューション">
+<h2>量子ソリューション<a class="headerlink" href="#量子ソリューション" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>ここでは、Farhi、Goldstone、およびGutman（2014）の量子近似最適化アプローチに従って、古典的なコンピューティングステップと量子コンピューティングステップを組み合わせたアプローチを示します。 特に、変分量子固有値ソルバー（variational quantum eigensolver、VQE）を使用します。 使用される量子回路の深さが限られていること（変分形式）を考えると、得られる解は本質的にヒューリスティックであるため、アルゴリズムの高速化について説明するのは難しいことを強調します。 同時に、対象となる問題の性質と重要性のため、ヒューリスティックなアプローチを調査する価値があります。これは、一部の問題クラスにとって価値がある場合があります。</p>
 <p>Following [5], the algorithm can be summarized as follows: - Preparation steps: - Transform the combinatorial problem into a binary polynomial optimization problem with equality constraints only; - Map the resulting problem into an Ising Hamiltonian (<span class="math notranslate nohighlight">\(H\)</span>) for variables <span class="math notranslate nohighlight">\({\bf z}\)</span> and basis <span class="math notranslate nohighlight">\(Z\)</span>, via penalty methods if necessary; - Choose the depth of the quantum circuit <span class="math notranslate nohighlight">\(m\)</span>. Note that the depth can be modified adaptively. - Choose a set of controls <span class="math notranslate nohighlight">\(\theta\)</span> and make a
 trial function <span class="math notranslate nohighlight">\(\big|\psi(\boldsymbol\theta)\rangle\)</span>, built using a quantum circuit made of C-Phase gates and single-qubit Y rotations, parameterized by the components of <span class="math notranslate nohighlight">\(\boldsymbol\theta\)</span>.</p>
 <ul class="simple">
-<li><p>Algorithm steps:</p>
+<li><p>アルゴリズムの手順：</p>
 <ul>
 <li><p>Evaluate <span class="math notranslate nohighlight">\(C(\boldsymbol\theta) = \langle\psi(\boldsymbol\theta)\big|H\big|\psi(\boldsymbol\theta)\rangle\)</span> by sampling the outcome of the circuit in the Z-basis and adding the expectation values of the individual Ising terms together. In general, different control points around <span class="math notranslate nohighlight">\(\boldsymbol\theta\)</span> have to be estimated, depending on the classical optimizer chosen.</p></li>
 <li><p>Use a classical optimizer to choose a new set of controls.</p></li>
@@ -1178,7 +1174,7 @@ of the ILP. Even within the VQE, one may provide stronger guarantees, for specif
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="8_cvar_optimization.html" class="btn btn-neutral float-right" title="Improving Variational Quantum Optimization using CVaR" accesskey="n" rel="next">Next <img src="../../_static/images/chevron-right-orange.svg" class="next-page"></a>
+        <a href="8_cvar_optimization.html" class="btn btn-neutral float-right" title="CVaRを使用した変分量子最適化の改善" accesskey="n" rel="next">Next <img src="../../_static/images/chevron-right-orange.svg" class="next-page"></a>
       
       
         <a href="6_examples_max_cut_and_tsp.html" class="btn btn-neutral" title="最大カット問題とセールスマン巡回問題" accesskey="p" rel="prev"><img src="../../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
@@ -1214,11 +1210,11 @@ of the ILP. Even within the VQE, one may provide stronger guarantees, for specif
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#"><em>Vehicle Routing</em></a><ul>
+<li><a class="reference internal" href="#"><em>配車ルーティング</em></a><ul>
 <li><a class="reference internal" href="#はじめに">はじめに</a></li>
-<li><a class="reference internal" href="#The-Model">The Model</a></li>
-<li><a class="reference internal" href="#Classical-solution">Classical solution</a></li>
-<li><a class="reference internal" href="#Quantum-solution">Quantum solution</a><ul>
+<li><a class="reference internal" href="#モデル">モデル</a></li>
+<li><a class="reference internal" href="#古典的なソリューション">古典的なソリューション</a></li>
+<li><a class="reference internal" href="#量子ソリューション">量子ソリューション</a><ul>
 <li><a class="reference internal" href="#Construct-the-Ising-Hamiltonian">Construct the Ising Hamiltonian</a></li>
 <li><a class="reference internal" href="#From-Hamiltonian-to-QP-formulation">From Hamiltonian to QP formulation</a></li>
 </ul>
