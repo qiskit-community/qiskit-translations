@@ -533,19 +533,18 @@ div.rendered_html tbody tr:hover {
 <ol class="arabic simple">
 <li><p>menetapkan lokasi klien. Biasanya, informasi ini akan tersedia dari sebuah basis data sebelum hari pengiriman. Dalam kasus penggunaan kita, hal-hal ini dibuat secara acak.</p></li>
 <li><p>hitung jarak antar pasangan, waktu perjalanan, atau yang serupa. Dalam kasus ini, kita menggunakan jarak Euclidean, &quot;as the crow flies&quot;, yang mungkin merupakan opsi paling sederhana.</p></li>
-<li><p>compute the actual routes. This step is run twice, actually. First, we obtain a reference value by a run of a classical solver (IBM CPLEX) on the classical computer. Second, we run an alternative, hybrid algorithm partly on the quantum computer.</p></li>
-<li><p>visualization of the results. In our case, this is again a simplistic plot.</p></li>
+<li><p>menghitung rute yang sebenarnya. Langkah ini dijalankan dua kali. Pertama, kita memperoleh nilai referensi dengan cara menjalankan pemecah klasik (IBM CPLEX) pada komputer klasik. Kedua, kita jalankan alternatifnya, algoritma hibrid yang sebagian berjalan pada komputer kuantum.</p></li>
+<li><p>visualisasi hasil. Dalam kasus ini, lagi-lagi merupakan plot yang sederhana.</p></li>
 </ol>
-<p>In the following, we first explain the model, before we proceed with the installation of the pre-requisites and the data loading.</p>
+<p>Selanjutnya, pertama-tama kami menjelaskan modelnya, sebelum kita melanjutkan dengan instalasi prasyarat dan pemuatan data.</p>
 </div>
-<div class="section" id="The-Model">
-<h2>The Model<a class="headerlink" href="#The-Model" title="Link permanen untuk headline ini">¶</a></h2>
-<p>Mathematically speaking, the vehicle routing problem (VRP) is a combinatorial problem, wherein the best routes from a depot to a number of clients and back to the depot are sought, given a number of available vehicles. There are a number of formulations possible, extending a number of formulations of the traveling salesman problem [Applegate et al, 2006]. Here, we present a formulation known as MTZ [Miller, Tucker, Zemlin, 1960].</p>
-<p>Let <span class="math notranslate nohighlight">\(n\)</span> be the number of clients (indexed as <span class="math notranslate nohighlight">\(1,\dots,n\)</span>), and <span class="math notranslate nohighlight">\(K\)</span> be the number of available vehicles. Let <span class="math notranslate nohighlight">\(x_{ij} = \{0,1\}\)</span> be the binary decision variable which, if it is <span class="math notranslate nohighlight">\(1\)</span>, activates the segment from node <span class="math notranslate nohighlight">\(i\)</span> to node <span class="math notranslate nohighlight">\(j\)</span>. The node index runs from <span class="math notranslate nohighlight">\(0\)</span> to <span class="math notranslate nohighlight">\(n\)</span>, where <span class="math notranslate nohighlight">\(0\)</span> is (by convention) the depot. There are twice as many distinct decision variables as edges. For example, in a fully connected graph, there are <span class="math notranslate nohighlight">\(n(n+1)\)</span> binary
-decision variables.</p>
-<p>If two nodes <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(j\)</span> have a link from <span class="math notranslate nohighlight">\(i\)</span> to <span class="math notranslate nohighlight">\(j\)</span>, we write <span class="math notranslate nohighlight">\(i \sim j\)</span>. We also denote with <span class="math notranslate nohighlight">\(\delta(i)^+\)</span> the set of nodes to which <span class="math notranslate nohighlight">\(i\)</span> has a link, i.e., <span class="math notranslate nohighlight">\(j \in \delta(i)^+\)</span> if and only if <span class="math notranslate nohighlight">\(i \sim j\)</span>. Similarly, we denote with <span class="math notranslate nohighlight">\(\delta(i)^-\)</span> the set of nodes which are connected to <span class="math notranslate nohighlight">\(i\)</span>, in the sense that <span class="math notranslate nohighlight">\(j \in \delta(i)^-\)</span> if and only if <span class="math notranslate nohighlight">\(j \sim i\)</span>.</p>
-<p>In addition, we consider continuous variables, for all nodes <span class="math notranslate nohighlight">\(i = 1,\dots, n\)</span>, denoted <span class="math notranslate nohighlight">\(u_i\)</span>. These variables are needed in the MTZ formulation of the problem to eliminate sub-tours between clients.</p>
-<p>The VRP can be formulated as:</p>
+<div class="section" id="Model">
+<h2>Model<a class="headerlink" href="#Model" title="Link permanen untuk headline ini">¶</a></h2>
+<p>Secara matematis, masalah perutean kendaraan (vehicle routing problem) adalah masalah kombinatorial, dimana rute terbaik dari sebuah depot ke sejumlah klien dan kembali ke depot dicari, dengan jumlah kendaraan tertentu yang tersedia. Ada sejumlah formulasi yang mungkin sehingga memperluas banyaknya formulasi dari masalah travelling salesman [Applegate et al, 2006]. Di sini, kami menyajikan formulasi yang dikenal sebagai MTZ [Miller, Tucker, Zemlin, 1960].</p>
+<p>Misal <span class="math notranslate nohighlight">\(n\)</span> merupakan jumlah klien (diindeks dengan <span class="math notranslate nohighlight">\(1,\dots,n\)</span>), dan <span class="math notranslate nohighlight">\(K\)</span> merupakan jumlah kendaraan yang tersedia. Misal <span class="math notranslate nohighlight">\(x_{ij} = \{0,1\}\)</span> menjadi variabel keputusan biner yang, jika itu adalah <span class="math notranslate nohighlight">\(1\)</span>, mengaktifkan segmen dari simpul <span class="math notranslate nohighlight">\(i\)</span> ke simpul <span class="math notranslate nohighlight">\(j\)</span>. Indeks simpul berjalan dari <span class="math notranslate nohighlight">\(0\)</span> ke <span class="math notranslate nohighlight">\(n\)</span>, di mana <span class="math notranslate nohighlight">\(0\)</span> adalah (berdasarkan konvensi) depot-nya. Ada dua kali lebih banyak variabel keputusan yang berbeda sebagai tepi. Sebagai contoh, dalam grafik yang terhubung sepenuhnya, ada sebanyak <span class="math notranslate nohighlight">\(n(n+1)\)</span> variabel keputusan biner.</p>
+<p>Jika dua node <span class="math notranslate nohighlight">\(i\)</span> dan <span class="math notranslate nohighlight">\(j\)</span> memiliki sebuah link dari <span class="math notranslate nohighlight">\(i\)</span> ke <span class="math notranslate nohighlight">\(j\)</span>, kita tulis <span class="math notranslate nohighlight">\(i \sim j\)</span>. Kita juga menotasikan dengan <span class="math notranslate nohighlight">\(\delta(i)^+\)</span> himpunan simpul-simpul di mana <span class="math notranslate nohighlight">\(i\)</span> memiliki sebuah koneksi, yaitu, <span class="math notranslate nohighlight">\(j \in \delta(i)^+\)</span> jika dan hanya jika <span class="math notranslate nohighlight">\(i \sim j\)</span>. Demikian pula, kita menotasikan dengan <span class="math notranslate nohighlight">\(\delta(i)^-\)</span> himpunan simpul-simpul yang terhubung ke <span class="math notranslate nohighlight">\(i\)</span>, dalam arti bahwa <span class="math notranslate nohighlight">\(j \in \delta(i)^-\)</span> jika dan hanya jika <span class="math notranslate nohighlight">\(j \sim i\)</span>.</p>
+<p>Selain itu, kita menganggap variabel kontinu, untuk semua simpul <span class="math notranslate nohighlight">\(i = 1,\dots, n\)</span>, dinotasikan <span class="math notranslate nohighlight">\(u_i\)</span>. Variabel-variabel ini dibutuhkan dalam formulasi MTZ dari permasalahan untuk menghilangkan sub-tur antara klien.</p>
+<p>VRP dapat dirumuskan sebagai:</p>
 <div class="math notranslate nohighlight">
 \[(VRP) \quad  f = \min_{\{x_{ij}\}_{i\sim j}\in \{0,1\}, \{u_i\}_{i=1,\dots,n}\in \mathbb{R}} \quad \sum_{i \sim j} w_{ij} x_{ij}\]</div>
 <p>subject to the node-visiting constraint:</p>
@@ -560,25 +559,25 @@ decision variables.</p>
 <p>In particular, - The cost function is linear in the cost functions and weighs the different arches based on a positive weight <span class="math notranslate nohighlight">\(w_{ij}&gt;0\)</span> (typically the distance between node <span class="math notranslate nohighlight">\(i\)</span> and node <span class="math notranslate nohighlight">\(j\)</span>); - The first set of constraints enforce that from and to every client, only one link is allowed; - The second set of constraints enforce that from and to the depot, exactly <span class="math notranslate nohighlight">\(K\)</span> links are allowed; - The third set of constraints enforce the sub-tour elimination constraints and are
 bounds on <span class="math notranslate nohighlight">\(u_i\)</span>, with <span class="math notranslate nohighlight">\(Q&gt;q_j&gt;0\)</span>, and <span class="math notranslate nohighlight">\(Q,q_i \in \mathbb{R}\)</span>.</p>
 </div>
-<div class="section" id="Classical-solution">
-<h2>Classical solution<a class="headerlink" href="#Classical-solution" title="Link permanen untuk headline ini">¶</a></h2>
+<div class="section" id="Solusi-klasik">
+<h2>Solusi klasik<a class="headerlink" href="#Solusi-klasik" title="Link permanen untuk headline ini">¶</a></h2>
 <p>We can solve the VRP classically, e.g., by using CPLEX. CPLEX uses a branch-and-bound-and-cut method to find an approximate solution of the VRP, which, in this formulation, is a mixed-integer linear program (MILP). For the sake of notation, we pack the decision variables in one vector as</p>
 <div class="math notranslate nohighlight">
 \[{\bf z} = [x_{01},x_{02},\ldots,x_{10}, x_{12},\ldots,x_{n(n-1)}]^T,\]</div>
 <p>wherein <span class="math notranslate nohighlight">\({\bf z} \in \{0,1\}^N\)</span>, with <span class="math notranslate nohighlight">\(N = n (n+1)\)</span>. So the dimension of the problem scales quadratically with the number of nodes. Let us denote the optimal solution by <span class="math notranslate nohighlight">\({\bf z}^*\)</span>, and the associated optimal cost <span class="math notranslate nohighlight">\(f^*\)</span>.</p>
 </div>
-<div class="section" id="Quantum-solution">
-<h2>Quantum solution<a class="headerlink" href="#Quantum-solution" title="Link permanen untuk headline ini">¶</a></h2>
+<div class="section" id="Solusi-kuantum">
+<h2>Solusi kuantum<a class="headerlink" href="#Solusi-kuantum" title="Link permanen untuk headline ini">¶</a></h2>
 <p>Here, we demonstrate an approach that combines classical and quantum computing steps, following the quantum approximate optimization approach of Farhi, Goldstone, and Gutman (2014). In particular, we use the variational quantum eigensolver (VQE). We stress that given the use of limited depth of the quantum circuits employed (variational forms), it is hard to discuss the speed-up of the algorithm, as the solution obtained is heuristic in nature. At the same time, due to the nature and importance
 of the target problems, it is worth investigating heuristic approaches, which may be worthwhile for some problem classes.</p>
 <p>Following [5], the algorithm can be summarized as follows: - Preparation steps: - Transform the combinatorial problem into a binary polynomial optimization problem with equality constraints only; - Map the resulting problem into an Ising Hamiltonian (<span class="math notranslate nohighlight">\(H\)</span>) for variables <span class="math notranslate nohighlight">\({\bf z}\)</span> and basis <span class="math notranslate nohighlight">\(Z\)</span>, via penalty methods if necessary; - Choose the depth of the quantum circuit <span class="math notranslate nohighlight">\(m\)</span>. Note that the depth can be modified adaptively. - Choose a set of controls <span class="math notranslate nohighlight">\(\theta\)</span> and make a
 trial function <span class="math notranslate nohighlight">\(\big|\psi(\boldsymbol\theta)\rangle\)</span>, built using a quantum circuit made of C-Phase gates and single-qubit Y rotations, parameterized by the components of <span class="math notranslate nohighlight">\(\boldsymbol\theta\)</span>.</p>
 <ul class="simple">
-<li><p>Algorithm steps:</p>
+<li><p>Langkah-langkah algoritma:</p>
 <ul>
 <li><p>Evaluate <span class="math notranslate nohighlight">\(C(\boldsymbol\theta) = \langle\psi(\boldsymbol\theta)\big|H\big|\psi(\boldsymbol\theta)\rangle\)</span> by sampling the outcome of the circuit in the Z-basis and adding the expectation values of the individual Ising terms together. In general, different control points around <span class="math notranslate nohighlight">\(\boldsymbol\theta\)</span> have to be estimated, depending on the classical optimizer chosen.</p></li>
 <li><p>Use a classical optimizer to choose a new set of controls.</p></li>
-<li><p>Continue until <span class="math notranslate nohighlight">\(C(\boldsymbol\theta)\)</span> reaches a minimum, close enough to the solution <span class="math notranslate nohighlight">\(\boldsymbol\theta^*\)</span>.</p></li>
+<li><p>Lanjutkan sampai <span class="math notranslate nohighlight">\(C(\boldsymbol\theta)\)</span> mencapai nilai minimum, cukup dekat dengan solusi <span class="math notranslate nohighlight">\(\boldsymbol\theta^*\)</span>.</p></li>
 <li><p>Use the last <span class="math notranslate nohighlight">\(\boldsymbol\theta\)</span> to generate a final set of samples from the distribution <span class="math notranslate nohighlight">\(\Big|\langle z_i\big|\psi(\boldsymbol\theta)\rangle\Big|^2\;\forall i\)</span> to obtain the answer.</p></li>
 </ul>
 </li>
@@ -594,32 +593,32 @@ trial function <span class="math notranslate nohighlight">\(\big|\psi(\boldsymbo
 \[(IH) \quad H = \sum_{i \sim j} w_{ij} x_{ij}  + A \sum_{i \in \{1,\dots,n\}} \Big(\sum_{j \in \delta(i)^+} x_{ij} - 1\Big)^2 + A \sum_{i \in \{1,\dots,n\}}\Big(\sum_{j \in \delta(i)^-} x_{ji} - 1\Big)^2 +A \Big(\sum_{i \in \delta(0)^+} x_{0i} - K\Big)^2 + A\Big(\sum_{j \in \delta(0)^+} x_{j0} - K\Big)^2\]</div>
 <p>where <span class="math notranslate nohighlight">\(A\)</span> is a big enough parameter.</p>
 </div>
-<div class="section" id="From-Hamiltonian-to-QP-formulation">
-<h3>From Hamiltonian to QP formulation<a class="headerlink" href="#From-Hamiltonian-to-QP-formulation" title="Link permanen untuk headline ini">¶</a></h3>
+<div class="section" id="Dari-Hamiltonian-ke-formulasi-QP">
+<h3>Dari Hamiltonian ke formulasi QP<a class="headerlink" href="#Dari-Hamiltonian-ke-formulasi-QP" title="Link permanen untuk headline ini">¶</a></h3>
 <p>In the vector <span class="math notranslate nohighlight">\({\bf z}\)</span>, and for a complete graph (<span class="math notranslate nohighlight">\(\delta(i)^+ = \delta(i)^- = \{0,1,\dots,i-1,i+1,\dots,n\}\)</span>), <span class="math notranslate nohighlight">\(H\)</span> can be written as follows.</p>
 <div class="math notranslate nohighlight">
 \[\min_{{\bf z}\in \{0,1\}^{n(n+1)}} {\bf w}^T {\bf z}  + A \sum_{i \in \{1,\dots,n\}} \Big({\bf e}_i \otimes {\bf 1}_n^T {\bf z} - 1\Big)^2 + A \sum_{i \in \{1,\dots,n\}}\Big({\bf v}_i^T {\bf z} - 1\Big)^2 + A \Big(({\bf e}_0 \otimes {\bf 1}_n)^T{\bf z} - K\Big)^2 + A\Big({\bf v}_0^T{\bf z} - K\Big)^2.\]</div>
 <p>That is:</p>
 <div class="math notranslate nohighlight">
 \[\min_{\bf z\in \{0,1\}^{n(n+1)}} \bf z^T {\bf Q} \bf z + {\bf g}^T \bf z + c,\]</div>
-<p>Where: first term:</p>
+<p>Dimana: terma pertama:</p>
 <div class="math notranslate nohighlight">
 \[{\bf Q} = A \sum_{i \in \{0,1,\dots,n\}}  \Big[({\bf e}_i \otimes {\bf 1}_n)({\bf e}_i \otimes {\bf 1}_n)^T + {\bf v}_i{\bf v}_i^T \Big]\]</div>
-<p>Second term:</p>
+<p>Terma kedua:</p>
 <div class="math notranslate nohighlight">
 \[{\bf g} = {\bf w} -2 A \sum_{i \in \{1,\dots,n\}} \Big[({\bf e}_i \otimes {\bf 1}_n) + {\bf v}_i \Big] -2 A K \Big[({\bf e}_0 \otimes {\bf 1}_n) + {\bf v}_0 \Big]\]</div>
-<p>Third term:</p>
+<p>Terma ketiga:</p>
 <div class="math notranslate nohighlight">
 \[c = 2An +2AK^2.\]</div>
 <p>The QP formulation of the Ising Hamiltonian is ready for the use of VQE. We will solve the QP using optimization stack available in Qiskit.</p>
 </div>
 </div>
-<div class="section" id="References">
-<h2>References<a class="headerlink" href="#References" title="Link permanen untuk headline ini">¶</a></h2>
+<div class="section" id="Referensi">
+<h2>Referensi<a class="headerlink" href="#Referensi" title="Link permanen untuk headline ini">¶</a></h2>
 <p>[1] E. Farhi, J. Goldstone, S. Gutmann e-print arXiv 1411.4028, 2014</p>
 <p>[2] <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/optimization/6_examples_max_cut_and_tsp.ipynb">https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/optimization/6_examples_max_cut_and_tsp.ipynb</a></p>
-<p>[3] C. E. Miller, E. W. Tucker, and R. A. Zemlin (1960). “Integer Programming Formulations and Travelling Salesman Problems”. J. ACM. 7: 326–329. doi:10.1145/321043.321046.</p>
-<p>[4] D. L. Applegate, R. M. Bixby, V. Chvátal, and W. J. Cook (2006). The Traveling Salesman Problem. Princeton University Press, ISBN 978-0-691-12993-8.</p>
+<p>[3] C. E. Miller, E. W. Tucker, dan R. A. Zemlin (1960). “Integer Programming Formulations and Travelling Salesman Problems”. J. ACM. 7: 326–329. doi:10.1145/321043.321046.</p>
+<p>[4] D. L. Applegate, R. M. Bixby, V. Chvátal, dan W. J. Cook (2006). The Traveling Salesman Problem. Princeton University Press, ISBN 978-0-691-12993-8.</p>
 </div>
 <div class="section" id="Initialization">
 <h2>Initialization<a class="headerlink" href="#Initialization" title="Link permanen untuk headline ini">¶</a></h2>
@@ -1215,14 +1214,14 @@ of the ILP. Even within the VQE, one may provide stronger guarantees, for specif
               <ul>
 <li><a class="reference internal" href="#"><em>Perutean Kendaraan</em></a><ul>
 <li><a class="reference internal" href="#Pengantar">Pengantar</a></li>
-<li><a class="reference internal" href="#The-Model">The Model</a></li>
-<li><a class="reference internal" href="#Classical-solution">Classical solution</a></li>
-<li><a class="reference internal" href="#Quantum-solution">Quantum solution</a><ul>
+<li><a class="reference internal" href="#Model">Model</a></li>
+<li><a class="reference internal" href="#Solusi-klasik">Solusi klasik</a></li>
+<li><a class="reference internal" href="#Solusi-kuantum">Solusi kuantum</a><ul>
 <li><a class="reference internal" href="#Construct-the-Ising-Hamiltonian">Construct the Ising Hamiltonian</a></li>
-<li><a class="reference internal" href="#From-Hamiltonian-to-QP-formulation">From Hamiltonian to QP formulation</a></li>
+<li><a class="reference internal" href="#Dari-Hamiltonian-ke-formulasi-QP">Dari Hamiltonian ke formulasi QP</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#References">References</a></li>
+<li><a class="reference internal" href="#Referensi">Referensi</a></li>
 <li><a class="reference internal" href="#Initialization">Initialization</a></li>
 <li><a class="reference internal" href="#Classical-solution-using-IBM-ILOG-CPLEX">Classical solution using IBM ILOG CPLEX</a></li>
 <li><a class="reference internal" href="#Quantum-solution-from-the-ground-up">Quantum solution from the ground up</a><ul>
