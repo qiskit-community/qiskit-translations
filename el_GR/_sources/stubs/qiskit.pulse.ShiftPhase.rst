@@ -1,0 +1,48 @@
+﻿qiskit.pulse.ShiftPhase
+=======================
+
+.. currentmodule:: qiskit.pulse
+
+.. autoclass:: ShiftPhase
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~ShiftPhase.__init__
+      ~ShiftPhase.append
+      ~ShiftPhase.assign_parameters
+      ~ShiftPhase.ch_duration
+      ~ShiftPhase.ch_start_time
+      ~ShiftPhase.ch_stop_time
+      ~ShiftPhase.draw
+      ~ShiftPhase.flatten
+      ~ShiftPhase.insert
+      ~ShiftPhase.shift
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ShiftPhase.channel
+      ~ShiftPhase.channels
+      ~ShiftPhase.command
+      ~ShiftPhase.duration
+      ~ShiftPhase.id
+      ~ShiftPhase.instructions
+      ~ShiftPhase.name
+      ~ShiftPhase.operands
+      ~ShiftPhase.phase
+      ~ShiftPhase.start_time
+      ~ShiftPhase.stop_time
+      ~ShiftPhase.timeslots
+   
+   

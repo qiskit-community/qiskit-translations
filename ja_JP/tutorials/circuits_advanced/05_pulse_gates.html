@@ -40,7 +40,7 @@
   <link rel="stylesheet" href="../../_static/panels-variables.ade9f9d55df9d2893fc676ecd59723a1.css" type="text/css" />
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="検索" href="../../search.html" />
-    <link rel="next" title="Building Pulse Schedules" href="06_building_pulse_schedules.html" />
+    <link rel="next" title="Pulseスケジュールの構築" href="06_building_pulse_schedules.html" />
     <link rel="prev" title="トランスパイラー パスとパス マネージャー" href="04_transpiler_passes_and_passmanager.html" /> 
 
   
@@ -526,15 +526,15 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="section" id="パルスゲート">
 <h1>パルスゲート<a class="headerlink" href="#パルスゲート" title="このヘッドラインへのパーマリンク">¶</a></h1>
-<p>Most quantum algorithms can be described with circuit operations alone. When we need more control over the low-level implementation of our program, we can use <em>pulse gates</em>. Pulse gates remove the contraint of executing circuits with basis gates only, and also allow you to override the default implementation of any basis gate.</p>
-<p>Pulse gates allow you to map a logical circuit gate (e.g., <code class="docutils literal notranslate"><span class="pre">X</span></code>) to a Qiskit Pulse program, called a <code class="docutils literal notranslate"><span class="pre">Schedule</span></code>. This mapping is referred to as a <em>calibration</em>. A high fidelity calibration is one which faithfully implements the logical operation it is mapped from (e.g., whether the <code class="docutils literal notranslate"><span class="pre">X</span></code> gate calibration drives <span class="math notranslate nohighlight">\(|0\rangle\)</span> to <span class="math notranslate nohighlight">\(|1\rangle\)</span>, etc.).</p>
-<p>A schedule specifies the exact time dynamics of the input signals across all input <em>channels</em> to the device. There are usually multiple channels per qubit, such as drive and measure. This interface is more powerful, and requires a deeper understanding of the underlying device physics.</p>
-<p>It’s important to note that Pulse programs operate on physical qubits. A drive pulse on qubit <span class="math notranslate nohighlight">\(a\)</span> will not enact the same logical operation on the state of qubit <span class="math notranslate nohighlight">\(b\)</span> – in other words, gate calibrations are not interchangeable across qubits. This is in contrast to the circuit level, where an <code class="docutils literal notranslate"><span class="pre">X</span></code> gate is defined independent of its qubit operand.</p>
-<p>This page shows you how to add a calibration to your circuit.</p>
-<p><strong>Note:</strong> To execute a program with pulse gates, the backend has to be enabled with OpenPulse. You can check via <code class="docutils literal notranslate"><span class="pre">backend.configuration().open_pulse</span></code>, which is <code class="docutils literal notranslate"><span class="pre">True</span></code> when OpenPulse is enabled. If it is enabled and the pulse gates feature is not enabled, you can <a class="reference internal" href="07_pulse_scheduler.html"><span class="doc">schedule</span></a> your input circuit.</p>
-<div class="section" id="Build-your-circuit">
-<h2>Build your circuit<a class="headerlink" href="#Build-your-circuit" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>Let’s start with a very simple example, a Bell state circuit.</p>
+<p>ほとんどの量子アルゴリズムは回路演算だけで記載できます。 プログラムの低レベル実装をより制御する必要がある場合は、<a href="#id1"><span class="problematic" id="id2">*</span></a>パルスゲート*を使用することができます。 パルスゲートは、基底ゲートのみで回路を実行するという制約を取り除き、任意の基底ゲートのデフォルト実装をオーバーライドすることを可能にします。</p>
+<p>パルスゲートでは、論理回路ゲート(例: <code class="docutils literal notranslate"><span class="pre">X</span></code>) を``Schedule``と呼ばれるQiskit Pulseプログラムにマッピングすることができます。このマッピングは <em>較正</em> と呼ばれます。忠実度の高い較正は、マッピングされた論理演算を忠実に実装するものです (例: <code class="docutils literal notranslate"><span class="pre">X</span></code> ゲート較正が <span class="math notranslate nohighlight">\(|0\rangle\)</span> を <span class="math notranslate nohighlight">\(|1\rangle\)</span> にするかどうかなど)。</p>
+<p>スケジュールは、デバイスに対する全入力 <em>チャンネル</em> にわたる入力信号の正確な時間ダイナミクスを指定します。 通常、ドライブや計測など、量子ビットごとに複数のチャネルがあります。 このインターフェイスはより強力であり、基礎となるデバイス物理についてより深く理解する必要があります。</p>
+<p>Pulseプログラムは物理的な量子ビットで動作することに注意することが重要です。 量子ビット <span class="math notranslate nohighlight">\(a\)</span> のドライブパルスは、量子ビット <span class="math notranslate nohighlight">\(b\)</span> の状態で同じ論理演算を行いません。 ゲート較正は量子ビット間で交換できません。これは回路レベルとは異なり、<code class="docutils literal notranslate"><span class="pre">X</span></code> ゲートは量子ビットオペランドと独立して定義されます。</p>
+<p>このページでは、回路に較正を追加する方法を説明します。</p>
+<p><strong>注意:</strong> パルスゲートでプログラムを実行するには、バックエンドの OpenPulse を有効にする必要があります。これは``backend.configuration().open_pulse`` で確認できます。OpenPulseが有効な場合``True`` です。 有効になっていてパルスゲート機能が有効になっていない場合は、入力回路を`スケジュール &lt;07_pulse_scheduler.ipynb&gt;`__ することができます。</p>
+<div class="section" id="回路の構築">
+<h2>回路の構築<a class="headerlink" href="#回路の構築" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>非常に簡単な例、Bell状態の回路から始めましょう。</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -561,11 +561,11 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 </div>
-<div class="section" id="Build-your-calibrations">
-<h2>Build your calibrations<a class="headerlink" href="#Build-your-calibrations" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>Now that we have our circuit, let’s define a calibration for the Hadamard gate on qubit 0.</p>
-<p>In practice, the pulse shape and its parameters would be optimized through a series of Rabi experiments (see the <a class="reference external" href="https://qiskit.org/textbook/ch-quantum-hardware/calibrating-qubits-openpulse.html">Qiskit Textbook</a> for a walk through). For this demonstration, our Hadamard will be a Gaussian pulse. We will <em>play</em> our pulse on the <em>drive</em> channel of qubit 0.</p>
-<p>Don’t worry too much about the details of building the calibration itself; you can learn all about this on the following page: <a class="reference internal" href="06_building_pulse_schedules.html"><span class="doc">building pulse schedules</span></a>.</p>
+<div class="section" id="較正の作成">
+<h2>較正の作成<a class="headerlink" href="#較正の作成" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>回路ができたので、量子ビット 0のアダマールゲートに対する較正を定義しましょう。</p>
+<p>実際に パルスの形状とパラメータは一連のRabi実験を通して最適化されます(<a class="reference external" href="https://qiskit.org/textbook/ch-quantum-hardware/calibrating-qubits-openpulse.html">Qiskit Textbook</a> を参照)。 このデモンストレーションでは、アダマールはガウスパルスになります。量子ビット0の*ドライブ*チャンネルでパルスを*再生*します。</p>
+<p>較正自体の構築の詳細についてはあまり心配しないでください。 次のページ、<a class="reference internal" href="06_building_pulse_schedules.html"><span class="doc">building pulse schedules</span></a>、でこれについてすべてを学ぶことができます。</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -579,7 +579,7 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-<p>Let’s draw the new schedule to see what we’ve built.</p>
+<p>新しいスケジュールを描画して、何を作ったのか見てみましょう。</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -598,13 +598,13 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 </div>
-<div class="section" id="Link-your-calibration-to-your-circuit">
-<h2>Link your calibration to your circuit<a class="headerlink" href="#Link-your-calibration-to-your-circuit" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>All that remains is to complete the registration. The circuit method <code class="docutils literal notranslate"><span class="pre">add_calibration</span></code> needs information about the gate and a reference to the schedule to complete the mapping:</p>
+<div class="section" id="較正と回路のリンク">
+<h2>較正と回路のリンク<a class="headerlink" href="#較正と回路のリンク" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>残っているのは、登録を完了することだけです。 回路メソッド <code class="docutils literal notranslate"><span class="pre">add_calibration</span></code> にはゲートに関する情報とマッピングを完了するスケジュールへの参照が必要です。</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>QuantumCircuit.add_calibration(gate, qubits, schedule, parameters)
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">gate</span></code> can either be a <code class="docutils literal notranslate"><span class="pre">circuit.Gate</span></code> object or the name of the gate. Usually, you’ll need a different schedule for each unique set of <code class="docutils literal notranslate"><span class="pre">qubits</span></code> and <code class="docutils literal notranslate"><span class="pre">parameters</span></code>. Since the Hadamard gate doesn’t have any parameters, we don’t have to supply any.</p>
+<p><code class="docutils literal notranslate"><span class="pre">gate</span></code> は、<code class="docutils literal notranslate"><span class="pre">circuit.Gate</span></code> オブジェクトまたはゲートの名前にすることができます。 通常、<code class="docutils literal notranslate"><span class="pre">qubits</span></code> と <code class="docutils literal notranslate"><span class="pre">parameters</span></code> の固有のセットそれぞれに対し、異なるスケジュールが必要になります。 アダマールゲートにはパラメータがありませんので、何も入力する必要はありません。</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -614,7 +614,7 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-<p>Lastly, note that the transpiler will respect your calibrations. Use it as you normally would (our example is too simple for the transpiler to optimize, so the output is the same).</p>
+<p>最後に、トランスパイラーは較正を尊重することに注意してください。 通常どおりに使用してください (この例ではトランスパイラーを最適化するには簡単すぎるので、出力は同じです)。</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
@@ -648,12 +648,12 @@ div.rendered_html tbody tr:hover {
 <img alt="../../_images/tutorials_circuits_advanced_05_pulse_gates_10_1.png" src="../../_images/tutorials_circuits_advanced_05_pulse_gates_10_1.png" />
 </div>
 </div>
-<p>Notice that <code class="docutils literal notranslate"><span class="pre">h</span></code> is not a basis gate for the mock backend <code class="docutils literal notranslate"><span class="pre">FakeAlmaden</span></code>. Since we have added a calibration for it, the transpiler will treat our gate as a basis gate; <em>but only on the qubits for which it was defined</em>. A Hadamard applied to a different qubit would be unrolled to the basis gates.</p>
-<p>That’s it!</p>
+<p><code class="docutils literal notranslate"><span class="pre">h</span></code> はモックバックエンド <code class="docutils literal notranslate"><span class="pre">FakeAlmaden</span></code> の基底ゲートではないことに注意してください。 較正を追加したので、トランスパイラーはゲートを基底ゲートとして扱います。<em>ただし、定義された量子ビット上のみです</em>。 別の量子ビットに適用されるアダマールは、基底ゲートに展開されます。</p>
+<p>以上です！</p>
 </div>
-<div class="section" id="Custom-gates">
-<h2>Custom gates<a class="headerlink" href="#Custom-gates" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>We’ll briefly show the same process for nonstandard, completely custom gates. This demonstration includes a gate with parameters.</p>
+<div class="section" id="カスタムゲート">
+<h2>カスタムゲート<a class="headerlink" href="#カスタムゲート" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>非標準で、完全なるカスタムゲートに対して同じプロセスを簡単に示します。このデモンストレーションにはパラメーター付きゲートが含まれています。</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
@@ -694,7 +694,7 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-<p>If we use the <code class="docutils literal notranslate"><span class="pre">Gate</span></code> instance variable <code class="docutils literal notranslate"><span class="pre">custom_gate</span></code> to add the calibration, the parameters are derived from that instance. Remember that the order of parameters is meaningful.</p>
+<p>較正を追加するために <code class="docutils literal notranslate"><span class="pre">Gate</span></code> のインスタンスである変数 <code class="docutils literal notranslate"><span class="pre">custom_gate</span></code> を使用する場合、パラメーターはそのインスタンスから派生します。 パラメーターの順序には意味があることに注意してください。</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
@@ -713,7 +713,7 @@ div.rendered_html tbody tr:hover {
 <img alt="../../_images/tutorials_circuits_advanced_05_pulse_gates_15_0.png" src="../../_images/tutorials_circuits_advanced_05_pulse_gates_15_0.png" />
 </div>
 </div>
-<p>Normally, if we tried to transpile our <code class="docutils literal notranslate"><span class="pre">circ</span></code>, we would get an error. There was no functional definition provided for <code class="docutils literal notranslate"><span class="pre">&quot;my_custom_gate&quot;</span></code>, so the transpiler can’t unroll it to the basis gate set of the target device. We can show this by trying to add <code class="docutils literal notranslate"><span class="pre">&quot;my_custom_gate&quot;</span></code> to another qubit which hasn’t been calibrated.</p>
+<p>通常、<code class="docutils literal notranslate"><span class="pre">circ</span></code> をトランスパイルしようとするとエラーになります。 <code class="docutils literal notranslate"><span class="pre">&quot;my_custom_gate&quot;``の機能定義が提供されていないので、トランスパイラーはターゲットデバイスの基底ゲート・セットに展開することができません。</span> <span class="pre">較正されていない別の量子ビットに</span> <span class="pre">``&quot;my_custom_gate&quot;</span></code> を追加すると、これを表示できます。</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
@@ -783,7 +783,7 @@ div.rendered_html tbody tr:hover {
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="06_building_pulse_schedules.html" class="btn btn-neutral float-right" title="Building Pulse Schedules" accesskey="n" rel="next">Next <img src="../../_static/images/chevron-right-orange.svg" class="next-page"></a>
+        <a href="06_building_pulse_schedules.html" class="btn btn-neutral float-right" title="Pulseスケジュールの構築" accesskey="n" rel="next">Next <img src="../../_static/images/chevron-right-orange.svg" class="next-page"></a>
       
       
         <a href="04_transpiler_passes_and_passmanager.html" class="btn btn-neutral" title="トランスパイラー パスとパス マネージャー" accesskey="p" rel="prev"><img src="../../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
@@ -800,7 +800,7 @@ div.rendered_html tbody tr:hover {
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Qiskit Development Team.
-      最終更新: 2021/03/15
+      最終更新: 2021/03/17
 
     </p>
   </div>
@@ -820,10 +820,10 @@ div.rendered_html tbody tr:hover {
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
 <li><a class="reference internal" href="#">パルスゲート</a><ul>
-<li><a class="reference internal" href="#Build-your-circuit">Build your circuit</a></li>
-<li><a class="reference internal" href="#Build-your-calibrations">Build your calibrations</a></li>
-<li><a class="reference internal" href="#Link-your-calibration-to-your-circuit">Link your calibration to your circuit</a></li>
-<li><a class="reference internal" href="#Custom-gates">Custom gates</a></li>
+<li><a class="reference internal" href="#回路の構築">回路の構築</a></li>
+<li><a class="reference internal" href="#較正の作成">較正の作成</a></li>
+<li><a class="reference internal" href="#較正と回路のリンク">較正と回路のリンク</a></li>
+<li><a class="reference internal" href="#カスタムゲート">カスタムゲート</a></li>
 </ul>
 </li>
 </ul>
