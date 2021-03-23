@@ -40,6 +40,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Bengali | Omar Shehab, Abhijit Mitra |  @Shehab @amitracal   |
 | French | Olivier Hess | @Olivier Hess |
 | German | Joachim Schaefer | @Joachim Schwarm |
+| Greek | Vasilis Katopodis | @Vasilis Katopodis |
 | Hindi | Anupama Ray | @anupamar |
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
@@ -68,9 +69,9 @@ Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.c
 
 ### How to add a new language to translate?
 
-The Qiskit Localization Project currently supports: Bengali, French, German, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Brazilian Portuguese, Spanish, Spanish-Mexico, Tamil, Turkish, Urdu and Vietnamese. These translations can be viewed from our [staging site](https://qiskit-community.github.io/qiskit-translations/).
+The Qiskit Localization Project currently supports: Bengali, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Brazilian Portuguese, Spanish, Spanish-Mexico, Tamil, Turkish, Urdu and Vietnamese. These translations can be viewed from our [staging site](https://qiskit-community.github.io/qiskit-translations/).
 
-[Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html) and [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
+[Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html), [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html), [Portuguese, Brazilian](https://qiskit.org/documentation/locale/pt_BR/index.html) and [French](https://qiskit.org/documentation/locale/fr_FR/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
 
 As mentioned in the blog post [Qiskit in my language is Qiskit](https://medium.com/qiskit/qiskit-in-my-language-is-qiskit-73d4626a99d3), we want to make sure that translated languages have enough community support to ensure quality and consistency. <br/>
 
