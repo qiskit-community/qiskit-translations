@@ -583,16 +583,42 @@ Schedule(, name=&#34;my_example&#34;)
 </pre></div>
 </div>
 </div>
+<p>The pulse <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> is independent of the backend it runs on. However, we can build our program in a context that is aware of the target backend by supplying it to <code class="docutils literal notranslate"><span class="pre">pulse.build</span></code>. When possible you should supply a backend. By using the channel accessors <code class="docutils literal notranslate"><span class="pre">pulse.&lt;type&gt;_channel(&lt;idx&gt;)</span></code> we can make sure we are only using available device resources.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.test.mock</span> <span class="kn">import</span> <span class="n">FakeValencia</span>
+
+<span class="n">backend</span> <span class="o">=</span> <span class="n">FakeValencia</span><span class="p">()</span>
+
+<span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;backend_aware&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">backend_aware_program</span><span class="p">:</span>
+    <span class="n">channel</span> <span class="o">=</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">pulse</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">())</span>
+    <span class="c1"># Raises an error as backend only has 5 qubits</span>
+    <span class="c1">#pulse.drive_channel(100)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+5
+</pre></div></div>
+</div>
 <p>## delay</p>
 <p>最も簡単な命令のひとつは <code class="docutils literal notranslate"><span class="pre">delay</span></code> です。これはブロッキング命令で、指定された継続時間中、指定されたチャンネルに信号を出力しないように、制御電子装置に対して指示を出します。他の命令のタイミングを制御するのに便利です。</p>
 <p>ここやその他の場所における期間は、バックエンドのサイクル時間 (1 / サンプルレート) を単位とした `` dt`` です。整数値をとります。</p>
 <p><code class="docutils literal notranslate"><span class="pre">delay</span></code> 命令を追加するには、期間とチャンネルを渡します。ここで、<code class="docutils literal notranslate"><span class="pre">channel</span></code> は <code class="docutils literal notranslate"><span class="pre">AcquireChannel</span></code> を含む任意の種類のチャンネルになります。 Pulse Builder コンテキストを開始するには <code class="docutils literal notranslate"><span class="pre">pulse.build</span></code> を使用します。これにより、スケジュール <code class="docutils literal notranslate"><span class="pre">delay_5dt</span></code> に遅延が自動的にスケジュールされます。</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">delay_5dt</span><span class="p">:</span>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span> <span class="k">as</span> <span class="n">delay_5dt</span><span class="p">:</span>
     <span class="n">pulse</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -614,7 +640,7 @@ Schedule(, name=&#34;my_example&#34;)
 <p>パルスを構築するために利用できる方法は多くあります。Qiskit Pulse 内の <code class="docutils literal notranslate"><span class="pre">library</span></code> には、 <code class="docutils literal notranslate"><span class="pre">Pulse</span></code> を構築するための便利なメソッドが含まれています。たとえば、単純なガウスパルス、つまりサンプリングされたガウス関数によって記述されたエンベロープを持つパルスを考えてみましょう。振幅1、標準偏差10 <span class="math notranslate nohighlight">\(\sigma\)</span> 、および128サンプルポイントを任意に選択します。</p>
 <p><strong>Note</strong>: The amplitude norm is arbitrarily limited to <code class="docutils literal notranslate"><span class="pre">1.0</span></code>. Each backend system may also impose further constraints – for instance, a minimum pulse size of 64. These additional constraints, if available, would be provided through the <code class="docutils literal notranslate"><span class="pre">BackendConfiguration</span></code> which is described <a class="reference internal" href="08_gathering_system_information.html#Configuration"><span class="std std-ref">here</span></a>.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -632,7 +658,7 @@ Schedule(, name=&#34;my_example&#34;)
 <p><code class="docutils literal notranslate"><span class="pre">library</span></code> の他のパラメトリック・パルスには、<code class="docutils literal notranslate"><span class="pre">GaussianSquare</span></code> 、 <code class="docutils literal notranslate"><span class="pre">Drag</span></code> 、および <code class="docutils literal notranslate"><span class="pre">Constant</span></code> が含まれます。</p>
 <p><strong>注記</strong> ：バックエンドには、パラメトリック・パルスをサンプリングする方法を正確に決定する責任があります。パラメトリック・パルスを描画することは可能ですが、表示されるサンプルがバックエンドで実行されたものと同じであるとは限りません。</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -643,11 +669,11 @@ Schedule(, name=&#34;my_example&#34;)
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_10_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_10_0.png" />
+<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_12_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_12_0.png" />
 </div>
 </div>
 </div>
@@ -655,7 +681,7 @@ Schedule(, name=&#34;my_example&#34;)
 <h3>サンプルによって記述されたパルス波形<a class="headerlink" href="#サンプルによって記述されたパルス波形" title="このヘッドラインへのパーマリンク">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">Waveform</span></code> は、時間順に並べられた複素振幅または <em>サンプル</em> の配列として指定されたパルス信号です。各サンプルは、バックエンドによって決定される1サイクル、タイムステップ <code class="docutils literal notranslate"><span class="pre">dt</span></code> で再生されます。プログラムのリアルタイムダイナミクスを知りたい場合は、 <code class="docutils literal notranslate"><span class="pre">dt</span></code> の値を知る必要があります。<span class="math notranslate nohighlight">\(i^{th}\)</span> サンプル(インデックスは0開始)を、量子ビット周波数によって調節された、時間`i*dt`` から <a href="#id1"><span class="problematic" id="id2">``</span></a>(i + 1)*dt``まで再生します。</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -670,28 +696,6 @@ Schedule(, name=&#34;my_example&#34;)
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_12_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_12_0.png" />
-</div>
-</div>
-</div>
-<div class="section" id="パルス・ライブラリー関数">
-<h3>パルス・ライブラリー関数<a class="headerlink" href="#パルス・ライブラリー関数" title="このヘッドラインへのパーマリンク">¶</a></h3>
-<p>独自のパルス・ライブラリーには、一般的な関数から <code class="docutils literal notranslate"><span class="pre">Waveform</span></code> を作成するためのサンプリング・メソッドがあります。</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">gaus</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">amp</span><span class="o">=</span><span class="n">amp</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lib Gaus&quot;</span><span class="p">)</span>
-<span class="n">gaus</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
@@ -699,15 +703,17 @@ Schedule(, name=&#34;my_example&#34;)
 <img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_14_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_14_0.png" />
 </div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">pulse</span></code> を指定する方法に関係なく、<code class="docutils literal notranslate"><span class="pre">play</span></code> は同じ方法でスケジュールに追加されます:</p>
+</div>
+<div class="section" id="パルス・ライブラリー関数">
+<h3>パルス・ライブラリー関数<a class="headerlink" href="#パルス・ライブラリー関数" title="このヘッドラインへのパーマリンク">¶</a></h3>
+<p>独自のパルス・ライブラリーには、一般的な関数から <code class="docutils literal notranslate"><span class="pre">Waveform</span></code> を作成するためのサンプリング・メソッドがあります。</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
-    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaus</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
-<span class="n">schedule</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+<span></span><span class="n">gaus</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">amp</span><span class="o">=</span><span class="n">amp</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lib Gaus&quot;</span><span class="p">)</span>
+<span class="n">gaus</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -719,6 +725,46 @@ Schedule(, name=&#34;my_example&#34;)
 <img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_16_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_16_0.png" />
 </div>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">pulse</span></code> を指定する方法に関係なく、<code class="docutils literal notranslate"><span class="pre">play</span></code> は同じ方法でスケジュールに追加されます:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaus</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
+<span class="n">schedule</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_18_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_18_0.png" />
+</div>
+</div>
+<p>You may also supply a complex list or array directly to <code class="docutils literal notranslate"><span class="pre">play</span></code></p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">([</span><span class="mf">0.001</span><span class="o">*</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">160</span><span class="p">)],</span> <span class="n">channel</span><span class="p">)</span>
+<span class="n">schedule</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_20_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_20_0.png" />
+</div>
+</div>
 <p><code class="docutils literal notranslate"><span class="pre">play</span></code> 命令は、<code class="docutils literal notranslate"><span class="pre">Pulse</span></code> から期間を取得します。パラメーター化されたパルスの期間は明示的な引数であり、<a href="#id1"><span class="problematic" id="id2">``</span></a>Waveform``の期間は入力サンプルの数です。</p>
 <p>## set_frequency</p>
 <p>前述したように、出力パルス波形エンベロープも周波数と位相によって変調されます。各チャンネルには、 <code class="docutils literal notranslate"><span class="pre">backend.defaults()</span></code> にリストされているデフォルトの周波数があります（<a class="reference internal" href="08_gathering_system_information.html#Defaults"><span class="std std-ref">参照</span></a> ）。</p>
@@ -726,11 +772,11 @@ Schedule(, name=&#34;my_example&#34;)
 <p>命令の暗黙の期間は <code class="docutils literal notranslate"><span class="pre">0</span></code> です。</p>
 <p><strong>注記</strong> ：要求できる周波数は、各ハードウェア・チャンネルの合計帯域幅と瞬時帯域幅によって制限されます。将来的には、これらは <code class="docutils literal notranslate"><span class="pre">backend</span></code> によって報告されます。</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
     <span class="n">pulse</span><span class="o">.</span><span class="n">set_frequency</span><span class="p">(</span><span class="mf">4.5e9</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -739,11 +785,11 @@ Schedule(, name=&#34;my_example&#34;)
 <p><code class="docutils literal notranslate"><span class="pre">shift_phase</span></code> 命令は、周波数変調の位相を <code class="docutils literal notranslate"><span class="pre">phase</span></code> ごとに増やします。 <code class="docutils literal notranslate"><span class="pre">set_frequency</span></code> と同様に、この位相シフトは、プログラムが終了するまで、同じチャンネル上のすべての後続の命令に影響します。 <code class="docutils literal notranslate"><span class="pre">shift_phase</span></code> の影響を元に戻すには、負の <code class="docutils literal notranslate"><span class="pre">phase</span></code> を新しい命令に渡すことができます。</p>
 <p><code class="docutils literal notranslate"><span class="pre">set_frequency</span></code> と同様に、命令の暗黙の期間は <code class="docutils literal notranslate"><span class="pre">0</span></code> です。</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
     <span class="n">pulse</span><span class="o">.</span><span class="n">shift_phase</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -753,14 +799,14 @@ Schedule(, name=&#34;my_example&#34;)
 <p><code class="docutils literal notranslate"><span class="pre">acquire</span></code> 命令は、読み出しのためのデータ取得をトリガーします。 それは、持続時間、測定されている量子ビットにマップする <code class="docutils literal notranslate"><span class="pre">AcquireChannel</span></code> および、 <code class="docutils literal notranslate"><span class="pre">MemorySlot</span></code> または <code class="docutils literal notranslate"><span class="pre">RegisterSlot</span></code> を必要とします。 <code class="docutils literal notranslate"><span class="pre">MemorySlot</span></code> は、読み出し結果が保存される古典的なメモリです。 <code class="docutils literal notranslate"><span class="pre">RegisterSlot</span></code> は、高速フィードバックのための読み出し結果を保存する制御電子回路のレジスタにマッピングします。</p>
 <p><code class="docutils literal notranslate"><span class="pre">acquire</span></code> 命令は、キーワード引数としてカスタム``Discriminator``と``Kernel``を取ることもできます。</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">qiskit.pulse</span> <span class="kn">import</span> <span class="n">Acquire</span><span class="p">,</span> <span class="n">AcquireChannel</span><span class="p">,</span> <span class="n">MemorySlot</span>
 
-<span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
-    <span class="n">pulse</span><span class="o">.</span><span class="n">acquire</span><span class="p">(</span><span class="mi">1200</span><span class="p">,</span> <span class="n">AcquireChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">MemorySlot</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+<span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">acquire</span><span class="p">(</span><span class="mi">1200</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">acquire_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">MemorySlot</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -776,67 +822,16 @@ Schedule(, name=&#34;my_example&#34;)
 <p>配置コンテキストに関係なく、結果のスケジュールの長さは、すべての命令を含め配置ルールに従うのと同等くらい短いです。これにより、「最も長いパス」から命令をスケジュールするある程度の自由度があります。以下の例ではこれを示しています。</p>
 <p>ビルダーはスケジュールの構築方法に影響する配置コンテキストを持っています。デフォルトは <code class="docutils literal notranslate"><span class="pre">align_left</span></code> です。</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Left align example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
-    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_left</span><span class="p">():</span>
-        <span class="n">gaussian_pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-
-<span class="n">program</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_24_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_24_0.png" />
-</div>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">D1</span></code> 上のパルスにはスケジューリングの自由度がないことに注意してください。2 番目の波形は最初の波形の直後に始まります。 <code class="docutils literal notranslate"><span class="pre">D0</span></code> 上のパルスは、スケジュール全体の期間を変更することなく、<code class="docutils literal notranslate"><span class="pre">t=0</span></code> と <code class="docutils literal notranslate"><span class="pre">t=100</span></code> の間でいつでも開始できます。 <code class="docutils literal notranslate"><span class="pre">align_left</span></code> コンテキストでは、パルスの開始時刻を <code class="docutils literal notranslate"><span class="pre">t=0</span></code> に設定します。これはテキスト文書の左揃えのように考えることができます。</p>
-<p>当然、<code class="docutils literal notranslate"><span class="pre">align_right</span></code> は <code class="docutils literal notranslate"><span class="pre">align_left</span></code> の反対です。<code class="docutils literal notranslate"><span class="pre">D0</span></code> 上でガウスパルスを開始する上記の例では <code class="docutils literal notranslate"><span class="pre">t=100</span></code> を選択します。 左と右は、それぞれ「できるだけ早く」と「できるだけ遅く」スケジューリングとも呼ばれることがあります。</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Right align example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
-    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_right</span><span class="p">():</span>
-        <span class="n">gaussian_pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-
-<span class="n">program</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_26_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_26_0.png" />
-</div>
-</div>
-<p>特定のブロックの期間がわかっている場合は、 <code class="docutils literal notranslate"><span class="pre">align_equispace</span></code> を使って各命令の間に同じ長さの遅延を挿入することもできます。</p>
-<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
-    <span class="n">gaussian_pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_equispaced</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">gaussian_pulse</span><span class="o">.</span><span class="n">duration</span><span class="p">):</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Left align example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_left</span><span class="p">():</span>
+        <span class="n">gaussian_pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
 
 <span class="n">program</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
@@ -850,18 +845,19 @@ Schedule(, name=&#34;my_example&#34;)
 <img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_28_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_28_0.png" />
 </div>
 </div>
-<p>この配置コンテキストは、並列に命令をスケジュールしません。各命令は、以前に追加した命令の最後に開始されます。</p>
+<p><code class="docutils literal notranslate"><span class="pre">D1</span></code> 上のパルスにはスケジューリングの自由度がないことに注意してください。2 番目の波形は最初の波形の直後に始まります。 <code class="docutils literal notranslate"><span class="pre">D0</span></code> 上のパルスは、スケジュール全体の期間を変更することなく、<code class="docutils literal notranslate"><span class="pre">t=0</span></code> と <code class="docutils literal notranslate"><span class="pre">t=100</span></code> の間でいつでも開始できます。 <code class="docutils literal notranslate"><span class="pre">align_left</span></code> コンテキストでは、パルスの開始時刻を <code class="docutils literal notranslate"><span class="pre">t=0</span></code> に設定します。これはテキスト文書の左揃えのように考えることができます。</p>
+<p>当然、<code class="docutils literal notranslate"><span class="pre">align_right</span></code> は <code class="docutils literal notranslate"><span class="pre">align_left</span></code> の反対です。<code class="docutils literal notranslate"><span class="pre">D0</span></code> 上でガウスパルスを開始する上記の例では <code class="docutils literal notranslate"><span class="pre">t=100</span></code> を選択します。 左と右は、それぞれ「できるだけ早く」と「できるだけ遅く」スケジューリングとも呼ばれることがあります。</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
-    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_sequential</span><span class="p">():</span>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Right align example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_right</span><span class="p">():</span>
         <span class="n">gaussian_pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
 
 <span class="n">program</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
@@ -875,17 +871,18 @@ Schedule(, name=&#34;my_example&#34;)
 <img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_30_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_30_0.png" />
 </div>
 </div>
-<p>このビルダーを使用すると、チャンネル上のパルスの周波数や位相を一時的に補正することができます。</p>
+<p>特定のブロックの期間がわかっている場合は、 <code class="docutils literal notranslate"><span class="pre">align_equispace</span></code> を使って各命令の間に同じ長さの遅延を挿入することもできます。</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Offset example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
-    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">phase_offset</span><span class="p">(</span><span class="mf">3.14</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">)):</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-        <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">frequency_offset</span><span class="p">(</span><span class="mf">10e6</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">)):</span>
-            <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
+    <span class="n">gaussian_pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_equispaced</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">gaussian_pulse</span><span class="o">.</span><span class="n">duration</span><span class="p">):</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
 
 <span class="n">program</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
@@ -899,9 +896,58 @@ Schedule(, name=&#34;my_example&#34;)
 <img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_32_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_32_0.png" />
 </div>
 </div>
-<p>詳細については、<a class="reference external" href="https://qiskit.org/documentation/apidoc/pulse.html">Pulse API reference</a> を参照することをお勧めします。</p>
+<p>この配置コンテキストは、並列に命令をスケジュールしません。各命令は、以前に追加した命令の最後に開始されます。</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_sequential</span><span class="p">():</span>
+        <span class="n">gaussian_pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">program</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_34_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_34_0.png" />
+</div>
+</div>
+<p>このビルダーを使用すると、チャンネル上のパルスの周波数や位相を一時的に補正することができます。</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Offset example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">phase_offset</span><span class="p">(</span><span class="mf">3.14</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">)):</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">frequency_offset</span><span class="p">(</span><span class="mf">10e6</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">)):</span>
+            <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+<span class="n">program</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_36_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_36_0.png" />
+</div>
+</div>
+<p>詳細については、<a class="reference external" href="https://qiskit.org/documentation/apidoc/pulse.html">Pulse API reference</a> を参照することをお勧めします。</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -914,24 +960,24 @@ Schedule(, name=&#34;my_example&#34;)
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/Users/thomas/opt/anaconda3/envs/qiskit-3.8/lib/python3.8/site-packages/qiskit/aqua/operators/operator_globals.py:48: DeprecationWarning: `from_label` is deprecated and will be removed no earlier than 3 months after the release date. Use Pauli(label) instead.
+  X = make_immutable(PrimitiveOp(Pauli.from_label(&#39;X&#39;)))
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.23.2</td></tr><tr><td>Terra</td><td>0.16.2</td></tr><tr><td>Aer</td><td>0.7.2</td></tr><tr><td>Ignis</td><td>0.5.1</td></tr><tr><td>Aqua</td><td>0.8.1</td></tr><tr><td>IBM Q Provider</td><td>0.11.1</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.9.1 (default, Dec 10 2020, 10:36:35)
-[Clang 12.0.0 (clang-1200.0.32.27)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>6</td></tr><tr><td>Memory (Gb)</td><td>32.0</td></tr><tr><td colspan='2'>Tue Jan 26 15:26:12 2021 EST</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.23.6</td></tr><tr><td>Terra</td><td>0.17.0</td></tr><tr><td>Aer</td><td>0.7.5</td></tr><tr><td>Ignis</td><td>0.5.2</td></tr><tr><td>Aqua</td><td>0.8.2</td></tr><tr><td>IBM Q Provider</td><td>0.11.1</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.8.5 (default, Aug  5 2020, 03:39:04)
+[Clang 10.0.0 ]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>8</td></tr><tr><td>Memory (Gb)</td><td>32.0</td></tr><tr><td colspan='2'>Sat Feb 27 11:04:23 2021 AST</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
 <div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2021.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>
-</pre></div>
-</div>
 </div>
 </div>
 

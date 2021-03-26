@@ -583,16 +583,42 @@ Schedule(, name=&#34;my_example&#34;)
 </pre></div>
 </div>
 </div>
+<p>The pulse <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> is independent of the backend it runs on. However, we can build our program in a context that is aware of the target backend by supplying it to <code class="docutils literal notranslate"><span class="pre">pulse.build</span></code>. When possible you should supply a backend. By using the channel accessors <code class="docutils literal notranslate"><span class="pre">pulse.&lt;type&gt;_channel(&lt;idx&gt;)</span></code> we can make sure we are only using available device resources.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.test.mock</span> <span class="kn">import</span> <span class="n">FakeValencia</span>
+
+<span class="n">backend</span> <span class="o">=</span> <span class="n">FakeValencia</span><span class="p">()</span>
+
+<span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;backend_aware&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">backend_aware_program</span><span class="p">:</span>
+    <span class="n">channel</span> <span class="o">=</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">pulse</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">())</span>
+    <span class="c1"># Raises an error as backend only has 5 qubits</span>
+    <span class="c1">#pulse.drive_channel(100)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+5
+</pre></div></div>
+</div>
 <p>## <code class="docutils literal notranslate"><span class="pre">delay</span></code></p>
 <p>One of the simplest instructions we can build is <code class="docutils literal notranslate"><span class="pre">delay</span></code>. This is a blocking instruction that tells the control electronics to output no signal on the given channel for the duration specified. It is useful for controlling the timing of other instructions.</p>
 <p>The duration here and elsewhere is in terms of the backend’s cycle time (1 / sample rate), <code class="docutils literal notranslate"><span class="pre">dt</span></code>. It must take an integer value.</p>
 <p>To add a <code class="docutils literal notranslate"><span class="pre">delay</span></code> instruction, we pass a duration and a channel, where <code class="docutils literal notranslate"><span class="pre">channel</span></code> can be any kind of channel, including <code class="docutils literal notranslate"><span class="pre">AcquireChannel</span></code>. We use <code class="docutils literal notranslate"><span class="pre">pulse.build</span></code> to begin a Pulse Builder context. This automatically schedules our delay into the schedule <code class="docutils literal notranslate"><span class="pre">delay_5dt</span></code>.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">delay_5dt</span><span class="p">:</span>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span> <span class="k">as</span> <span class="n">delay_5dt</span><span class="p">:</span>
     <span class="n">pulse</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -615,7 +641,7 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 <p>There are many methods available to us for building up pulses. Our <code class="docutils literal notranslate"><span class="pre">library</span></code> within Qiskit Pulse contains helpful methods for building <code class="docutils literal notranslate"><span class="pre">Pulse</span></code>s. Let’s take for example a simple Gaussian pulse – a pulse with its envelope described by a sampled Gaussian function. We arbitrarily choose an amplitude of 1, standard deviation <span class="math notranslate nohighlight">\(\sigma\)</span> of 10, and 128 sample points.</p>
 <p><strong>Note</strong>: The amplitude norm is arbitrarily limited to <code class="docutils literal notranslate"><span class="pre">1.0</span></code>. Each backend system may also impose further constraints – for instance, a minimum pulse size of 64. These additional constraints, if available, would be provided through the <code class="docutils literal notranslate"><span class="pre">BackendConfiguration</span></code> which is described <a class="reference internal" href="08_gathering_system_information.html#Configuration"><span class="std std-ref">here</span></a>.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -633,7 +659,7 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 <p>Other parametric pulses in the <code class="docutils literal notranslate"><span class="pre">library</span></code> include <code class="docutils literal notranslate"><span class="pre">GaussianSquare</span></code>, <code class="docutils literal notranslate"><span class="pre">Drag</span></code>, and <code class="docutils literal notranslate"><span class="pre">Constant</span></code>.</p>
 <p><strong>Note</strong>: The backend is responsible for deciding exactly how to sample the parametric pulses. It is possible to draw parametric pulses, but the samples displayed are not guaranteed to be the same as those executed on the backend.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -644,11 +670,11 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_10_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_10_0.png" />
+<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_12_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_12_0.png" />
 </div>
 </div>
 </div>
@@ -656,7 +682,7 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 <h3>Pulse waveforms described by samples<a class="headerlink" href="#Pulse-waveforms-described-by-samples" title="Permalink to this headline">¶</a></h3>
 <p>A <code class="docutils literal notranslate"><span class="pre">Waveform</span></code> is a pulse signal specified as an array of time-ordered complex amplitudes, or <em>samples</em>. Each sample is played for one cycle, a timestep <code class="docutils literal notranslate"><span class="pre">dt</span></code>, determined by the backend. If we want to know the real-time dynamics of our program, we need to know the value of <code class="docutils literal notranslate"><span class="pre">dt</span></code>. The (zero-indexed) <span class="math notranslate nohighlight">\(i^{th}\)</span> sample will play from time <code class="docutils literal notranslate"><span class="pre">i*dt</span></code> up to <code class="docutils literal notranslate"><span class="pre">(i</span> <span class="pre">+</span> <span class="pre">1)*dt</span></code>, modulated by the qubit frequency.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -671,28 +697,6 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_12_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_12_0.png" />
-</div>
-</div>
-</div>
-<div class="section" id="Pulse-library-functions">
-<h3>Pulse library functions<a class="headerlink" href="#Pulse-library-functions" title="Permalink to this headline">¶</a></h3>
-<p>Our own pulse library has sampling methods to build a <code class="docutils literal notranslate"><span class="pre">Waveform</span></code> from common functions.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">gaus</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">amp</span><span class="o">=</span><span class="n">amp</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lib Gaus&quot;</span><span class="p">)</span>
-<span class="n">gaus</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
@@ -700,15 +704,17 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 <img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_14_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_14_0.png" />
 </div>
 </div>
-<p>Regardless of which method you use to specify your <code class="docutils literal notranslate"><span class="pre">pulse</span></code>, <code class="docutils literal notranslate"><span class="pre">play</span></code> is added to your schedule the same way:</p>
+</div>
+<div class="section" id="Pulse-library-functions">
+<h3>Pulse library functions<a class="headerlink" href="#Pulse-library-functions" title="Permalink to this headline">¶</a></h3>
+<p>Our own pulse library has sampling methods to build a <code class="docutils literal notranslate"><span class="pre">Waveform</span></code> from common functions.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
-    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaus</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
-<span class="n">schedule</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+<span></span><span class="n">gaus</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">amp</span><span class="o">=</span><span class="n">amp</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lib Gaus&quot;</span><span class="p">)</span>
+<span class="n">gaus</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -720,6 +726,46 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 <img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_16_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_16_0.png" />
 </div>
 </div>
+<p>Regardless of which method you use to specify your <code class="docutils literal notranslate"><span class="pre">pulse</span></code>, <code class="docutils literal notranslate"><span class="pre">play</span></code> is added to your schedule the same way:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaus</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
+<span class="n">schedule</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_18_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_18_0.png" />
+</div>
+</div>
+<p>You may also supply a complex list or array directly to <code class="docutils literal notranslate"><span class="pre">play</span></code></p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">([</span><span class="mf">0.001</span><span class="o">*</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">160</span><span class="p">)],</span> <span class="n">channel</span><span class="p">)</span>
+<span class="n">schedule</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_20_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_20_0.png" />
+</div>
+</div>
 <p>The <code class="docutils literal notranslate"><span class="pre">play</span></code> instruction gets its duration from its <code class="docutils literal notranslate"><span class="pre">Pulse</span></code>: the duration of a parametrized pulse is an explicit argument, and the duration of a <code class="docutils literal notranslate"><span class="pre">Waveform</span></code> is the number of input samples.</p>
 <p>## <code class="docutils literal notranslate"><span class="pre">set_frequency</span></code></p>
 <p>As explained previously, the output pulse waveform envelope is also modulated by a frequency and phase. Each channel has a <cite>default frequency listed in the ``backend.defaults()`</cite> &lt;08_gathering_system_information.ipynb#Defaults&gt;`__.</p>
@@ -727,11 +773,11 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 <p>The instruction has an implicit duration of <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
 <p><strong>Note</strong>: The frequencies that can be requested are limited by the total bandwidth and the instantaneous bandwidth of each hardware channel. In the future, these will be reported by the <code class="docutils literal notranslate"><span class="pre">backend</span></code>.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
     <span class="n">pulse</span><span class="o">.</span><span class="n">set_frequency</span><span class="p">(</span><span class="mf">4.5e9</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -740,11 +786,11 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 <p>The <code class="docutils literal notranslate"><span class="pre">shift_phase</span></code> instruction will increase the phase of the frequency modulation by <code class="docutils literal notranslate"><span class="pre">phase</span></code>. Like <code class="docutils literal notranslate"><span class="pre">set_frequency</span></code>, this phase shift will affect all following instructions on the same channel until the program ends. To undo the affect of a <code class="docutils literal notranslate"><span class="pre">shift_phase</span></code>, the negative <code class="docutils literal notranslate"><span class="pre">phase</span></code> can be passed to a new instruction.</p>
 <p>Like <code class="docutils literal notranslate"><span class="pre">set_frequency</span></code>, the instruction has an implicit duration of <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
     <span class="n">pulse</span><span class="o">.</span><span class="n">shift_phase</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -754,14 +800,14 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 <p>The <code class="docutils literal notranslate"><span class="pre">acquire</span></code> instruction triggers data acquisition for readout. It takes a duration, an <code class="docutils literal notranslate"><span class="pre">AcquireChannel</span></code> which maps to the qubit being measured, and a <code class="docutils literal notranslate"><span class="pre">MemorySlot</span></code> or a <code class="docutils literal notranslate"><span class="pre">RegisterSlot</span></code>. The <code class="docutils literal notranslate"><span class="pre">MemorySlot</span></code> is classical memory where the readout result will be stored. The <code class="docutils literal notranslate"><span class="pre">RegisterSlot</span></code> maps to a register in the control electronics which stores the readout result for fast feedback.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">acquire</span></code> instructions can also take custom <code class="docutils literal notranslate"><span class="pre">Discriminator</span></code>s and <code class="docutils literal notranslate"><span class="pre">Kernel</span></code>s as keyword arguments.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">qiskit.pulse</span> <span class="kn">import</span> <span class="n">Acquire</span><span class="p">,</span> <span class="n">AcquireChannel</span><span class="p">,</span> <span class="n">MemorySlot</span>
 
-<span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
-    <span class="n">pulse</span><span class="o">.</span><span class="n">acquire</span><span class="p">(</span><span class="mi">1200</span><span class="p">,</span> <span class="n">AcquireChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">MemorySlot</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+<span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span> <span class="k">as</span> <span class="n">schedule</span><span class="p">:</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">acquire</span><span class="p">(</span><span class="mi">1200</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">acquire_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">MemorySlot</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -777,67 +823,16 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 <p>Regardless of the alignment context, the duration of the resulting schedule is as short as it can be while including every instruction and following the alignment rules. This still allows some degrees of freedom for scheduling instructions off the “longest path”. The examples below illuminate this.</p>
 <p>The builder has alignment contexts that influence how a schedule is built. The default is <code class="docutils literal notranslate"><span class="pre">align_left</span></code>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Left align example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
-    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_left</span><span class="p">():</span>
-        <span class="n">gaussian_pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-
-<span class="n">program</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_24_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_24_0.png" />
-</div>
-</div>
-<p>Notice how there is no scheduling freedom for the pulses on <code class="docutils literal notranslate"><span class="pre">D1</span></code>. The second waveform begins immediately after the first. The pulse on <code class="docutils literal notranslate"><span class="pre">D0</span></code> can start at any time between <code class="docutils literal notranslate"><span class="pre">t=0</span></code> and <code class="docutils literal notranslate"><span class="pre">t=100</span></code> without changing the duration of the overall schedule. The <code class="docutils literal notranslate"><span class="pre">align_left</span></code> context sets the start time of this pulse to <code class="docutils literal notranslate"><span class="pre">t=0</span></code>. You can think of this like left-justification of a text document.</p>
-<p>Unsurprisingly, <code class="docutils literal notranslate"><span class="pre">align_right</span></code> does the opposite of <code class="docutils literal notranslate"><span class="pre">align_left</span></code>. It will choose <code class="docutils literal notranslate"><span class="pre">t=100</span></code> in the above example to begin the gaussian pulse on <code class="docutils literal notranslate"><span class="pre">D0</span></code>. Left and right are also sometimes called “as soon as possible” and “as late as possible” scheduling, respectively.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Right align example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
-    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_right</span><span class="p">():</span>
-        <span class="n">gaussian_pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-
-<span class="n">program</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_26_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_26_0.png" />
-</div>
-</div>
-<p>If the duration of a particular block is known, you can also use <code class="docutils literal notranslate"><span class="pre">align_equispaced</span></code> to insert equal duration delays between each instruction.</p>
-<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
-    <span class="n">gaussian_pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_equispaced</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">gaussian_pulse</span><span class="o">.</span><span class="n">duration</span><span class="p">):</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Left align example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_left</span><span class="p">():</span>
+        <span class="n">gaussian_pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
 
 <span class="n">program</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
@@ -851,18 +846,19 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 <img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_28_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_28_0.png" />
 </div>
 </div>
-<p>This alignment context does not schedule instructions in parallel. Each instruction will begin at the end of the previously added instruction.</p>
+<p>Notice how there is no scheduling freedom for the pulses on <code class="docutils literal notranslate"><span class="pre">D1</span></code>. The second waveform begins immediately after the first. The pulse on <code class="docutils literal notranslate"><span class="pre">D0</span></code> can start at any time between <code class="docutils literal notranslate"><span class="pre">t=0</span></code> and <code class="docutils literal notranslate"><span class="pre">t=100</span></code> without changing the duration of the overall schedule. The <code class="docutils literal notranslate"><span class="pre">align_left</span></code> context sets the start time of this pulse to <code class="docutils literal notranslate"><span class="pre">t=0</span></code>. You can think of this like left-justification of a text document.</p>
+<p>Unsurprisingly, <code class="docutils literal notranslate"><span class="pre">align_right</span></code> does the opposite of <code class="docutils literal notranslate"><span class="pre">align_left</span></code>. It will choose <code class="docutils literal notranslate"><span class="pre">t=100</span></code> in the above example to begin the gaussian pulse on <code class="docutils literal notranslate"><span class="pre">D0</span></code>. Left and right are also sometimes called “as soon as possible” and “as late as possible” scheduling, respectively.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
-    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_sequential</span><span class="p">():</span>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Right align example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_right</span><span class="p">():</span>
         <span class="n">gaussian_pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
 
 <span class="n">program</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
@@ -876,17 +872,18 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 <img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_30_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_30_0.png" />
 </div>
 </div>
-<p>We can use the builder to help us temporarily offset the frequency or phase of our pulses on a channel.</p>
+<p>If the duration of a particular block is known, you can also use <code class="docutils literal notranslate"><span class="pre">align_equispaced</span></code> to insert equal duration delays between each instruction.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Offset example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
-    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">phase_offset</span><span class="p">(</span><span class="mf">3.14</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">)):</span>
-        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-        <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">frequency_offset</span><span class="p">(</span><span class="mf">10e6</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">)):</span>
-            <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
+    <span class="n">gaussian_pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_equispaced</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">gaussian_pulse</span><span class="o">.</span><span class="n">duration</span><span class="p">):</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
 
 <span class="n">program</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
@@ -900,9 +897,58 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 <img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_32_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_32_0.png" />
 </div>
 </div>
-<p>We encourage you to visit the <a class="reference external" href="https://qiskit.org/documentation/apidoc/pulse.html">Pulse API reference</a> to learn more.</p>
+<p>This alignment context does not schedule instructions in parallel. Each instruction will begin at the end of the previously added instruction.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">align_sequential</span><span class="p">():</span>
+        <span class="n">gaussian_pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">program</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_34_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_34_0.png" />
+</div>
+</div>
+<p>We can use the builder to help us temporarily offset the frequency or phase of our pulses on a channel.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Offset example&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">program</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">phase_offset</span><span class="p">(</span><span class="mf">3.14</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">)):</span>
+        <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">frequency_offset</span><span class="p">(</span><span class="mf">10e6</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">)):</span>
+            <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">gaussian_pulse</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">drive_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+<span class="n">program</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_36_0.png" src="../../_images/tutorials_circuits_advanced_06_building_pulse_schedules_36_0.png" />
+</div>
+</div>
+<p>We encourage you to visit the <a class="reference external" href="https://qiskit.org/documentation/apidoc/pulse.html">Pulse API reference</a> to learn more.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -915,24 +961,24 @@ the signal sent to the qubit is demonstrated by the right side of the image belo
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/Users/thomas/opt/anaconda3/envs/qiskit-3.8/lib/python3.8/site-packages/qiskit/aqua/operators/operator_globals.py:48: DeprecationWarning: `from_label` is deprecated and will be removed no earlier than 3 months after the release date. Use Pauli(label) instead.
+  X = make_immutable(PrimitiveOp(Pauli.from_label(&#39;X&#39;)))
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.23.2</td></tr><tr><td>Terra</td><td>0.16.2</td></tr><tr><td>Aer</td><td>0.7.2</td></tr><tr><td>Ignis</td><td>0.5.1</td></tr><tr><td>Aqua</td><td>0.8.1</td></tr><tr><td>IBM Q Provider</td><td>0.11.1</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.9.1 (default, Dec 10 2020, 10:36:35)
-[Clang 12.0.0 (clang-1200.0.32.27)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>6</td></tr><tr><td>Memory (Gb)</td><td>32.0</td></tr><tr><td colspan='2'>Tue Jan 26 15:26:12 2021 EST</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.23.6</td></tr><tr><td>Terra</td><td>0.17.0</td></tr><tr><td>Aer</td><td>0.7.5</td></tr><tr><td>Ignis</td><td>0.5.2</td></tr><tr><td>Aqua</td><td>0.8.2</td></tr><tr><td>IBM Q Provider</td><td>0.11.1</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.8.5 (default, Aug  5 2020, 03:39:04)
+[Clang 10.0.0 ]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>8</td></tr><tr><td>Memory (Gb)</td><td>32.0</td></tr><tr><td colspan='2'>Sat Feb 27 11:04:23 2021 AST</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
 <div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2021.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>
-</pre></div>
-</div>
 </div>
 </div>
 
