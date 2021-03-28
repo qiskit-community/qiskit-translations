@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Transpiler Passes and Pass Manager &mdash; documentación de Qiskit - 0.24.1</title>
+  <title>Pases al Transpilador y administrador de pases &mdash; documentación de Qiskit - 0.24.1</title>
   
 
   
@@ -241,7 +241,7 @@
         
           <li><a href="index.html">Tutoriales de Circuitos Avanzados</a> &gt;</li>
         
-      <li>Transpiler Passes and Pass Manager</li>
+      <li>Pases al Transpilador y administrador de pases</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
@@ -524,14 +524,13 @@ div.rendered_html tbody tr:hover {
 <p>Esta página ha sido generada a partir de <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/circuits_advanced/04_transpiler_passes_and_passmanager.ipynb">tutorials/circuits_advanced/04_transpiler_passes_and_passmanager.ipynb</a>.</p>
 <p>Puedes correr esta sección de manera interactiva en el <a class="reference external" href="https://quantum-computing.ibm.com/jupyter/tutorial/circuits_advanced/04_transpiler_passes_and_passmanager.ipynb">IBM Quantum lab</a>.</p>
 </div>
-<div class="section" id="Transpiler-Passes-and-Pass-Manager">
-<h1>Transpiler Passes and Pass Manager<a class="headerlink" href="#Transpiler-Passes-and-Pass-Manager" title="Enlazar permanentemente con este título">¶</a></h1>
-<div class="section" id="Introduction">
-<h2>Introduction<a class="headerlink" href="#Introduction" title="Enlazar permanentemente con este título">¶</a></h2>
-<p>A central component of Qiskit Terra is the transpiler, which is designed for modularity and extensibility. The goal is to be able to easily write new circuit transformations (known as transpiler <strong>passes</strong>), and combine them with other existing passes. Which passes are chained together and in which order has a major effect on the final outcome. This pipeline is determined by a <strong>pass manager</strong>, which schedules the passes and also allows passes to communicate with each other by providing a shared
-space. In this way, the transpiler opens up the door for research into aggressive optimization of quantum circuits.</p>
-<p>In this notebook, we look at the built-in passes, how to use the pass manager, and develop a simple custom transpiler pass. In order to do the latter, we first need to introduce the internal representation of quantum circuits in Qiskit, in the form of a Directed Acyclic Graph, or <strong>DAG</strong>. Then, we illustrate a simple swap mapper pass, which transforms an input circuit to be compatible with a limited-connectivity quantum device.</p>
-<p><strong>Before you start</strong>: You may need to install the <code class="docutils literal notranslate"><span class="pre">pydot</span></code> library and the <code class="docutils literal notranslate"><span class="pre">graphviz</span></code> library for the DAG plotting routines. If you are using Anaconda Python, you can install both with the <code class="docutils literal notranslate"><span class="pre">conda</span></code> command. If you use your system’s native Python interpreter, install <code class="docutils literal notranslate"><span class="pre">pydot</span></code> using the <code class="docutils literal notranslate"><span class="pre">pip</span></code> command, and install <code class="docutils literal notranslate"><span class="pre">graphviz</span></code> using your system’s native package manager (e.g. <code class="docutils literal notranslate"><span class="pre">yum</span></code>, <code class="docutils literal notranslate"><span class="pre">apt</span></code>, <code class="docutils literal notranslate"><span class="pre">dnf</span></code>, <code class="docutils literal notranslate"><span class="pre">brew</span></code>, etc.).</p>
+<div class="section" id="Pases-al-Transpilador-y-administrador-de-pases">
+<h1>Pases al Transpilador y administrador de pases<a class="headerlink" href="#Pases-al-Transpilador-y-administrador-de-pases" title="Enlazar permanentemente con este título">¶</a></h1>
+<div class="section" id="Introducción">
+<h2>Introducción<a class="headerlink" href="#Introducción" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Un componente central de Qiskit Terra es el transpilador, el cual esta diseñado para modularidad y extensibilidad. El objetivo es lograr escribir fácilmente transformaciones de circuitos (conocidos como <strong>pases</strong> al transpilador), y combinarlos con otros pases existentes. Cuales pases son conectados y en que orden tiene un efecto substancial en el resultado final. Este camino es determinado por un <strong>administrador de pases</strong>, el cual ordena los pases y también permite que los pases se comuniquen entre si, proporcionándoles un espacio compartido. De esta manera, el transpilador abre la puerta a investigación a circuitos cuánticos de optimización agresivos.</p>
+<p>En este cuaderno revisaremos los pases integrados en Qiskit, como usar el administrador de pases y el desarrollo de un pase al transpilador simple. Para poder hacer esto ultimo, primero tenemos que introducir la representación interna de los circuitos cuánticos en Qiskit, en la forma de Grafos Acíclicos Dirigidos o <strong>DAG</strong>. Después, ilustraremos un simple pase de intercambio de mapeo, el cuál transforma un circuito de entrada a uno compatible con un dispositivo cuántico con conectividad limitada.</p>
+<p><strong>Antes de comenzar</strong>: Es posible que necesites instalar las librerias <code class="docutils literal notranslate"><span class="pre">pydot</span></code> y <code class="docutils literal notranslate"><span class="pre">graphviz</span></code> para las rutinas de graficado de DAG. Si usas Anaconda Python, puedes instalar ambos con el comando <code class="docutils literal notranslate"><span class="pre">conda</span></code>. Si usas el interprete de Python nativo a tu sistema, puedes instalar <code class="docutils literal notranslate"><span class="pre">pydot</span></code> con el comando <code class="docutils literal notranslate"><span class="pre">pip</span></code>, y <code class="docutils literal notranslate"><span class="pre">graphviz</span></code> con el administrador de paquetes nativo a tu sistema (por ejemplo, <code class="docutils literal notranslate"><span class="pre">yum</span></code>, <code class="docutils literal notranslate"><span class="pre">apt</span></code>, <code class="docutils literal notranslate"><span class="pre">dnf</span></code>, <code class="docutils literal notranslate"><span class="pre">brew</span></code>, etc.).</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -545,9 +544,9 @@ space. In this way, the transpiler opens up the door for research into aggressiv
 </div>
 </div>
 </div>
-<div class="section" id="PassManager-object">
-<h2>PassManager object<a class="headerlink" href="#PassManager-object" title="Enlazar permanentemente con este título">¶</a></h2>
-<p>Lets you specify the set of passes you want.</p>
+<div class="section" id="Objeto-PassManager">
+<h2>Objeto PassManager<a class="headerlink" href="#Objeto-PassManager" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Te permite especificar el conjunto de pases que quieres.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -588,7 +587,7 @@ space. In this way, the transpiler opens up the door for research into aggressiv
 <img alt="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_6_0.png" src="../../_images/tutorials_circuits_advanced_04_transpiler_passes_and_passmanager_6_0.png" />
 </div>
 </div>
-<p>All of Qiskit’s transpiler passes are accessible from <code class="docutils literal notranslate"><span class="pre">qiskit.transpiler.passes</span></code>.</p>
+<p>Todos los pases al transpilador de Qiskit son accesibles con <code class="docutils literal notranslate"><span class="pre">qiskit.transpiler.passes</span></code>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -656,10 +655,10 @@ space. In this way, the transpiler opens up the door for research into aggressiv
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Different-Variants-of-the-Same-Pass">
-<h2>Different Variants of the Same Pass<a class="headerlink" href="#Different-Variants-of-the-Same-Pass" title="Enlazar permanentemente con este título">¶</a></h2>
-<p>There can be passes that do the same job, but in different ways. For example, the <code class="docutils literal notranslate"><span class="pre">TrivialLayout</span></code>, <code class="docutils literal notranslate"><span class="pre">DenseLayout</span></code> and <code class="docutils literal notranslate"><span class="pre">NoiseAdaptiveLayout</span></code> all choose a layout (binding of virtual qubits to physical qubits), but use different algorithms and objectives. Similarly, the <code class="docutils literal notranslate"><span class="pre">BasicSwap</span></code>, <code class="docutils literal notranslate"><span class="pre">LookaheadSwap</span></code> and <code class="docutils literal notranslate"><span class="pre">StochasticSwap</span></code> all insert swaps to make the circuit compatible with the coupling map. The modularity of the transpiler allows plug-and-play replacements for each pass.</p>
-<p>Below, we show the swapper passes all applied to the same circuit, to transform it to match a linear chain topology. You can see differences in performance, where the <code class="docutils literal notranslate"><span class="pre">StochasticSwap</span></code> is clearly the best. However, this can vary depending on the input circuit.</p>
+<div class="section" id="Diferentes-variantes-del-mismo-pase">
+<h2>Diferentes variantes del mismo pase<a class="headerlink" href="#Diferentes-variantes-del-mismo-pase" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Puede haber diferentes pases que hagan lo mismo pero de diferente manera. Por ejemplo, los pases <code class="docutils literal notranslate"><span class="pre">TrivialLayout</span></code>, <code class="docutils literal notranslate"><span class="pre">DenseLayout</span></code> y <code class="docutils literal notranslate"><span class="pre">NoiseAdaptiveLayout</span></code> escogen un acomodo (enlace entre qubits virtuales a qubits físicos), pero usan diferentes algoritmos y objetivos. Similarmente, los pases <code class="docutils literal notranslate"><span class="pre">BasicSwap</span></code>, <code class="docutils literal notranslate"><span class="pre">LookaheadSwap</span></code> y <code class="docutils literal notranslate"><span class="pre">StochasticSwap</span></code> insertan intercambios para hacer a los circuitos compatibles con un mapa de acoplamiento. La modularidad del transpilador permite hacer cambios a los pases y ejecutarlos fácilmente.</p>
+<p>A continuación mostramos los todos pases de intercambio aplicados a un mismo circuito, para transformarlo para que coincida con una topología de cadena lineal. Las diferencias en rendimiento son evidentes, donde <code class="docutils literal notranslate"><span class="pre">StochasticSwap</span></code> es claramente el mejor. Sin embargo, esto puede variar dependiendo el circuito de entrada.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
@@ -1906,10 +1905,10 @@ qiskit.compiler.transpile - MainProcess - INFO: Total Transpile Time - 172.73402
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">Transpiler Passes and Pass Manager</a><ul>
-<li><a class="reference internal" href="#Introduction">Introduction</a></li>
-<li><a class="reference internal" href="#PassManager-object">PassManager object</a></li>
-<li><a class="reference internal" href="#Different-Variants-of-the-Same-Pass">Different Variants of the Same Pass</a></li>
+<li><a class="reference internal" href="#">Pases al Transpilador y administrador de pases</a><ul>
+<li><a class="reference internal" href="#Introducción">Introducción</a></li>
+<li><a class="reference internal" href="#Objeto-PassManager">Objeto PassManager</a></li>
+<li><a class="reference internal" href="#Diferentes-variantes-del-mismo-pase">Diferentes variantes del mismo pase</a></li>
 <li><a class="reference internal" href="#Preset-Pass-Managers">Preset Pass Managers</a></li>
 <li><a class="reference internal" href="#Introducing-the-DAG">Introducing the DAG</a></li>
 <li><a class="reference internal" href="#Implementing-a-BasicMapper-Pass">Implementing a BasicMapper Pass</a></li>
