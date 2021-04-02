@@ -22,6 +22,7 @@ qiskit.pulse.instructions.Instruction
       ~Instruction.draw
       ~Instruction.flatten
       ~Instruction.insert
+      ~Instruction.is_parameterized
       ~Instruction.shift
    
    
@@ -33,14 +34,13 @@ qiskit.pulse.instructions.Instruction
    .. autosummary::
    
       ~Instruction.channels
-      ~Instruction.command
       ~Instruction.duration
       ~Instruction.id
       ~Instruction.instructions
       ~Instruction.name
       ~Instruction.operands
+      ~Instruction.parameters
       ~Instruction.start_time
       ~Instruction.stop_time
-      ~Instruction.timeslots
    
    

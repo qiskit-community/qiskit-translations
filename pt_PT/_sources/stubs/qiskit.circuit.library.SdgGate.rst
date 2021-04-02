@@ -27,6 +27,7 @@
       ~SdgGate.qasm
       ~SdgGate.repeat
       ~SdgGate.reverse_ops
+      ~SdgGate.soft_compare
       ~SdgGate.to_matrix
       ~SdgGate.validate_parameter
    

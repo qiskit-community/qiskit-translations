@@ -15,8 +15,6 @@
    
       ~InequalityToEquality.__init__
       ~InequalityToEquality.convert
-      ~InequalityToEquality.decode
-      ~InequalityToEquality.encode
       ~InequalityToEquality.interpret
    
    

@@ -26,6 +26,7 @@
    
       ~AncillaRegister.instances_counter
       ~AncillaRegister.name
+      ~AncillaRegister.name_format
       ~AncillaRegister.prefix
       ~AncillaRegister.size
    

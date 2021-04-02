@@ -47,6 +47,7 @@
 
    .. autosummary::
    
+      ~MatrixOp.ENABLE_DEPRECATION
       ~MatrixOp.INDENTATION
       ~MatrixOp.coeff
       ~MatrixOp.num_qubits

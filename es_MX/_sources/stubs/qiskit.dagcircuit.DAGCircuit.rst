@@ -14,12 +14,16 @@
    .. autosummary::
    
       ~DAGCircuit.__init__
+      ~DAGCircuit.add_calibration
+      ~DAGCircuit.add_clbits
       ~DAGCircuit.add_creg
       ~DAGCircuit.add_qreg
+      ~DAGCircuit.add_qubits
       ~DAGCircuit.ancestors
       ~DAGCircuit.apply_operation_back
       ~DAGCircuit.apply_operation_front
       ~DAGCircuit.bfs_successors
+      ~DAGCircuit.collect_1q_runs
       ~DAGCircuit.collect_runs
       ~DAGCircuit.compose
       ~DAGCircuit.compose_back
@@ -80,10 +84,8 @@
    .. autosummary::
    
       ~DAGCircuit.calibrations
-      ~DAGCircuit.clbits
       ~DAGCircuit.global_phase
       ~DAGCircuit.node_counter
-      ~DAGCircuit.qubits
       ~DAGCircuit.wires
    
    

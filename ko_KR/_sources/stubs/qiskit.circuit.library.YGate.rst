@@ -27,6 +27,7 @@
       ~YGate.qasm
       ~YGate.repeat
       ~YGate.reverse_ops
+      ~YGate.soft_compare
       ~YGate.to_matrix
       ~YGate.validate_parameter
    

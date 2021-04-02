@@ -24,7 +24,6 @@
       ~NoiseModel.from_dict
       ~NoiseModel.is_ideal
       ~NoiseModel.reset
-      ~NoiseModel.set_x90_single_qubit_gates
       ~NoiseModel.to_dict
    
    

@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.operators.state_fns.cvar_measurement &mdash; Tài liệu Qiskit 0.24.1</title>
+  <title>qiskit.aqua.operators.state_fns.cvar_measurement &mdash; Tài liệu Qiskit 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Trình cung cấp lượng tử IBM Qiskit</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Xử lí sự cố</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Mã lỗi IBM Quantum API</a></li>
@@ -301,7 +305,7 @@
   <h1>Source code for qiskit.aqua.operators.state_fns.cvar_measurement</h1><div class="highlight"><pre>
 <span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
-<span class="c1"># (C) Copyright IBM 2020.</span>
+<span class="c1"># (C) Copyright IBM 2020, 2021.</span>
 <span class="c1">#</span>
 <span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
 <span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
@@ -314,7 +318,7 @@
 <span class="sd">&quot;&quot;&quot;CVaRMeasurement class.&quot;&quot;&quot;</span>
 
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">AquaError</span>
@@ -447,14 +451,89 @@
 
 <div class="viewcode-block" id="CVaRMeasurement.eval"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.state_fns.CVaRMeasurement.html#qiskit.aqua.operators.state_fns.CVaRMeasurement.eval">[docs]</a>    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
              <span class="n">front</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-                          <span class="n">OperatorBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">OperatorBase</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">]:</span>
+                          <span class="n">OperatorBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">]:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given the energies of each sampled measurement outcome (H_i) as well as the</span>
+<span class="sd">        sampling probability of each measurement outcome (p_i, we can compute the</span>
+<span class="sd">        CVaR as H_j + 1/α*(sum_i&lt;j p_i*(H_i - H_j)). Note that index j corresponds</span>
+<span class="sd">        to the measurement outcome such that only some of the samples with</span>
+<span class="sd">        measurement outcome j will be used in computing CVaR. Note also that the</span>
+<span class="sd">        sampling probabilities serve as an alternative to knowing the counts of each</span>
+<span class="sd">        observation.</span>
 
+<span class="sd">        This computation is broken up into two subroutines. One which evaluates each</span>
+<span class="sd">        measurement outcome and determines the sampling probabilities of each. And one</span>
+<span class="sd">        which carries out the above calculation. The computation is split up this way</span>
+<span class="sd">        to enable a straightforward calculation of the variance of this estimator.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            front: A StateFn or primitive which specifies the results of evaluating</span>
+<span class="sd">                      a quantum state.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The CVaR of the diagonal observable specified by self.primitive and</span>
+<span class="sd">                the sampled quantum state described by the inputs</span>
+<span class="sd">                (energies, probabilities). For index j (described above), the CVaR</span>
+<span class="sd">                is computed as H_j + 1/α*(sum_i&lt;j p_i*(H_i - H_j))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">energies</span><span class="p">,</span> <span class="n">probabilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_outcome_energies_probabilities</span><span class="p">(</span><span class="n">front</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_cvar</span><span class="p">(</span><span class="n">energies</span><span class="p">,</span> <span class="n">probabilities</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CVaRMeasurement.eval_variance"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.state_fns.CVaRMeasurement.html#qiskit.aqua.operators.state_fns.CVaRMeasurement.eval_variance">[docs]</a>    <span class="k">def</span> <span class="nf">eval_variance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                      <span class="n">front</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                                   <span class="n">OperatorBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">]:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given the energies of each sampled measurement outcome (H_i) as well as the</span>
+<span class="sd">        sampling probability of each measurement outcome (p_i, we can compute the</span>
+<span class="sd">        variance of the CVaR estimator as</span>
+<span class="sd">        H_j^2 + 1/α * (sum_i&lt;j p_i*(H_i^2 - H_j^2)).</span>
+<span class="sd">        This follows from the definition that Var[X] = E[X^2] - E[X]^2.</span>
+<span class="sd">        In this case, X = E[&lt;bi|H|bi&gt;], where H is the diagonal observable and bi</span>
+<span class="sd">        corresponds to measurement outcome i. Given this, E[X^2] = E[&lt;bi|H|bi&gt;^2]</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            front: A StateFn or primitive which specifies the results of evaluating</span>
+<span class="sd">                      a quantum state.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The Var[CVaR] of the diagonal observable specified by self.primitive</span>
+<span class="sd">                and the sampled quantum state described by the inputs</span>
+<span class="sd">                (energies, probabilities). For index j (described above), the CVaR</span>
+<span class="sd">                is computed as H_j^2 + 1/α*(sum_i&lt;j p_i*(H_i^2 - H_j^2))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">energies</span><span class="p">,</span> <span class="n">probabilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_outcome_energies_probabilities</span><span class="p">(</span><span class="n">front</span><span class="p">)</span>
+        <span class="n">sq_energies</span> <span class="o">=</span> <span class="p">[</span><span class="n">energy</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">energy</span> <span class="ow">in</span> <span class="n">energies</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_cvar</span><span class="p">(</span><span class="n">sq_energies</span><span class="p">,</span> <span class="n">probabilities</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">front</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span></div>
+
+<div class="viewcode-block" id="CVaRMeasurement.get_outcome_energies_probabilities"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.state_fns.CVaRMeasurement.html#qiskit.aqua.operators.state_fns.CVaRMeasurement.get_outcome_energies_probabilities">[docs]</a>    <span class="k">def</span> <span class="nf">get_outcome_energies_probabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                           <span class="n">front</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                                                        <span class="n">OperatorBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        In order to compute the  CVaR of an observable expectation, we require</span>
+<span class="sd">        the energies of each sampled measurement outcome as well as the sampling</span>
+<span class="sd">        probability of each measurement outcome. Note that the counts for each</span>
+<span class="sd">        measurement outcome will also suffice (and this is often how the CVaR</span>
+<span class="sd">        is presented).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            front: A StateFn or a primitive which defines a StateFn.</span>
+<span class="sd">                   This input holds the results of a sampled/simulated circuit.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Two lists of equal length. `energies` contains the energy of each</span>
+<span class="sd">                unique measurement outcome computed against the diagonal observable</span>
+<span class="sd">                stored in self.primitive. `probabilities` contains the corresponding</span>
+<span class="sd">                sampling probability for each measurement outcome in `energies`.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: front isn&#39;t a DictStateFn or VectorStateFn</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.dict_state_fn</span> <span class="kn">import</span> <span class="n">DictStateFn</span>
         <span class="kn">from</span> <span class="nn">.vector_state_fn</span> <span class="kn">import</span> <span class="n">VectorStateFn</span>
         <span class="kn">from</span> <span class="nn">.circuit_state_fn</span> <span class="kn">import</span> <span class="n">CircuitStateFn</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">front</span><span class="p">,</span> <span class="n">CircuitStateFn</span><span class="p">):</span>
-            <span class="n">front</span> <span class="o">=</span> <span class="n">front</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+            <span class="n">front</span> <span class="o">=</span> <span class="n">front</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
 
         <span class="c1"># Standardize the inputs to a dict</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">front</span><span class="p">,</span> <span class="n">DictStateFn</span><span class="p">):</span>
@@ -463,13 +542,13 @@
             <span class="n">vec</span> <span class="o">=</span> <span class="n">front</span><span class="o">.</span><span class="n">primitive</span><span class="o">.</span><span class="n">data</span>
             <span class="c1"># Determine how many bits are needed</span>
             <span class="n">key_len</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vec</span><span class="p">))))</span>
+            <span class="c1"># Convert the vector primitive into a dict. The formatting here ensures</span>
+            <span class="c1"># that the proper number of leading `0` characters are added.</span>
             <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="nb">format</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">key_len</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;b&#39;</span><span class="p">):</span> <span class="n">val</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vec</span><span class="p">)}</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unsupported input to CVaRMeasurement.eval:&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">front</span><span class="p">))</span>
 
         <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitive</span>
-        <span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span>
-
         <span class="n">outcomes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
         <span class="c1"># add energy evaluation</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">outcome</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">outcomes</span><span class="p">):</span>
@@ -482,11 +561,46 @@
         <span class="c1"># Here probabilities are the (root) probabilities of</span>
         <span class="c1"># observing each state. energies are the expectation</span>
         <span class="c1"># values of each state with the provided Hamiltonian.</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">probabilities</span><span class="p">,</span> <span class="n">energies</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">outcomes</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">root_probabilities</span><span class="p">,</span> <span class="n">energies</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">outcomes</span><span class="p">)</span>
 
         <span class="c1"># Square the dict values</span>
         <span class="c1"># (since CircuitSampler takes the root...)</span>
-        <span class="n">probabilities</span> <span class="o">=</span> <span class="p">[</span><span class="n">p_i</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">p_i</span><span class="p">)</span> <span class="k">for</span> <span class="n">p_i</span> <span class="ow">in</span> <span class="n">probabilities</span><span class="p">]</span>
+        <span class="n">probabilities</span> <span class="o">=</span> <span class="p">[</span><span class="n">p_i</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">p_i</span><span class="p">)</span> <span class="k">for</span> <span class="n">p_i</span> <span class="ow">in</span> <span class="n">root_probabilities</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">energies</span><span class="p">,</span> <span class="n">probabilities</span></div>
+
+<div class="viewcode-block" id="CVaRMeasurement.compute_cvar"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.state_fns.CVaRMeasurement.html#qiskit.aqua.operators.state_fns.CVaRMeasurement.compute_cvar">[docs]</a>    <span class="k">def</span> <span class="nf">compute_cvar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                     <span class="n">energies</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+                     <span class="n">probabilities</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">]:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given the energies of each sampled measurement outcome (H_i) as well as the</span>
+<span class="sd">        sampling probability of each measurement outcome (p_i, we can compute the</span>
+<span class="sd">        CVaR. Note that the sampling probabilities serve as an alternative to knowing</span>
+<span class="sd">        the counts of each observation and that the input energies are assumed to be</span>
+<span class="sd">        sorted in increasing order.</span>
+
+<span class="sd">        Consider the outcome with index j, such that only some of the samples with</span>
+<span class="sd">        measurement outcome j will be used in computing CVaR. The CVaR calculation</span>
+<span class="sd">        can then be separated into two parts. First we sum each of the energies for</span>
+<span class="sd">        outcomes i &lt; j, weighted by the probability of observing that outcome (i.e</span>
+<span class="sd">        the normalized counts). Second, we add the energy for outcome j, weighted by</span>
+<span class="sd">        the difference (α  - \sum_i&lt;j p_i)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            energies: A list containing the energies (H_i) of each sample measurement</span>
+<span class="sd">                      outcome, sorted in increasing order.</span>
+<span class="sd">            probabilities: The sampling probabilities (p_i) for each corresponding</span>
+<span class="sd">                           measurement outcome.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The CVaR of the diagonal observable specified by self.primitive and</span>
+<span class="sd">                the sampled quantum state described by the inputs</span>
+<span class="sd">                (energies, probabilities). For index j (described above), the CVaR</span>
+<span class="sd">                is computed as H_j + 1/α * (sum_i&lt;j p_i*(H_i - H_j))</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: front isn&#39;t a DictStateFn or VectorStateFn</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span>
 
         <span class="c1"># Determine j, the index of the measurement outcome such</span>
         <span class="c1"># that only some samples with this outcome will be used to</span>
@@ -510,7 +624,7 @@
         <span class="c1"># Let H_i be the energy associated with outcome i</span>
         <span class="c1"># and let the outcomes be sorted by ascending energy.</span>
         <span class="c1"># Let p_i be the probability of observing outcome i.</span>
-        <span class="c1"># CVaR = alpha*H_j + \sum_i p_i*(H_i - H_j)</span>
+        <span class="c1"># CVaR = H_j + 1/α*(sum_i&lt;j p_i*(H_i - H_j))</span>
         <span class="k">for</span> <span class="n">h_i</span><span class="p">,</span> <span class="n">p_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">energies</span><span class="p">,</span> <span class="n">probabilities</span><span class="p">):</span>
             <span class="n">cvar</span> <span class="o">+=</span> <span class="n">p_i</span> <span class="o">*</span> <span class="p">(</span><span class="n">h_i</span> <span class="o">-</span> <span class="n">h_j</span><span class="p">)</span>
 
@@ -576,7 +690,7 @@
             <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="n">ListOp</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">traverse</span><span class="p">(</span><span class="n">_check_is_diagonal</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">traverse</span><span class="p">(</span><span class="n">_check_is_diagonal</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
 
     <span class="c1"># cannot efficiently check if a operator is diagonal, converting to matrix</span>
     <span class="n">matrix</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
@@ -716,20 +830,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

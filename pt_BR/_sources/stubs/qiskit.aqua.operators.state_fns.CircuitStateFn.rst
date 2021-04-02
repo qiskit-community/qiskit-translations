@@ -49,6 +49,7 @@
 
    .. autosummary::
    
+      ~CircuitStateFn.ENABLE_DEPRECATION
       ~CircuitStateFn.INDENTATION
       ~CircuitStateFn.coeff
       ~CircuitStateFn.is_measurement

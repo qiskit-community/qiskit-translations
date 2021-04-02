@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~QuadraticForm.__init__
+      ~QuadraticForm.add_bits
       ~QuadraticForm.add_calibration
       ~QuadraticForm.add_register
       ~QuadraticForm.append
@@ -48,9 +49,9 @@
       ~QuadraticForm.decompose
       ~QuadraticForm.delay
       ~QuadraticForm.depth
-      ~QuadraticForm.diag_gate
       ~QuadraticForm.diagonal
       ~QuadraticForm.draw
+      ~QuadraticForm.ecr
       ~QuadraticForm.extend
       ~QuadraticForm.fredkin
       ~QuadraticForm.from_qasm_file
@@ -65,7 +66,6 @@
       ~QuadraticForm.iso
       ~QuadraticForm.isometry
       ~QuadraticForm.iswap
-      ~QuadraticForm.mcmt
       ~QuadraticForm.mcp
       ~QuadraticForm.mcrx
       ~QuadraticForm.mcry
@@ -76,13 +76,13 @@
       ~QuadraticForm.measure
       ~QuadraticForm.measure_active
       ~QuadraticForm.measure_all
-      ~QuadraticForm.mirror
       ~QuadraticForm.ms
       ~QuadraticForm.num_connected_components
       ~QuadraticForm.num_nonlocal_gates
       ~QuadraticForm.num_tensor_factors
       ~QuadraticForm.num_unitary_factors
       ~QuadraticForm.p
+      ~QuadraticForm.pauli
       ~QuadraticForm.power
       ~QuadraticForm.qasm
       ~QuadraticForm.qbit_argument_conversion
@@ -98,6 +98,7 @@
       ~QuadraticForm.reset
       ~QuadraticForm.reverse_bits
       ~QuadraticForm.reverse_ops
+      ~QuadraticForm.rv
       ~QuadraticForm.rx
       ~QuadraticForm.rxx
       ~QuadraticForm.ry
@@ -106,7 +107,26 @@
       ~QuadraticForm.rzx
       ~QuadraticForm.rzz
       ~QuadraticForm.s
+      ~QuadraticForm.save_amplitudes
+      ~QuadraticForm.save_amplitudes_squared
+      ~QuadraticForm.save_density_matrix
+      ~QuadraticForm.save_expectation_value
+      ~QuadraticForm.save_expectation_value_variance
+      ~QuadraticForm.save_matrix_product_state
+      ~QuadraticForm.save_probabilities
+      ~QuadraticForm.save_probabilities_dict
+      ~QuadraticForm.save_stabilizer
+      ~QuadraticForm.save_state
+      ~QuadraticForm.save_statevector
+      ~QuadraticForm.save_statevector_dict
+      ~QuadraticForm.save_superop
+      ~QuadraticForm.save_unitary
       ~QuadraticForm.sdg
+      ~QuadraticForm.set_density_matrix
+      ~QuadraticForm.set_stabilizer
+      ~QuadraticForm.set_statevector
+      ~QuadraticForm.set_superop
+      ~QuadraticForm.set_unitary
       ~QuadraticForm.size
       ~QuadraticForm.snapshot
       ~QuadraticForm.snapshot_density_matrix
@@ -120,6 +140,7 @@
       ~QuadraticForm.sxdg
       ~QuadraticForm.t
       ~QuadraticForm.tdg
+      ~QuadraticForm.tensor
       ~QuadraticForm.to_gate
       ~QuadraticForm.to_instruction
       ~QuadraticForm.toffoli
@@ -153,6 +174,7 @@
       ~QuadraticForm.global_phase
       ~QuadraticForm.header
       ~QuadraticForm.instances
+      ~QuadraticForm.metadata
       ~QuadraticForm.num_ancillas
       ~QuadraticForm.num_clbits
       ~QuadraticForm.num_parameters

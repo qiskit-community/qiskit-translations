@@ -26,6 +26,7 @@
       ~SnapshotStatevector.qasm
       ~SnapshotStatevector.repeat
       ~SnapshotStatevector.reverse_ops
+      ~SnapshotStatevector.soft_compare
       ~SnapshotStatevector.validate_parameter
    
    

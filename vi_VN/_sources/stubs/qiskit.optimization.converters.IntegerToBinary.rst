@@ -15,8 +15,6 @@
    
       ~IntegerToBinary.__init__
       ~IntegerToBinary.convert
-      ~IntegerToBinary.decode
-      ~IntegerToBinary.encode
       ~IntegerToBinary.interpret
    
    

@@ -46,6 +46,7 @@
 
    .. autosummary::
    
+      ~VectorStateFn.ENABLE_DEPRECATION
       ~VectorStateFn.INDENTATION
       ~VectorStateFn.coeff
       ~VectorStateFn.is_measurement

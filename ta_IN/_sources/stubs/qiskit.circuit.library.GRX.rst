@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~GRX.__init__
+      ~GRX.add_bits
       ~GRX.add_calibration
       ~GRX.add_register
       ~GRX.append
@@ -48,9 +49,9 @@
       ~GRX.decompose
       ~GRX.delay
       ~GRX.depth
-      ~GRX.diag_gate
       ~GRX.diagonal
       ~GRX.draw
+      ~GRX.ecr
       ~GRX.extend
       ~GRX.fredkin
       ~GRX.from_qasm_file
@@ -65,7 +66,6 @@
       ~GRX.iso
       ~GRX.isometry
       ~GRX.iswap
-      ~GRX.mcmt
       ~GRX.mcp
       ~GRX.mcrx
       ~GRX.mcry
@@ -76,13 +76,13 @@
       ~GRX.measure
       ~GRX.measure_active
       ~GRX.measure_all
-      ~GRX.mirror
       ~GRX.ms
       ~GRX.num_connected_components
       ~GRX.num_nonlocal_gates
       ~GRX.num_tensor_factors
       ~GRX.num_unitary_factors
       ~GRX.p
+      ~GRX.pauli
       ~GRX.power
       ~GRX.qasm
       ~GRX.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~GRX.reset
       ~GRX.reverse_bits
       ~GRX.reverse_ops
+      ~GRX.rv
       ~GRX.rx
       ~GRX.rxx
       ~GRX.ry
@@ -105,7 +106,26 @@
       ~GRX.rzx
       ~GRX.rzz
       ~GRX.s
+      ~GRX.save_amplitudes
+      ~GRX.save_amplitudes_squared
+      ~GRX.save_density_matrix
+      ~GRX.save_expectation_value
+      ~GRX.save_expectation_value_variance
+      ~GRX.save_matrix_product_state
+      ~GRX.save_probabilities
+      ~GRX.save_probabilities_dict
+      ~GRX.save_stabilizer
+      ~GRX.save_state
+      ~GRX.save_statevector
+      ~GRX.save_statevector_dict
+      ~GRX.save_superop
+      ~GRX.save_unitary
       ~GRX.sdg
+      ~GRX.set_density_matrix
+      ~GRX.set_stabilizer
+      ~GRX.set_statevector
+      ~GRX.set_superop
+      ~GRX.set_unitary
       ~GRX.size
       ~GRX.snapshot
       ~GRX.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~GRX.sxdg
       ~GRX.t
       ~GRX.tdg
+      ~GRX.tensor
       ~GRX.to_gate
       ~GRX.to_instruction
       ~GRX.toffoli
@@ -152,6 +173,7 @@
       ~GRX.global_phase
       ~GRX.header
       ~GRX.instances
+      ~GRX.metadata
       ~GRX.num_ancillas
       ~GRX.num_clbits
       ~GRX.num_parameters

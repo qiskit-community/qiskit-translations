@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.ignis.verification.randomized_benchmarking.circuits &mdash; Dokumentasi Qiskit 0.24.1</title>
+  <title>qiskit.ignis.verification.randomized_benchmarking.circuits &mdash; Dokumentasi Qiskit 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Penyelesaian masalah</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Kode error IBM Quantum API</a></li>
@@ -424,7 +428,7 @@
     <span class="k">return</span> <span class="n">pattern_flat</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">pattern_flat</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">pattern_dim</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">handle_interleaved_elem</span><span class="p">(</span><span class="n">interleaved_elem</span><span class="p">,</span> <span class="n">rb_group</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">handle_interleaved_elem</span><span class="p">(</span><span class="n">interleaved_elem</span><span class="p">,</span> <span class="n">rb_group</span><span class="p">,</span> <span class="n">keep_original_interleaved_elem</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Handle the various types of the interleaved element</span>
 
 <span class="sd">    Args:</span>
@@ -433,6 +437,8 @@
 <span class="sd">            List[qiskit.quantum_info.operators.symplectic.Clifford].</span>
 <span class="sd">            not None only for interleaved RB</span>
 <span class="sd">        rb_group (RBgroup): the relevant RBgroup class object</span>
+<span class="sd">        keep_original_interleaved_elem (bool): whether to transform the</span>
+<span class="sd">        original element to group element or keep as it is</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: if interleaved_elem does not have one of the relevant types,</span>
@@ -448,27 +454,35 @@
     <span class="k">if</span> <span class="n">interleaved_elem</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
 
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">interleaved_elem</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="p">(</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">)):</span>
-                <span class="n">num_qubits</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">num_qubits</span>
-                <span class="n">qc</span> <span class="o">=</span> <span class="n">elem</span>
-                <span class="n">elem</span> <span class="o">=</span> <span class="n">rb_group</span><span class="o">.</span><span class="n">iden</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
-                <span class="n">elem</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">from_circuit</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span>
-            <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">qiskit</span><span class="o">.</span><span class="n">quantum_info</span><span class="o">.</span><span class="n">operators</span><span class="o">.</span><span class="n">symplectic</span><span class="o">.</span><span class="n">clifford</span><span class="o">.</span><span class="n">Clifford</span><span class="p">)</span>
-                    <span class="ow">and</span> <span class="n">group_gates_type</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">CNOTDihedral</span><span class="p">)</span>
-                                                   <span class="ow">and</span> <span class="n">group_gates_type</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
-                <span class="n">interleaved_elem_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid interleaved element type.&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">interleaved_elem</span><span class="p">:</span>
+        <span class="n">group_elem</span> <span class="o">=</span> <span class="n">elem</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="p">(</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">)):</span>
+            <span class="n">num_qubits</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">num_qubits</span>
+            <span class="n">group_elem</span> <span class="o">=</span> <span class="n">rb_group</span><span class="o">.</span><span class="n">iden</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
+            <span class="n">group_elem</span> <span class="o">=</span> <span class="n">group_elem</span><span class="o">.</span><span class="n">from_circuit</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">group_elem</span><span class="p">,</span> <span class="n">qiskit</span><span class="o">.</span><span class="n">quantum_info</span><span class="o">.</span><span class="n">operators</span><span class="o">.</span><span class="n">symplectic</span><span class="o">.</span><span class="n">clifford</span><span class="o">.</span><span class="n">Clifford</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="n">group_gates_type</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> \
+                <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">group_elem</span><span class="p">,</span> <span class="n">CNOTDihedral</span><span class="p">)</span> <span class="ow">and</span> <span class="n">group_gates_type</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid interleaved element type.&quot;</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">)</span> <span class="ow">and</span> \
-                    <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span>
-                                   <span class="n">qiskit</span><span class="o">.</span><span class="n">quantum_info</span><span class="o">.</span><span class="n">operators</span><span class="o">.</span><span class="n">symplectic</span><span class="o">.</span><span class="n">clifford</span><span class="o">.</span><span class="n">Clifford</span><span class="p">)</span> \
-                    <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">CNOTDihedral</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid interleaved element type. &quot;</span>
-                                 <span class="s2">&quot;interleaved_elem should be a list of QuantumCircuit,&quot;</span>
-                                 <span class="s2">&quot;or a list of Clifford / CNOTDihedral objects&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">group_elem</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">)</span> <span class="ow">and</span> \
+                <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">group_elem</span><span class="p">,</span>
+                               <span class="n">qiskit</span><span class="o">.</span><span class="n">quantum_info</span><span class="o">.</span><span class="n">operators</span><span class="o">.</span><span class="n">symplectic</span><span class="o">.</span><span class="n">clifford</span><span class="o">.</span><span class="n">Clifford</span><span class="p">)</span> \
+                <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">group_elem</span><span class="p">,</span> <span class="n">CNOTDihedral</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid interleaved element type. &quot;</span>
+                             <span class="s2">&quot;interleaved_elem should be a list of QuantumCircuit,&quot;</span>
+                             <span class="s2">&quot;or a list of Clifford / CNOTDihedral objects&quot;</span><span class="p">)</span>
+
+        <span class="n">circuit_elem</span> <span class="o">=</span> <span class="n">rb_group</span><span class="o">.</span><span class="n">to_circuit</span><span class="p">(</span><span class="n">group_elem</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">keep_original_interleaved_elem</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">):</span>
+                <span class="n">circuit_elem</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
+                <span class="n">circuit_elem</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+                <span class="n">circuit_elem</span> <span class="o">=</span> <span class="n">elem</span>
+
+        <span class="n">interleaved_elem_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">circuit_elem</span><span class="p">,</span> <span class="n">group_elem</span><span class="p">))</span>
+
     <span class="k">return</span> <span class="n">interleaved_elem_list</span>
 
 
@@ -503,6 +517,7 @@
                                     <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Instruction</span><span class="p">],</span>
                                           <span class="n">List</span><span class="p">[</span><span class="n">qiskit</span><span class="o">.</span><span class="n">quantum_info</span><span class="o">.</span><span class="n">operators</span><span class="o">.</span><span class="n">symplectic</span><span class="o">.</span><span class="n">Clifford</span><span class="p">],</span>
                                           <span class="n">List</span><span class="p">[</span><span class="n">CNOTDihedral</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                <span class="n">keep_original_interleaved_elem</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                                 <span class="n">is_purity</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                                 <span class="n">group_gates</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                                 <span class="n">rand_seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">RandomState</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> \
@@ -567,6 +582,10 @@
 <span class="sd">            It is not ``None`` only for interleaved randomized benchmarking.</span>
 <span class="sd">            The lengths of the lists should be equal to the length of the</span>
 <span class="sd">            lists in ``rb_pattern``.</span>
+
+<span class="sd">        keep_original_interleaved_elem: whether to keep the original interleaved</span>
+<span class="sd">        element as it is when adding it to the RB circuits or to transform</span>
+<span class="sd">        it to a standard representation via group elements</span>
 
 <span class="sd">        is_purity: ``True`` only for purity randomized benchmarking</span>
 <span class="sd">            (default is ``False``).</span>
@@ -702,7 +721,9 @@
     <span class="n">rb_circ_type</span> <span class="o">=</span> <span class="n">rb_group</span><span class="o">.</span><span class="n">rb_circ_type</span><span class="p">()</span>
 
     <span class="c1"># Handle various types of the interleaved element</span>
-    <span class="n">interleaved_elem</span> <span class="o">=</span> <span class="n">handle_interleaved_elem</span><span class="p">(</span><span class="n">interleaved_elem</span><span class="p">,</span> <span class="n">rb_group</span><span class="p">)</span>
+    <span class="n">interleaved_elem</span> <span class="o">=</span> <span class="n">handle_interleaved_elem</span><span class="p">(</span><span class="n">interleaved_elem</span><span class="p">,</span>
+                                               <span class="n">rb_group</span><span class="p">,</span>
+                                               <span class="n">keep_original_interleaved_elem</span><span class="p">)</span>
 
     <span class="c1"># initialization: rb sequences</span>
     <span class="n">circuits</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nseeds</span><span class="p">)]</span>
@@ -747,9 +768,9 @@
                     <span class="n">new_elmnt</span> <span class="o">=</span> <span class="n">rb_group</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">rb_q_num</span><span class="p">,</span> <span class="n">rand_seed</span><span class="p">)</span>
                     <span class="n">Elmnts</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">rb_group</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span>
                         <span class="n">Elmnts</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">],</span> <span class="n">new_elmnt</span><span class="p">)</span>
-                    <span class="n">general_circ</span> <span class="o">+=</span> <span class="n">replace_q_indices</span><span class="p">(</span>
+                    <span class="n">general_circ</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">replace_q_indices</span><span class="p">(</span>
                         <span class="n">rb_group</span><span class="o">.</span><span class="n">to_circuit</span><span class="p">(</span><span class="n">new_elmnt</span><span class="p">),</span>
-                        <span class="n">rb_pattern</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">],</span> <span class="n">qr</span><span class="p">)</span>
+                        <span class="n">rb_pattern</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">],</span> <span class="n">qr</span><span class="p">),</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
                     <span class="c1"># add a barrier</span>
                     <span class="n">general_circ</span><span class="o">.</span><span class="n">barrier</span><span class="p">(</span>
@@ -761,21 +782,20 @@
                             <span class="n">rb_group</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span>
                                 <span class="n">Elmnts_interleaved</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">],</span>
                                 <span class="n">new_elmnt</span><span class="p">)</span>
-                        <span class="n">interleaved_circ</span> <span class="o">+=</span> <span class="n">replace_q_indices</span><span class="p">(</span>
+                        <span class="n">interleaved_circ</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">replace_q_indices</span><span class="p">(</span>
                             <span class="n">rb_group</span><span class="o">.</span><span class="n">to_circuit</span><span class="p">(</span>
                                 <span class="n">new_elmnt</span><span class="p">),</span>
-                            <span class="n">rb_pattern</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">],</span> <span class="n">qr</span><span class="p">)</span>
+                            <span class="n">rb_pattern</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">],</span> <span class="n">qr</span><span class="p">),</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                         <span class="n">Elmnts_interleaved</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">]</span> <span class="o">=</span> \
                             <span class="n">rb_group</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span>
                                 <span class="n">Elmnts_interleaved</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">],</span>
-                                <span class="n">interleaved_elem</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">])</span>
+                                <span class="n">interleaved_elem</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
                         <span class="c1"># add a barrier - interleaved rb</span>
                         <span class="n">interleaved_circ</span><span class="o">.</span><span class="n">barrier</span><span class="p">(</span>
                             <span class="o">*</span><span class="p">[</span><span class="n">qr</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">rb_pattern</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">]])</span>
-                        <span class="n">interleaved_circ</span> <span class="o">+=</span> <span class="n">replace_q_indices</span><span class="p">(</span>
-                            <span class="n">rb_group</span><span class="o">.</span><span class="n">to_circuit</span><span class="p">(</span>
-                                <span class="n">interleaved_elem</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">]),</span>
-                            <span class="n">rb_pattern</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">],</span> <span class="n">qr</span><span class="p">)</span>
+                        <span class="n">interleaved_circ</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">replace_q_indices</span><span class="p">(</span>
+                            <span class="n">interleaved_elem</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                            <span class="n">rb_pattern</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">],</span> <span class="n">qr</span><span class="p">),</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                         <span class="c1"># add a barrier - interleaved rb</span>
                         <span class="n">interleaved_circ</span><span class="o">.</span><span class="n">barrier</span><span class="p">(</span>
                             <span class="o">*</span><span class="p">[</span><span class="n">qr</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">rb_pattern</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">]])</span>
@@ -794,30 +814,31 @@
             <span class="k">if</span> <span class="p">(</span><span class="n">elmnts_index</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">length_vector</span><span class="p">[</span><span class="n">length_index</span><span class="p">]:</span>
                 <span class="c1"># circ for rb:</span>
                 <span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qr</span><span class="p">,</span> <span class="n">cr</span><span class="p">)</span>
-                <span class="n">circ</span> <span class="o">+=</span> <span class="n">general_circ</span>
+                <span class="n">circ</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">general_circ</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="c1"># circ_interleaved for interleaved rb:</span>
                 <span class="n">circ_interleaved</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qr</span><span class="p">,</span> <span class="n">cr</span><span class="p">)</span>
-                <span class="n">circ_interleaved</span> <span class="o">+=</span> <span class="n">interleaved_circ</span>
+                <span class="n">circ_interleaved</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">interleaved_circ</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
                 <span class="k">for</span> <span class="p">(</span><span class="n">rb_pattern_index</span><span class="p">,</span> <span class="n">rb_q_num</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pattern_sizes</span><span class="p">):</span>
                     <span class="n">inv_circuit</span> <span class="o">=</span> <span class="n">rb_group</span><span class="o">.</span><span class="n">inverse</span><span class="p">(</span><span class="n">Elmnts</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">])</span>
-                    <span class="n">circ</span> <span class="o">+=</span> <span class="n">replace_q_indices</span><span class="p">(</span><span class="n">inv_circuit</span><span class="p">,</span>
-                                              <span class="n">rb_pattern</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">],</span> <span class="n">qr</span><span class="p">)</span>
+                    <span class="n">circ</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">replace_q_indices</span><span class="p">(</span><span class="n">inv_circuit</span><span class="p">,</span>
+                                                   <span class="n">rb_pattern</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">],</span> <span class="n">qr</span><span class="p">),</span>
+                                 <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                     <span class="c1"># calculate the inverse and produce the circuit</span>
                     <span class="c1"># for interleaved rb</span>
                     <span class="k">if</span> <span class="n">interleaved_elem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">inv_circuit_interleaved</span> <span class="o">=</span> <span class="n">rb_group</span><span class="o">.</span><span class="n">inverse</span><span class="p">(</span>
                             <span class="n">Elmnts_interleaved</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">])</span>
-                        <span class="n">circ_interleaved</span> <span class="o">+=</span> <span class="n">replace_q_indices</span><span class="p">(</span>
+                        <span class="n">circ_interleaved</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">replace_q_indices</span><span class="p">(</span>
                             <span class="n">inv_circuit_interleaved</span><span class="p">,</span>
-                            <span class="n">rb_pattern</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">],</span> <span class="n">qr</span><span class="p">)</span>
+                            <span class="n">rb_pattern</span><span class="p">[</span><span class="n">rb_pattern_index</span><span class="p">],</span> <span class="n">qr</span><span class="p">),</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
                 <span class="c1"># Circuits for purity rb</span>
                 <span class="k">if</span> <span class="n">is_purity</span><span class="p">:</span>
                     <span class="n">circ_purity</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">npurity</span><span class="p">)]</span>
                     <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">npurity</span><span class="p">):</span>
                         <span class="n">circ_purity</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qr</span><span class="p">,</span> <span class="n">cr</span><span class="p">)</span>
-                        <span class="n">circ_purity</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">+=</span> <span class="n">circ</span>
+                        <span class="n">circ_purity</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                         <span class="n">circ_purity</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">rb_circ_type</span> <span class="o">+</span> <span class="s1">&#39;_purity_&#39;</span>
                         <span class="n">ind_d</span> <span class="o">=</span> <span class="n">d</span>
                         <span class="n">purity_qubit_num</span> <span class="o">=</span> <span class="mi">0</span>
@@ -865,8 +886,8 @@
                         <span class="n">cnotdihedral_circ</span><span class="o">.</span><span class="n">barrier</span><span class="p">(</span><span class="n">qr</span><span class="p">[</span><span class="n">qb</span><span class="p">])</span>
                         <span class="n">cnotdihedral_interleaved_circ</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="n">qr</span><span class="p">[</span><span class="n">qb</span><span class="p">])</span>
                         <span class="n">cnotdihedral_interleaved_circ</span><span class="o">.</span><span class="n">barrier</span><span class="p">(</span><span class="n">qr</span><span class="p">[</span><span class="n">qb</span><span class="p">])</span>
-                    <span class="n">cnotdihedral_circ</span> <span class="o">+=</span> <span class="n">circ</span>
-                    <span class="n">cnotdihedral_interleaved_circ</span> <span class="o">+=</span> <span class="n">circ_interleaved</span>
+                    <span class="n">cnotdihedral_circ</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">cnotdihedral_interleaved_circ</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">circ_interleaved</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">qb</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qlist_flat</span><span class="p">):</span>
                         <span class="n">cnotdihedral_circ</span><span class="o">.</span><span class="n">barrier</span><span class="p">(</span><span class="n">qr</span><span class="p">[</span><span class="n">qb</span><span class="p">])</span>
                         <span class="n">cnotdihedral_circ</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="n">qr</span><span class="p">[</span><span class="n">qb</span><span class="p">])</span>
@@ -948,9 +969,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">new_circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qr</span><span class="p">)</span>
+    <span class="n">bit_indices</span> <span class="o">=</span> <span class="p">{</span><span class="n">bit</span><span class="p">:</span> <span class="n">index</span>
+                   <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">bit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">qubits</span><span class="p">)}</span>
     <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">qargs</span><span class="p">,</span> <span class="n">cargs</span> <span class="ow">in</span> <span class="n">circuit</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
         <span class="n">new_qargs</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">qr</span><span class="p">[</span><span class="n">q_nums</span><span class="p">[</span><span class="n">x</span><span class="p">]]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">]]</span>
+            <span class="n">qr</span><span class="p">[</span><span class="n">q_nums</span><span class="p">[</span><span class="n">x</span><span class="p">]]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="n">bit_indices</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">]]</span>
         <span class="n">new_op</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">((</span><span class="n">instr</span><span class="p">,</span> <span class="n">new_qargs</span><span class="p">,</span> <span class="n">cargs</span><span class="p">))</span>
         <span class="n">new_circuit</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_op</span><span class="p">)</span>
 
@@ -1087,20 +1110,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

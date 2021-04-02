@@ -27,6 +27,7 @@
       ~CZGate.qasm
       ~CZGate.repeat
       ~CZGate.reverse_ops
+      ~CZGate.soft_compare
       ~CZGate.to_matrix
       ~CZGate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~CZGate.definition
       ~CZGate.duration
       ~CZGate.label
+      ~CZGate.name
       ~CZGate.num_ctrl_qubits
       ~CZGate.params
       ~CZGate.unit

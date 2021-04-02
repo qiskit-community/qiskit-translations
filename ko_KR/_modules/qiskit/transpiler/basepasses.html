@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.basepasses &mdash; Qiskit 0.24.1 문서</title>
+  <title>qiskit.transpiler.basepasses &mdash; Qiskit 0.25.0 문서</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/aqua.html">키스킷 아쿠아</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/ibmq-provider.html">아이비엠 양자 시스템 공급자</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">문제 해결</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Quantum API error codes</a></li>
@@ -356,6 +360,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">property_set</span> <span class="o">=</span> <span class="n">PropertySet</span><span class="p">()</span>  <span class="c1"># This pass&#39;s pointer to the pass manager&#39;s property set.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span> <span class="o">=</span> <span class="kc">None</span>
 
+    <span class="c1"># pylint: disable=invalid-hash-returned</span>
     <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span>
 
@@ -396,15 +401,55 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">AnalysisPass</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">property_set</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Runs the pass on circuit.</span>
 
-<span class="k">class</span> <span class="nc">AnalysisPass</span><span class="p">(</span><span class="n">BasePass</span><span class="p">):</span>  <span class="c1"># pylint: disable=abstract-method</span>
+<span class="sd">        Args:</span>
+<span class="sd">            circuit (QuantumCircuit): the dag on which the pass is run.</span>
+<span class="sd">            property_set (PropertySet or dict or None): input/output property set. An analysis pass</span>
+<span class="sd">                might change the property set in-place.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            QuantumCircuit: If on transformation pass, the resulting QuantumCircuit. If analysis</span>
+<span class="sd">                   pass, the input circuit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">qiskit.converters</span> <span class="kn">import</span> <span class="n">circuit_to_dag</span><span class="p">,</span> <span class="n">dag_to_circuit</span>
+        <span class="kn">from</span> <span class="nn">qiskit.dagcircuit.dagcircuit</span> <span class="kn">import</span> <span class="n">DAGCircuit</span>
+
+        <span class="n">property_set_</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">property_set</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>  <span class="c1"># this includes (dict, PropertySet)</span>
+            <span class="n">property_set_</span> <span class="o">=</span> <span class="n">PropertySet</span><span class="p">(</span><span class="n">property_set</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">property_set_</span><span class="p">,</span> <span class="n">PropertySet</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">property_set</span> <span class="o">=</span> <span class="n">property_set_</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit_to_dag</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+
+        <span class="n">result_circuit</span> <span class="o">=</span> <span class="n">circuit</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">property_set</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>  <span class="c1"># this includes (dict, PropertySet)</span>
+            <span class="n">property_set</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="n">property_set</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">property_set</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">DAGCircuit</span><span class="p">):</span>
+            <span class="n">result_circuit</span> <span class="o">=</span> <span class="n">dag_to_circuit</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result_circuit</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">property_set</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">]:</span>
+            <span class="n">result_circuit</span><span class="o">.</span><span class="n">_layout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">property_set</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">result_circuit</span>
+
+
+<div class="viewcode-block" id="AnalysisPass"><a class="viewcode-back" href="../../../stubs/qiskit.transpiler.AnalysisPass.html#qiskit.transpiler.AnalysisPass">[문서]</a><span class="k">class</span> <span class="nc">AnalysisPass</span><span class="p">(</span><span class="n">BasePass</span><span class="p">):</span>  <span class="c1"># pylint: disable=abstract-method</span>
     <span class="sd">&quot;&quot;&quot;An analysis pass: change property set, not DAG.&quot;&quot;&quot;</span>
-    <span class="k">pass</span>
+    <span class="k">pass</span></div>
 
 
-<span class="k">class</span> <span class="nc">TransformationPass</span><span class="p">(</span><span class="n">BasePass</span><span class="p">):</span>  <span class="c1"># pylint: disable=abstract-method</span>
+<div class="viewcode-block" id="TransformationPass"><a class="viewcode-back" href="../../../stubs/qiskit.transpiler.TransformationPass.html#qiskit.transpiler.TransformationPass">[문서]</a><span class="k">class</span> <span class="nc">TransformationPass</span><span class="p">(</span><span class="n">BasePass</span><span class="p">):</span>  <span class="c1"># pylint: disable=abstract-method</span>
     <span class="sd">&quot;&quot;&quot;A transformation pass: change DAG, not property set.&quot;&quot;&quot;</span>
-    <span class="k">pass</span>
+    <span class="k">pass</span></div>
 </pre></div>
 
              </article>
@@ -537,20 +582,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

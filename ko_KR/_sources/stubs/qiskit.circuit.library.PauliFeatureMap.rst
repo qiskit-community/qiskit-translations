@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~PauliFeatureMap.__init__
+      ~PauliFeatureMap.add_bits
       ~PauliFeatureMap.add_calibration
       ~PauliFeatureMap.add_layer
       ~PauliFeatureMap.add_register
@@ -49,9 +50,9 @@
       ~PauliFeatureMap.decompose
       ~PauliFeatureMap.delay
       ~PauliFeatureMap.depth
-      ~PauliFeatureMap.diag_gate
       ~PauliFeatureMap.diagonal
       ~PauliFeatureMap.draw
+      ~PauliFeatureMap.ecr
       ~PauliFeatureMap.extend
       ~PauliFeatureMap.fredkin
       ~PauliFeatureMap.from_qasm_file
@@ -68,7 +69,6 @@
       ~PauliFeatureMap.iso
       ~PauliFeatureMap.isometry
       ~PauliFeatureMap.iswap
-      ~PauliFeatureMap.mcmt
       ~PauliFeatureMap.mcp
       ~PauliFeatureMap.mcrx
       ~PauliFeatureMap.mcry
@@ -79,13 +79,13 @@
       ~PauliFeatureMap.measure
       ~PauliFeatureMap.measure_active
       ~PauliFeatureMap.measure_all
-      ~PauliFeatureMap.mirror
       ~PauliFeatureMap.ms
       ~PauliFeatureMap.num_connected_components
       ~PauliFeatureMap.num_nonlocal_gates
       ~PauliFeatureMap.num_tensor_factors
       ~PauliFeatureMap.num_unitary_factors
       ~PauliFeatureMap.p
+      ~PauliFeatureMap.pauli
       ~PauliFeatureMap.pauli_block
       ~PauliFeatureMap.pauli_evolution
       ~PauliFeatureMap.power
@@ -103,6 +103,7 @@
       ~PauliFeatureMap.reset
       ~PauliFeatureMap.reverse_bits
       ~PauliFeatureMap.reverse_ops
+      ~PauliFeatureMap.rv
       ~PauliFeatureMap.rx
       ~PauliFeatureMap.rxx
       ~PauliFeatureMap.ry
@@ -111,7 +112,26 @@
       ~PauliFeatureMap.rzx
       ~PauliFeatureMap.rzz
       ~PauliFeatureMap.s
+      ~PauliFeatureMap.save_amplitudes
+      ~PauliFeatureMap.save_amplitudes_squared
+      ~PauliFeatureMap.save_density_matrix
+      ~PauliFeatureMap.save_expectation_value
+      ~PauliFeatureMap.save_expectation_value_variance
+      ~PauliFeatureMap.save_matrix_product_state
+      ~PauliFeatureMap.save_probabilities
+      ~PauliFeatureMap.save_probabilities_dict
+      ~PauliFeatureMap.save_stabilizer
+      ~PauliFeatureMap.save_state
+      ~PauliFeatureMap.save_statevector
+      ~PauliFeatureMap.save_statevector_dict
+      ~PauliFeatureMap.save_superop
+      ~PauliFeatureMap.save_unitary
       ~PauliFeatureMap.sdg
+      ~PauliFeatureMap.set_density_matrix
+      ~PauliFeatureMap.set_stabilizer
+      ~PauliFeatureMap.set_statevector
+      ~PauliFeatureMap.set_superop
+      ~PauliFeatureMap.set_unitary
       ~PauliFeatureMap.size
       ~PauliFeatureMap.snapshot
       ~PauliFeatureMap.snapshot_density_matrix
@@ -125,6 +145,7 @@
       ~PauliFeatureMap.sxdg
       ~PauliFeatureMap.t
       ~PauliFeatureMap.tdg
+      ~PauliFeatureMap.tensor
       ~PauliFeatureMap.to_gate
       ~PauliFeatureMap.to_instruction
       ~PauliFeatureMap.toffoli
@@ -150,6 +171,7 @@
 
    .. autosummary::
    
+      ~PauliFeatureMap.alpha
       ~PauliFeatureMap.ancillas
       ~PauliFeatureMap.calibrations
       ~PauliFeatureMap.clbits
@@ -163,6 +185,7 @@
       ~PauliFeatureMap.initial_state
       ~PauliFeatureMap.insert_barriers
       ~PauliFeatureMap.instances
+      ~PauliFeatureMap.metadata
       ~PauliFeatureMap.num_ancillas
       ~PauliFeatureMap.num_clbits
       ~PauliFeatureMap.num_layers

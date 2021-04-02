@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~AND.__init__
+      ~AND.add_bits
       ~AND.add_calibration
       ~AND.add_register
       ~AND.append
@@ -48,9 +49,9 @@
       ~AND.decompose
       ~AND.delay
       ~AND.depth
-      ~AND.diag_gate
       ~AND.diagonal
       ~AND.draw
+      ~AND.ecr
       ~AND.extend
       ~AND.fredkin
       ~AND.from_qasm_file
@@ -65,7 +66,6 @@
       ~AND.iso
       ~AND.isometry
       ~AND.iswap
-      ~AND.mcmt
       ~AND.mcp
       ~AND.mcrx
       ~AND.mcry
@@ -76,13 +76,13 @@
       ~AND.measure
       ~AND.measure_active
       ~AND.measure_all
-      ~AND.mirror
       ~AND.ms
       ~AND.num_connected_components
       ~AND.num_nonlocal_gates
       ~AND.num_tensor_factors
       ~AND.num_unitary_factors
       ~AND.p
+      ~AND.pauli
       ~AND.power
       ~AND.qasm
       ~AND.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~AND.reset
       ~AND.reverse_bits
       ~AND.reverse_ops
+      ~AND.rv
       ~AND.rx
       ~AND.rxx
       ~AND.ry
@@ -105,7 +106,26 @@
       ~AND.rzx
       ~AND.rzz
       ~AND.s
+      ~AND.save_amplitudes
+      ~AND.save_amplitudes_squared
+      ~AND.save_density_matrix
+      ~AND.save_expectation_value
+      ~AND.save_expectation_value_variance
+      ~AND.save_matrix_product_state
+      ~AND.save_probabilities
+      ~AND.save_probabilities_dict
+      ~AND.save_stabilizer
+      ~AND.save_state
+      ~AND.save_statevector
+      ~AND.save_statevector_dict
+      ~AND.save_superop
+      ~AND.save_unitary
       ~AND.sdg
+      ~AND.set_density_matrix
+      ~AND.set_stabilizer
+      ~AND.set_statevector
+      ~AND.set_superop
+      ~AND.set_unitary
       ~AND.size
       ~AND.snapshot
       ~AND.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~AND.sxdg
       ~AND.t
       ~AND.tdg
+      ~AND.tensor
       ~AND.to_gate
       ~AND.to_instruction
       ~AND.toffoli
@@ -152,6 +173,7 @@
       ~AND.global_phase
       ~AND.header
       ~AND.instances
+      ~AND.metadata
       ~AND.num_ancillas
       ~AND.num_clbits
       ~AND.num_parameters

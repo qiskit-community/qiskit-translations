@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.dagcircuit.dagdependency &mdash; documentación de Qiskit - 0.24.1</title>
+  <title>qiskit.dagcircuit.dagdependency &mdash; documentación de Qiskit - 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/ibmq-provider.html">Proveedor Cuántico IBM Qiskit</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Solución de Problemas</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Códigos de error de IBM Quantum API</a></li>
@@ -318,11 +322,10 @@
 <span class="kn">import</span> <span class="nn">heapq</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">defaultdict</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 <span class="kn">import</span> <span class="nn">retworkx</span> <span class="k">as</span> <span class="nn">rx</span>
 
-<span class="kn">from</span> <span class="nn">qiskit.circuit.quantumregister</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit.classicalregister</span> <span class="kn">import</span> <span class="n">ClassicalRegister</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.quantumregister</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">Qubit</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.classicalregister</span> <span class="kn">import</span> <span class="n">ClassicalRegister</span><span class="p">,</span> <span class="n">Clbit</span>
 <span class="kn">from</span> <span class="nn">qiskit.dagcircuit.exceptions</span> <span class="kn">import</span> <span class="n">DAGDependencyError</span>
 <span class="kn">from</span> <span class="nn">qiskit.dagcircuit.dagdepnode</span> <span class="kn">import</span> <span class="n">DAGDepNode</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators</span> <span class="kn">import</span> <span class="n">Operator</span>
@@ -371,6 +374,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Circuit name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Circuit metadata</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># Directed multigraph whose nodes are operations(gates) and edges</span>
         <span class="c1"># represent non-commutativity between two gates.</span>
@@ -429,16 +435,20 @@
         <span class="sd">&quot;&quot;&quot;Set the circuit calibration data from a dictionary of calibration definition.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            calibrations (dict): A dictionary of input in th format</span>
+<span class="sd">            calibrations (dict): A dictionary of input in the format</span>
 <span class="sd">                {&#39;gate_name&#39;: {(qubits, gate_params): schedule}}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_calibrations</span> <span class="o">=</span> <span class="n">calibrations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calibrations</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="n">calibrations</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DAGDependency.to_networkx"><a class="viewcode-back" href="../../../stubs/qiskit.dagcircuit.DAGDependency.html#qiskit.dagcircuit.DAGDependency.to_networkx">[documentos]</a>    <span class="k">def</span> <span class="nf">to_networkx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a copy of the DAGDependency in networkx format.&quot;&quot;&quot;</span>
         <span class="c1"># For backwards compatibility, return networkx structure from terra 0.12</span>
         <span class="c1"># where DAGNodes instances are used as indexes on the networkx graph.</span>
-
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;Networkx is needed to use to_networkx(). It &quot;</span>
+                              <span class="s2">&quot;can be installed with &#39;pip install networkx&#39;&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
         <span class="n">dag_networkx</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">MultiDiGraph</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nodes</span><span class="p">():</span>
@@ -465,6 +475,28 @@
         <span class="n">depth</span> <span class="o">=</span> <span class="n">rx</span><span class="o">.</span><span class="n">dag_longest_path_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_multi_graph</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">depth</span> <span class="k">if</span> <span class="n">depth</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span></div>
 
+<div class="viewcode-block" id="DAGDependency.add_qubits"><a class="viewcode-back" href="../../../stubs/qiskit.dagcircuit.DAGDependency.html#qiskit.dagcircuit.DAGDependency.add_qubits">[documentos]</a>    <span class="k">def</span> <span class="nf">add_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubits</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add individual qubit wires.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qubit</span><span class="p">,</span> <span class="n">Qubit</span><span class="p">)</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">DAGDependencyError</span><span class="p">(</span><span class="s2">&quot;not a Qubit instance.&quot;</span><span class="p">)</span>
+
+        <span class="n">duplicate_qubits</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qubits</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">duplicate_qubits</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DAGDependencyError</span><span class="p">(</span><span class="s2">&quot;duplicate qubits </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">duplicate_qubits</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">qubits</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DAGDependency.add_clbits"><a class="viewcode-back" href="../../../stubs/qiskit.dagcircuit.DAGDependency.html#qiskit.dagcircuit.DAGDependency.add_clbits">[documentos]</a>    <span class="k">def</span> <span class="nf">add_clbits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clbits</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add individual clbit wires.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clbit</span><span class="p">,</span> <span class="n">Clbit</span><span class="p">)</span> <span class="k">for</span> <span class="n">clbit</span> <span class="ow">in</span> <span class="n">clbits</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">DAGDependencyError</span><span class="p">(</span><span class="s2">&quot;not a Clbit instance.&quot;</span><span class="p">)</span>
+
+        <span class="n">duplicate_clbits</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clbits</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">clbits</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">duplicate_clbits</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DAGDependencyError</span><span class="p">(</span><span class="s2">&quot;duplicate clbits </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">duplicate_clbits</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">clbits</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">clbits</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="DAGDependency.add_qreg"><a class="viewcode-back" href="../../../stubs/qiskit.dagcircuit.DAGDependency.html#qiskit.dagcircuit.DAGDependency.add_qreg">[documentos]</a>    <span class="k">def</span> <span class="nf">add_qreg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qreg</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add qubits in a quantum register.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qreg</span><span class="p">,</span> <span class="n">QuantumRegister</span><span class="p">):</span>
@@ -472,8 +504,10 @@
         <span class="k">if</span> <span class="n">qreg</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qregs</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">DAGDependencyError</span><span class="p">(</span><span class="s2">&quot;duplicate register </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">qreg</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qregs</span><span class="p">[</span><span class="n">qreg</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">qreg</span>
+        <span class="n">existing_qubits</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qubits</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">qreg</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">qubits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qreg</span><span class="p">[</span><span class="n">j</span><span class="p">])</span></div>
+            <span class="k">if</span> <span class="n">qreg</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">existing_qubits</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">qubits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qreg</span><span class="p">[</span><span class="n">j</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="DAGDependency.add_creg"><a class="viewcode-back" href="../../../stubs/qiskit.dagcircuit.DAGDependency.html#qiskit.dagcircuit.DAGDependency.add_creg">[documentos]</a>    <span class="k">def</span> <span class="nf">add_creg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">creg</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add clbits in a classical register.&quot;&quot;&quot;</span>
@@ -482,8 +516,10 @@
         <span class="k">if</span> <span class="n">creg</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cregs</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">DAGDependencyError</span><span class="p">(</span><span class="s2">&quot;duplicate register </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">creg</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cregs</span><span class="p">[</span><span class="n">creg</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">creg</span>
+        <span class="n">existing_clbits</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clbits</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">creg</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">clbits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">creg</span><span class="p">[</span><span class="n">j</span><span class="p">])</span></div>
+            <span class="k">if</span> <span class="n">creg</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">existing_clbits</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clbits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">creg</span><span class="p">[</span><span class="n">j</span><span class="p">])</span></div>
 
     <span class="k">def</span> <span class="nf">_add_multi_graph_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -647,16 +683,16 @@
 <span class="sd">            qargs (list[Qubit]): list of qubits on which the operation acts</span>
 <span class="sd">            cargs (list[Clbit]): list of classical wires to attach to.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">directives</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;measure&#39;</span><span class="p">,</span> <span class="s1">&#39;barrier&#39;</span><span class="p">,</span> <span class="s1">&#39;snapshot&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">operation</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">directives</span><span class="p">:</span>
+        <span class="n">directives</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;measure&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">operation</span><span class="o">.</span><span class="n">_directive</span> <span class="ow">and</span> <span class="n">operation</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">directives</span><span class="p">:</span>
             <span class="n">qindices_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">:</span>
                 <span class="n">qindices_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qubits</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">elem</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">operation</span><span class="o">.</span><span class="n">condition</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">clbit</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clbits</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">clbit</span><span class="o">.</span><span class="n">register</span> <span class="o">==</span> <span class="n">operation</span><span class="o">.</span><span class="n">condition</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">clbit</span> <span class="ow">in</span> <span class="n">operation</span><span class="o">.</span><span class="n">condition</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
                         <span class="n">initial</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clbits</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">clbit</span><span class="p">)</span>
-                        <span class="n">final</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clbits</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">clbit</span><span class="p">)</span> <span class="o">+</span> <span class="n">clbit</span><span class="o">.</span><span class="n">register</span><span class="o">.</span><span class="n">size</span>
+                        <span class="n">final</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clbits</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">clbit</span><span class="p">)</span> <span class="o">+</span> <span class="n">operation</span><span class="o">.</span><span class="n">condition</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
                         <span class="n">cindices_list</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">initial</span><span class="p">,</span> <span class="n">final</span><span class="p">)</span>
                         <span class="k">break</span>
             <span class="k">else</span><span class="p">:</span>
@@ -828,12 +864,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Create set of qubits on which the operation acts</span>
-    <span class="n">qarg1</span> <span class="o">=</span> <span class="p">[</span><span class="n">node1</span><span class="o">.</span><span class="n">qargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">node1</span><span class="o">.</span><span class="n">qargs</span><span class="p">))]</span>
-    <span class="n">qarg2</span> <span class="o">=</span> <span class="p">[</span><span class="n">node2</span><span class="o">.</span><span class="n">qargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">node2</span><span class="o">.</span><span class="n">qargs</span><span class="p">))]</span>
+    <span class="n">qarg1</span> <span class="o">=</span> <span class="p">[</span><span class="n">node1</span><span class="o">.</span><span class="n">qargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">node1</span><span class="o">.</span><span class="n">qargs</span><span class="p">))]</span>
+    <span class="n">qarg2</span> <span class="o">=</span> <span class="p">[</span><span class="n">node2</span><span class="o">.</span><span class="n">qargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">node2</span><span class="o">.</span><span class="n">qargs</span><span class="p">))]</span>
 
     <span class="c1"># Create set of cbits on which the operation acts</span>
-    <span class="n">carg1</span> <span class="o">=</span> <span class="p">[</span><span class="n">node1</span><span class="o">.</span><span class="n">qargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">node1</span><span class="o">.</span><span class="n">cargs</span><span class="p">))]</span>
-    <span class="n">carg2</span> <span class="o">=</span> <span class="p">[</span><span class="n">node2</span><span class="o">.</span><span class="n">qargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">node2</span><span class="o">.</span><span class="n">cargs</span><span class="p">))]</span>
+    <span class="n">carg1</span> <span class="o">=</span> <span class="p">[</span><span class="n">node1</span><span class="o">.</span><span class="n">cargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">node1</span><span class="o">.</span><span class="n">cargs</span><span class="p">))]</span>
+    <span class="n">carg2</span> <span class="o">=</span> <span class="p">[</span><span class="n">node2</span><span class="o">.</span><span class="n">cargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">node2</span><span class="o">.</span><span class="n">cargs</span><span class="p">))]</span>
 
     <span class="c1"># Commutation for classical conditional gates</span>
     <span class="c1"># if and only if the qubits are different.</span>
@@ -847,10 +883,10 @@
     <span class="c1"># (e.g. measure, reset, directives or pulse gates)</span>
     <span class="c1"># if and only if the qubits and clbits are different.</span>
     <span class="n">non_unitaries</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;measure&#39;</span><span class="p">,</span> <span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="s1">&#39;initialize&#39;</span><span class="p">,</span> <span class="s1">&#39;delay&#39;</span><span class="p">]</span>
-    <span class="n">directives</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;barrier&#39;</span><span class="p">,</span> <span class="s1">&#39;snapshot&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_unknown_commutator</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">non_unitaries</span> <span class="o">+</span> <span class="n">directives</span> <span class="ow">or</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">_directive</span> <span class="ow">or</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">non_unitaries</span> <span class="ow">or</span>
                 <span class="n">n</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">())</span>
 
     <span class="k">if</span> <span class="n">_unknown_commutator</span><span class="p">(</span><span class="n">node1</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_unknown_commutator</span><span class="p">(</span><span class="n">node2</span><span class="p">):</span>
@@ -1008,20 +1044,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

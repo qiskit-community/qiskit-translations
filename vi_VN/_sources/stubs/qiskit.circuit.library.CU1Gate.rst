@@ -27,6 +27,7 @@
       ~CU1Gate.qasm
       ~CU1Gate.repeat
       ~CU1Gate.reverse_ops
+      ~CU1Gate.soft_compare
       ~CU1Gate.to_matrix
       ~CU1Gate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~CU1Gate.definition
       ~CU1Gate.duration
       ~CU1Gate.label
+      ~CU1Gate.name
       ~CU1Gate.num_ctrl_qubits
       ~CU1Gate.params
       ~CU1Gate.unit

@@ -15,8 +15,6 @@
    
       ~LinearEqualityToPenalty.__init__
       ~LinearEqualityToPenalty.convert
-      ~LinearEqualityToPenalty.decode
-      ~LinearEqualityToPenalty.encode
       ~LinearEqualityToPenalty.interpret
    
    

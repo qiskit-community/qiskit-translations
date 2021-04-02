@@ -14,9 +14,11 @@
    .. autosummary::
    
       ~DAGDependency.__init__
+      ~DAGDependency.add_clbits
       ~DAGDependency.add_creg
       ~DAGDependency.add_op_node
       ~DAGDependency.add_qreg
+      ~DAGDependency.add_qubits
       ~DAGDependency.copy
       ~DAGDependency.depth
       ~DAGDependency.direct_predecessors

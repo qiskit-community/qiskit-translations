@@ -27,6 +27,7 @@
       ~C4XGate.qasm
       ~C4XGate.repeat
       ~C4XGate.reverse_ops
+      ~C4XGate.soft_compare
       ~C4XGate.to_matrix
       ~C4XGate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~C4XGate.definition
       ~C4XGate.duration
       ~C4XGate.label
+      ~C4XGate.name
       ~C4XGate.num_ctrl_qubits
       ~C4XGate.params
       ~C4XGate.unit

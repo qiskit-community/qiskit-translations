@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~UniformDistribution.__init__
+      ~UniformDistribution.add_bits
       ~UniformDistribution.add_calibration
       ~UniformDistribution.add_register
       ~UniformDistribution.append
@@ -48,9 +49,9 @@
       ~UniformDistribution.decompose
       ~UniformDistribution.delay
       ~UniformDistribution.depth
-      ~UniformDistribution.diag_gate
       ~UniformDistribution.diagonal
       ~UniformDistribution.draw
+      ~UniformDistribution.ecr
       ~UniformDistribution.extend
       ~UniformDistribution.fredkin
       ~UniformDistribution.from_qasm_file
@@ -65,7 +66,6 @@
       ~UniformDistribution.iso
       ~UniformDistribution.isometry
       ~UniformDistribution.iswap
-      ~UniformDistribution.mcmt
       ~UniformDistribution.mcp
       ~UniformDistribution.mcrx
       ~UniformDistribution.mcry
@@ -76,13 +76,13 @@
       ~UniformDistribution.measure
       ~UniformDistribution.measure_active
       ~UniformDistribution.measure_all
-      ~UniformDistribution.mirror
       ~UniformDistribution.ms
       ~UniformDistribution.num_connected_components
       ~UniformDistribution.num_nonlocal_gates
       ~UniformDistribution.num_tensor_factors
       ~UniformDistribution.num_unitary_factors
       ~UniformDistribution.p
+      ~UniformDistribution.pauli
       ~UniformDistribution.power
       ~UniformDistribution.qasm
       ~UniformDistribution.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~UniformDistribution.reset
       ~UniformDistribution.reverse_bits
       ~UniformDistribution.reverse_ops
+      ~UniformDistribution.rv
       ~UniformDistribution.rx
       ~UniformDistribution.rxx
       ~UniformDistribution.ry
@@ -105,7 +106,26 @@
       ~UniformDistribution.rzx
       ~UniformDistribution.rzz
       ~UniformDistribution.s
+      ~UniformDistribution.save_amplitudes
+      ~UniformDistribution.save_amplitudes_squared
+      ~UniformDistribution.save_density_matrix
+      ~UniformDistribution.save_expectation_value
+      ~UniformDistribution.save_expectation_value_variance
+      ~UniformDistribution.save_matrix_product_state
+      ~UniformDistribution.save_probabilities
+      ~UniformDistribution.save_probabilities_dict
+      ~UniformDistribution.save_stabilizer
+      ~UniformDistribution.save_state
+      ~UniformDistribution.save_statevector
+      ~UniformDistribution.save_statevector_dict
+      ~UniformDistribution.save_superop
+      ~UniformDistribution.save_unitary
       ~UniformDistribution.sdg
+      ~UniformDistribution.set_density_matrix
+      ~UniformDistribution.set_stabilizer
+      ~UniformDistribution.set_statevector
+      ~UniformDistribution.set_superop
+      ~UniformDistribution.set_unitary
       ~UniformDistribution.size
       ~UniformDistribution.snapshot
       ~UniformDistribution.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~UniformDistribution.sxdg
       ~UniformDistribution.t
       ~UniformDistribution.tdg
+      ~UniformDistribution.tensor
       ~UniformDistribution.to_gate
       ~UniformDistribution.to_instruction
       ~UniformDistribution.toffoli
@@ -152,6 +173,7 @@
       ~UniformDistribution.global_phase
       ~UniformDistribution.header
       ~UniformDistribution.instances
+      ~UniformDistribution.metadata
       ~UniformDistribution.num_ancillas
       ~UniformDistribution.num_clbits
       ~UniformDistribution.num_parameters

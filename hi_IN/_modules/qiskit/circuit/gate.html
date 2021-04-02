@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.circuit.gate &mdash; Qiskit 0.24.1 दिग्दर्शिका</title>
+  <title>qiskit.circuit.gate &mdash; Qiskit 0.25.0 दिग्दर्शिका</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Troubleshooting</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Quantum API error codes</a></li>
@@ -340,13 +344,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
 
+    <span class="c1"># Set higher priority than Numpy array and matrix classes</span>
+    <span class="n">__array_priority__</span> <span class="o">=</span> <span class="mi">20</span>
+
 <div class="viewcode-block" id="Gate.to_matrix"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.Gate.html#qiskit.circuit.Gate.to_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">to_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return a Numpy.array for the gate unitary matrix.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray: if the Gate subclass has a matrix definition.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            CircuitError: If a Gate subclass does not implement this method an</span>
 <span class="sd">                exception will be raised when this base class method is called.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;__array__&#39;</span><span class="p">):</span>
+            <span class="c1"># pylint: disable=no-member</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__array__</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s2">&quot;to_matrix not defined for this </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span></div>
 
 <div class="viewcode-block" id="Gate.power"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.Gate.html#qiskit.circuit.Gate.power">[docs]</a>    <span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exponent</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
@@ -512,9 +525,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="ow">or</span> <span class="n">cargs</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span>
-                <span class="s1">&#39;The amount of qubit/clbit arguments does not match the gate expectation.&#39;</span><span class="p">)</span>
+                <span class="sa">f</span><span class="s1">&#39;The amount of qubit(</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span><span class="si">}</span><span class="s1">)/clbit(</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">cargs</span><span class="p">)</span><span class="si">}</span><span class="s1">) arguments does&#39;</span>
+                <span class="sa">f</span><span class="s1">&#39; not match the gate expectation (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="si">}</span><span class="s1">).&#39;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="ow">not</span> <span class="n">qarg</span> <span class="k">for</span> <span class="n">qarg</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="n">qarg</span> <span class="k">for</span> <span class="n">qarg</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s1">&#39;One or more of the arguments are empty&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -528,7 +542,14 @@
 
 <div class="viewcode-block" id="Gate.validate_parameter"><a class="viewcode-back" href="../../../stubs/qiskit.circuit.Gate.html#qiskit.circuit.Gate.validate_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">validate_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Gate parameters should be int, float, or ParameterExpression&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameter</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">parameter</span>  <span class="c1"># expression has free parameters, we cannot validate it</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">parameter</span><span class="o">.</span><span class="n">_symbol_expr</span><span class="o">.</span><span class="n">is_real</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s2">&quot;Bound parameter expression is complex in gate </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">parameter</span>  <span class="c1"># per default assume parameters must be real when bound</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
             <span class="k">return</span> <span class="n">parameter</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">)):</span>
             <span class="k">return</span> <span class="n">parameter</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
@@ -674,20 +695,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

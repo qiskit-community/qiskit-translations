@@ -14,6 +14,8 @@
    .. autosummary::
    
       ~AcquireChannel.__init__
+      ~AcquireChannel.assign
+      ~AcquireChannel.is_parameterized
    
    
 
@@ -25,6 +27,7 @@
    
       ~AcquireChannel.index
       ~AcquireChannel.name
+      ~AcquireChannel.parameters
       ~AcquireChannel.prefix
    
    

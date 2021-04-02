@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~QuantumVolume.__init__
+      ~QuantumVolume.add_bits
       ~QuantumVolume.add_calibration
       ~QuantumVolume.add_register
       ~QuantumVolume.append
@@ -48,9 +49,9 @@
       ~QuantumVolume.decompose
       ~QuantumVolume.delay
       ~QuantumVolume.depth
-      ~QuantumVolume.diag_gate
       ~QuantumVolume.diagonal
       ~QuantumVolume.draw
+      ~QuantumVolume.ecr
       ~QuantumVolume.extend
       ~QuantumVolume.fredkin
       ~QuantumVolume.from_qasm_file
@@ -65,7 +66,6 @@
       ~QuantumVolume.iso
       ~QuantumVolume.isometry
       ~QuantumVolume.iswap
-      ~QuantumVolume.mcmt
       ~QuantumVolume.mcp
       ~QuantumVolume.mcrx
       ~QuantumVolume.mcry
@@ -76,13 +76,13 @@
       ~QuantumVolume.measure
       ~QuantumVolume.measure_active
       ~QuantumVolume.measure_all
-      ~QuantumVolume.mirror
       ~QuantumVolume.ms
       ~QuantumVolume.num_connected_components
       ~QuantumVolume.num_nonlocal_gates
       ~QuantumVolume.num_tensor_factors
       ~QuantumVolume.num_unitary_factors
       ~QuantumVolume.p
+      ~QuantumVolume.pauli
       ~QuantumVolume.power
       ~QuantumVolume.qasm
       ~QuantumVolume.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~QuantumVolume.reset
       ~QuantumVolume.reverse_bits
       ~QuantumVolume.reverse_ops
+      ~QuantumVolume.rv
       ~QuantumVolume.rx
       ~QuantumVolume.rxx
       ~QuantumVolume.ry
@@ -105,7 +106,26 @@
       ~QuantumVolume.rzx
       ~QuantumVolume.rzz
       ~QuantumVolume.s
+      ~QuantumVolume.save_amplitudes
+      ~QuantumVolume.save_amplitudes_squared
+      ~QuantumVolume.save_density_matrix
+      ~QuantumVolume.save_expectation_value
+      ~QuantumVolume.save_expectation_value_variance
+      ~QuantumVolume.save_matrix_product_state
+      ~QuantumVolume.save_probabilities
+      ~QuantumVolume.save_probabilities_dict
+      ~QuantumVolume.save_stabilizer
+      ~QuantumVolume.save_state
+      ~QuantumVolume.save_statevector
+      ~QuantumVolume.save_statevector_dict
+      ~QuantumVolume.save_superop
+      ~QuantumVolume.save_unitary
       ~QuantumVolume.sdg
+      ~QuantumVolume.set_density_matrix
+      ~QuantumVolume.set_stabilizer
+      ~QuantumVolume.set_statevector
+      ~QuantumVolume.set_superop
+      ~QuantumVolume.set_unitary
       ~QuantumVolume.size
       ~QuantumVolume.snapshot
       ~QuantumVolume.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~QuantumVolume.sxdg
       ~QuantumVolume.t
       ~QuantumVolume.tdg
+      ~QuantumVolume.tensor
       ~QuantumVolume.to_gate
       ~QuantumVolume.to_instruction
       ~QuantumVolume.toffoli
@@ -152,6 +173,7 @@
       ~QuantumVolume.global_phase
       ~QuantumVolume.header
       ~QuantumVolume.instances
+      ~QuantumVolume.metadata
       ~QuantumVolume.num_ancillas
       ~QuantumVolume.num_clbits
       ~QuantumVolume.num_parameters

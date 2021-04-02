@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.operators.expectations.cvar_expectation &mdash; Qiskit 0.24.1 documentation</title>
+  <title>qiskit.aqua.operators.expectations.cvar_expectation &mdash; Qiskit 0.25.0 documentation</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Troubleshooting</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Quantum API error codes</a></li>
@@ -317,7 +321,7 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">from</span> <span class="nn">..operator_base</span> <span class="kn">import</span> <span class="n">OperatorBase</span>
-<span class="kn">from</span> <span class="nn">..list_ops</span> <span class="kn">import</span> <span class="n">ListOp</span>
+<span class="kn">from</span> <span class="nn">..list_ops</span> <span class="kn">import</span> <span class="n">ListOp</span><span class="p">,</span> <span class="n">ComposedOp</span>
 <span class="kn">from</span> <span class="nn">..state_fns</span> <span class="kn">import</span> <span class="n">CVaRMeasurement</span><span class="p">,</span> <span class="n">OperatorStateFn</span>
 <span class="kn">from</span> <span class="nn">.expectation_base</span> <span class="kn">import</span> <span class="n">ExpectationBase</span>
 <span class="kn">from</span> <span class="nn">.pauli_expectation</span> <span class="kn">import</span> <span class="n">PauliExpectation</span>
@@ -377,7 +381,6 @@
 
 <div class="viewcode-block" id="CVaRExpectation.convert"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.expectations.CVaRExpectation.html#qiskit.aqua.operators.expectations.CVaRExpectation.convert">[docs]</a>    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operator</span><span class="p">:</span> <span class="n">OperatorBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorBase</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return an expression that computes the CVaR expectation upon calling ``eval``.</span>
-
 <span class="sd">        Args:</span>
 <span class="sd">            operator: The operator to convert.</span>
 
@@ -397,8 +400,31 @@
         <span class="k">return</span> <span class="n">replace_with_cvar</span><span class="p">(</span><span class="n">expectation</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="CVaRExpectation.compute_variance"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.operators.expectations.CVaRExpectation.html#qiskit.aqua.operators.expectations.CVaRExpectation.compute_variance">[docs]</a>    <span class="k">def</span> <span class="nf">compute_variance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_op</span><span class="p">:</span> <span class="n">OperatorBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Not implemented.&quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+        <span class="sd">&quot;&quot;&quot;Returns the variance of the CVaR calculation</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            exp_op: The operator whose evaluation yields an expectation</span>
+<span class="sd">                of some StateFn against a diagonal observable.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The variance of the CVaR estimate corresponding to the converted</span>
+<span class="sd">                exp_op.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the exp_op does not correspond to an expectation value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">cvar_variance</span><span class="p">(</span><span class="n">operator</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="n">ComposedOp</span><span class="p">):</span>
+                <span class="n">sfdict</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">oplist</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">measurement</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">oplist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">measurement</span><span class="o">.</span><span class="n">eval_variance</span><span class="p">(</span><span class="n">sfdict</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="n">ListOp</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">operator</span><span class="o">.</span><span class="n">combo_fn</span><span class="p">([</span><span class="n">cvar_variance</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">operator</span><span class="o">.</span><span class="n">oplist</span><span class="p">])</span>
+
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input operator does not correspond to a value &quot;</span>
+                             <span class="s2">&quot;expectation value.&quot;</span><span class="p">)</span>
+        <span class="n">cvar_op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">exp_op</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cvar_variance</span><span class="p">(</span><span class="n">cvar_op</span><span class="p">)</span></div></div>
 </pre></div>
 
              </article>
@@ -531,20 +557,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

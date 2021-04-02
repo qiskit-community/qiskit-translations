@@ -25,6 +25,7 @@
       ~Measure.qasm
       ~Measure.repeat
       ~Measure.reverse_ops
+      ~Measure.soft_compare
       ~Measure.validate_parameter
    
    

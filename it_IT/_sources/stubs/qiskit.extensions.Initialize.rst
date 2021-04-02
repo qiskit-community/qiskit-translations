@@ -26,6 +26,7 @@
       ~Initialize.qasm
       ~Initialize.repeat
       ~Initialize.reverse_ops
+      ~Initialize.soft_compare
       ~Initialize.validate_parameter
    
    

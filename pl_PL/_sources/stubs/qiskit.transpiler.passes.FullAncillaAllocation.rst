@@ -16,6 +16,7 @@
       ~FullAncillaAllocation.__init__
       ~FullAncillaAllocation.name
       ~FullAncillaAllocation.run
+      ~FullAncillaAllocation.validate_layout
    
    
 

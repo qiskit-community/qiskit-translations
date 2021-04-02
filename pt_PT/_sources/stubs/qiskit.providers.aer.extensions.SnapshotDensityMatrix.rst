@@ -26,6 +26,7 @@
       ~SnapshotDensityMatrix.qasm
       ~SnapshotDensityMatrix.repeat
       ~SnapshotDensityMatrix.reverse_ops
+      ~SnapshotDensityMatrix.soft_compare
       ~SnapshotDensityMatrix.validate_parameter
    
    

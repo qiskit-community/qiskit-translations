@@ -41,6 +41,8 @@
       ~QAOA.backend
       ~QAOA.expectation
       ~QAOA.initial_point
+      ~QAOA.initial_state
+      ~QAOA.mixer
       ~QAOA.operator
       ~QAOA.optimal_params
       ~QAOA.optimizer

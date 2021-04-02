@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.components.neural_networks.quantum_generator &mdash; Qiskit 0.24.1 documentazione</title>
+  <title>qiskit.aqua.components.neural_networks.quantum_generator &mdash; Qiskit 0.25.0 documentazione</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Risoluzione Dei Problemi</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Codici di Errore dell' API IBM Quantum</a></li>
@@ -301,7 +305,7 @@
   <h1>Codice sorgente per qiskit.aqua.components.neural_networks.quantum_generator</h1><div class="highlight"><pre>
 <span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
-<span class="c1"># (C) Copyright IBM 2019, 2020.</span>
+<span class="c1"># (C) Copyright IBM 2019, 2021.</span>
 <span class="c1">#</span>
 <span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
 <span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
@@ -313,7 +317,7 @@
 
 <span class="sd">&quot;&quot;&quot;Quantum Generator.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 
@@ -321,12 +325,15 @@
 
 <span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">ClassicalRegister</span><span class="p">,</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">TwoLocal</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">aqua_globals</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">AquaError</span><span class="p">,</span> <span class="n">aqua_globals</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.optimizers</span> <span class="kn">import</span> <span class="n">ADAM</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.optimizers</span> <span class="kn">import</span> <span class="n">Optimizer</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_models</span> <span class="kn">import</span> <span class="n">UnivariateVariationalDistribution</span><span class="p">,</span> \
     <span class="n">MultivariateVariationalDistribution</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.neural_networks.generative_network</span> <span class="kn">import</span> <span class="n">GenerativeNetwork</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua.components.neural_networks.discriminative_network</span> <span class="kn">import</span> <span class="n">DiscriminativeNetwork</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua.operators.gradients</span> <span class="kn">import</span> <span class="n">Gradient</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">CircuitStateFn</span>
 
 <span class="c1"># pylint: disable=invalid-name</span>
 
@@ -345,12 +352,13 @@
 
 <div class="viewcode-block" id="QuantumGenerator.__init__"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.neural_networks.QuantumGenerator.html#qiskit.aqua.components.neural_networks.QuantumGenerator.__init__">[documenti]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">bounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-                 <span class="n">num_qubits</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                 <span class="n">num_qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
                  <span class="n">generator_circuit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">UnivariateVariationalDistribution</span><span class="p">,</span>
                                                    <span class="n">MultivariateVariationalDistribution</span><span class="p">,</span>
                                                    <span class="n">QuantumCircuit</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">init_params</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">optimizer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Optimizer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">gradient_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">Gradient</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">snapshot_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -364,6 +372,9 @@
 <span class="sd">            init_params: 1D numpy array or list, Initialization for</span>
 <span class="sd">                the generator&#39;s parameters.</span>
 <span class="sd">            optimizer: optimizer to be used for the training of the generator</span>
+<span class="sd">            gradient_function: A Gradient object, or a function returning partial</span>
+<span class="sd">                derivatives of the loss function w.r.t. the generator variational</span>
+<span class="sd">                params.</span>
 <span class="sd">            snapshot_dir: str or None, if not None save the optimizer&#39;s parameter after every</span>
 <span class="sd">                update step to the given directory</span>
 
@@ -386,14 +397,14 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">generator_circuit</span><span class="p">,</span> <span class="p">(</span><span class="n">UnivariateVariationalDistribution</span><span class="p">,</span>
                                           <span class="n">MultivariateVariationalDistribution</span><span class="p">)):</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Passing a UnivariateVariationalDistribution or MultivariateVariational&#39;</span>
-                          <span class="s1">&#39;Distribution is as ``generator_circuit`` is deprecated as of Aqua 0.8.0 &#39;</span>
+                          <span class="s1">&#39;Distribution as ``generator_circuit`` is deprecated as of Aqua 0.8.0 &#39;</span>
                           <span class="s1">&#39;and the support will be removed no earlier than 3 months after the &#39;</span>
-                          <span class="s1">&#39;release data. You should pass as QuantumCircuit instead.&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;release date. You should pass a QuantumCircuit instead.&#39;</span><span class="p">,</span>
                           <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_free_parameters</span> <span class="o">=</span> <span class="n">generator_circuit</span><span class="o">.</span><span class="n">_var_form_params</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">generator_circuit</span> <span class="o">=</span> <span class="n">generator_circuit</span><span class="o">.</span><span class="n">_var_form</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_free_parameters</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generator_circuit</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_free_parameters</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generator_circuit</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">init_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">init_params</span> <span class="o">=</span> <span class="n">aqua_globals</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generator_circuit</span><span class="o">.</span><span class="n">num_parameters</span><span class="p">)</span> <span class="o">*</span> <span class="mf">2e-2</span>
@@ -401,12 +412,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_bound_parameters</span> <span class="o">=</span> <span class="n">init_params</span>
 
         <span class="c1"># Set optimizer for updating the generator network</span>
-        <span class="k">if</span> <span class="n">optimizer</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span> <span class="o">=</span> <span class="n">ADAM</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">beta_1</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
-                                   <span class="n">beta_2</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span> <span class="n">noise_factor</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span>
-                                   <span class="n">eps</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">amsgrad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">snapshot_dir</span><span class="o">=</span><span class="n">snapshot_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_dir</span> <span class="o">=</span> <span class="n">snapshot_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gradient_function</span> <span class="o">=</span> <span class="n">gradient_function</span>
 
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">)))</span>
@@ -419,7 +428,7 @@
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_data_grid</span> <span class="o">=</span> <span class="p">[</span><span class="n">grid</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_data_grid</span> <span class="o">=</span> <span class="n">grid</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_data_grid</span> <span class="o">=</span> <span class="n">grid</span>  <span class="c1"># type: ignore</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_grid_elements</span> <span class="o">=</span> <span class="n">grid</span>
             <span class="k">elif</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_data_grid</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
@@ -429,7 +438,7 @@
                         <span class="n">temp0</span> <span class="o">=</span> <span class="p">[</span><span class="n">g_e</span><span class="p">]</span>
                         <span class="n">temp0</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
                         <span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp0</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_grid_elements</span> <span class="o">=</span> <span class="n">temp</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_grid_elements</span> <span class="o">=</span> <span class="n">temp</span>  <span class="c1"># type: ignore</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_data_grid</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
                 <span class="n">temp</span> <span class="o">=</span> <span class="p">[]</span>
@@ -438,30 +447,131 @@
                         <span class="n">temp0</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">g_e</span><span class="p">)</span>
                         <span class="n">temp0</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
                         <span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp0</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_grid_elements</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_data_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_grid</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_grid_elements</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_grid</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seed</span> <span class="o">=</span> <span class="mi">7</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_shots</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_discriminator</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, Any]</span></div>
 
-<div class="viewcode-block" id="QuantumGenerator.set_seed"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.neural_networks.QuantumGenerator.html#qiskit.aqua.components.neural_networks.QuantumGenerator.set_seed">[documenti]</a>    <span class="k">def</span> <span class="nf">set_seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parameter_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get parameter values from the quantum generator</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Current parameter values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bound_parameters</span>
+
+    <span class="nd">@parameter_values</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">parameter_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_values</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+                         <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set parameter values for the quantum generator</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            p_values: Parameter values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bound_parameters</span> <span class="o">=</span> <span class="n">p_values</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">seed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get seed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seed</span>
+
+    <span class="nd">@seed</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set seed.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            seed (int): seed to use.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seed</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="n">aqua_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
+
+<div class="viewcode-block" id="QuantumGenerator.set_seed"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.neural_networks.QuantumGenerator.html#qiskit.aqua.components.neural_networks.QuantumGenerator.set_seed">[documenti]</a>    <span class="k">def</span> <span class="nf">set_seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set seed.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            seed (int): seed</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Using set_seed() is deprecated as of Aqua 0.9.0 &#39;</span>
+                      <span class="s1">&#39;and support for it will be removed no earlier than &#39;</span>
+                      <span class="s1">&#39;three months after the release date. Please use &#39;</span>
+                      <span class="s1">&#39;the QuantumGenerator.seed property instead.&#39;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
         <span class="n">aqua_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span></div>
 
-<div class="viewcode-block" id="QuantumGenerator.set_discriminator"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.neural_networks.QuantumGenerator.html#qiskit.aqua.components.neural_networks.QuantumGenerator.set_discriminator">[documenti]</a>    <span class="k">def</span> <span class="nf">set_discriminator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">discriminator</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">discriminator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DiscriminativeNetwork</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get discriminator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_discriminator</span>
+
+    <span class="nd">@discriminator</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">discriminator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">discriminator</span><span class="p">:</span> <span class="n">DiscriminativeNetwork</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set discriminator.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            discriminator (DiscriminativeNetwork): Discriminator used to</span>
+<span class="sd">                compute the loss function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_discriminator</span> <span class="o">=</span> <span class="n">discriminator</span>
+
+<div class="viewcode-block" id="QuantumGenerator.set_discriminator"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.neural_networks.QuantumGenerator.html#qiskit.aqua.components.neural_networks.QuantumGenerator.set_discriminator">[documenti]</a>    <span class="k">def</span> <span class="nf">set_discriminator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">discriminator</span><span class="p">:</span> <span class="n">DiscriminativeNetwork</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set discriminator network.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            discriminator (Discriminator): Discriminator used to compute the loss function.</span>
+<span class="sd">            discriminator (DiscriminativeNetwork): Discriminator used to</span>
+<span class="sd">                compute the loss function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Using set_discriminator() is deprecated as of &#39;</span>
+                      <span class="s1">&#39;Aqua 0.9.0 and support for it will be removed no earlier&#39;</span>
+                      <span class="s1">&#39; than three months after the release date. Please use &#39;</span>
+                      <span class="s1">&#39;the QuantumGenerator.discriminator property instead.&#39;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_discriminator</span> <span class="o">=</span> <span class="n">discriminator</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">optimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optimizer</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get optimizer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span>
+
+    <span class="nd">@optimizer</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">optimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Optimizer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set optimizer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            optimizer (Optimizer): optimizer to use with the generator.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AquaError: invalid input.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">optimizer</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">Optimizer</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s1">&#39;Please provide an Optimizer object to use&#39;</span>
+                                <span class="s1">&#39;as the generator optimizer.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span> <span class="o">=</span> <span class="n">ADAM</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">beta_1</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+                                   <span class="n">beta_2</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span> <span class="n">noise_factor</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span>
+                                   <span class="n">eps</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">amsgrad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                   <span class="n">snapshot_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_dir</span><span class="p">)</span>
 
 <div class="viewcode-block" id="QuantumGenerator.construct_circuit"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.neural_networks.QuantumGenerator.html#qiskit.aqua.components.neural_networks.QuantumGenerator.construct_circuit">[documenti]</a>    <span class="k">def</span> <span class="nf">construct_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -609,6 +719,46 @@
 
         <span class="k">return</span> <span class="n">objective_function</span>
 
+    <span class="k">def</span> <span class="nf">_convert_to_gradient_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient_object</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="p">,</span> <span class="n">discriminator</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert to gradient function</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            gradient_object (Gradient): the gradient object to be used to</span>
+<span class="sd">                compute analytical gradients.</span>
+<span class="sd">            quantum_instance (QuantumInstance): used to run the quantum circuit.</span>
+<span class="sd">            discriminator (torch.nn.Module): discriminator network to compute the sample labels.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            gradient_function: gradient function that takes the current</span>
+<span class="sd">                parameter values and returns partial derivatives of the loss</span>
+<span class="sd">                function w.r.t. the variational parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">gradient_function</span><span class="p">(</span><span class="n">current_point</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Gradient function</span>
+
+<span class="sd">            Args:</span>
+<span class="sd">                current_point (np.ndarray): Current values for the variational parameters.</span>
+
+<span class="sd">            Returns:</span>
+<span class="sd">                np.ndarray: array of partial derivatives of the loss</span>
+<span class="sd">                    function w.r.t. the variational parameters.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">free_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_free_parameters</span>
+            <span class="n">generated_data</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_output</span><span class="p">(</span><span class="n">quantum_instance</span><span class="p">,</span>
+                                                <span class="n">params</span><span class="o">=</span><span class="n">current_point</span><span class="p">,</span>
+                                                <span class="n">shots</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_shots</span><span class="p">)</span>
+            <span class="n">prediction_generated</span> <span class="o">=</span> <span class="n">discriminator</span><span class="o">.</span><span class="n">get_label</span><span class="p">(</span><span class="n">generated_data</span><span class="p">,</span> <span class="n">detach</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">op</span> <span class="o">=</span> <span class="o">~</span><span class="n">CircuitStateFn</span><span class="p">(</span><span class="n">primitive</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">generator_circuit</span><span class="p">)</span>
+            <span class="n">grad_object</span> <span class="o">=</span> <span class="n">gradient_object</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">op</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">free_params</span><span class="p">)</span>
+            <span class="n">value_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">free_params</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">current_point</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">free_params</span><span class="p">))}</span>
+            <span class="n">analytical_gradients</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">grad_object</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="n">value_dict</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">())</span>
+            <span class="n">loss_gradients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">prediction_generated</span><span class="p">,</span> <span class="n">analytical_gradients</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
+            <span class="k">return</span> <span class="n">loss_gradients</span>
+
+        <span class="k">return</span> <span class="n">gradient_function</span>
+
 <div class="viewcode-block" id="QuantumGenerator.train"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.neural_networks.QuantumGenerator.html#qiskit.aqua.components.neural_networks.QuantumGenerator.train">[documenti]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Perform one training step w.r.t to the generator&#39;s parameters</span>
@@ -642,11 +792,17 @@
                               <span class="s1">&#39;to ensure that the generator &#39;</span>
                               <span class="s1">&#39;and discriminator are updated in an alternating fashion.&#39;</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gradient_function</span><span class="p">,</span> <span class="n">Gradient</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_gradient_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_to_gradient_function</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_gradient_function</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_discriminator</span>
+                <span class="p">)</span>
+
         <span class="n">objective</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_objective_function</span><span class="p">(</span><span class="n">quantum_instance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_discriminator</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bound_parameters</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span>
             <span class="n">num_vars</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bound_parameters</span><span class="p">),</span>
             <span class="n">objective_function</span><span class="o">=</span><span class="n">objective</span><span class="p">,</span>
-            <span class="n">initial_point</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_bound_parameters</span>
+            <span class="n">initial_point</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_bound_parameters</span><span class="p">,</span>
+            <span class="n">gradient_function</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gradient_function</span>
             <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">loss</span>
@@ -785,20 +941,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

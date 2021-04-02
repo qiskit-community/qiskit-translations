@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~HiddenLinearFunction.__init__
+      ~HiddenLinearFunction.add_bits
       ~HiddenLinearFunction.add_calibration
       ~HiddenLinearFunction.add_register
       ~HiddenLinearFunction.append
@@ -48,9 +49,9 @@
       ~HiddenLinearFunction.decompose
       ~HiddenLinearFunction.delay
       ~HiddenLinearFunction.depth
-      ~HiddenLinearFunction.diag_gate
       ~HiddenLinearFunction.diagonal
       ~HiddenLinearFunction.draw
+      ~HiddenLinearFunction.ecr
       ~HiddenLinearFunction.extend
       ~HiddenLinearFunction.fredkin
       ~HiddenLinearFunction.from_qasm_file
@@ -65,7 +66,6 @@
       ~HiddenLinearFunction.iso
       ~HiddenLinearFunction.isometry
       ~HiddenLinearFunction.iswap
-      ~HiddenLinearFunction.mcmt
       ~HiddenLinearFunction.mcp
       ~HiddenLinearFunction.mcrx
       ~HiddenLinearFunction.mcry
@@ -76,13 +76,13 @@
       ~HiddenLinearFunction.measure
       ~HiddenLinearFunction.measure_active
       ~HiddenLinearFunction.measure_all
-      ~HiddenLinearFunction.mirror
       ~HiddenLinearFunction.ms
       ~HiddenLinearFunction.num_connected_components
       ~HiddenLinearFunction.num_nonlocal_gates
       ~HiddenLinearFunction.num_tensor_factors
       ~HiddenLinearFunction.num_unitary_factors
       ~HiddenLinearFunction.p
+      ~HiddenLinearFunction.pauli
       ~HiddenLinearFunction.power
       ~HiddenLinearFunction.qasm
       ~HiddenLinearFunction.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~HiddenLinearFunction.reset
       ~HiddenLinearFunction.reverse_bits
       ~HiddenLinearFunction.reverse_ops
+      ~HiddenLinearFunction.rv
       ~HiddenLinearFunction.rx
       ~HiddenLinearFunction.rxx
       ~HiddenLinearFunction.ry
@@ -105,7 +106,26 @@
       ~HiddenLinearFunction.rzx
       ~HiddenLinearFunction.rzz
       ~HiddenLinearFunction.s
+      ~HiddenLinearFunction.save_amplitudes
+      ~HiddenLinearFunction.save_amplitudes_squared
+      ~HiddenLinearFunction.save_density_matrix
+      ~HiddenLinearFunction.save_expectation_value
+      ~HiddenLinearFunction.save_expectation_value_variance
+      ~HiddenLinearFunction.save_matrix_product_state
+      ~HiddenLinearFunction.save_probabilities
+      ~HiddenLinearFunction.save_probabilities_dict
+      ~HiddenLinearFunction.save_stabilizer
+      ~HiddenLinearFunction.save_state
+      ~HiddenLinearFunction.save_statevector
+      ~HiddenLinearFunction.save_statevector_dict
+      ~HiddenLinearFunction.save_superop
+      ~HiddenLinearFunction.save_unitary
       ~HiddenLinearFunction.sdg
+      ~HiddenLinearFunction.set_density_matrix
+      ~HiddenLinearFunction.set_stabilizer
+      ~HiddenLinearFunction.set_statevector
+      ~HiddenLinearFunction.set_superop
+      ~HiddenLinearFunction.set_unitary
       ~HiddenLinearFunction.size
       ~HiddenLinearFunction.snapshot
       ~HiddenLinearFunction.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~HiddenLinearFunction.sxdg
       ~HiddenLinearFunction.t
       ~HiddenLinearFunction.tdg
+      ~HiddenLinearFunction.tensor
       ~HiddenLinearFunction.to_gate
       ~HiddenLinearFunction.to_instruction
       ~HiddenLinearFunction.toffoli
@@ -152,6 +173,7 @@
       ~HiddenLinearFunction.global_phase
       ~HiddenLinearFunction.header
       ~HiddenLinearFunction.instances
+      ~HiddenLinearFunction.metadata
       ~HiddenLinearFunction.num_ancillas
       ~HiddenLinearFunction.num_clbits
       ~HiddenLinearFunction.num_parameters

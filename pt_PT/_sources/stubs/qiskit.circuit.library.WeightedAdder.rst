@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~WeightedAdder.__init__
+      ~WeightedAdder.add_bits
       ~WeightedAdder.add_calibration
       ~WeightedAdder.add_register
       ~WeightedAdder.append
@@ -48,9 +49,9 @@
       ~WeightedAdder.decompose
       ~WeightedAdder.delay
       ~WeightedAdder.depth
-      ~WeightedAdder.diag_gate
       ~WeightedAdder.diagonal
       ~WeightedAdder.draw
+      ~WeightedAdder.ecr
       ~WeightedAdder.extend
       ~WeightedAdder.fredkin
       ~WeightedAdder.from_qasm_file
@@ -65,7 +66,6 @@
       ~WeightedAdder.iso
       ~WeightedAdder.isometry
       ~WeightedAdder.iswap
-      ~WeightedAdder.mcmt
       ~WeightedAdder.mcp
       ~WeightedAdder.mcrx
       ~WeightedAdder.mcry
@@ -76,13 +76,13 @@
       ~WeightedAdder.measure
       ~WeightedAdder.measure_active
       ~WeightedAdder.measure_all
-      ~WeightedAdder.mirror
       ~WeightedAdder.ms
       ~WeightedAdder.num_connected_components
       ~WeightedAdder.num_nonlocal_gates
       ~WeightedAdder.num_tensor_factors
       ~WeightedAdder.num_unitary_factors
       ~WeightedAdder.p
+      ~WeightedAdder.pauli
       ~WeightedAdder.power
       ~WeightedAdder.qasm
       ~WeightedAdder.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~WeightedAdder.reset
       ~WeightedAdder.reverse_bits
       ~WeightedAdder.reverse_ops
+      ~WeightedAdder.rv
       ~WeightedAdder.rx
       ~WeightedAdder.rxx
       ~WeightedAdder.ry
@@ -105,7 +106,26 @@
       ~WeightedAdder.rzx
       ~WeightedAdder.rzz
       ~WeightedAdder.s
+      ~WeightedAdder.save_amplitudes
+      ~WeightedAdder.save_amplitudes_squared
+      ~WeightedAdder.save_density_matrix
+      ~WeightedAdder.save_expectation_value
+      ~WeightedAdder.save_expectation_value_variance
+      ~WeightedAdder.save_matrix_product_state
+      ~WeightedAdder.save_probabilities
+      ~WeightedAdder.save_probabilities_dict
+      ~WeightedAdder.save_stabilizer
+      ~WeightedAdder.save_state
+      ~WeightedAdder.save_statevector
+      ~WeightedAdder.save_statevector_dict
+      ~WeightedAdder.save_superop
+      ~WeightedAdder.save_unitary
       ~WeightedAdder.sdg
+      ~WeightedAdder.set_density_matrix
+      ~WeightedAdder.set_stabilizer
+      ~WeightedAdder.set_statevector
+      ~WeightedAdder.set_superop
+      ~WeightedAdder.set_unitary
       ~WeightedAdder.size
       ~WeightedAdder.snapshot
       ~WeightedAdder.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~WeightedAdder.sxdg
       ~WeightedAdder.t
       ~WeightedAdder.tdg
+      ~WeightedAdder.tensor
       ~WeightedAdder.to_gate
       ~WeightedAdder.to_instruction
       ~WeightedAdder.toffoli
@@ -152,6 +173,7 @@
       ~WeightedAdder.global_phase
       ~WeightedAdder.header
       ~WeightedAdder.instances
+      ~WeightedAdder.metadata
       ~WeightedAdder.num_ancilla_qubits
       ~WeightedAdder.num_ancillas
       ~WeightedAdder.num_carry_qubits

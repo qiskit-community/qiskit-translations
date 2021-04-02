@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.passes.optimization.template_optimization &mdash; documentación de Qiskit - 0.24.1</title>
+  <title>qiskit.transpiler.passes.optimization.template_optimization &mdash; documentación de Qiskit - 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Proveedor Cuántico IBM Qiskit</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Solución de Problemas</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Códigos de error de IBM Quantum API</a></li>
@@ -324,7 +328,9 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumcircuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span> <span class="nn">qiskit.dagcircuit</span> <span class="kn">import</span> <span class="n">DAGDependency</span>
 <span class="kn">from</span> <span class="nn">qiskit.converters.circuit_to_dagdependency</span> <span class="kn">import</span> <span class="n">circuit_to_dagdependency</span>
+<span class="kn">from</span> <span class="nn">qiskit.converters.dagdependency_to_circuit</span> <span class="kn">import</span> <span class="n">dagdependency_to_circuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.converters.dag_to_dagdependency</span> <span class="kn">import</span> <span class="n">dag_to_dagdependency</span>
 <span class="kn">from</span> <span class="nn">qiskit.converters.dagdependency_to_dag</span> <span class="kn">import</span> <span class="n">dagdependency_to_dag</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.basepasses</span> <span class="kn">import</span> <span class="n">TransformationPass</span>
@@ -343,7 +349,8 @@
 
 <div class="viewcode-block" id="TemplateOptimization.__init__"><a class="viewcode-back" href="../../../../../stubs/qiskit.transpiler.passes.TemplateOptimization.html#qiskit.transpiler.passes.TemplateOptimization.__init__">[documentos]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">heuristics_qubits_param</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">heuristics_backward_param</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                 <span class="n">heuristics_backward_param</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">user_cost_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            template_list (list[QuantumCircuit()]): list of the different template circuit to apply.</span>
@@ -351,7 +358,7 @@
 <span class="sd">                applying heuristics on the backward part of the algorithm. This part of the</span>
 <span class="sd">                algorithm creates a tree of matching scenario. This tree grows exponentially. The</span>
 <span class="sd">                heuristics evaluates which scenarios have the longest match and keep only those.</span>
-<span class="sd">                The length is the interval in the tree for cutting it and surviror is the number</span>
+<span class="sd">                The length is the interval in the tree for cutting it and survivor is the number</span>
 <span class="sd">                of scenarios that are kept. We advice to use l=3 and s=1 to have serious time</span>
 <span class="sd">                advantage. We remind that the heuristics implies losing a part of the maximal</span>
 <span class="sd">                matches. Check reference for more details.</span>
@@ -361,6 +368,9 @@
 <span class="sd">                predecessors that will be explored in the dag dependency of the circuit, each</span>
 <span class="sd">                qubits of the nodes are added to the set of authorized qubits. We advice to use</span>
 <span class="sd">                length=1. Check reference for more details.</span>
+<span class="sd">            user_cost_dict (Dict[str, int]): quantum cost dictionary passed to TemplateSubstitution</span>
+<span class="sd">                to configure its behavior. This will override any default values if None</span>
+<span class="sd">                is not given. The key is the name of the gate and the value its quantum cost.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># If no template is given; the template are set as x-x, cx-cx, ccx-ccx.</span>
@@ -370,7 +380,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">heuristics_qubits_param</span> <span class="o">=</span> <span class="n">heuristics_qubits_param</span> \
             <span class="k">if</span> <span class="n">heuristics_qubits_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">heuristics_backward_param</span> <span class="o">=</span> <span class="n">heuristics_backward_param</span> \
-            <span class="k">if</span> <span class="n">heuristics_backward_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span></div>
+            <span class="k">if</span> <span class="n">heuristics_backward_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_cost_dict</span> <span class="o">=</span> <span class="n">user_cost_dict</span></div>
 
 <div class="viewcode-block" id="TemplateOptimization.run"><a class="viewcode-back" href="../../../../../stubs/qiskit.transpiler.passes.TemplateOptimization.html#qiskit.transpiler.passes.TemplateOptimization.run">[documentos]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dag</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -386,19 +398,31 @@
         <span class="n">circuit_dag_dep</span> <span class="o">=</span> <span class="n">dag_to_dagdependency</span><span class="p">(</span><span class="n">circuit_dag</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">template</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_list</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s1">&#39;A template is a Quantumciruit().&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="p">(</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">DAGDependency</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s1">&#39;A template is a Quantumciruit or a DAGDependency.&#39;</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">template</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">circuit_dag_dep</span><span class="o">.</span><span class="n">qubits</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">qubits</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">circuit_dag_dep</span><span class="o">.</span><span class="n">qubits</span><span class="p">):</span>
                 <span class="k">continue</span>
 
-            <span class="n">identity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">template</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
-            <span class="n">comparison</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">Operator</span><span class="p">(</span><span class="n">template</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">identity</span><span class="p">)</span>
+            <span class="n">identity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="nb">len</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">qubits</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">DAGDependency</span><span class="p">):</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">dagdependency_to_circuit</span><span class="p">(</span><span class="n">template</span><span class="p">))</span><span class="o">.</span><span class="n">data</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">template</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">comparison</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s1">&#39;A template is a Quantumciruit() that performs the identity.&#39;</span><span class="p">)</span>
+                <span class="n">comparison</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">identity</span><span class="p">)</span>
 
-            <span class="n">template_dag_dep</span> <span class="o">=</span> <span class="n">circuit_to_dagdependency</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">comparison</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s1">&#39;A template is a Quantumciruit() that &#39;</span>
+                                          <span class="s1">&#39;performs the identity.&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+                <span class="n">template_dag_dep</span> <span class="o">=</span> <span class="n">circuit_to_dagdependency</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">template_dag_dep</span> <span class="o">=</span> <span class="n">template</span>
 
             <span class="n">template_m</span> <span class="o">=</span> <span class="n">TemplateMatching</span><span class="p">(</span><span class="n">circuit_dag_dep</span><span class="p">,</span>
                                           <span class="n">template_dag_dep</span><span class="p">,</span>
@@ -416,7 +440,8 @@
 
                 <span class="n">substitution</span> <span class="o">=</span> <span class="n">TemplateSubstitution</span><span class="p">(</span><span class="n">max_matches</span><span class="p">,</span>
                                                     <span class="n">template_m</span><span class="o">.</span><span class="n">circuit_dag_dep</span><span class="p">,</span>
-                                                    <span class="n">template_m</span><span class="o">.</span><span class="n">template_dag_dep</span><span class="p">)</span>
+                                                    <span class="n">template_m</span><span class="o">.</span><span class="n">template_dag_dep</span><span class="p">,</span>
+                                                    <span class="bp">self</span><span class="o">.</span><span class="n">user_cost_dict</span><span class="p">)</span>
                 <span class="n">substitution</span><span class="o">.</span><span class="n">run_dag_opt</span><span class="p">()</span>
 
                 <span class="n">circuit_dag_dep</span> <span class="o">=</span> <span class="n">substitution</span><span class="o">.</span><span class="n">dag_dep_optimized</span>
@@ -556,20 +581,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

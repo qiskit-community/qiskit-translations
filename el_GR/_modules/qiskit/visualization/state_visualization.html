@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.visualization.state_visualization &mdash; Τεκμηρίωση του Qiskit - 0.24.1</title>
+  <title>qiskit.visualization.state_visualization &mdash; Τεκμηρίωση του Qiskit - 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Troubleshooting</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Quantum API error codes</a></li>
@@ -311,7 +315,7 @@
 <span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
 <span class="c1"># that they have been altered from the originals.</span>
 
-<span class="c1"># pylint: disable=invalid-name,ungrouped-imports,import-error</span>
+<span class="c1"># pylint: disable=invalid-name</span>
 <span class="c1"># pylint: disable=inconsistent-return-statements,unsubscriptable-object</span>
 <span class="c1"># pylint: disable=missing-param-doc,missing-type-doc,unused-argument</span>
 
@@ -323,41 +327,14 @@
 <span class="kn">import</span> <span class="nn">colorsys</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">linalg</span>
-<span class="kn">from</span> <span class="nn">qiskit.quantum_info.states</span> <span class="kn">import</span> <span class="n">DensityMatrix</span>
-<span class="kn">from</span> <span class="nn">qiskit.util</span> <span class="kn">import</span> <span class="n">deprecate_arguments</span>
-<span class="kn">from</span> <span class="nn">.matplotlib</span> <span class="kn">import</span> <span class="n">HAS_MATPLOTLIB</span>
-
-<span class="k">if</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">get_backend</span>
-    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
-    <span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">FancyArrowPatch</span>
-    <span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Circle</span>
-    <span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="k">as</span> <span class="nn">mcolors</span>
-    <span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">Normalize</span><span class="p">,</span> <span class="n">LightSource</span>
-    <span class="kn">import</span> <span class="nn">matplotlib.gridspec</span> <span class="k">as</span> <span class="nn">gridspec</span>
-    <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">proj3d</span>
-    <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d.art3d</span> <span class="kn">import</span> <span class="n">Poly3DCollection</span>
-    <span class="kn">from</span> <span class="nn">qiskit.visualization.exceptions</span> <span class="kn">import</span> <span class="n">VisualizationError</span>
-    <span class="kn">from</span> <span class="nn">qiskit.visualization.bloch</span> <span class="kn">import</span> <span class="n">Bloch</span>
-    <span class="kn">from</span> <span class="nn">qiskit.visualization.utils</span> <span class="kn">import</span> <span class="n">_bloch_multivector_data</span><span class="p">,</span> <span class="n">_paulivec_data</span>
-    <span class="kn">from</span> <span class="nn">qiskit.circuit.tools.pi_check</span> <span class="kn">import</span> <span class="n">pi_check</span>
-
-
-<span class="k">if</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
-    <span class="k">class</span> <span class="nc">Arrow3D</span><span class="p">(</span><span class="n">FancyArrowPatch</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Standard 3D arrow.&quot;&quot;&quot;</span>
-
-        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">zs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;Create arrow.&quot;&quot;&quot;</span>
-            <span class="n">FancyArrowPatch</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_verts3d</span> <span class="o">=</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">zs</span>
-
-        <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renderer</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;Draw the arrow.&quot;&quot;&quot;</span>
-            <span class="n">xs3d</span><span class="p">,</span> <span class="n">ys3d</span><span class="p">,</span> <span class="n">zs3d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verts3d</span>
-            <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">proj3d</span><span class="o">.</span><span class="n">proj_transform</span><span class="p">(</span><span class="n">xs3d</span><span class="p">,</span> <span class="n">ys3d</span><span class="p">,</span> <span class="n">zs3d</span><span class="p">,</span> <span class="n">renderer</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_positions</span><span class="p">((</span><span class="n">xs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ys</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="p">(</span><span class="n">xs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ys</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
-            <span class="n">FancyArrowPatch</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renderer</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">user_config</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.states.densitymatrix</span> <span class="kn">import</span> <span class="n">DensityMatrix</span>
+<span class="kn">from</span> <span class="nn">qiskit.visualization.array</span> <span class="kn">import</span> <span class="n">array_to_latex</span>
+<span class="kn">from</span> <span class="nn">qiskit.utils.deprecation</span> <span class="kn">import</span> <span class="n">deprecate_arguments</span>
+<span class="kn">from</span> <span class="nn">qiskit.visualization.matplotlib</span> <span class="kn">import</span> <span class="n">HAS_MATPLOTLIB</span>
+<span class="kn">from</span> <span class="nn">qiskit.visualization.exceptions</span> <span class="kn">import</span> <span class="n">VisualizationError</span>
+<span class="kn">from</span> <span class="nn">qiskit.visualization.utils</span> <span class="kn">import</span> <span class="n">_bloch_multivector_data</span><span class="p">,</span> <span class="n">_paulivec_data</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.tools.pi_check</span> <span class="kn">import</span> <span class="n">pi_check</span>
 
 
 <div class="viewcode-block" id="plot_state_hinton"><a class="viewcode-back" href="../../../stubs/qiskit.visualization.plot_state_hinton.html#qiskit.visualization.plot_state_hinton">[τεκμηρίωση]</a><span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="s1">&#39;state&#39;</span><span class="p">})</span>
@@ -408,6 +385,9 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &#39;</span>
                           <span class="s1">&#39;&quot;pip install matplotlib&quot;.&#39;</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">get_backend</span>
+
     <span class="c1"># Figure data</span>
     <span class="n">rho</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
     <span class="n">num</span> <span class="o">=</span> <span class="n">rho</span><span class="o">.</span><span class="n">num_qubits</span>
@@ -441,17 +421,16 @@
         <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndenumerate</span><span class="p">(</span><span class="n">datareal</span><span class="p">):</span>
             <span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;white&#39;</span> <span class="k">if</span> <span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;black&#39;</span>
             <span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">/</span> <span class="n">max_weight</span><span class="p">)</span>
-            <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">([</span><span class="n">x</span> <span class="o">-</span> <span class="n">size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="n">size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span> <span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span>
+            <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">([</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">x</span> <span class="o">-</span> <span class="n">size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">0.5</span> <span class="o">+</span> <span class="n">y</span> <span class="o">-</span> <span class="n">size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span> <span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span>
                                  <span class="n">facecolor</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
             <span class="n">ax1</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
 
-        <span class="n">ax1</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">lx</span><span class="o">+</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="n">ax1</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ly</span><span class="o">+</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="n">row_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">lx</span><span class="p">))</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ly</span><span class="p">))</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">lx</span><span class="p">])</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="n">ly</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
         <span class="n">ax1</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">row_names</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
-        <span class="n">column_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="n">ax1</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">column_names</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
-        <span class="n">ax1</span><span class="o">.</span><span class="n">autoscale_view</span><span class="p">()</span>
         <span class="n">ax1</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
         <span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Re[$</span><span class="se">\\</span><span class="s1">rho$]&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
     <span class="c1"># Imaginary</span>
@@ -464,16 +443,16 @@
         <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndenumerate</span><span class="p">(</span><span class="n">dataimag</span><span class="p">):</span>
             <span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;white&#39;</span> <span class="k">if</span> <span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;black&#39;</span>
             <span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">/</span> <span class="n">max_weight</span><span class="p">)</span>
-            <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">([</span><span class="n">x</span> <span class="o">-</span> <span class="n">size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="n">size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span> <span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span>
+            <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">([</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">x</span> <span class="o">-</span> <span class="n">size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">0.5</span> <span class="o">+</span> <span class="n">y</span> <span class="o">-</span> <span class="n">size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span> <span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span>
                                  <span class="n">facecolor</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
             <span class="n">ax2</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
 
-        <span class="n">ax2</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">lx</span><span class="o">+</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="n">ax2</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ly</span><span class="o">+</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">lx</span><span class="p">))</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ly</span><span class="p">))</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">lx</span><span class="p">])</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="n">ly</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
         <span class="n">ax2</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">row_names</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
         <span class="n">ax2</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">column_names</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
-
-        <span class="n">ax2</span><span class="o">.</span><span class="n">autoscale_view</span><span class="p">()</span>
         <span class="n">ax2</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
         <span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Im[$</span><span class="se">\\</span><span class="s1">rho$]&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">title</span><span class="p">:</span>
@@ -491,7 +470,7 @@
 <span class="sd">    Plot a sphere, axes, the Bloch vector, and its projections onto each axis.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        bloch (list[double]): array of three elements where [&lt;x&gt;, &lt;y&gt;, &lt;z&gt;] (cartesian)</span>
+<span class="sd">        bloch (list[double]): array of three elements where [&lt;x&gt;, &lt;y&gt;, &lt;z&gt;] (Cartesian)</span>
 <span class="sd">            or [&lt;r&gt;, &lt;theta&gt;, &lt;phi&gt;] (spherical in radians)</span>
 <span class="sd">            &lt;theta&gt; is inclination angle from +z direction</span>
 <span class="sd">            &lt;phi&gt; is azimuth from +x direction</span>
@@ -500,7 +479,7 @@
 <span class="sd">            sphere</span>
 <span class="sd">        figsize (tuple): Figure size in inches. Has no effect is passing ``ax``.</span>
 <span class="sd">        coord_type (str): a string that specifies coordinate type for bloch</span>
-<span class="sd">            (cartesian or spherical), default is cartesian</span>
+<span class="sd">            (Cartesian or spherical), default is Cartesian</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Figure: A matplotlib figure instance if ``ax = None``.</span>
@@ -519,6 +498,10 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &#39;</span>
                           <span class="s1">&#39;&quot;pip install matplotlib&quot;.&#39;</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">qiskit.visualization.bloch</span> <span class="kn">import</span> <span class="n">Bloch</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">get_backend</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+
     <span class="k">if</span> <span class="n">figsize</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
     <span class="n">B</span> <span class="o">=</span> <span class="n">Bloch</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
@@ -540,7 +523,7 @@
 
 
 <div class="viewcode-block" id="plot_bloch_multivector"><a class="viewcode-back" href="../../../stubs/qiskit.visualization.plot_bloch_multivector.html#qiskit.visualization.plot_bloch_multivector">[τεκμηρίωση]</a><span class="nd">@deprecate_arguments</span><span class="p">({</span><span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="s1">&#39;state&#39;</span><span class="p">})</span>
-<span class="k">def</span> <span class="nf">plot_bloch_multivector</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">plot_bloch_multivector</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reverse_bits</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Plot the Bloch sphere.</span>
 
 <span class="sd">    Plot a sphere, axes, the Bloch vector, and its projections onto each axis.</span>
@@ -549,6 +532,7 @@
 <span class="sd">        state (Statevector or DensityMatrix or ndarray): an N-qubit quantum state.</span>
 <span class="sd">        title (str): a string that represents the plot title</span>
 <span class="sd">        figsize (tuple): Has no effect, here for compatibility only.</span>
+<span class="sd">        reverse_bits (bool): If True, plots qubits following Qiskit&#39;s convention [Default:False].</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        matplotlib.Figure:</span>
@@ -571,19 +555,25 @@
 <span class="sd">            qc.cx(0, 1)</span>
 
 <span class="sd">            state = Statevector.from_instruction(qc)</span>
-<span class="sd">            plot_bloch_multivector(state, title=&quot;New Bloch Multivector&quot;)</span>
+<span class="sd">            plot_bloch_multivector(state, title=&quot;New Bloch Multivector&quot;, reverse_bits=False)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &quot;pip install &#39;</span>
-                          <span class="s1">&#39;matplotlib&quot;.&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &#39;</span>
+                          <span class="s1">&#39;&quot;pip install matplotlib&quot;.&#39;</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">get_backend</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+
     <span class="c1"># Data</span>
-    <span class="n">bloch_data</span> <span class="o">=</span> <span class="n">_bloch_multivector_data</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">bloch_data</span> <span class="o">=</span> <span class="p">(</span><span class="n">_bloch_multivector_data</span><span class="p">(</span><span class="n">state</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                  <span class="k">if</span> <span class="n">reverse_bits</span>
+                  <span class="k">else</span> <span class="n">_bloch_multivector_data</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
     <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bloch_data</span><span class="p">)</span>
     <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figaspect</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">num</span><span class="p">)</span>
     <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">num</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span> <span class="k">if</span> <span class="n">reverse_bits</span> <span class="k">else</span> <span class="n">i</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
-        <span class="n">plot_bloch_vector</span><span class="p">(</span><span class="n">bloch_data</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s2">&quot;qubit &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+        <span class="n">plot_bloch_vector</span><span class="p">(</span><span class="n">bloch_data</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s2">&quot;qubit &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">pos</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
                           <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">get_backend</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;module://ipykernel.pylab.backend_inline&#39;</span><span class="p">,</span>
@@ -647,8 +637,12 @@
 <span class="sd">                title=&quot;New State City&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &quot;pip install &#39;</span>
-                          <span class="s1">&#39;matplotlib&quot;.&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &#39;</span>
+                          <span class="s1">&#39;&quot;pip install matplotlib&quot;.&#39;</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">get_backend</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+    <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d.art3d</span> <span class="kn">import</span> <span class="n">Poly3DCollection</span>
+
     <span class="n">rho</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
     <span class="n">num</span> <span class="o">=</span> <span class="n">rho</span><span class="o">.</span><span class="n">num_qubits</span>
     <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -697,8 +691,7 @@
     <span class="k">elif</span> <span class="n">ax_real</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">ax_real</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>
         <span class="n">ax1</span> <span class="o">=</span> <span class="n">ax_real</span>
-        <span class="k">if</span> <span class="n">ax_imag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">ax2</span> <span class="o">=</span> <span class="n">ax_imag</span>
+        <span class="n">ax2</span> <span class="o">=</span> <span class="n">ax_imag</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">ax_imag</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>
         <span class="n">ax1</span> <span class="o">=</span> <span class="kc">None</span>
@@ -845,8 +838,11 @@
 <span class="sd">                title=&quot;New PauliVec plot&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &quot;pip install &#39;</span>
-                          <span class="s1">&#39;matplotlib&quot;.&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &#39;</span>
+                          <span class="s1">&#39;&quot;pip install matplotlib&quot;.&#39;</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">get_backend</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+
     <span class="n">labels</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">_paulivec_data</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
     <span class="n">numelem</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
 
@@ -966,7 +962,7 @@
 <span class="sd">            radians or degrees for the phase values in the plot.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        Figure: A matplotlib figure instance if the ``ax`` kwag is not set</span>
+<span class="sd">        Figure: A matplotlib figure instance if the ``ax`` kwarg is not set</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ImportError: Requires matplotlib.</span>
@@ -990,13 +986,36 @@
 <span class="sd">           plot_state_qsphere(state)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &quot;pip install &#39;</span>
-                          <span class="s1">&#39;matplotlib&quot;.&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &#39;</span>
+                          <span class="s1">&#39;&quot;pip install matplotlib&quot;.&#39;</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">proj3d</span>
+    <span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">FancyArrowPatch</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.gridspec</span> <span class="k">as</span> <span class="nn">gridspec</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+    <span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Circle</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">get_backend</span>
+
+    <span class="k">class</span> <span class="nc">Arrow3D</span><span class="p">(</span><span class="n">FancyArrowPatch</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Standard 3D arrow.&quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">zs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Create arrow.&quot;&quot;&quot;</span>
+            <span class="n">FancyArrowPatch</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_verts3d</span> <span class="o">=</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">zs</span>
+
+        <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renderer</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Draw the arrow.&quot;&quot;&quot;</span>
+            <span class="n">xs3d</span><span class="p">,</span> <span class="n">ys3d</span><span class="p">,</span> <span class="n">zs3d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verts3d</span>
+            <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">proj3d</span><span class="o">.</span><span class="n">proj_transform</span><span class="p">(</span><span class="n">xs3d</span><span class="p">,</span> <span class="n">ys3d</span><span class="p">,</span> <span class="n">zs3d</span><span class="p">,</span> <span class="n">renderer</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_positions</span><span class="p">((</span><span class="n">xs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ys</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="p">(</span><span class="n">xs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ys</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="n">FancyArrowPatch</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renderer</span><span class="p">)</span>
+
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
-    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have seaborn installed to use &#39;</span>
-                          <span class="s1">&#39;plot_state_qsphere. To install, run &quot;pip install seaborn&quot;.&#39;</span><span class="p">)</span>
+                          <span class="s1">&#39;plot_state_qsphere. To install, run &quot;pip install seaborn&quot;.&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
     <span class="n">rho</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
     <span class="n">num</span> <span class="o">=</span> <span class="n">rho</span><span class="o">.</span><span class="n">num_qubits</span>
     <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1182,7 +1201,14 @@
 <span class="sd">        color (array_like): sequence of valid color specifications, optional</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        list: Shaded colors for bars.</span>
+<span class="sd">    Raises:</span>
+<span class="sd">        ImportError: If matplotlib is not installed</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &#39;</span>
+                          <span class="s1">&#39;&quot;pip install matplotlib&quot;.&#39;</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="k">as</span> <span class="nn">mcolors</span>
+
     <span class="n">cuboid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
         <span class="c1"># -z</span>
         <span class="p">(</span>
@@ -1299,6 +1325,13 @@
 <span class="sd">    Shade *color* using normal vectors given by *normals*.</span>
 <span class="sd">    *color* can also be an array of the same length as *normals*.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_MATPLOTLIB</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Must have Matplotlib installed. To install, run &#39;</span>
+                          <span class="s1">&#39;&quot;pip install matplotlib&quot;.&#39;</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">Normalize</span><span class="p">,</span> <span class="n">LightSource</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="k">as</span> <span class="nn">mcolors</span>
+
     <span class="k">if</span> <span class="n">lightsource</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># chosen for backwards-compatibility</span>
         <span class="n">lightsource</span> <span class="o">=</span> <span class="n">LightSource</span><span class="p">(</span><span class="n">azdeg</span><span class="o">=</span><span class="mi">225</span><span class="p">,</span> <span class="n">altdeg</span><span class="o">=</span><span class="mf">19.4712</span><span class="p">)</span>
@@ -1324,6 +1357,152 @@
         <span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">color</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">colors</span>
+
+
+<span class="k">def</span> <span class="nf">state_to_latex</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a Latex representation of a state. Wrapper function</span>
+<span class="sd">    for `qiskit.visualization.array_to_latex` to add dims if necessary.</span>
+<span class="sd">    Intended for use within `state_drawer`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        state (`Statevector` or `DensityMatrix`): State to be drawn</span>
+<span class="sd">        dims (bool): Whether to display the state&#39;s `dims`</span>
+<span class="sd">        *args: Arguments to be passed directly to `array_to_latex`</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        `str`: Latex representation of the state</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">dims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># show dims if state is not only qubits</span>
+        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">dims</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="mi">2</span><span class="p">}:</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">dims</span><span class="p">:</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">begin</span><span class="si">{align}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">dims_str</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">dims_l</span><span class="p">()</span>
+        <span class="n">suffix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\\\\\n\\</span><span class="s2">text</span><span class="se">{{</span><span class="s2">dims=</span><span class="si">{</span><span class="n">dims_str</span><span class="si">}</span><span class="se">}}\n\\</span><span class="s2">end</span><span class="se">{{</span><span class="s2">align</span><span class="se">}}</span><span class="s2">&quot;</span>
+    <span class="n">latex_str</span> <span class="o">=</span> <span class="n">array_to_latex</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">latex_str</span> <span class="o">+</span> <span class="n">suffix</span>
+
+
+<span class="k">class</span> <span class="nc">TextMatrix</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Text representation of an array, with `__str__` method so it</span>
+<span class="sd">    displays nicely in Jupyter notebooks&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="n">max_size</span>
+        <span class="k">if</span> <span class="n">dims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># show dims if state is not only qubits</span>
+            <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">dims</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="mi">2</span><span class="p">}:</span>
+                <span class="n">dims</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dims</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="o">=</span> <span class="n">dims</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span> <span class="o">=</span> <span class="n">suffix</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">max_size</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="n">max_size</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">DensityMatrix</span><span class="p">):</span>
+            <span class="c1"># density matrices are square, so threshold for</span>
+            <span class="c1"># summarization is shortest side squared</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_size</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="n">max_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">threshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array2string</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span>
+            <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span>
+            <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
+            <span class="n">separator</span><span class="o">=</span><span class="s1">&#39;,&#39;</span>
+        <span class="p">)</span>
+        <span class="n">dimstr</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">+=</span> <span class="s1">&#39;,</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">dimstr</span> <span class="o">+=</span> <span class="s1">&#39; &#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">)</span>
+            <span class="n">dimstr</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;dims=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">dims_l</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">data</span> <span class="o">+</span> <span class="n">dimstr</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">state_drawer</span><span class="p">(</span><span class="n">state</span><span class="p">,</span>
+                 <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">drawer_args</span>
+                 <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a visualization of the state.</span>
+
+<span class="sd">        **repr**: ASCII TextMatrix of the state&#39;s ``_repr_``.</span>
+
+<span class="sd">        **text**: ASCII TextMatrix that can be printed in the console.</span>
+
+<span class="sd">        **latex**: An IPython Latex object for displaying in Jupyter Notebooks.</span>
+
+<span class="sd">        **latex_source**: Raw, uncompiled ASCII source to generate array using LaTeX.</span>
+
+<span class="sd">        **qsphere**: Matplotlib figure, rendering of statevector using `plot_state_qsphere()`.</span>
+
+<span class="sd">        **hinton**: Matplotlib figure, rendering of statevector using `plot_state_hinton()`.</span>
+
+<span class="sd">        **bloch**: Matplotlib figure, rendering of statevector using `plot_bloch_multivector()`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            output (str): Select the output method to use for drawing the</span>
+<span class="sd">                circuit. Valid choices are ``text``, ``latex``, ``latex_source``,</span>
+<span class="sd">                ``qsphere``, ``hinton``, or ``bloch``. Default is `&#39;text`&#39;.</span>
+<span class="sd">            drawer_args: Arguments to be passed to the relevant drawer. For</span>
+<span class="sd">                &#39;latex&#39; and &#39;latex_source&#39; see ``array_to_latex``</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            :class:`matplotlib.figure` or :class:`str` or</span>
+<span class="sd">            :class:`TextMatrix` or :class:`IPython.display.Latex`:</span>
+<span class="sd">            Drawing of the state.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: when `output` is `latex` and IPython is not installed.</span>
+<span class="sd">            ValueError: when `output` is not a valid selection.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">user_config</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span>
+    <span class="c1"># Get default &#39;output&#39; from config file else use &#39;repr&#39;</span>
+    <span class="n">default_output</span> <span class="o">=</span> <span class="s1">&#39;repr&#39;</span>
+    <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">config</span><span class="p">:</span>
+            <span class="n">default_output</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;state_drawer&#39;</span><span class="p">,</span> <span class="s1">&#39;repr&#39;</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">default_output</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="c1"># Choose drawing backend:</span>
+    <span class="n">drawers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">TextMatrix</span><span class="p">,</span>
+               <span class="s1">&#39;latex_source&#39;</span><span class="p">:</span> <span class="n">state_to_latex</span><span class="p">,</span>
+               <span class="s1">&#39;qsphere&#39;</span><span class="p">:</span> <span class="n">plot_state_qsphere</span><span class="p">,</span>
+               <span class="s1">&#39;hinton&#39;</span><span class="p">:</span> <span class="n">plot_state_hinton</span><span class="p">,</span>
+               <span class="s1">&#39;bloch&#39;</span><span class="p">:</span> <span class="n">plot_bloch_multivector</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">output</span> <span class="o">==</span> <span class="s1">&#39;latex&#39;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Latex</span>
+        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;IPython is not installed, to install run: &#39;</span>
+                              <span class="s1">&#39;&quot;pip install ipython&quot;, or set output=</span><span class="se">\&#39;</span><span class="s1">latex_source</span><span class="se">\&#39;</span><span class="s1"> &#39;</span>
+                              <span class="s1">&#39;instead for an ASCII string.&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">err</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">draw_func</span> <span class="o">=</span> <span class="n">drawers</span><span class="p">[</span><span class="s1">&#39;latex_source&#39;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">Latex</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;$$</span><span class="si">{</span><span class="n">draw_func</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="o">**</span><span class="n">drawer_args</span><span class="p">)</span><span class="si">}</span><span class="s2">$$&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output</span> <span class="o">==</span> <span class="s1">&#39;repr&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">state</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">draw_func</span> <span class="o">=</span> <span class="n">drawers</span><span class="p">[</span><span class="n">output</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">draw_func</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="o">**</span><span class="n">drawer_args</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;&#39;{}&#39; is not a valid option for drawing {} objects. Please choose from:</span>
+<span class="sd">            &#39;text&#39;, &#39;latex&#39;, &#39;latex_source&#39;, &#39;qsphere&#39;, &#39;hinton&#39;,</span>
+<span class="sd">            &#39;bloch&#39; or &#39;auto&#39;.&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">state</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span> <span class="kn">from</span> <span class="nn">err</span>
 </pre></div>
 
              </article>
@@ -1456,20 +1635,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

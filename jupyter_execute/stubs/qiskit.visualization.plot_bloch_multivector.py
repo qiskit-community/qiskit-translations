@@ -14,5 +14,5 @@ qc.h(0)
 qc.cx(0, 1)
 
 state = Statevector.from_instruction(qc)
-plot_bloch_multivector(state, title="New Bloch Multivector")
+plot_bloch_multivector(state, title="New Bloch Multivector", reverse_bits=False)
 

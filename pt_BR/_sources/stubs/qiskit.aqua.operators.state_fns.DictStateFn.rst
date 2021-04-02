@@ -46,6 +46,7 @@
 
    .. autosummary::
    
+      ~DictStateFn.ENABLE_DEPRECATION
       ~DictStateFn.INDENTATION
       ~DictStateFn.coeff
       ~DictStateFn.is_measurement

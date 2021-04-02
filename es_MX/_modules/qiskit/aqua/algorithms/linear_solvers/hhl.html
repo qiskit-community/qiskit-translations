@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.algorithms.linear_solvers.hhl &mdash; documentación de Qiskit - 0.24.1</title>
+  <title>qiskit.aqua.algorithms.linear_solvers.hhl &mdash; documentación de Qiskit - 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Proveedor Cuántico IBM Qiskit</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Solución de Problemas</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Códigos de error de IBM Quantum API</a></li>
@@ -301,7 +305,7 @@
   <h1>Código fuente para qiskit.aqua.algorithms.linear_solvers.hhl</h1><div class="highlight"><pre>
 <span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
-<span class="c1"># (C) Copyright IBM 2018, 2020.</span>
+<span class="c1"># (C) Copyright IBM 2018, 2021.</span>
 <span class="c1">#</span>
 <span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
 <span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
@@ -392,7 +396,7 @@
             <span class="n">truncate_powerdim</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
             <span class="n">truncate_hermitian</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
             <span class="n">eigs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Eigenvalues</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">init_state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">InitialState</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">init_state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">InitialState</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">reciprocal</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Reciprocal</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">num_q</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
             <span class="n">num_a</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
@@ -504,21 +508,27 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">q</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_q</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;io&quot;</span><span class="p">)</span>
+
         <span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
 
         <span class="c1"># InitialState</span>
-        <span class="n">qc</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_state</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="s2">&quot;circuit&quot;</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_state</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+            <span class="n">qc</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_state</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_append_by_qreg</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_state</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="s2">&quot;circuit&quot;</span><span class="p">,</span> <span class="n">q</span><span class="p">))</span>
 
         <span class="c1"># EigenvalueEstimation (QPE)</span>
-        <span class="n">qc</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigs</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="s2">&quot;circuit&quot;</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+        <span class="n">eigs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigs</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="s2">&quot;circuit&quot;</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
         <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigs</span><span class="o">.</span><span class="n">_output_register</span>
+        <span class="n">_append_by_qreg</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">eigs</span><span class="p">)</span>
 
         <span class="c1"># Reciprocal calculation with rotation</span>
-        <span class="n">qc</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reciprocal</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="s2">&quot;circuit&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+        <span class="n">rec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reciprocal</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="s2">&quot;circuit&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reciprocal</span><span class="o">.</span><span class="n">_anc</span>
+        <span class="n">_append_by_qreg</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">rec</span><span class="p">)</span>
 
         <span class="c1"># Inverse EigenvalueEstimation</span>
-        <span class="n">qc</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigs</span><span class="o">.</span><span class="n">construct_inverse</span><span class="p">(</span><span class="s2">&quot;circuit&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigs</span><span class="o">.</span><span class="n">_circuit</span><span class="p">)</span>
+        <span class="n">_append_by_qreg</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigs</span><span class="o">.</span><span class="n">construct_inverse</span><span class="p">(</span><span class="s2">&quot;circuit&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigs</span><span class="o">.</span><span class="n">_circuit</span><span class="p">))</span>
 
         <span class="c1"># Measurement of the ancilla qubit</span>
         <span class="k">if</span> <span class="n">measurement</span><span class="p">:</span>
@@ -533,7 +543,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_circuit</span> <span class="o">=</span> <span class="n">qc</span>
         <span class="k">return</span> <span class="n">qc</span></div>
 
-<div class="viewcode-block" id="HHL.expand_to_powerdim"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.HHL.html#qiskit.aqua.algorithms.HHL.expand_to_powerdim">[documentos]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="HHL.expand_to_powerdim"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.HHL.html#qiskit.aqua.algorithms.HHL.expand_to_powerdim">[documentos]</a>    <span class="o">@</span> <span class="nb">staticmethod</span>
     <span class="k">def</span> <span class="nf">expand_to_powerdim</span><span class="p">(</span><span class="n">matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">vector</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot; Expand a matrix to the next-larger 2**n dimensional matrix with</span>
 <span class="sd">        ones on the diagonal and zeros on the off-diagonal and expand the</span>
@@ -557,7 +567,7 @@
         <span class="n">vector</span> <span class="o">=</span> <span class="n">new_vector</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">new_vector</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">matrix</span><span class="p">,</span> <span class="n">vector</span></div>
 
-<div class="viewcode-block" id="HHL.expand_to_hermitian"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.HHL.html#qiskit.aqua.algorithms.HHL.expand_to_hermitian">[documentos]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="HHL.expand_to_hermitian"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.HHL.html#qiskit.aqua.algorithms.HHL.expand_to_hermitian">[documentos]</a>    <span class="o">@</span> <span class="nb">staticmethod</span>
     <span class="k">def</span> <span class="nf">expand_to_hermitian</span><span class="p">(</span><span class="n">matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
                             <span class="n">vector</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot; Expand a non-hermitian matrix A to a hermitian matrix by</span>
@@ -601,9 +611,8 @@
             <span class="n">new_matrix</span><span class="p">[:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">half_dim</span><span class="p">,</span> <span class="n">half_dim</span><span class="p">:</span><span class="n">full_dim</span><span class="p">]</span>
             <span class="n">matrix</span> <span class="o">=</span> <span class="n">new_matrix</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_truncate_powerdim</span><span class="p">:</span>
-            <span class="n">new_matrix</span> <span class="o">=</span> \
-                <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_original_dimension</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_dimension</span><span class="p">),</span>
-                           <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+            <span class="n">new_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_original_dimension</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_dimension</span><span class="p">),</span>
+                                    <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
             <span class="n">new_matrix</span><span class="p">[:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">matrix</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">_original_dimension</span><span class="p">,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">_original_dimension</span><span class="p">]</span>
             <span class="n">matrix</span> <span class="o">=</span> <span class="n">new_matrix</span>
         <span class="k">return</span> <span class="n">matrix</span>
@@ -652,7 +661,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">f</span> <span class="o">+=</span> <span class="n">v</span>
             <span class="n">probs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span> <span class="o">/</span> <span class="p">(</span><span class="n">f</span> <span class="o">+</span> <span class="n">s</span><span class="p">))</span>
-        <span class="n">probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resize_vector</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resize_vector</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ret</span><span class="p">[</span><span class="s2">&quot;probability_result&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
 
         <span class="c1"># Filtering the tomo data for valid results with ancillary measured</span>
@@ -783,6 +792,30 @@
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="n">a_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;HHLResult&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot; create new object from a dictionary &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">HHLResult</span><span class="p">(</span><span class="n">a_dict</span><span class="p">)</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">_append_by_qreg</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Workaround to use deprecated ``extend`` method until HHL is refactored.&quot;&quot;&quot;</span>
+    <span class="c1"># Add new registers</span>
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">qregs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">element</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">target</span><span class="o">.</span><span class="n">qregs</span><span class="p">:</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">qregs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">_qubits</span> <span class="o">+=</span> <span class="n">element</span><span class="p">[:]</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">_qubit_set</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">element</span><span class="p">[:])</span>
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">cregs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">element</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">target</span><span class="o">.</span><span class="n">cregs</span><span class="p">:</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">cregs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">_clbits</span> <span class="o">+=</span> <span class="n">element</span><span class="p">[:]</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">_clbit_set</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">element</span><span class="p">[:])</span>
+
+    <span class="c1"># Copy the circuit data if other and target are the same, otherwise the data of other is</span>
+    <span class="c1"># appended to both target and other resulting in an infinite loop</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="n">target</span> <span class="k">else</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span>
+
+    <span class="c1"># Add new gates</span>
+    <span class="k">for</span> <span class="n">instruction_context</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="n">target</span><span class="o">.</span><span class="n">_append</span><span class="p">(</span><span class="o">*</span><span class="n">instruction_context</span><span class="p">)</span>
+    <span class="n">target</span><span class="o">.</span><span class="n">global_phase</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">global_phase</span>
 </pre></div>
 
              </article>
@@ -915,20 +948,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

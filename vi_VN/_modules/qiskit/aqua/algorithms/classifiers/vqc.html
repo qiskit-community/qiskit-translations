@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.algorithms.classifiers.vqc &mdash; Tài liệu Qiskit 0.24.1</title>
+  <title>qiskit.aqua.algorithms.classifiers.vqc &mdash; Tài liệu Qiskit 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Trình cung cấp lượng tử IBM Qiskit</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Xử lí sự cố</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Mã lỗi IBM Quantum API</a></li>
@@ -301,7 +305,7 @@
   <h1>Source code for qiskit.aqua.algorithms.classifiers.vqc</h1><div class="highlight"><pre>
 <span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
-<span class="c1"># (C) Copyright IBM 2018, 2020.</span>
+<span class="c1"># (C) Copyright IBM 2018, 2021.</span>
 <span class="c1">#</span>
 <span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
 <span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
@@ -330,8 +334,9 @@
 <span class="kn">from</span> <span class="nn">qiskit.aqua.utils</span> <span class="kn">import</span> <span class="n">split_dataset_to_data_and_labels</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">VQAlgorithm</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.optimizers</span> <span class="kn">import</span> <span class="n">Optimizer</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.feature_maps</span> <span class="kn">import</span> <span class="n">FeatureMap</span><span class="p">,</span> <span class="n">RawFeatureVector</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua.components.feature_maps</span> <span class="kn">import</span> <span class="n">FeatureMap</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.variational_forms</span> <span class="kn">import</span> <span class="n">VariationalForm</span>
+<span class="kn">from</span> <span class="nn">...deprecation</span> <span class="kn">import</span> <span class="n">warn_package</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -366,6 +371,7 @@
             <span class="n">max_evals_grouped</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
             <span class="n">minibatch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
             <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">use_sigmoid_cross_entropy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
             <span class="n">quantum_instance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
                 <span class="n">Union</span><span class="p">[</span><span class="n">QuantumInstance</span><span class="p">,</span> <span class="n">BaseBackend</span><span class="p">,</span> <span class="n">Backend</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -383,14 +389,18 @@
 <span class="sd">                Four parameter values are passed to the callback as follows during each evaluation.</span>
 <span class="sd">                These are: the evaluation count, parameters of the variational form,</span>
 <span class="sd">                the evaluated value, the index of data batch.</span>
+<span class="sd">            use_sigmoid_cross_entropy: whether to use sigmoid cross entropy or not.</span>
 <span class="sd">            quantum_instance: Quantum Instance or Backend</span>
 
 <span class="sd">        Note:</span>
-<span class="sd">            We use `label` to denotes numeric results and `class` the class names (str).</span>
+<span class="sd">            We use `label` to denote numeric results and `class` the class names (str).</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            AquaError: Missing feature map or missing training dataset.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warn_package</span><span class="p">(</span><span class="s1">&#39;aqua.algorithms.classifiers&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;qiskit_machine_learning.algorithms.classifiers&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;qiskit-machine-learning&#39;</span><span class="p">)</span>
         <span class="c1"># VariationalForm is not deprecated on level of the VQAlgorithm yet as UCCSD still</span>
         <span class="c1"># derives from there, therefore we&#39;re adding a warning here</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var_form</span><span class="p">,</span> <span class="n">VariationalForm</span><span class="p">):</span>
@@ -405,7 +415,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">var_form</span><span class="o">=</span><span class="n">var_form</span><span class="p">,</span>
             <span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
-            <span class="n">cost_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cost_function_wrapper</span><span class="p">,</span>
+            <span class="n">cost_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_loss</span><span class="p">,</span>
             <span class="n">quantum_instance</span><span class="o">=</span><span class="n">quantum_instance</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_batches</span> <span class="o">=</span> <span class="kc">None</span>
@@ -416,6 +426,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">set_max_evals_grouped</span><span class="p">(</span><span class="n">max_evals_grouped</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_callback</span> <span class="o">=</span> <span class="n">callback</span>
+
+        <span class="k">if</span> <span class="n">use_sigmoid_cross_entropy</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cost_function</span> <span class="o">=</span> <span class="n">cost_estimate_sigmoid</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cost_function</span> <span class="o">=</span> <span class="n">cost_estimate</span>
 
         <span class="k">if</span> <span class="n">feature_map</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s1">&#39;Missing feature map.&#39;</span><span class="p">)</span>
@@ -476,7 +491,7 @@
             <span class="n">circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feature_map</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="n">param_dict</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">qc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">(),</span> <span class="n">qr</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">qc</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feature_map</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">qr</span><span class="p">)</span>
+            <span class="n">qc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_feature_map</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">qr</span><span class="p">)</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">(),</span> <span class="n">qr</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_form</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
             <span class="n">param_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var_form_params</span><span class="p">,</span> <span class="n">theta</span><span class="p">))</span>
@@ -501,6 +516,7 @@
 <span class="sd">            Union(numpy.ndarray or [numpy.ndarray], numpy.ndarray or [numpy.ndarray]):</span>
 <span class="sd">                list of NxK array, list of Nx1 array</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">qiskit.ml.circuit.library</span> <span class="kn">import</span> <span class="n">RawFeatureVector</span>
         <span class="n">circuits</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="n">num_theta_sets</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var_form</span><span class="o">.</span><span class="n">num_parameters</span>
@@ -511,6 +527,10 @@
                 <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var_form</span><span class="o">.</span><span class="n">support_parameterized_circuit</span>
             <span class="n">feat_map_support</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_feature_map</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">)</span> \
                 <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feature_map</span><span class="o">.</span><span class="n">support_parameterized_circuit</span>
+
+            <span class="c1"># cannot transpile the RawFeatureVector</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_feature_map</span><span class="p">,</span> <span class="n">RawFeatureVector</span><span class="p">):</span>
+                <span class="n">feat_map_support</span> <span class="o">=</span> <span class="kc">False</span>
 
             <span class="k">if</span> <span class="n">var_form_support</span> <span class="ow">and</span> <span class="n">feat_map_support</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterized_circuits</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">parameterized_circuits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span>
@@ -619,7 +639,7 @@
 
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_minimum</span><span class="p">(</span><span class="n">initial_point</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_point</span><span class="p">,</span>
                                    <span class="n">var_form</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var_form</span><span class="p">,</span>
-                                   <span class="n">cost_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cost_function_wrapper</span><span class="p">,</span>
+                                   <span class="n">cost_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_loss</span><span class="p">,</span>
                                    <span class="n">optimizer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="p">,</span>
                                    <span class="n">gradient_fn</span><span class="o">=</span><span class="n">grad_fn</span><span class="p">)</span>
 
@@ -655,25 +675,35 @@
 <span class="sd">            numpy.ndarray: 1-d array with the same shape as theta. The  gradient computed</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">1e-8</span>
-        <span class="n">f_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_function_wrapper</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">f_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
         <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">theta</span><span class="p">),),</span> <span class="nb">float</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">theta</span><span class="p">):</span>
             <span class="n">theta</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="n">epsilon</span>
-            <span class="n">f_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_function_wrapper</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+            <span class="n">f_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
             <span class="n">grad</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">f_new</span> <span class="o">-</span> <span class="n">f_orig</span><span class="p">)</span> <span class="o">/</span> <span class="n">epsilon</span>
             <span class="n">theta</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-=</span> <span class="n">epsilon</span>  <span class="c1"># recover to the center state</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_gradient_really_supported</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_batch_index</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># increment the batch after gradient callback</span>
         <span class="k">return</span> <span class="n">grad</span>
 
-    <span class="k">def</span> <span class="nf">_cost_function_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the loss over the current batch given a set of parameter</span>
+<span class="sd">        values.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            theta (numpy.ndarray): array of parameter values.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: list of loss values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">batch_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_index</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_batches</span><span class="p">)</span>
         <span class="n">predicted_probs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_prediction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_batches</span><span class="p">[</span><span class="n">batch_index</span><span class="p">],</span> <span class="n">theta</span><span class="p">)</span>
         <span class="n">total_cost</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">predicted_probs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">predicted_probs</span> <span class="o">=</span> <span class="p">[</span><span class="n">predicted_probs</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">predicted_probs</span><span class="p">):</span>
-            <span class="n">curr_cost</span> <span class="o">=</span> <span class="n">cost_estimate</span><span class="p">(</span><span class="n">predicted_probs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label_batches</span><span class="p">[</span><span class="n">batch_index</span><span class="p">])</span>
+            <span class="n">curr_cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_function</span><span class="p">(</span><span class="n">predicted_probs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">_label_batches</span><span class="p">[</span><span class="n">batch_index</span><span class="p">])</span>
             <span class="n">total_cost</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curr_cost</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_callback</span><span class="p">(</span>
@@ -718,7 +748,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_quantum_instance</span> <span class="k">if</span> <span class="n">quantum_instance</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">quantum_instance</span>
         <span class="k">for</span> <span class="n">batch</span><span class="p">,</span> <span class="n">label_batch</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">batches</span><span class="p">,</span> <span class="n">label_batches</span><span class="p">):</span>
             <span class="n">predicted_probs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_prediction</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-            <span class="n">total_cost</span> <span class="o">+=</span> <span class="n">cost_estimate</span><span class="p">(</span><span class="n">predicted_probs</span><span class="p">,</span> <span class="n">label_batch</span><span class="p">)</span>
+            <span class="n">total_cost</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_function</span><span class="p">(</span><span class="n">predicted_probs</span><span class="p">,</span> <span class="n">label_batch</span><span class="p">)</span>
             <span class="n">total_correct</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">predicted_probs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">label_batch</span><span class="p">))</span>
             <span class="n">total_samples</span> <span class="o">+=</span> <span class="n">label_batch</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">int_accuracy</span> <span class="o">=</span> \
@@ -842,14 +872,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_feature_map_params</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">feature_map</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_feature_map</span> <span class="o">=</span> <span class="n">feature_map</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">feature_map</span><span class="p">,</span> <span class="n">FeatureMap</span><span class="p">):</span>
-            <span class="c1"># raw feature vector is not yet replaced</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">feature_map</span><span class="p">,</span> <span class="n">RawFeatureVector</span><span class="p">):</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The qiskit.aqua.components.feature_maps.FeatureMap object is &#39;</span>
-                              <span class="s1">&#39;deprecated as of 0.7.0 and will be removed no earlier than 3 months &#39;</span>
-                              <span class="s1">&#39;after the release. You should pass a QuantumCircuit object instead. &#39;</span>
-                              <span class="s1">&#39;See also qiskit.circuit.library.data_preparation for a collection &#39;</span>
-                              <span class="s1">&#39;of suitable circuits.&#39;</span><span class="p">,</span>
-                              <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The qiskit.aqua.components.feature_maps.RawFeatureVector object is &#39;</span>
+                          <span class="s1">&#39;deprecated as of 0.9.0 and will be removed no earlier than 3 months &#39;</span>
+                          <span class="s1">&#39;after the release. You can use the RawFeatureVector from &#39;</span>
+                          <span class="s1">&#39;qiskit.ml.circuit.library instead.&#39;</span><span class="p">,</span>
+                          <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">=</span> <span class="n">feature_map</span><span class="o">.</span><span class="n">num_qubits</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_feature_map_params</span> <span class="o">=</span> <span class="n">ParameterVector</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="n">feature_map</span><span class="o">.</span><span class="n">feature_dimension</span><span class="p">)</span>
@@ -991,7 +1018,7 @@
     <span class="k">return</span> <span class="n">x</span>
 
 
-<span class="k">def</span> <span class="nf">cost_estimate_sigmoid</span><span class="p">(</span><span class="n">shots</span><span class="p">,</span> <span class="n">probs</span><span class="p">,</span> <span class="n">gt_labels</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">cost_estimate_sigmoid</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">gt_labels</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Calculate sigmoid cross entropy</span>
 
 <span class="sd">    Args:</span>
@@ -1160,20 +1187,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

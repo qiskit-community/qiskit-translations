@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.quantum_info.operators.channel.chi &mdash; documentación de Qiskit - 0.24.1</title>
+  <title>qiskit.quantum_info.operators.channel.chi &mdash; documentación de Qiskit - 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Troubleshooting</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Quantum API error codes</a></li>
@@ -311,12 +315,12 @@
 <span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
 <span class="c1"># that they have been altered from the originals.</span>
 
-<span class="c1"># pylint: disable=unpacking-non-sequence</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Chi-matrix representation of a Quantum Channel.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumcircuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
@@ -326,6 +330,7 @@
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel.choi</span> <span class="kn">import</span> <span class="n">Choi</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel.superop</span> <span class="kn">import</span> <span class="n">SuperOp</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel.transformations</span> <span class="kn">import</span> <span class="n">_to_chi</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.mixins</span> <span class="kn">import</span> <span class="n">generate_apidocs</span>
 
 
 <div class="viewcode-block" id="Chi"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.Chi.html#qiskit.quantum_info.Chi">[documentos]</a><span class="k">class</span> <span class="nc">Chi</span><span class="p">(</span><span class="n">QuantumChannel</span><span class="p">):</span>
@@ -350,7 +355,6 @@
 <span class="sd">           for open quantum systems*, Quant. Inf. Comp. 15, 0579-0811 (2015).</span>
 <span class="sd">           `arXiv:1111.6950 [quant-ph] &lt;https://arxiv.org/abs/1111.6950&gt;`_</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
 <div class="viewcode-block" id="Chi.__init__"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.Chi.html#qiskit.quantum_info.Chi.__init__">[documentos]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">input_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize a quantum channel Chi-matrix operator.</span>
 
@@ -417,12 +421,14 @@
                 <span class="n">output_dims</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">output_dims</span><span class="p">()</span>
         <span class="c1"># Check input is N-qubit channel</span>
         <span class="n">num_qubits</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">input_dim</span><span class="p">))</span>
-        <span class="k">if</span> <span class="mi">2</span><span class="o">**</span><span class="n">num_qubits</span> <span class="o">!=</span> <span class="n">input_dim</span><span class="p">:</span>
+        <span class="k">if</span> <span class="mi">2</span><span class="o">**</span><span class="n">num_qubits</span> <span class="o">!=</span> <span class="n">input_dim</span> <span class="ow">or</span> <span class="n">input_dim</span> <span class="o">!=</span> <span class="n">output_dim</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Input is not an n-qubit Chi matrix.&quot;</span><span class="p">)</span>
-        <span class="c1"># Check and format input and output dimensions</span>
-        <span class="n">input_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_automatic_dims</span><span class="p">(</span><span class="n">input_dims</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">)</span>
-        <span class="n">output_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_automatic_dims</span><span class="p">(</span><span class="n">output_dims</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">chi_mat</span><span class="p">,</span> <span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">,</span> <span class="s1">&#39;Chi&#39;</span><span class="p">)</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">chi_mat</span><span class="p">,</span> <span class="n">num_qubits</span><span class="o">=</span><span class="n">num_qubits</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__array__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">dtype</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_bipartite_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -430,43 +436,26 @@
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">_evolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SuperOp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_evolve</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">qargs</span><span class="p">)</span>
+
+    <span class="c1"># ---------------------------------------------------------------------</span>
+    <span class="c1"># BaseOperator methods</span>
+    <span class="c1"># ---------------------------------------------------------------------</span>
+
 <div class="viewcode-block" id="Chi.conjugate"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.Chi.html#qiskit.quantum_info.Chi.conjugate">[documentos]</a>    <span class="k">def</span> <span class="nf">conjugate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the conjugate of the QuantumChannel.&quot;&quot;&quot;</span>
         <span class="c1"># Since conjugation is basis dependent we transform</span>
         <span class="c1"># to the Choi representation to compute the</span>
         <span class="c1"># conjugate channel</span>
         <span class="k">return</span> <span class="n">Chi</span><span class="p">(</span><span class="n">Choi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">conjugate</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="Chi.transpose"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.Chi.html#qiskit.quantum_info.Chi.transpose">[documentos]</a>    <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the transpose of the QuantumChannel.&quot;&quot;&quot;</span>
-        <span class="c1"># Since conjugation is basis dependent we transform</span>
-        <span class="c1"># to the Choi representation to compute the</span>
-        <span class="c1"># conjugate channel</span>
         <span class="k">return</span> <span class="n">Chi</span><span class="p">(</span><span class="n">Choi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span></div>
 
+<div class="viewcode-block" id="Chi.adjoint"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.Chi.html#qiskit.quantum_info.Chi.adjoint">[documentos]</a>    <span class="k">def</span> <span class="nf">adjoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Chi</span><span class="p">(</span><span class="n">Choi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">adjoint</span><span class="p">())</span></div>
+
 <div class="viewcode-block" id="Chi.compose"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.Chi.html#qiskit.quantum_info.Chi.compose">[documentos]</a>    <span class="k">def</span> <span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">front</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the composed quantum channel self @ other.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (QuantumChannel): a quantum channel.</span>
-<span class="sd">            qargs (list or None): a list of subsystem positions to apply</span>
-<span class="sd">                                  other on. If None apply on all</span>
-<span class="sd">                                  subsystems [default: None].</span>
-<span class="sd">            front (bool): If True compose using right operator multiplication,</span>
-<span class="sd">                          instead of left multiplication [default: False].</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Chi: The quantum channel self @ other.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if other has incompatible dimensions.</span>
-
-<span class="sd">        Additional Information:</span>
-<span class="sd">            Composition (``@``) is defined as `left` matrix multiplication for</span>
-<span class="sd">            :class:`SuperOp` matrices. That is that ``A @ B`` is equal to ``B * A``.</span>
-<span class="sd">            Setting ``front=True`` returns `right` matrix multiplication</span>
-<span class="sd">            ``A * B`` and is equivalent to the :meth:`dot` method.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">qargs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;qargs&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -476,77 +465,26 @@
         <span class="c1"># representation conversion to SuperOp and then convert back to Chi</span>
         <span class="k">return</span> <span class="n">Chi</span><span class="p">(</span><span class="n">Choi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">front</span><span class="o">=</span><span class="n">front</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="Chi.power"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.Chi.html#qiskit.quantum_info.Chi.power">[documentos]</a>    <span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The matrix power of the channel.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            n (int): compute the matrix power of the superoperator matrix.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Chi: the matrix power of the SuperOp converted to a Chi channel.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if the input and output dimensions of the</span>
-<span class="sd">                         QuantumChannel are not equal, or the power is not an integer.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Chi</span><span class="p">(</span><span class="n">SuperOp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">n</span><span class="p">))</span></div>
-
 <div class="viewcode-block" id="Chi.tensor"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.Chi.html#qiskit.quantum_info.Chi.tensor">[documentos]</a>    <span class="k">def</span> <span class="nf">tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the tensor product channel self ⊗ other.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (QuantumChannel): a quantum channel.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Chi: the tensor product channel self ⊗ other as a Chi object.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if other is not a QuantumChannel subclass.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Chi</span><span class="p">):</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">Chi</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="n">input_dims</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">input_dims</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span><span class="p">()</span>
-        <span class="n">output_dims</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">output_dims</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span><span class="p">()</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Chi</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Chi.expand"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.Chi.html#qiskit.quantum_info.Chi.expand">[documentos]</a>    <span class="k">def</span> <span class="nf">expand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the tensor product channel other ⊗ self.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (QuantumChannel): a quantum channel.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Chi: the tensor product channel other ⊗ self as a Chi object.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if other is not a QuantumChannel subclass.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Chi</span><span class="p">):</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">Chi</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="n">input_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span><span class="p">()</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">input_dims</span><span class="p">()</span>
-        <span class="n">output_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span><span class="p">()</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">output_dims</span><span class="p">()</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Chi</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tensor</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_evolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Evolve a quantum state by the quantum channel.</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_tensor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">_op_shape</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
 
-<span class="sd">        Args:</span>
-<span class="sd">            state (DensityMatrix or Statevector): The input state.</span>
-<span class="sd">            qargs (list): a list of quantum state subsystem positions to apply</span>
-<span class="sd">                           the quantum channel on.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            DensityMatrix: the output quantum state as a density matrix.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if the quantum channel dimension does not match the</span>
-<span class="sd">                         specified quantum state subsystem dimensions.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">SuperOp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_evolve</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">qargs</span><span class="p">)</span></div>
+<span class="c1"># Update docstrings for API docs</span>
+<span class="n">generate_apidocs</span><span class="p">(</span><span class="n">Chi</span><span class="p">)</span>
 </pre></div>
 
              </article>
@@ -679,20 +617,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

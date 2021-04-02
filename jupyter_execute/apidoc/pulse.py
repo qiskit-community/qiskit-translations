@@ -5,7 +5,6 @@
 
 
 from qiskit import pulse
-from qiskit.visualization import SchedStyle
 
 dc = pulse.DriveChannel
 d0, d1, d2, d3, d4 = dc(0), dc(1), dc(2), dc(3), dc(4)
@@ -17,8 +16,7 @@ with pulse.build(name='pulse_programming_in') as pulse_prog:
     pulse.play([1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0], d3)
     pulse.play([1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0], d4)
 
-style = SchedStyle(figsize=(3, 2), title_font_size=10, axis_font_size=8)
-pulse_prog.draw(style=style)
+pulse_prog.draw()
 
 
 # In[2]:
@@ -39,7 +37,6 @@ with pulse.build(backend) as drive_sched:
 
 from qiskit import pulse
 from qiskit.test.mock import FakeArmonk
-from qiskit.visualization import SchedStyle
 
 backend = FakeArmonk()
 
@@ -61,15 +58,13 @@ with pulse.build(backend) as drive_sched:
     pulse.call(temp_sched)
     pulse.acquire(30, a0, pulse.MemorySlot(0))
 
-style = SchedStyle(figsize=(3, 2), title_font_size=10, axis_font_size=8)
-drive_sched.draw(style=style)
+drive_sched.draw()
 
 
 # In[4]:
 
 
 from qiskit import pulse
-from qiskit.visualization import SchedStyle
 
 d0 = pulse.DriveChannel(0)
 d1 = pulse.DriveChannel(1)
@@ -81,8 +76,7 @@ with pulse.build() as pulse_prog:
         # this pulse will start at t=80
         pulse.play(pulse.Constant(20, 1.0), d1)
 
-style = SchedStyle(figsize=(3, 2), title_font_size=10, axis_font_size=8)
-pulse_prog.draw(style=style)
+pulse_prog.draw()
 
 
 # In[5]:

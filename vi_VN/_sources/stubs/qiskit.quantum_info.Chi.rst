@@ -14,7 +14,6 @@
    .. autosummary::
    
       ~Chi.__init__
-      ~Chi.add
       ~Chi.adjoint
       ~Chi.compose
       ~Chi.conjugate
@@ -26,13 +25,9 @@
       ~Chi.is_cptp
       ~Chi.is_tp
       ~Chi.is_unitary
-      ~Chi.multiply
       ~Chi.output_dims
       ~Chi.power
       ~Chi.reshape
-      ~Chi.set_atol
-      ~Chi.set_rtol
-      ~Chi.subtract
       ~Chi.tensor
       ~Chi.to_instruction
       ~Chi.to_operator

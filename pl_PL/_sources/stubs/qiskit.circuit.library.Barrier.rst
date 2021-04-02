@@ -25,6 +25,7 @@
       ~Barrier.qasm
       ~Barrier.repeat
       ~Barrier.reverse_ops
+      ~Barrier.soft_compare
       ~Barrier.validate_parameter
    
    

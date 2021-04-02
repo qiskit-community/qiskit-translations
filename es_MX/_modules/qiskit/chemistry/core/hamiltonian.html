@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.chemistry.core.hamiltonian &mdash; documentación de Qiskit - 0.24.1</title>
+  <title>qiskit.chemistry.core.hamiltonian &mdash; documentación de Qiskit - 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/ibmq-provider.html">Proveedor Cuántico IBM Qiskit</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Solución de Problemas</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Códigos de error de IBM Quantum API</a></li>
@@ -327,7 +331,6 @@
 <span class="kn">from</span> <span class="nn">.chemistry_operator</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ChemistryOperator</span><span class="p">,</span>
                                  <span class="n">MolecularGroundStateResult</span><span class="p">,</span>
                                  <span class="n">DipoleTuple</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">..components.initial_states</span> <span class="kn">import</span> <span class="n">HartreeFock</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -386,12 +389,10 @@
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The Hamiltonian class is deprecated as of Qiskit Aqua 0.8.0 and will be &#39;</span>
                       <span class="s1">&#39;removed no earlier than 3 months after the release date. Instead, the &#39;</span>
                       <span class="s1">&#39;FermionicTransformation can be used.&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">transformation</span> <span class="o">=</span> <span class="n">transformation</span><span class="o">.</span><span class="n">value</span>  <span class="c1"># type: ignore</span>
-        <span class="n">qubit_mapping</span> <span class="o">=</span> <span class="n">qubit_mapping</span><span class="o">.</span><span class="n">value</span>  <span class="c1"># type: ignore</span>
         <span class="n">orbital_reduction</span> <span class="o">=</span> <span class="n">orbital_reduction</span> <span class="k">if</span> <span class="n">orbital_reduction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_transformation</span> <span class="o">=</span> <span class="n">transformation</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_qubit_mapping</span> <span class="o">=</span> <span class="n">qubit_mapping</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_transformation</span> <span class="o">=</span> <span class="n">transformation</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qubit_mapping</span> <span class="o">=</span> <span class="n">qubit_mapping</span><span class="o">.</span><span class="n">value</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_two_qubit_reduction</span> <span class="o">=</span> <span class="n">two_qubit_reduction</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_freeze_core</span> <span class="o">=</span> <span class="n">freeze_core</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_orbital_reduction</span> <span class="o">=</span> <span class="n">orbital_reduction</span>
@@ -453,13 +454,13 @@
         <span class="c1"># with freeze first, we have to re-base</span>
         <span class="c1"># the indexes for elimination according to how many orbitals were removed when freezing.</span>
         <span class="c1">#</span>
-        <span class="n">orbitals_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">core_list</span> <span class="o">+</span> <span class="n">reduce_list</span><span class="p">))</span>
+        <span class="n">orb_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">core_list</span> <span class="o">+</span> <span class="n">reduce_list</span><span class="p">))</span>
         <span class="n">num_alpha</span> <span class="o">=</span> <span class="n">qmolecule</span><span class="o">.</span><span class="n">num_alpha</span>
         <span class="n">num_beta</span> <span class="o">=</span> <span class="n">qmolecule</span><span class="o">.</span><span class="n">num_beta</span>
         <span class="n">new_num_alpha</span> <span class="o">=</span> <span class="n">num_alpha</span>
         <span class="n">new_num_beta</span> <span class="o">=</span> <span class="n">num_beta</span>
-        <span class="k">if</span> <span class="n">orbitals_list</span><span class="p">:</span>
-            <span class="n">orbitals_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">orbitals_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">orb_list</span><span class="p">:</span>
+            <span class="n">orbitals_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">orb_list</span><span class="p">)</span>
             <span class="n">orbitals_list</span> <span class="o">=</span> \
                 <span class="n">orbitals_list</span><span class="p">[(</span><span class="n">cast</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">orbitals_list</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span>
                               <span class="p">(</span><span class="n">orbitals_list</span> <span class="o">&lt;</span> <span class="n">qmolecule</span><span class="o">.</span><span class="n">num_orbitals</span><span class="p">)]</span>
@@ -565,7 +566,7 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Molecule num spin orbitals: </span><span class="si">%s</span><span class="s1">, remaining for processing: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
                     <span class="n">nspinorbs</span><span class="p">,</span> <span class="n">new_nspinorbs</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_add_molecule_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">INFO_NUM_PARTICLES</span><span class="p">,</span> <span class="p">[</span><span class="n">new_num_alpha</span><span class="p">,</span> <span class="n">new_num_beta</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_molecule_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">INFO_NUM_PARTICLES</span><span class="p">,</span> <span class="p">(</span><span class="n">new_num_alpha</span><span class="p">,</span> <span class="n">new_num_beta</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_add_molecule_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">INFO_NUM_ORBITALS</span><span class="p">,</span> <span class="n">new_nspinorbs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_add_molecule_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">INFO_TWO_QUBIT_REDUCTION</span><span class="p">,</span>
                                 <span class="bp">self</span><span class="o">.</span><span class="n">_two_qubit_reduction</span>
@@ -607,11 +608,14 @@
                     <span class="n">aux_ops</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Discard since no meaningful measurement can be done</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z2symmetry_reduction</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
-                <span class="n">hf_state</span> <span class="o">=</span> <span class="n">HartreeFock</span><span class="p">(</span><span class="n">num_orbitals</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_molecule_info</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">INFO_NUM_ORBITALS</span><span class="p">],</span>
-                                       <span class="n">qubit_mapping</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_qubit_mapping</span><span class="p">,</span>
-                                       <span class="n">two_qubit_reduction</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_two_qubit_reduction</span><span class="p">,</span>
-                                       <span class="n">num_particles</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_molecule_info</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">INFO_NUM_PARTICLES</span><span class="p">])</span>
-                <span class="n">z2_symmetries</span> <span class="o">=</span> <span class="n">Hamiltonian</span><span class="o">.</span><span class="n">_pick_sector</span><span class="p">(</span><span class="n">z2_symmetries</span><span class="p">,</span> <span class="n">hf_state</span><span class="o">.</span><span class="n">bitstr</span><span class="p">)</span>
+                <span class="kn">from</span> <span class="nn">..circuit.library.initial_states.hartree_fock</span> <span class="kn">import</span> <span class="n">hartree_fock_bitstring</span>
+                <span class="n">hf_bitstr</span> <span class="o">=</span> <span class="n">hartree_fock_bitstring</span><span class="p">(</span>
+                    <span class="n">num_orbitals</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_molecule_info</span><span class="p">[</span><span class="s1">&#39;num_orbitals&#39;</span><span class="p">],</span>
+                    <span class="n">qubit_mapping</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_qubit_mapping</span><span class="p">,</span>
+                    <span class="n">two_qubit_reduction</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_two_qubit_reduction</span><span class="p">,</span>
+                    <span class="n">num_particles</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_molecule_info</span><span class="p">[</span><span class="s1">&#39;num_particles&#39;</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="n">z2_symmetries</span> <span class="o">=</span> <span class="n">Hamiltonian</span><span class="o">.</span><span class="n">_pick_sector</span><span class="p">(</span><span class="n">z2_symmetries</span><span class="p">,</span> <span class="n">hf_bitstr</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_z2symmetry_reduction</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">z2_symmetries</span><span class="o">.</span><span class="n">symmetries</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="n">QiskitChemistryError</span><span class="p">(</span><span class="s1">&#39;z2symmetry_reduction tapering values list has &#39;</span>
@@ -990,20 +994,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

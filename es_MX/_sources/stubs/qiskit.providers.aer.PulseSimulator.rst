@@ -23,9 +23,9 @@
       ~PulseSimulator.properties
       ~PulseSimulator.provider
       ~PulseSimulator.run
+      ~PulseSimulator.set_option
       ~PulseSimulator.set_options
       ~PulseSimulator.status
-      ~PulseSimulator.version
    
    
 
@@ -36,5 +36,6 @@
    .. autosummary::
    
       ~PulseSimulator.options
+      ~PulseSimulator.version
    
    

@@ -14,7 +14,6 @@
    .. autosummary::
    
       ~SuperOp.__init__
-      ~SuperOp.add
       ~SuperOp.adjoint
       ~SuperOp.compose
       ~SuperOp.conjugate
@@ -26,13 +25,9 @@
       ~SuperOp.is_cptp
       ~SuperOp.is_tp
       ~SuperOp.is_unitary
-      ~SuperOp.multiply
       ~SuperOp.output_dims
       ~SuperOp.power
       ~SuperOp.reshape
-      ~SuperOp.set_atol
-      ~SuperOp.set_rtol
-      ~SuperOp.subtract
       ~SuperOp.tensor
       ~SuperOp.to_instruction
       ~SuperOp.to_operator

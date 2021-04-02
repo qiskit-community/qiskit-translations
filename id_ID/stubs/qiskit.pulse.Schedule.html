@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.pulse.Schedule &mdash; Dokumentasi Qiskit 0.24.1</title>
+  <title>qiskit.pulse.Schedule &mdash; Dokumentasi Qiskit 0.25.0</title>
   
 
   
@@ -40,7 +40,7 @@
   <link rel="stylesheet" href="../_static/panels-variables.ade9f9d55df9d2893fc676ecd59723a1.css" type="text/css" />
     <link rel="index" title="Indeks" href="../genindex.html" />
     <link rel="search" title="Pencarian" href="../search.html" />
-    <link rel="next" title="qiskit.pulse.Instruction" href="qiskit.pulse.Instruction.html" />
+    <link rel="next" title="qiskit.pulse.ScheduleBlock" href="qiskit.pulse.ScheduleBlock.html" />
     <link rel="prev" title="qiskit.pulse.MemorySlot" href="qiskit.pulse.MemorySlot.html" /> 
 
   
@@ -229,6 +229,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Penyelesaian masalah</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Kode error IBM Quantum API</a></li>
@@ -310,9 +314,48 @@
 <h1>qiskit.pulse.Schedule<a class="headerlink" href="#qiskit-pulse-schedule" title="Link permanen untuk headline ini">¶</a></h1>
 <dl class="py class">
 <dt id="qiskit.pulse.Schedule">
-<em class="property">class </em><code class="sig-name descname">Schedule</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">schedules</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule" title="Link permanen untuk definisi ini">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">Schedule</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">schedules</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">metadata</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule" title="Link permanen untuk definisi ini">¶</a></dt>
 <dd><p>A quantum program <em>schedule</em> with exact time constraints for its instructions, operating
 over all input signal <em>channels</em> and supporting special syntaxes for building.</p>
+<p>Pulse program representation for the original Qiskit Pulse model [1].
+Instructions are not allowed to overlap in time
+on the same channel. This overlap constraint is immediately
+evaluated when a new instruction is added to the <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> object.</p>
+<p>It is necessary to specify the absolute start time and duration
+for each instruction so as to deterministically fix its execution time.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> program supports some syntax sugar for easier programming.</p>
+<ul class="simple">
+<li><p>Appending an instruction to the end of a channel</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sched</span> <span class="o">=</span> <span class="n">Schedule</span><span class="p">()</span>
+<span class="n">sched</span> <span class="o">+=</span> <span class="n">Play</span><span class="p">(</span><span class="n">Gaussian</span><span class="p">(</span><span class="mi">160</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">40</span><span class="p">),</span> <span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Appending an instruction shifted in time by a given amount</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sched</span> <span class="o">=</span> <span class="n">Schedule</span><span class="p">()</span>
+<span class="n">sched</span> <span class="o">+=</span> <span class="n">Play</span><span class="p">(</span><span class="n">Gaussian</span><span class="p">(</span><span class="mi">160</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">40</span><span class="p">),</span> <span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">&lt;&lt;</span> <span class="mi">30</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Merge two schedules</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sched1</span> <span class="o">=</span> <span class="n">Schedule</span><span class="p">()</span>
+<span class="n">sched1</span> <span class="o">+=</span> <span class="n">Play</span><span class="p">(</span><span class="n">Gaussian</span><span class="p">(</span><span class="mi">160</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">40</span><span class="p">),</span> <span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+<span class="n">sched2</span> <span class="o">=</span> <span class="n">Schedule</span><span class="p">()</span>
+<span class="n">sched2</span> <span class="o">+=</span> <span class="n">Play</span><span class="p">(</span><span class="n">Gaussian</span><span class="p">(</span><span class="mi">160</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">40</span><span class="p">),</span> <span class="n">DriveChannel</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">sched2</span> <span class="o">=</span> <span class="n">sched1</span> <span class="o">|</span> <span class="n">sched2</span>
+</pre></div>
+</div>
+<p>A <code class="docutils literal notranslate"><span class="pre">PulseError</span></code> is immediately raised when the overlap constraint is violated.</p>
+<p>In the schedule representation, we cannot parametrize the duration of instructions.
+Thus we need to create a new schedule object for each duration.
+To parametrize an instruction's duration, the <a class="reference internal" href="qiskit.pulse.ScheduleBlock.html#qiskit.pulse.ScheduleBlock" title="qiskit.pulse.ScheduleBlock"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScheduleBlock</span></code></a>
+representation may be used instead.</p>
+<p class="rubric">Referensi</p>
+<p>[1]: <a class="reference external" href="https://arxiv.org/abs/2004.06755">https://arxiv.org/abs/2004.06755</a></p>
 <p>Create an empty schedule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameter</dt>
@@ -320,12 +363,19 @@ over all input signal <em>channels</em> and supporting special syntaxes for buil
 <li><p><strong>*schedules</strong> -- Child Schedules of this parent Schedule. May either be passed as
 the list of schedules, or a list of <code class="docutils literal notranslate"><span class="pre">(start_time,</span> <span class="pre">schedule)</span></code> pairs.</p></li>
 <li><p><strong>name</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) -- Name of this schedule. Defaults to an autogenerated string if not provided.</p></li>
+<li><p><strong>metadata</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>]) -- Arbitrary key value metadata to associate with the schedule. This gets
+stored as free-form data in a dict in the
+<a class="reference internal" href="#qiskit.pulse.Schedule.metadata" title="qiskit.pulse.Schedule.metadata"><code class="xref py py-attr docutils literal notranslate"><span class="pre">metadata</span></code></a> attribute. It will not be directly
+used in the schedule.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>TypeError</strong> -- if metadata is not a dict.</p>
 </dd>
 </dl>
 <dl class="py method">
 <dt id="qiskit.pulse.Schedule.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">schedules</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule.__init__"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule.__init__" title="Link permanen untuk definisi ini">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">schedules</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">metadata</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule.__init__"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule.__init__" title="Link permanen untuk definisi ini">¶</a></dt>
 <dd><p>Create an empty schedule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameter</dt>
@@ -333,7 +383,14 @@ the list of schedules, or a list of <code class="docutils literal notranslate"><
 <li><p><strong>*schedules</strong> -- Child Schedules of this parent Schedule. May either be passed as
 the list of schedules, or a list of <code class="docutils literal notranslate"><span class="pre">(start_time,</span> <span class="pre">schedule)</span></code> pairs.</p></li>
 <li><p><strong>name</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) -- Name of this schedule. Defaults to an autogenerated string if not provided.</p></li>
+<li><p><strong>metadata</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>]) -- Arbitrary key value metadata to associate with the schedule. This gets
+stored as free-form data in a dict in the
+<a class="reference internal" href="#qiskit.pulse.Schedule.metadata" title="qiskit.pulse.Schedule.metadata"><code class="xref py py-attr docutils literal notranslate"><span class="pre">metadata</span></code></a> attribute. It will not be directly
+used in the schedule.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>TypeError</strong> -- if metadata is not a dict.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -345,13 +402,13 @@ the list of schedules, or a list of <code class="docutils literal notranslate"><
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.__init__" title="qiskit.pulse.Schedule.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(*schedules[, name])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.__init__" title="qiskit.pulse.Schedule.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(*schedules[, name, metadata])</p></td>
 <td><p>Create an empty schedule.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.append" title="qiskit.pulse.Schedule.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append</span></code></a>(schedule[, name, inplace])</p></td>
 <td><p>Return a new schedule with <code class="docutils literal notranslate"><span class="pre">schedule</span></code> inserted at the maximum time over all channels shared between <code class="docutils literal notranslate"><span class="pre">self</span></code> and <code class="docutils literal notranslate"><span class="pre">schedule</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.assign_parameters" title="qiskit.pulse.Schedule.assign_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assign_parameters</span></code></a>(value_dict)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.assign_parameters" title="qiskit.pulse.Schedule.assign_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assign_parameters</span></code></a>(value_dict[, inplace])</p></td>
 <td><p>Assign the parameters in this schedule according to the input.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.ch_duration" title="qiskit.pulse.Schedule.ch_duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ch_duration</span></code></a>(*channels)</p></td>
@@ -367,19 +424,25 @@ the list of schedules, or a list of <code class="docutils literal notranslate"><
 <td><p>Plot the schedule.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.exclude" title="qiskit.pulse.Schedule.exclude"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exclude</span></code></a>(*filter_funcs[, channels, ...])</p></td>
-<td><p>Return a Schedule with only the instructions from this Schedule <em>failing</em> at least one of the provided filters. This method is the complement of <code class="docutils literal notranslate"><span class="pre">self.filter</span></code>, so that::.</p></td>
+<td><p>Return a <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> with only the instructions from this Schedule <em>failing</em> at least one of the provided filters. This method is the complement of py:meth:<cite>~self.filter</cite>, so that::.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.filter" title="qiskit.pulse.Schedule.filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter</span></code></a>(*filter_funcs[, channels, ...])</p></td>
 <td><p>Return a new <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> with only the instructions from this <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> which pass though the provided filters; i.e. an instruction will be retained iff every function in <code class="docutils literal notranslate"><span class="pre">filter_funcs</span></code> returns <code class="docutils literal notranslate"><span class="pre">True</span></code>, the instruction occurs on a channel type contained in <code class="docutils literal notranslate"><span class="pre">channels</span></code>, the instruction type is contained in <code class="docutils literal notranslate"><span class="pre">instruction_types</span></code>, and the period over which the instruction operates is <em>fully</em> contained in one specified in <code class="docutils literal notranslate"><span class="pre">time_ranges</span></code> or <code class="docutils literal notranslate"><span class="pre">intervals</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.flatten" title="qiskit.pulse.Schedule.flatten"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flatten</span></code></a>()</p></td>
-<td><p>Return a new schedule which is the flattened schedule contained all <code class="docutils literal notranslate"><span class="pre">instructions</span></code>.</p></td>
+<td><p>Deprecated.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.insert" title="qiskit.pulse.Schedule.insert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">insert</span></code></a>(start_time, schedule[, name, inplace])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.get_parameters" title="qiskit.pulse.Schedule.get_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameters</span></code></a>(parameter_name)</p></td>
+<td><p>Get parameter object bound to this schedule by string name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.insert" title="qiskit.pulse.Schedule.insert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">insert</span></code></a>(start_time, schedule[, name, inplace])</p></td>
 <td><p>Return a new schedule with <code class="docutils literal notranslate"><span class="pre">schedule</span></code> inserted into <code class="docutils literal notranslate"><span class="pre">self</span></code> at <code class="docutils literal notranslate"><span class="pre">start_time</span></code>.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.is_parameterized" title="qiskit.pulse.Schedule.is_parameterized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_parameterized</span></code></a>()</p></td>
+<td><p>Return True iff the instruction is parameterized.</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.replace" title="qiskit.pulse.Schedule.replace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace</span></code></a>(old, new[, inplace])</p></td>
-<td><p>Return a schedule with the <code class="docutils literal notranslate"><span class="pre">old</span></code> instruction replaced with a <code class="docutils literal notranslate"><span class="pre">new</span></code> instruction.</p></td>
+<td><p>Return a <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> with the <code class="docutils literal notranslate"><span class="pre">old</span></code> instruction replaced with a <code class="docutils literal notranslate"><span class="pre">new</span></code> instruction.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.shift" title="qiskit.pulse.Schedule.shift"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shift</span></code></a>(time[, name, inplace])</p></td>
 <td><p>Return a schedule shifted forward by <code class="docutils literal notranslate"><span class="pre">time</span></code>.</p></td>
@@ -397,7 +460,7 @@ the list of schedules, or a list of <code class="docutils literal notranslate"><
 <td><p>Returns channels that this schedule uses.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.duration" title="qiskit.pulse.Schedule.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Duration of this schedule component.</p></td>
+<td><p>Duration of this schedule.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">instances_counter</span></code></p></td>
 <td><p></p></td>
@@ -405,17 +468,23 @@ the list of schedules, or a list of <code class="docutils literal notranslate"><
 <tr class="row-even"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.instructions" title="qiskit.pulse.Schedule.instructions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">instructions</span></code></a></p></td>
 <td><p>Get the time-ordered instructions from self.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.name" title="qiskit.pulse.Schedule.name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></a></p></td>
-<td><p>Name of ScheduleComponent.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.metadata" title="qiskit.pulse.Schedule.metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metadata</span></code></a></p></td>
+<td><p>The user provided metadata associated with the schedule.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.name" title="qiskit.pulse.Schedule.name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></a></p></td>
+<td><p>Name of this Schedule</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.parameters" title="qiskit.pulse.Schedule.parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parameters</span></code></a></p></td>
+<td><p>Parameters which determine the schedule behavior.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prefix</span></code></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.start_time" title="qiskit.pulse.Schedule.start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">start_time</span></code></a></p></td>
-<td><p>Starting time of this schedule component.</p></td>
+<td><p>Starting time of this schedule.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.stop_time" title="qiskit.pulse.Schedule.stop_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stop_time</span></code></a></p></td>
-<td><p>Stopping time of this schedule component.</p></td>
+<td><p>Stopping time of this schedule.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.pulse.Schedule.timeslots" title="qiskit.pulse.Schedule.timeslots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeslots</span></code></a></p></td>
 <td><p>Time keeping attribute.</p></td>
@@ -433,7 +502,7 @@ all channels shared between <code class="docutils literal notranslate"><span cla
 <dl class="field-list simple">
 <dt class="field-odd">Parameter</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>schedule</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ScheduleComponent</span></code>) -- Schedule to be appended.</p></li>
+<li><p><strong>schedule</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Schedule</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Instruction</span></code>]) -- Schedule to be appended.</p></li>
 <li><p><strong>name</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) -- Name of the new <code class="docutils literal notranslate"><span class="pre">Schedule</span></code>. Defaults to name of <code class="docutils literal notranslate"><span class="pre">self</span></code>.</p></li>
 <li><p><strong>inplace</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Perform operation inplace on this schedule. Otherwise
 return a new <code class="docutils literal notranslate"><span class="pre">Schedule</span></code>.</p></li>
@@ -447,18 +516,21 @@ return a new <code class="docutils literal notranslate"><span class="pre">Schedu
 
 <dl class="py method">
 <dt id="qiskit.pulse.Schedule.assign_parameters">
-<code class="sig-name descname">assign_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value_dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule.assign_parameters"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule.assign_parameters" title="Link permanen untuk definisi ini">¶</a></dt>
+<code class="sig-name descname">assign_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value_dict</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule.assign_parameters"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule.assign_parameters" title="Link permanen untuk definisi ini">¶</a></dt>
 <dd><p>Assign the parameters in this schedule according to the input.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameter</dt>
-<dd class="field-odd"><p><strong>value_dict</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterExpression</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterExpression</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]) -- A mapping from Parameters to either numeric values or another
-Parameter expression.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value_dict</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterExpression</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterExpression</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]) -- A mapping from Parameters to either numeric values or another
+Parameter expression.</p></li>
+<li><p><strong>inplace</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Set <code class="docutils literal notranslate"><span class="pre">True</span></code> to override this instance with new parameter.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Schedule</span></code></p>
 </dd>
 <dt class="field-odd">Kembali</dt>
-<dd class="field-odd"><p>Schedule with updated parameters (a new one if not inplace, otherwise self).</p>
+<dd class="field-odd"><p>Schedule with updated parameters.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -518,49 +590,63 @@ Parameter expression.</p>
 
 <dl class="py method">
 <dt id="qiskit.pulse.Schedule.draw">
-<code class="sig-name descname">draw</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dt</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">style</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">interp_method</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">scale</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">channel_scales</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plot_all</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">plot_range</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">interactive</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">table</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">label</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">framechange</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">channels</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">show_framechange_channels</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule.draw"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule.draw" title="Link permanen untuk definisi ini">¶</a></dt>
+<code class="sig-name descname">draw</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">style</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">interp_method</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">scale</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">channel_scales</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plot_all</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plot_range</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">interactive</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">table</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">framechange</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">channels</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">show_framechange_channels</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">draw_title</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">backend</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">time_range</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">time_unit</span><span class="o">=</span><span class="default_value">'dt'</span></em>, <em class="sig-param"><span class="n">disable_channels</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">show_snapshot</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">show_framechange</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">show_waveform_info</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">show_barrier</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">plotter</span><span class="o">=</span><span class="default_value">'mpl2d'</span></em>, <em class="sig-param"><span class="n">axis</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit.pulse.Schedule.draw" title="Link permanen untuk definisi ini">¶</a></dt>
 <dd><p>Plot the schedule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameter</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dt</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>) -- Time interval of samples.</p></li>
-<li><p><strong>style</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="qiskit.visualization.pulse.qcstyle.html#qiskit.visualization.pulse.qcstyle.SchedStyle" title="qiskit.visualization.pulse.qcstyle.SchedStyle"><em>SchedStyle</em></a><em>]</em>) -- A style sheet to configure plot appearance.</p></li>
-<li><p><strong>filename</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) -- Name required to save pulse image.</p></li>
-<li><p><strong>interp_method</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>]) -- A function for interpolation.</p></li>
-<li><p><strong>scale</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]) -- Relative visual scaling of waveform amplitudes, see Additional Information.</p></li>
-<li><p><strong>channel_scales</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<a class="reference internal" href="qiskit.pulse.channels.html#qiskit.pulse.channels.Channel" title="qiskit.pulse.channels.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]) -- Channel independent scaling as a dictionary of <code class="docutils literal notranslate"><span class="pre">Channel</span></code> object.</p></li>
-<li><p><strong>plot_all</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Plot empty channels.</p></li>
-<li><p><strong>plot_range</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]) -- A tuple of time range to plot.</p></li>
-<li><p><strong>interactive</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- When set true show the circuit in a new window
-(this depends on the matplotlib backend being used supporting this).</p></li>
-<li><p><strong>table</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Draw event table for supported commands.</p></li>
-<li><p><strong>label</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Label individual instructions.</p></li>
-<li><p><strong>framechange</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Add framechange indicators.</p></li>
-<li><p><strong>channels</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="qiskit.pulse.channels.html#qiskit.pulse.channels.Channel" title="qiskit.pulse.channels.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a>]]) -- A list of Channels to plot.</p></li>
-<li><p><strong>show_framechange_channels</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Plot channels with only framechanges.</p></li>
-</ul>
-</dd>
-</dl>
-<dl>
-<dt>Additional Information:</dt><dd><p>If you want to manually rescale the waveform amplitude of channels one by one,
-you can set <code class="docutils literal notranslate"><span class="pre">channel_scales</span></code> argument instead of <code class="docutils literal notranslate"><span class="pre">scale</span></code>.
-The <code class="docutils literal notranslate"><span class="pre">channel_scales</span></code> should be given as a python dictionary:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">channel_scales</span> <span class="o">=</span> <span class="p">{</span><span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannels</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="mf">10.0</span><span class="p">,</span>
-                  <span class="n">pulse</span><span class="o">.</span><span class="n">MeasureChannels</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="mf">5.0</span><span class="p">}</span>
+<li><p><strong>style</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]) -- Stylesheet options. This can be dictionary or preset stylesheet classes. See
+:py:class:~`qiskit.visualization.pulse_v2.stylesheets.IQXStandard`,
+:py:class:~`qiskit.visualization.pulse_v2.stylesheets.IQXSimple`, and
+:py:class:~`qiskit.visualization.pulse_v2.stylesheets.IQXDebugging` for details of
+preset stylesheets.</p></li>
+<li><p><strong>backend</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="qiskit.providers.BaseBackend.html#qiskit.providers.BaseBackend" title="qiskit.providers.BaseBackend"><em>BaseBackend</em></a><em>]</em>) -- Backend object to play the input pulse program.
+If provided, the plotter may use to make the visualization hardware aware.</p></li>
+<li><p><strong>time_range</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]) -- Set horizontal axis limit. Tuple <cite>(tmin, tmax)</cite>.</p></li>
+<li><p><strong>time_unit</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) -- The unit of specified time range either <cite>dt</cite> or <cite>ns</cite>.
+The unit of <cite>ns</cite> is available only when <cite>backend</cite> object is provided.</p></li>
+<li><p><strong>disable_channels</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="qiskit.pulse.channels.html#qiskit.pulse.channels.Channel" title="qiskit.pulse.channels.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a>]]) -- A control property to show specific pulse channel.
+Pulse channel instances provided as a list are not shown in the output image.</p></li>
+<li><p><strong>show_snapshot</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Show snapshot instructions.</p></li>
+<li><p><strong>show_framechange</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Show frame change instructions. The frame change represents
+instructions that modulate phase or frequency of pulse channels.</p></li>
+<li><p><strong>show_waveform_info</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Show additional information about waveforms such as their name.</p></li>
+<li><p><strong>show_barrier</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Show barrier lines.</p></li>
+<li><p><strong>plotter</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) -- <p>Name of plotter API to generate an output image.
+One of following APIs should be specified:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>mpl2d: Matplotlib API for 2D image generation.
+    Matplotlib API to generate 2D image. Charts are placed along y axis with
+    vertical offset. This API takes matplotlib.axes.Axes as ``axis`` input.
 </pre></div>
 </div>
-<p>When the channel to plot is not included in the <code class="docutils literal notranslate"><span class="pre">channel_scales</span></code> dictionary,
-scaling factor of that channel is overwritten by the value of <code class="docutils literal notranslate"><span class="pre">scale</span></code> argument.
-In default, waveform amplitude is normalized by the maximum amplitude of the channel.
-The scaling factor is displayed under the channel name alias.</p>
+<p><code class="docutils literal notranslate"><span class="pre">axis</span></code> and <code class="docutils literal notranslate"><span class="pre">style</span></code> kwargs may depend on the plotter.</p>
+</p></li>
+<li><p><strong>axis</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Arbitrary object passed to the plotter. If this object is provided,
+the plotters use a given <code class="docutils literal notranslate"><span class="pre">axis</span></code> instead of internally initializing
+a figure object. This object format depends on the plotter.
+See plotter argument for details.</p></li>
+<li><p><strong>dt</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Deprecated. This argument is used by the legacy pulse drawer.</p></li>
+<li><p><strong>filename</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Deprecated. This argument is used by the legacy pulse drawer.
+To save output image, you can call <code class="docutils literal notranslate"><span class="pre">.savefig</span></code> method with
+returned Matplotlib Figure object.</p></li>
+<li><p><strong>interp_method</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Deprecated. This argument is used by the legacy pulse drawer.</p></li>
+<li><p><strong>scale</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Deprecated. This argument is used by the legacy pulse drawer.</p></li>
+<li><p><strong>channel_scales</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Deprecated. This argument is used by the legacy pulse drawer.</p></li>
+<li><p><strong>plot_all</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Deprecated. This argument is used by the legacy pulse drawer.</p></li>
+<li><p><strong>plot_range</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Deprecated. This argument is used by the legacy pulse drawer.</p></li>
+<li><p><strong>interactive</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Deprecated. This argument is used by the legacy pulse drawer.</p></li>
+<li><p><strong>table</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Deprecated. This argument is used by the legacy pulse drawer.</p></li>
+<li><p><strong>label</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Deprecated. This argument is used by the legacy pulse drawer.</p></li>
+<li><p><strong>framechange</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Deprecated. This argument is used by the legacy pulse drawer.</p></li>
+<li><p><strong>channels</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Deprecated. This argument is used by the legacy pulse drawer.</p></li>
+<li><p><strong>show_framechange_channels</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Deprecated. This argument is used by the legacy pulse drawer.</p></li>
+<li><p><strong>draw_title</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) -- Deprecated. This argument is used by the legacy pulse drawer.</p></li>
+</ul>
 </dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Kembali</dt>
-<dd class="field-odd"><p>A matplotlib figure object of the pulse schedule.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>matplotlib.Figure</p>
+<dt class="field-even">Kembali</dt>
+<dd class="field-even"><p>Visualization output data.
+The returned data type depends on the <code class="docutils literal notranslate"><span class="pre">plotter</span></code>.
+If matplotlib family is specified, this will be a <code class="docutils literal notranslate"><span class="pre">matplotlib.pyplot.Figure</span></code> data.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -568,7 +654,7 @@ The scaling factor is displayed under the channel name alias.</p>
 <dl class="py method">
 <dt id="qiskit.pulse.Schedule.duration">
 <em class="property">property </em><code class="sig-name descname">duration</code><a class="headerlink" href="#qiskit.pulse.Schedule.duration" title="Link permanen untuk definisi ini">¶</a></dt>
-<dd><p>Duration of this schedule component.</p>
+<dd><p>Duration of this schedule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
@@ -578,22 +664,24 @@ The scaling factor is displayed under the channel name alias.</p>
 
 <dl class="py method">
 <dt id="qiskit.pulse.Schedule.exclude">
-<code class="sig-name descname">exclude</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">filter_funcs</span></em>, <em class="sig-param"><span class="n">channels</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">instruction_types</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">time_ranges</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">intervals</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule.exclude"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule.exclude" title="Link permanen untuk definisi ini">¶</a></dt>
-<dd><p>Return a Schedule with only the instructions from this Schedule <em>failing</em> at least one
-of the provided filters. This method is the complement of <code class="docutils literal notranslate"><span class="pre">self.filter</span></code>, so that:</p>
+<code class="sig-name descname">exclude</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">filter_funcs</span></em>, <em class="sig-param"><span class="n">channels</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">instruction_types</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">time_ranges</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">intervals</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">check_subroutine</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule.exclude"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule.exclude" title="Link permanen untuk definisi ini">¶</a></dt>
+<dd><p>Return a <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> with only the instructions from this Schedule <em>failing</em>
+at least one of the provided filters.
+This method is the complement of py:meth:<cite>~self.filter</cite>, so that:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameter</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filter_funcs</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>]) -- A list of Callables which take a (int, ScheduleComponent) tuple and
-return a bool.</p></li>
+<li><p><strong>filter_funcs</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>) -- A list of Callables which take a (int, Union['Schedule', Instruction])
+tuple and return a bool.</p></li>
 <li><p><strong>channels</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[<a class="reference internal" href="qiskit.pulse.channels.html#qiskit.pulse.channels.Channel" title="qiskit.pulse.channels.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a>]]) -- For example, <code class="docutils literal notranslate"><span class="pre">[DriveChannel(0),</span> <span class="pre">AcquireChannel(0)]</span></code>.</p></li>
-<li><p><strong>instruction_types</strong> (<em>Optional</em><em>[</em><em>Iterable</em><em>[</em><em>Type</em><em>[</em><a class="reference internal" href="qiskit.pulse.Instruction.html#qiskit.pulse.Instruction" title="qiskit.pulse.Instruction"><em>qiskit.pulse.Instruction</em></a><em>]</em><em>]</em><em>]</em>) -- For example,
-<code class="docutils literal notranslate"><span class="pre">[PulseInstruction,</span> <span class="pre">AcquireInstruction]</span></code>.</p></li>
+<li><p><strong>instruction_types</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ABCMeta</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">ABCMeta</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]) -- For example, <code class="docutils literal notranslate"><span class="pre">[PulseInstruction,</span> <span class="pre">AcquireInstruction]</span></code>.</p></li>
 <li><p><strong>time_ranges</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]]) -- For example, <code class="docutils literal notranslate"><span class="pre">[(0,</span> <span class="pre">5),</span> <span class="pre">(6,</span> <span class="pre">10)]</span></code>.</p></li>
 <li><p><strong>intervals</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]]) -- For example, <code class="docutils literal notranslate"><span class="pre">[(0,</span> <span class="pre">5),</span> <span class="pre">(6,</span> <span class="pre">10)]</span></code>.</p></li>
+<li><p><strong>check_subroutine</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Set <cite>True</cite> to individually filter instructions inside of a subroutine
+defined by the <a class="reference internal" href="qiskit.pulse.instructions.Call.html#qiskit.pulse.instructions.Call" title="qiskit.pulse.instructions.Call"><code class="xref py py-class docutils literal notranslate"><span class="pre">Call</span></code></a> instruction.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
@@ -604,7 +692,7 @@ return a bool.</p></li>
 
 <dl class="py method">
 <dt id="qiskit.pulse.Schedule.filter">
-<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">filter_funcs</span></em>, <em class="sig-param"><span class="n">channels</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">instruction_types</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">time_ranges</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">intervals</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule.filter"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule.filter" title="Link permanen untuk definisi ini">¶</a></dt>
+<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">filter_funcs</span></em>, <em class="sig-param"><span class="n">channels</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">instruction_types</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">time_ranges</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">intervals</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">check_subroutine</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule.filter"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule.filter" title="Link permanen untuk definisi ini">¶</a></dt>
 <dd><p>Return a new <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> with only the instructions from this <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> which pass
 though the provided filters; i.e. an instruction will be retained iff every function in
 <code class="docutils literal notranslate"><span class="pre">filter_funcs</span></code> returns <code class="docutils literal notranslate"><span class="pre">True</span></code>, the instruction occurs on a channel type contained in
@@ -615,13 +703,14 @@ over which the instruction operates is <em>fully</em> contained in one specified
 <dl class="field-list simple">
 <dt class="field-odd">Parameter</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filter_funcs</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>]) -- A list of Callables which take a (int, ScheduleComponent) tuple and
-return a bool.</p></li>
+<li><p><strong>filter_funcs</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>) -- A list of Callables which take a (int, Union['Schedule', Instruction])
+tuple and return a bool.</p></li>
 <li><p><strong>channels</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[<a class="reference internal" href="qiskit.pulse.channels.html#qiskit.pulse.channels.Channel" title="qiskit.pulse.channels.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a>]]) -- For example, <code class="docutils literal notranslate"><span class="pre">[DriveChannel(0),</span> <span class="pre">AcquireChannel(0)]</span></code>.</p></li>
-<li><p><strong>instruction_types</strong> (<em>Optional</em><em>[</em><em>Iterable</em><em>[</em><em>Type</em><em>[</em><a class="reference internal" href="qiskit.pulse.Instruction.html#qiskit.pulse.Instruction" title="qiskit.pulse.Instruction"><em>qiskit.pulse.Instruction</em></a><em>]</em><em>]</em><em>]</em>) -- For example,
-<code class="docutils literal notranslate"><span class="pre">[PulseInstruction,</span> <span class="pre">AcquireInstruction]</span></code>.</p></li>
+<li><p><strong>instruction_types</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ABCMeta</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">ABCMeta</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]) -- For example, <code class="docutils literal notranslate"><span class="pre">[PulseInstruction,</span> <span class="pre">AcquireInstruction]</span></code>.</p></li>
 <li><p><strong>time_ranges</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]]) -- For example, <code class="docutils literal notranslate"><span class="pre">[(0,</span> <span class="pre">5),</span> <span class="pre">(6,</span> <span class="pre">10)]</span></code>.</p></li>
 <li><p><strong>intervals</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]]) -- For example, <code class="docutils literal notranslate"><span class="pre">[(0,</span> <span class="pre">5),</span> <span class="pre">(6,</span> <span class="pre">10)]</span></code>.</p></li>
+<li><p><strong>check_subroutine</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Set <cite>True</cite> to individually filter instructions inside of a subroutine
+defined by the <a class="reference internal" href="qiskit.pulse.instructions.Call.html#qiskit.pulse.instructions.Call" title="qiskit.pulse.instructions.Call"><code class="xref py py-class docutils literal notranslate"><span class="pre">Call</span></code></a> instruction.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
@@ -633,10 +722,29 @@ return a bool.</p></li>
 <dl class="py method">
 <dt id="qiskit.pulse.Schedule.flatten">
 <code class="sig-name descname">flatten</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule.flatten"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule.flatten" title="Link permanen untuk definisi ini">¶</a></dt>
-<dd><p>Return a new schedule which is the flattened schedule contained all <code class="docutils literal notranslate"><span class="pre">instructions</span></code>.</p>
+<dd><p>Deprecated.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Schedule</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qiskit.pulse.Schedule.get_parameters">
+<code class="sig-name descname">get_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parameter_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule.get_parameters"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule.get_parameters" title="Link permanen untuk definisi ini">¶</a></dt>
+<dd><p>Get parameter object bound to this schedule by string name.</p>
+<p>Because different <code class="docutils literal notranslate"><span class="pre">Parameter</span></code> objects can have the same name,
+this method returns a list of <code class="docutils literal notranslate"><span class="pre">Parameter</span></code> s for the provided name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameter</dt>
+<dd class="field-odd"><p><strong>parameter_name</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) -- Name of parameter.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code>]</p>
+</dd>
+<dt class="field-odd">Kembali</dt>
+<dd class="field-odd"><p>Parameter objects that have corresponding name.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -649,7 +757,7 @@ return a bool.</p></li>
 <dt class="field-odd">Parameter</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>start_time</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) -- Time to insert the schedule.</p></li>
-<li><p><strong>schedule</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ScheduleComponent</span></code>) -- Schedule to insert.</p></li>
+<li><p><strong>schedule</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Schedule</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Instruction</span></code>]) -- Schedule to insert.</p></li>
 <li><p><strong>name</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) -- Name of the new schedule. Defaults to the name of self.</p></li>
 <li><p><strong>inplace</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Perform operation inplace on this schedule. Otherwise
 return a new <code class="docutils literal notranslate"><span class="pre">Schedule</span></code>.</p></li>
@@ -665,8 +773,37 @@ return a new <code class="docutils literal notranslate"><span class="pre">Schedu
 <dt id="qiskit.pulse.Schedule.instructions">
 <em class="property">property </em><code class="sig-name descname">instructions</code><a class="headerlink" href="#qiskit.pulse.Schedule.instructions" title="Link permanen untuk definisi ini">¶</a></dt>
 <dd><p>Get the time-ordered instructions from self.</p>
-<dl class="simple">
-<dt>ReturnType:</dt><dd><p>Tuple[Tuple[int, Instruction], ...]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Instruction</span></code>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qiskit.pulse.Schedule.is_parameterized">
+<code class="sig-name descname">is_parameterized</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule.is_parameterized"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule.is_parameterized" title="Link permanen untuk definisi ini">¶</a></dt>
+<dd><p>Return True iff the instruction is parameterized.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qiskit.pulse.Schedule.metadata">
+<em class="property">property </em><code class="sig-name descname">metadata</code><a class="headerlink" href="#qiskit.pulse.Schedule.metadata" title="Link permanen untuk definisi ini">¶</a></dt>
+<dd><p>The user provided metadata associated with the schedule.</p>
+<p>User provided <code class="docutils literal notranslate"><span class="pre">dict</span></code> of metadata for the schedule.
+The metadata contents do not affect the semantics of the program
+but are used to influence the execution of the schedule. It is expected
+to be passed between all transforms of the schedule and that providers
+will associate any schedule metadata with the results it returns from the
+execution of that schedule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -674,7 +811,7 @@ return a new <code class="docutils literal notranslate"><span class="pre">Schedu
 <dl class="py method">
 <dt id="qiskit.pulse.Schedule.name">
 <em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#qiskit.pulse.Schedule.name" title="Link permanen untuk definisi ini">¶</a></dt>
-<dd><p>Name of ScheduleComponent.</p>
+<dd><p>Name of this Schedule</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
@@ -683,11 +820,22 @@ return a new <code class="docutils literal notranslate"><span class="pre">Schedu
 </dd></dl>
 
 <dl class="py method">
+<dt id="qiskit.pulse.Schedule.parameters">
+<em class="property">property </em><code class="sig-name descname">parameters</code><a class="headerlink" href="#qiskit.pulse.Schedule.parameters" title="Link permanen untuk definisi ini">¶</a></dt>
+<dd><p>Parameters which determine the schedule behavior.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Set</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="qiskit.pulse.Schedule.replace">
 <code class="sig-name descname">replace</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">old</span></em>, <em class="sig-param"><span class="n">new</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/pulse/schedule.html#Schedule.replace"><span class="viewcode-link">[sumber]</span></a><a class="headerlink" href="#qiskit.pulse.Schedule.replace" title="Link permanen untuk definisi ini">¶</a></dt>
-<dd><p>Return a schedule with the <code class="docutils literal notranslate"><span class="pre">old</span></code> instruction replaced with a <code class="docutils literal notranslate"><span class="pre">new</span></code>
+<dd><p>Return a <code class="docutils literal notranslate"><span class="pre">Schedule</span></code> with the <code class="docutils literal notranslate"><span class="pre">old</span></code> instruction replaced with a <code class="docutils literal notranslate"><span class="pre">new</span></code>
 instruction.</p>
-<p>The replacment matching is based on an instruction equality check.</p>
+<p>The replacement matching is based on an instruction equality check.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">pulse</span>
@@ -726,8 +874,8 @@ Flatten the schedule prior to running:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameter</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>old</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ScheduleComponent</span></code>) -- Instruction to replace.</p></li>
-<li><p><strong>new</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ScheduleComponent</span></code>) -- Instruction to replace with.</p></li>
+<li><p><strong>old</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Schedule</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Instruction</span></code>]) -- Instruction to replace.</p></li>
+<li><p><strong>new</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Schedule</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Instruction</span></code>]) -- Instruction to replace with.</p></li>
 <li><p><strong>inplace</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) -- Replace instruction by mutably modifying this <code class="docutils literal notranslate"><span class="pre">Schedule</span></code>.</p></li>
 </ul>
 </dd>
@@ -765,7 +913,7 @@ return a new <code class="docutils literal notranslate"><span class="pre">Schedu
 <dl class="py method">
 <dt id="qiskit.pulse.Schedule.start_time">
 <em class="property">property </em><code class="sig-name descname">start_time</code><a class="headerlink" href="#qiskit.pulse.Schedule.start_time" title="Link permanen untuk definisi ini">¶</a></dt>
-<dd><p>Starting time of this schedule component.</p>
+<dd><p>Starting time of this schedule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
@@ -776,7 +924,7 @@ return a new <code class="docutils literal notranslate"><span class="pre">Schedu
 <dl class="py method">
 <dt id="qiskit.pulse.Schedule.stop_time">
 <em class="property">property </em><code class="sig-name descname">stop_time</code><a class="headerlink" href="#qiskit.pulse.Schedule.stop_time" title="Link permanen untuk definisi ini">¶</a></dt>
-<dd><p>Stopping time of this schedule component.</p>
+<dd><p>Stopping time of this schedule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
@@ -807,7 +955,7 @@ return a new <code class="docutils literal notranslate"><span class="pre">Schedu
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="qiskit.pulse.Instruction.html" class="btn btn-neutral float-right" title="qiskit.pulse.Instruction" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-orange.svg" class="next-page"></a>
+        <a href="qiskit.pulse.ScheduleBlock.html" class="btn btn-neutral float-right" title="qiskit.pulse.ScheduleBlock" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-orange.svg" class="next-page"></a>
       
       
         <a href="qiskit.pulse.MemorySlot.html" class="btn btn-neutral" title="qiskit.pulse.MemorySlot" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
@@ -942,20 +1090,8 @@ return a new <code class="docutils literal notranslate"><span class="pre">Schedu
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

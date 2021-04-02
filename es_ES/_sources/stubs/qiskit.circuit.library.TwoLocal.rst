@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~TwoLocal.__init__
+      ~TwoLocal.add_bits
       ~TwoLocal.add_calibration
       ~TwoLocal.add_layer
       ~TwoLocal.add_register
@@ -49,9 +50,9 @@
       ~TwoLocal.decompose
       ~TwoLocal.delay
       ~TwoLocal.depth
-      ~TwoLocal.diag_gate
       ~TwoLocal.diagonal
       ~TwoLocal.draw
+      ~TwoLocal.ecr
       ~TwoLocal.extend
       ~TwoLocal.fredkin
       ~TwoLocal.from_qasm_file
@@ -68,7 +69,6 @@
       ~TwoLocal.iso
       ~TwoLocal.isometry
       ~TwoLocal.iswap
-      ~TwoLocal.mcmt
       ~TwoLocal.mcp
       ~TwoLocal.mcrx
       ~TwoLocal.mcry
@@ -79,13 +79,13 @@
       ~TwoLocal.measure
       ~TwoLocal.measure_active
       ~TwoLocal.measure_all
-      ~TwoLocal.mirror
       ~TwoLocal.ms
       ~TwoLocal.num_connected_components
       ~TwoLocal.num_nonlocal_gates
       ~TwoLocal.num_tensor_factors
       ~TwoLocal.num_unitary_factors
       ~TwoLocal.p
+      ~TwoLocal.pauli
       ~TwoLocal.power
       ~TwoLocal.print_settings
       ~TwoLocal.qasm
@@ -101,6 +101,7 @@
       ~TwoLocal.reset
       ~TwoLocal.reverse_bits
       ~TwoLocal.reverse_ops
+      ~TwoLocal.rv
       ~TwoLocal.rx
       ~TwoLocal.rxx
       ~TwoLocal.ry
@@ -109,7 +110,26 @@
       ~TwoLocal.rzx
       ~TwoLocal.rzz
       ~TwoLocal.s
+      ~TwoLocal.save_amplitudes
+      ~TwoLocal.save_amplitudes_squared
+      ~TwoLocal.save_density_matrix
+      ~TwoLocal.save_expectation_value
+      ~TwoLocal.save_expectation_value_variance
+      ~TwoLocal.save_matrix_product_state
+      ~TwoLocal.save_probabilities
+      ~TwoLocal.save_probabilities_dict
+      ~TwoLocal.save_stabilizer
+      ~TwoLocal.save_state
+      ~TwoLocal.save_statevector
+      ~TwoLocal.save_statevector_dict
+      ~TwoLocal.save_superop
+      ~TwoLocal.save_unitary
       ~TwoLocal.sdg
+      ~TwoLocal.set_density_matrix
+      ~TwoLocal.set_stabilizer
+      ~TwoLocal.set_statevector
+      ~TwoLocal.set_superop
+      ~TwoLocal.set_unitary
       ~TwoLocal.size
       ~TwoLocal.snapshot
       ~TwoLocal.snapshot_density_matrix
@@ -123,6 +143,7 @@
       ~TwoLocal.sxdg
       ~TwoLocal.t
       ~TwoLocal.tdg
+      ~TwoLocal.tensor
       ~TwoLocal.to_gate
       ~TwoLocal.to_instruction
       ~TwoLocal.toffoli
@@ -160,6 +181,7 @@
       ~TwoLocal.initial_state
       ~TwoLocal.insert_barriers
       ~TwoLocal.instances
+      ~TwoLocal.metadata
       ~TwoLocal.num_ancillas
       ~TwoLocal.num_clbits
       ~TwoLocal.num_layers

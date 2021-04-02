@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~GMS.__init__
+      ~GMS.add_bits
       ~GMS.add_calibration
       ~GMS.add_register
       ~GMS.append
@@ -48,9 +49,9 @@
       ~GMS.decompose
       ~GMS.delay
       ~GMS.depth
-      ~GMS.diag_gate
       ~GMS.diagonal
       ~GMS.draw
+      ~GMS.ecr
       ~GMS.extend
       ~GMS.fredkin
       ~GMS.from_qasm_file
@@ -65,7 +66,6 @@
       ~GMS.iso
       ~GMS.isometry
       ~GMS.iswap
-      ~GMS.mcmt
       ~GMS.mcp
       ~GMS.mcrx
       ~GMS.mcry
@@ -76,13 +76,13 @@
       ~GMS.measure
       ~GMS.measure_active
       ~GMS.measure_all
-      ~GMS.mirror
       ~GMS.ms
       ~GMS.num_connected_components
       ~GMS.num_nonlocal_gates
       ~GMS.num_tensor_factors
       ~GMS.num_unitary_factors
       ~GMS.p
+      ~GMS.pauli
       ~GMS.power
       ~GMS.qasm
       ~GMS.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~GMS.reset
       ~GMS.reverse_bits
       ~GMS.reverse_ops
+      ~GMS.rv
       ~GMS.rx
       ~GMS.rxx
       ~GMS.ry
@@ -105,7 +106,26 @@
       ~GMS.rzx
       ~GMS.rzz
       ~GMS.s
+      ~GMS.save_amplitudes
+      ~GMS.save_amplitudes_squared
+      ~GMS.save_density_matrix
+      ~GMS.save_expectation_value
+      ~GMS.save_expectation_value_variance
+      ~GMS.save_matrix_product_state
+      ~GMS.save_probabilities
+      ~GMS.save_probabilities_dict
+      ~GMS.save_stabilizer
+      ~GMS.save_state
+      ~GMS.save_statevector
+      ~GMS.save_statevector_dict
+      ~GMS.save_superop
+      ~GMS.save_unitary
       ~GMS.sdg
+      ~GMS.set_density_matrix
+      ~GMS.set_stabilizer
+      ~GMS.set_statevector
+      ~GMS.set_superop
+      ~GMS.set_unitary
       ~GMS.size
       ~GMS.snapshot
       ~GMS.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~GMS.sxdg
       ~GMS.t
       ~GMS.tdg
+      ~GMS.tensor
       ~GMS.to_gate
       ~GMS.to_instruction
       ~GMS.toffoli
@@ -152,6 +173,7 @@
       ~GMS.global_phase
       ~GMS.header
       ~GMS.instances
+      ~GMS.metadata
       ~GMS.num_ancillas
       ~GMS.num_clbits
       ~GMS.num_parameters

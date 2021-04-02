@@ -27,6 +27,7 @@
       ~CSwapGate.qasm
       ~CSwapGate.repeat
       ~CSwapGate.reverse_ops
+      ~CSwapGate.soft_compare
       ~CSwapGate.to_matrix
       ~CSwapGate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~CSwapGate.definition
       ~CSwapGate.duration
       ~CSwapGate.label
+      ~CSwapGate.name
       ~CSwapGate.num_ctrl_qubits
       ~CSwapGate.params
       ~CSwapGate.unit

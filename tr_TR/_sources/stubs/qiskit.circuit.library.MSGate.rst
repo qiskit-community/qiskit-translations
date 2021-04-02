@@ -27,6 +27,7 @@
       ~MSGate.qasm
       ~MSGate.repeat
       ~MSGate.reverse_ops
+      ~MSGate.soft_compare
       ~MSGate.to_matrix
       ~MSGate.validate_parameter
    

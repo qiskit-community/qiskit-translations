@@ -21,4 +21,10 @@
 
    
    
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~BasicAerProvider.version
+   
    

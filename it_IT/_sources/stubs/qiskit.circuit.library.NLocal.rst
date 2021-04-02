@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~NLocal.__init__
+      ~NLocal.add_bits
       ~NLocal.add_calibration
       ~NLocal.add_layer
       ~NLocal.add_register
@@ -49,9 +50,9 @@
       ~NLocal.decompose
       ~NLocal.delay
       ~NLocal.depth
-      ~NLocal.diag_gate
       ~NLocal.diagonal
       ~NLocal.draw
+      ~NLocal.ecr
       ~NLocal.extend
       ~NLocal.fredkin
       ~NLocal.from_qasm_file
@@ -68,7 +69,6 @@
       ~NLocal.iso
       ~NLocal.isometry
       ~NLocal.iswap
-      ~NLocal.mcmt
       ~NLocal.mcp
       ~NLocal.mcrx
       ~NLocal.mcry
@@ -79,13 +79,13 @@
       ~NLocal.measure
       ~NLocal.measure_active
       ~NLocal.measure_all
-      ~NLocal.mirror
       ~NLocal.ms
       ~NLocal.num_connected_components
       ~NLocal.num_nonlocal_gates
       ~NLocal.num_tensor_factors
       ~NLocal.num_unitary_factors
       ~NLocal.p
+      ~NLocal.pauli
       ~NLocal.power
       ~NLocal.print_settings
       ~NLocal.qasm
@@ -101,6 +101,7 @@
       ~NLocal.reset
       ~NLocal.reverse_bits
       ~NLocal.reverse_ops
+      ~NLocal.rv
       ~NLocal.rx
       ~NLocal.rxx
       ~NLocal.ry
@@ -109,7 +110,26 @@
       ~NLocal.rzx
       ~NLocal.rzz
       ~NLocal.s
+      ~NLocal.save_amplitudes
+      ~NLocal.save_amplitudes_squared
+      ~NLocal.save_density_matrix
+      ~NLocal.save_expectation_value
+      ~NLocal.save_expectation_value_variance
+      ~NLocal.save_matrix_product_state
+      ~NLocal.save_probabilities
+      ~NLocal.save_probabilities_dict
+      ~NLocal.save_stabilizer
+      ~NLocal.save_state
+      ~NLocal.save_statevector
+      ~NLocal.save_statevector_dict
+      ~NLocal.save_superop
+      ~NLocal.save_unitary
       ~NLocal.sdg
+      ~NLocal.set_density_matrix
+      ~NLocal.set_stabilizer
+      ~NLocal.set_statevector
+      ~NLocal.set_superop
+      ~NLocal.set_unitary
       ~NLocal.size
       ~NLocal.snapshot
       ~NLocal.snapshot_density_matrix
@@ -123,6 +143,7 @@
       ~NLocal.sxdg
       ~NLocal.t
       ~NLocal.tdg
+      ~NLocal.tensor
       ~NLocal.to_gate
       ~NLocal.to_instruction
       ~NLocal.toffoli
@@ -160,6 +181,7 @@
       ~NLocal.initial_state
       ~NLocal.insert_barriers
       ~NLocal.instances
+      ~NLocal.metadata
       ~NLocal.num_ancillas
       ~NLocal.num_clbits
       ~NLocal.num_layers

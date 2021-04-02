@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~PhaseEstimation.__init__
+      ~PhaseEstimation.add_bits
       ~PhaseEstimation.add_calibration
       ~PhaseEstimation.add_register
       ~PhaseEstimation.append
@@ -48,9 +49,9 @@
       ~PhaseEstimation.decompose
       ~PhaseEstimation.delay
       ~PhaseEstimation.depth
-      ~PhaseEstimation.diag_gate
       ~PhaseEstimation.diagonal
       ~PhaseEstimation.draw
+      ~PhaseEstimation.ecr
       ~PhaseEstimation.extend
       ~PhaseEstimation.fredkin
       ~PhaseEstimation.from_qasm_file
@@ -65,7 +66,6 @@
       ~PhaseEstimation.iso
       ~PhaseEstimation.isometry
       ~PhaseEstimation.iswap
-      ~PhaseEstimation.mcmt
       ~PhaseEstimation.mcp
       ~PhaseEstimation.mcrx
       ~PhaseEstimation.mcry
@@ -76,13 +76,13 @@
       ~PhaseEstimation.measure
       ~PhaseEstimation.measure_active
       ~PhaseEstimation.measure_all
-      ~PhaseEstimation.mirror
       ~PhaseEstimation.ms
       ~PhaseEstimation.num_connected_components
       ~PhaseEstimation.num_nonlocal_gates
       ~PhaseEstimation.num_tensor_factors
       ~PhaseEstimation.num_unitary_factors
       ~PhaseEstimation.p
+      ~PhaseEstimation.pauli
       ~PhaseEstimation.power
       ~PhaseEstimation.qasm
       ~PhaseEstimation.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~PhaseEstimation.reset
       ~PhaseEstimation.reverse_bits
       ~PhaseEstimation.reverse_ops
+      ~PhaseEstimation.rv
       ~PhaseEstimation.rx
       ~PhaseEstimation.rxx
       ~PhaseEstimation.ry
@@ -105,7 +106,26 @@
       ~PhaseEstimation.rzx
       ~PhaseEstimation.rzz
       ~PhaseEstimation.s
+      ~PhaseEstimation.save_amplitudes
+      ~PhaseEstimation.save_amplitudes_squared
+      ~PhaseEstimation.save_density_matrix
+      ~PhaseEstimation.save_expectation_value
+      ~PhaseEstimation.save_expectation_value_variance
+      ~PhaseEstimation.save_matrix_product_state
+      ~PhaseEstimation.save_probabilities
+      ~PhaseEstimation.save_probabilities_dict
+      ~PhaseEstimation.save_stabilizer
+      ~PhaseEstimation.save_state
+      ~PhaseEstimation.save_statevector
+      ~PhaseEstimation.save_statevector_dict
+      ~PhaseEstimation.save_superop
+      ~PhaseEstimation.save_unitary
       ~PhaseEstimation.sdg
+      ~PhaseEstimation.set_density_matrix
+      ~PhaseEstimation.set_stabilizer
+      ~PhaseEstimation.set_statevector
+      ~PhaseEstimation.set_superop
+      ~PhaseEstimation.set_unitary
       ~PhaseEstimation.size
       ~PhaseEstimation.snapshot
       ~PhaseEstimation.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~PhaseEstimation.sxdg
       ~PhaseEstimation.t
       ~PhaseEstimation.tdg
+      ~PhaseEstimation.tensor
       ~PhaseEstimation.to_gate
       ~PhaseEstimation.to_instruction
       ~PhaseEstimation.toffoli
@@ -152,6 +173,7 @@
       ~PhaseEstimation.global_phase
       ~PhaseEstimation.header
       ~PhaseEstimation.instances
+      ~PhaseEstimation.metadata
       ~PhaseEstimation.num_ancillas
       ~PhaseEstimation.num_clbits
       ~PhaseEstimation.num_parameters

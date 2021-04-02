@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~EfficientSU2.__init__
+      ~EfficientSU2.add_bits
       ~EfficientSU2.add_calibration
       ~EfficientSU2.add_layer
       ~EfficientSU2.add_register
@@ -49,9 +50,9 @@
       ~EfficientSU2.decompose
       ~EfficientSU2.delay
       ~EfficientSU2.depth
-      ~EfficientSU2.diag_gate
       ~EfficientSU2.diagonal
       ~EfficientSU2.draw
+      ~EfficientSU2.ecr
       ~EfficientSU2.extend
       ~EfficientSU2.fredkin
       ~EfficientSU2.from_qasm_file
@@ -68,7 +69,6 @@
       ~EfficientSU2.iso
       ~EfficientSU2.isometry
       ~EfficientSU2.iswap
-      ~EfficientSU2.mcmt
       ~EfficientSU2.mcp
       ~EfficientSU2.mcrx
       ~EfficientSU2.mcry
@@ -79,13 +79,13 @@
       ~EfficientSU2.measure
       ~EfficientSU2.measure_active
       ~EfficientSU2.measure_all
-      ~EfficientSU2.mirror
       ~EfficientSU2.ms
       ~EfficientSU2.num_connected_components
       ~EfficientSU2.num_nonlocal_gates
       ~EfficientSU2.num_tensor_factors
       ~EfficientSU2.num_unitary_factors
       ~EfficientSU2.p
+      ~EfficientSU2.pauli
       ~EfficientSU2.power
       ~EfficientSU2.print_settings
       ~EfficientSU2.qasm
@@ -101,6 +101,7 @@
       ~EfficientSU2.reset
       ~EfficientSU2.reverse_bits
       ~EfficientSU2.reverse_ops
+      ~EfficientSU2.rv
       ~EfficientSU2.rx
       ~EfficientSU2.rxx
       ~EfficientSU2.ry
@@ -109,7 +110,26 @@
       ~EfficientSU2.rzx
       ~EfficientSU2.rzz
       ~EfficientSU2.s
+      ~EfficientSU2.save_amplitudes
+      ~EfficientSU2.save_amplitudes_squared
+      ~EfficientSU2.save_density_matrix
+      ~EfficientSU2.save_expectation_value
+      ~EfficientSU2.save_expectation_value_variance
+      ~EfficientSU2.save_matrix_product_state
+      ~EfficientSU2.save_probabilities
+      ~EfficientSU2.save_probabilities_dict
+      ~EfficientSU2.save_stabilizer
+      ~EfficientSU2.save_state
+      ~EfficientSU2.save_statevector
+      ~EfficientSU2.save_statevector_dict
+      ~EfficientSU2.save_superop
+      ~EfficientSU2.save_unitary
       ~EfficientSU2.sdg
+      ~EfficientSU2.set_density_matrix
+      ~EfficientSU2.set_stabilizer
+      ~EfficientSU2.set_statevector
+      ~EfficientSU2.set_superop
+      ~EfficientSU2.set_unitary
       ~EfficientSU2.size
       ~EfficientSU2.snapshot
       ~EfficientSU2.snapshot_density_matrix
@@ -123,6 +143,7 @@
       ~EfficientSU2.sxdg
       ~EfficientSU2.t
       ~EfficientSU2.tdg
+      ~EfficientSU2.tensor
       ~EfficientSU2.to_gate
       ~EfficientSU2.to_instruction
       ~EfficientSU2.toffoli
@@ -160,6 +181,7 @@
       ~EfficientSU2.initial_state
       ~EfficientSU2.insert_barriers
       ~EfficientSU2.instances
+      ~EfficientSU2.metadata
       ~EfficientSU2.num_ancillas
       ~EfficientSU2.num_clbits
       ~EfficientSU2.num_layers

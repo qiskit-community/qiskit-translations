@@ -22,6 +22,7 @@
       ~Play.draw
       ~Play.flatten
       ~Play.insert
+      ~Play.is_parameterized
       ~Play.shift
    
    
@@ -34,15 +35,14 @@
    
       ~Play.channel
       ~Play.channels
-      ~Play.command
       ~Play.duration
       ~Play.id
       ~Play.instructions
       ~Play.name
       ~Play.operands
+      ~Play.parameters
       ~Play.pulse
       ~Play.start_time
       ~Play.stop_time
-      ~Play.timeslots
    
    

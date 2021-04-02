@@ -27,6 +27,7 @@
       ~RC3XGate.qasm
       ~RC3XGate.repeat
       ~RC3XGate.reverse_ops
+      ~RC3XGate.soft_compare
       ~RC3XGate.to_matrix
       ~RC3XGate.validate_parameter
    

@@ -47,6 +47,7 @@
 
    .. autosummary::
    
+      ~EvolvedOp.ENABLE_DEPRECATION
       ~EvolvedOp.INDENTATION
       ~EvolvedOp.coeff
       ~EvolvedOp.num_qubits

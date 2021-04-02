@@ -26,6 +26,7 @@
    
       ~ClassicalRegister.instances_counter
       ~ClassicalRegister.name
+      ~ClassicalRegister.name_format
       ~ClassicalRegister.prefix
       ~ClassicalRegister.size
    

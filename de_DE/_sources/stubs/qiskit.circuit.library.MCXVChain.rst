@@ -28,6 +28,7 @@
       ~MCXVChain.qasm
       ~MCXVChain.repeat
       ~MCXVChain.reverse_ops
+      ~MCXVChain.soft_compare
       ~MCXVChain.to_matrix
       ~MCXVChain.validate_parameter
    
@@ -44,6 +45,7 @@
       ~MCXVChain.definition
       ~MCXVChain.duration
       ~MCXVChain.label
+      ~MCXVChain.name
       ~MCXVChain.num_ancilla_qubits
       ~MCXVChain.num_ctrl_qubits
       ~MCXVChain.params

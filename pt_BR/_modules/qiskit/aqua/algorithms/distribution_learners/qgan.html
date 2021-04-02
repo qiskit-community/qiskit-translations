@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.algorithms.distribution_learners.qgan &mdash; documentação Qiskit 0.24.1</title>
+  <title>qiskit.aqua.algorithms.distribution_learners.qgan &mdash; documentação Qiskit 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Qiskit IBM Provedor Quântico</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Solução de problemas</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Códigos de erro da API Quantum da IBM</a></li>
@@ -301,7 +305,7 @@
   <h1>Código fonte para qiskit.aqua.algorithms.distribution_learners.qgan</h1><div class="highlight"><pre>
 <span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
-<span class="c1"># (C) Copyright IBM 2019, 2020.</span>
+<span class="c1"># (C) Copyright IBM 2019, 2021.</span>
 <span class="c1">#</span>
 <span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
 <span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
@@ -313,7 +317,8 @@
 
 <span class="sd">&quot;&quot;&quot;Quantum Generative Adversarial Network.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">FunctionType</span>
 <span class="kn">import</span> <span class="nn">csv</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -333,8 +338,10 @@
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.optimizers</span> <span class="kn">import</span> <span class="n">Optimizer</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_models</span> <span class="kn">import</span> <span class="n">UnivariateVariationalDistribution</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.uncertainty_models</span> <span class="kn">import</span> <span class="n">MultivariateVariationalDistribution</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua.operators.gradients</span> <span class="kn">import</span> <span class="n">Gradient</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.utils.dataset_helper</span> <span class="kn">import</span> <span class="n">discretize_and_truncate</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.utils.validation</span> <span class="kn">import</span> <span class="n">validate_min</span>
+<span class="kn">from</span> <span class="nn">...deprecation</span> <span class="kn">import</span> <span class="n">warn_package</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -365,12 +372,15 @@
 <span class="sd">        &lt;https://www.nature.com/articles/s41534-019-0223-2&gt;`_</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="QGAN.__init__"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.QGAN.html#qiskit.aqua.algorithms.QGAN.__init__">[documentos]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                 <span class="n">num_qubits</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span>
+<div class="viewcode-block" id="QGAN.__init__"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.QGAN.html#qiskit.aqua.algorithms.QGAN.__init__">[documentos]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">],</span>
+                 <span class="n">bounds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">num_qubits</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span>
                  <span class="n">num_epochs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3000</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
                  <span class="n">discriminator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DiscriminativeNetwork</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">generator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">GenerativeNetwork</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                 <span class="n">tol_rel_ent</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">snapshot_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">tol_rel_ent</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">snapshot_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">quantum_instance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
                      <span class="n">Union</span><span class="p">[</span><span class="n">QuantumInstance</span><span class="p">,</span> <span class="n">BaseBackend</span><span class="p">,</span> <span class="n">Backend</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -395,6 +405,9 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            AquaError: invalid input</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warn_package</span><span class="p">(</span><span class="s1">&#39;aqua.algorithms.distribution_learners&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;qiskit_machine_learning.algorithms.distribution_learners&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;qiskit-machine-learning&#39;</span><span class="p">)</span>
         <span class="n">validate_min</span><span class="p">(</span><span class="s1">&#39;batch_size&#39;</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">quantum_instance</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -403,9 +416,9 @@
         <span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">bounds_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">bounds_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="mi">95</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-            <span class="n">bounds</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: ignore</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bounds_min</span><span class="p">):</span>
-                <span class="n">bounds</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">bounds_min</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">bounds_max</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+                <span class="n">bounds</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">bounds_min</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">bounds_max</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>  <span class="c1"># type: ignore</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
                 <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s1">&#39;Dimensions of the data, the length of the data bounds &#39;</span>
@@ -421,7 +434,7 @@
         <span class="c1"># pylint: disable=unsubscriptable-object</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="o">*</span> <span class="mi">3</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="o">*</span> <span class="mi">3</span>  <span class="c1"># type: ignore</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">])</span>
@@ -498,7 +511,8 @@
                                                               <span class="n">MultivariateVariationalDistribution</span><span class="p">]</span>
                                                         <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                       <span class="n">generator_init_params</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                      <span class="n">generator_optimizer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Optimizer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+                      <span class="n">generator_optimizer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Optimizer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                      <span class="n">generator_gradient</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">Gradient</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize generator.</span>
 
 <span class="sd">        Args:</span>
@@ -506,10 +520,20 @@
 <span class="sd">                the structure of the quantum generator</span>
 <span class="sd">            generator_init_params: initial parameters for the generator circuit</span>
 <span class="sd">            generator_optimizer: optimizer to be used for the training of the generator</span>
+<span class="sd">            generator_gradient: A Gradient object, or a function returning partial</span>
+<span class="sd">                derivatives of the loss function w.r.t. the generator variational</span>
+<span class="sd">                params.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            AquaError: invalid input</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">generator_gradient</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">generator_gradient</span><span class="p">,</span> <span class="p">(</span><span class="n">Gradient</span><span class="p">,</span> <span class="n">FunctionType</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="n">AquaError</span><span class="p">(</span><span class="s1">&#39;Please pass either a Gradient object or a function as &#39;</span>
+                                <span class="s1">&#39;the generator_gradient argument.&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_generator</span> <span class="o">=</span> <span class="n">QuantumGenerator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">,</span>
                                            <span class="n">generator_circuit</span><span class="p">,</span> <span class="n">generator_init_params</span><span class="p">,</span>
                                            <span class="n">generator_optimizer</span><span class="p">,</span>
+                                           <span class="n">generator_gradient</span><span class="p">,</span>
                                            <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_dir</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
@@ -566,7 +590,7 @@
             <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span><span class="n">csv_file</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="n">fieldnames</span><span class="p">)</span>
             <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">({</span><span class="s1">&#39;epoch&#39;</span><span class="p">:</span> <span class="n">e</span><span class="p">,</span> <span class="s1">&#39;loss_discriminator&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">d_loss</span><span class="p">),</span>
                              <span class="s1">&#39;loss_generator&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">g_loss</span><span class="p">),</span> <span class="s1">&#39;params_generator&#39;</span><span class="p">:</span>
-                                 <span class="bp">self</span><span class="o">.</span><span class="n">_generator</span><span class="o">.</span><span class="n">generator_circuit</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="s1">&#39;rel_entropy&#39;</span><span class="p">:</span> <span class="n">rel_entr</span><span class="p">})</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">_generator</span><span class="o">.</span><span class="n">parameter_values</span><span class="p">,</span> <span class="s1">&#39;rel_entropy&#39;</span><span class="p">:</span> <span class="n">rel_entr</span><span class="p">})</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_discriminator</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_dir</span><span class="p">)</span>  <span class="c1"># Store discriminator model</span>
 
 <div class="viewcode-block" id="QGAN.train"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.algorithms.QGAN.html#qiskit.aqua.algorithms.QGAN.train">[documentos]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -604,7 +628,7 @@
                 <span class="n">d_loss_min</span> <span class="o">=</span> <span class="n">ret_d</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span>
 
                 <span class="c1"># 2. Train Generator</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_generator</span><span class="o">.</span><span class="n">set_discriminator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_discriminator</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_generator</span><span class="o">.</span><span class="n">discriminator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_discriminator</span>
                 <span class="n">ret_g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generator</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_quantum_instance</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">)</span>
                 <span class="n">g_loss_min</span> <span class="o">=</span> <span class="n">ret_g</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span>
 
@@ -781,20 +805,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

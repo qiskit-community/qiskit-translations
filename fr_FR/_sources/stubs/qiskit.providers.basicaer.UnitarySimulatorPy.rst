@@ -20,8 +20,8 @@
       ~UnitarySimulatorPy.provider
       ~UnitarySimulatorPy.run
       ~UnitarySimulatorPy.run_experiment
+      ~UnitarySimulatorPy.set_options
       ~UnitarySimulatorPy.status
-      ~UnitarySimulatorPy.version
    
    
 
@@ -34,5 +34,7 @@
       ~UnitarySimulatorPy.DEFAULT_CONFIGURATION
       ~UnitarySimulatorPy.DEFAULT_OPTIONS
       ~UnitarySimulatorPy.MAX_QUBITS_MEMORY
+      ~UnitarySimulatorPy.options
+      ~UnitarySimulatorPy.version
    
    

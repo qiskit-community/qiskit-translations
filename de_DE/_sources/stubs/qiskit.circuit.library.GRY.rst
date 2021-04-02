@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~GRY.__init__
+      ~GRY.add_bits
       ~GRY.add_calibration
       ~GRY.add_register
       ~GRY.append
@@ -48,9 +49,9 @@
       ~GRY.decompose
       ~GRY.delay
       ~GRY.depth
-      ~GRY.diag_gate
       ~GRY.diagonal
       ~GRY.draw
+      ~GRY.ecr
       ~GRY.extend
       ~GRY.fredkin
       ~GRY.from_qasm_file
@@ -65,7 +66,6 @@
       ~GRY.iso
       ~GRY.isometry
       ~GRY.iswap
-      ~GRY.mcmt
       ~GRY.mcp
       ~GRY.mcrx
       ~GRY.mcry
@@ -76,13 +76,13 @@
       ~GRY.measure
       ~GRY.measure_active
       ~GRY.measure_all
-      ~GRY.mirror
       ~GRY.ms
       ~GRY.num_connected_components
       ~GRY.num_nonlocal_gates
       ~GRY.num_tensor_factors
       ~GRY.num_unitary_factors
       ~GRY.p
+      ~GRY.pauli
       ~GRY.power
       ~GRY.qasm
       ~GRY.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~GRY.reset
       ~GRY.reverse_bits
       ~GRY.reverse_ops
+      ~GRY.rv
       ~GRY.rx
       ~GRY.rxx
       ~GRY.ry
@@ -105,7 +106,26 @@
       ~GRY.rzx
       ~GRY.rzz
       ~GRY.s
+      ~GRY.save_amplitudes
+      ~GRY.save_amplitudes_squared
+      ~GRY.save_density_matrix
+      ~GRY.save_expectation_value
+      ~GRY.save_expectation_value_variance
+      ~GRY.save_matrix_product_state
+      ~GRY.save_probabilities
+      ~GRY.save_probabilities_dict
+      ~GRY.save_stabilizer
+      ~GRY.save_state
+      ~GRY.save_statevector
+      ~GRY.save_statevector_dict
+      ~GRY.save_superop
+      ~GRY.save_unitary
       ~GRY.sdg
+      ~GRY.set_density_matrix
+      ~GRY.set_stabilizer
+      ~GRY.set_statevector
+      ~GRY.set_superop
+      ~GRY.set_unitary
       ~GRY.size
       ~GRY.snapshot
       ~GRY.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~GRY.sxdg
       ~GRY.t
       ~GRY.tdg
+      ~GRY.tensor
       ~GRY.to_gate
       ~GRY.to_instruction
       ~GRY.toffoli
@@ -152,6 +173,7 @@
       ~GRY.global_phase
       ~GRY.header
       ~GRY.instances
+      ~GRY.metadata
       ~GRY.num_ancillas
       ~GRY.num_clbits
       ~GRY.num_parameters

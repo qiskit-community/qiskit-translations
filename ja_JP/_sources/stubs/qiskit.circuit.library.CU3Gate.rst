@@ -27,6 +27,7 @@
       ~CU3Gate.qasm
       ~CU3Gate.repeat
       ~CU3Gate.reverse_ops
+      ~CU3Gate.soft_compare
       ~CU3Gate.to_matrix
       ~CU3Gate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~CU3Gate.definition
       ~CU3Gate.duration
       ~CU3Gate.label
+      ~CU3Gate.name
       ~CU3Gate.num_ctrl_qubits
       ~CU3Gate.params
       ~CU3Gate.unit

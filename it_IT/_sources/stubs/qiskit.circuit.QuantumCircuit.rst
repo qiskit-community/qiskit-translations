@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~QuantumCircuit.__init__
+      ~QuantumCircuit.add_bits
       ~QuantumCircuit.add_calibration
       ~QuantumCircuit.add_register
       ~QuantumCircuit.append
@@ -48,9 +49,9 @@
       ~QuantumCircuit.decompose
       ~QuantumCircuit.delay
       ~QuantumCircuit.depth
-      ~QuantumCircuit.diag_gate
       ~QuantumCircuit.diagonal
       ~QuantumCircuit.draw
+      ~QuantumCircuit.ecr
       ~QuantumCircuit.extend
       ~QuantumCircuit.fredkin
       ~QuantumCircuit.from_qasm_file
@@ -65,7 +66,6 @@
       ~QuantumCircuit.iso
       ~QuantumCircuit.isometry
       ~QuantumCircuit.iswap
-      ~QuantumCircuit.mcmt
       ~QuantumCircuit.mcp
       ~QuantumCircuit.mcrx
       ~QuantumCircuit.mcry
@@ -76,13 +76,13 @@
       ~QuantumCircuit.measure
       ~QuantumCircuit.measure_active
       ~QuantumCircuit.measure_all
-      ~QuantumCircuit.mirror
       ~QuantumCircuit.ms
       ~QuantumCircuit.num_connected_components
       ~QuantumCircuit.num_nonlocal_gates
       ~QuantumCircuit.num_tensor_factors
       ~QuantumCircuit.num_unitary_factors
       ~QuantumCircuit.p
+      ~QuantumCircuit.pauli
       ~QuantumCircuit.power
       ~QuantumCircuit.qasm
       ~QuantumCircuit.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~QuantumCircuit.reset
       ~QuantumCircuit.reverse_bits
       ~QuantumCircuit.reverse_ops
+      ~QuantumCircuit.rv
       ~QuantumCircuit.rx
       ~QuantumCircuit.rxx
       ~QuantumCircuit.ry
@@ -105,7 +106,26 @@
       ~QuantumCircuit.rzx
       ~QuantumCircuit.rzz
       ~QuantumCircuit.s
+      ~QuantumCircuit.save_amplitudes
+      ~QuantumCircuit.save_amplitudes_squared
+      ~QuantumCircuit.save_density_matrix
+      ~QuantumCircuit.save_expectation_value
+      ~QuantumCircuit.save_expectation_value_variance
+      ~QuantumCircuit.save_matrix_product_state
+      ~QuantumCircuit.save_probabilities
+      ~QuantumCircuit.save_probabilities_dict
+      ~QuantumCircuit.save_stabilizer
+      ~QuantumCircuit.save_state
+      ~QuantumCircuit.save_statevector
+      ~QuantumCircuit.save_statevector_dict
+      ~QuantumCircuit.save_superop
+      ~QuantumCircuit.save_unitary
       ~QuantumCircuit.sdg
+      ~QuantumCircuit.set_density_matrix
+      ~QuantumCircuit.set_stabilizer
+      ~QuantumCircuit.set_statevector
+      ~QuantumCircuit.set_superop
+      ~QuantumCircuit.set_unitary
       ~QuantumCircuit.size
       ~QuantumCircuit.snapshot
       ~QuantumCircuit.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~QuantumCircuit.sxdg
       ~QuantumCircuit.t
       ~QuantumCircuit.tdg
+      ~QuantumCircuit.tensor
       ~QuantumCircuit.to_gate
       ~QuantumCircuit.to_instruction
       ~QuantumCircuit.toffoli
@@ -152,6 +173,7 @@
       ~QuantumCircuit.global_phase
       ~QuantumCircuit.header
       ~QuantumCircuit.instances
+      ~QuantumCircuit.metadata
       ~QuantumCircuit.num_ancillas
       ~QuantumCircuit.num_clbits
       ~QuantumCircuit.num_parameters

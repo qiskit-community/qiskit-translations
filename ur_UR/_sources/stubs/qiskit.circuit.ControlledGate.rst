@@ -27,6 +27,7 @@
       ~ControlledGate.qasm
       ~ControlledGate.repeat
       ~ControlledGate.reverse_ops
+      ~ControlledGate.soft_compare
       ~ControlledGate.to_matrix
       ~ControlledGate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~ControlledGate.definition
       ~ControlledGate.duration
       ~ControlledGate.label
+      ~ControlledGate.name
       ~ControlledGate.num_ctrl_qubits
       ~ControlledGate.params
       ~ControlledGate.unit

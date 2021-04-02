@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~IQP.__init__
+      ~IQP.add_bits
       ~IQP.add_calibration
       ~IQP.add_register
       ~IQP.append
@@ -48,9 +49,9 @@
       ~IQP.decompose
       ~IQP.delay
       ~IQP.depth
-      ~IQP.diag_gate
       ~IQP.diagonal
       ~IQP.draw
+      ~IQP.ecr
       ~IQP.extend
       ~IQP.fredkin
       ~IQP.from_qasm_file
@@ -65,7 +66,6 @@
       ~IQP.iso
       ~IQP.isometry
       ~IQP.iswap
-      ~IQP.mcmt
       ~IQP.mcp
       ~IQP.mcrx
       ~IQP.mcry
@@ -76,13 +76,13 @@
       ~IQP.measure
       ~IQP.measure_active
       ~IQP.measure_all
-      ~IQP.mirror
       ~IQP.ms
       ~IQP.num_connected_components
       ~IQP.num_nonlocal_gates
       ~IQP.num_tensor_factors
       ~IQP.num_unitary_factors
       ~IQP.p
+      ~IQP.pauli
       ~IQP.power
       ~IQP.qasm
       ~IQP.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~IQP.reset
       ~IQP.reverse_bits
       ~IQP.reverse_ops
+      ~IQP.rv
       ~IQP.rx
       ~IQP.rxx
       ~IQP.ry
@@ -105,7 +106,26 @@
       ~IQP.rzx
       ~IQP.rzz
       ~IQP.s
+      ~IQP.save_amplitudes
+      ~IQP.save_amplitudes_squared
+      ~IQP.save_density_matrix
+      ~IQP.save_expectation_value
+      ~IQP.save_expectation_value_variance
+      ~IQP.save_matrix_product_state
+      ~IQP.save_probabilities
+      ~IQP.save_probabilities_dict
+      ~IQP.save_stabilizer
+      ~IQP.save_state
+      ~IQP.save_statevector
+      ~IQP.save_statevector_dict
+      ~IQP.save_superop
+      ~IQP.save_unitary
       ~IQP.sdg
+      ~IQP.set_density_matrix
+      ~IQP.set_stabilizer
+      ~IQP.set_statevector
+      ~IQP.set_superop
+      ~IQP.set_unitary
       ~IQP.size
       ~IQP.snapshot
       ~IQP.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~IQP.sxdg
       ~IQP.t
       ~IQP.tdg
+      ~IQP.tensor
       ~IQP.to_gate
       ~IQP.to_instruction
       ~IQP.toffoli
@@ -152,6 +173,7 @@
       ~IQP.global_phase
       ~IQP.header
       ~IQP.instances
+      ~IQP.metadata
       ~IQP.num_ancillas
       ~IQP.num_clbits
       ~IQP.num_parameters

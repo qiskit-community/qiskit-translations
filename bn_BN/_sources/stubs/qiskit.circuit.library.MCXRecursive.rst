@@ -28,6 +28,7 @@
       ~MCXRecursive.qasm
       ~MCXRecursive.repeat
       ~MCXRecursive.reverse_ops
+      ~MCXRecursive.soft_compare
       ~MCXRecursive.to_matrix
       ~MCXRecursive.validate_parameter
    
@@ -44,6 +45,7 @@
       ~MCXRecursive.definition
       ~MCXRecursive.duration
       ~MCXRecursive.label
+      ~MCXRecursive.name
       ~MCXRecursive.num_ancilla_qubits
       ~MCXRecursive.num_ctrl_qubits
       ~MCXRecursive.params

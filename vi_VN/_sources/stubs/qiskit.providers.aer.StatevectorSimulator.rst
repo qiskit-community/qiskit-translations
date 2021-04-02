@@ -22,9 +22,9 @@
       ~StatevectorSimulator.properties
       ~StatevectorSimulator.provider
       ~StatevectorSimulator.run
+      ~StatevectorSimulator.set_option
       ~StatevectorSimulator.set_options
       ~StatevectorSimulator.status
-      ~StatevectorSimulator.version
    
    
 
@@ -35,5 +35,6 @@
    .. autosummary::
    
       ~StatevectorSimulator.options
+      ~StatevectorSimulator.version
    
    

@@ -23,7 +23,9 @@
       ~Schedule.exclude
       ~Schedule.filter
       ~Schedule.flatten
+      ~Schedule.get_parameters
       ~Schedule.insert
+      ~Schedule.is_parameterized
       ~Schedule.replace
       ~Schedule.shift
    
@@ -39,7 +41,9 @@
       ~Schedule.duration
       ~Schedule.instances_counter
       ~Schedule.instructions
+      ~Schedule.metadata
       ~Schedule.name
+      ~Schedule.parameters
       ~Schedule.prefix
       ~Schedule.start_time
       ~Schedule.stop_time

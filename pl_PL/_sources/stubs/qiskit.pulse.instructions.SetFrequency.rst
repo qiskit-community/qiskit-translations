@@ -22,6 +22,7 @@ qiskit.pulse.instructions.SetFrequency
       ~SetFrequency.draw
       ~SetFrequency.flatten
       ~SetFrequency.insert
+      ~SetFrequency.is_parameterized
       ~SetFrequency.shift
    
    
@@ -34,15 +35,14 @@ qiskit.pulse.instructions.SetFrequency
    
       ~SetFrequency.channel
       ~SetFrequency.channels
-      ~SetFrequency.command
       ~SetFrequency.duration
       ~SetFrequency.frequency
       ~SetFrequency.id
       ~SetFrequency.instructions
       ~SetFrequency.name
       ~SetFrequency.operands
+      ~SetFrequency.parameters
       ~SetFrequency.start_time
       ~SetFrequency.stop_time
-      ~SetFrequency.timeslots
    
    

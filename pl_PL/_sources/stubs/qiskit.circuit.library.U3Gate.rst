@@ -27,6 +27,7 @@
       ~U3Gate.qasm
       ~U3Gate.repeat
       ~U3Gate.reverse_ops
+      ~U3Gate.soft_compare
       ~U3Gate.to_matrix
       ~U3Gate.validate_parameter
    

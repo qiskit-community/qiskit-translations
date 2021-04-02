@@ -44,6 +44,7 @@
 
    .. autosummary::
    
+      ~StateFn.ENABLE_DEPRECATION
       ~StateFn.INDENTATION
       ~StateFn.coeff
       ~StateFn.is_measurement

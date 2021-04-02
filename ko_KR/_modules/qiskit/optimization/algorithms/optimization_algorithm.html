@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.optimization.algorithms.optimization_algorithm &mdash; Qiskit 0.24.1 문서</title>
+  <title>qiskit.optimization.algorithms.optimization_algorithm &mdash; Qiskit 0.25.0 문서</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/aqua.html">키스킷 아쿠아</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/ibmq-provider.html">아이비엠 양자 시스템 공급자</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">문제 해결</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Quantum API error codes</a></li>
@@ -301,7 +305,7 @@
   <h1>qiskit.optimization.algorithms.optimization_algorithm의 소스 코드</h1><div class="highlight"><pre>
 <span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
-<span class="c1"># (C) Copyright IBM 2020.</span>
+<span class="c1"># (C) Copyright IBM 2020, 2021.</span>
 <span class="c1">#</span>
 <span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
 <span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
@@ -314,15 +318,17 @@
 <span class="sd">&quot;&quot;&quot;An abstract class for optimization algorithms in Qiskit&#39;s optimization module.&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">QiskitOptimizationError</span>
-<span class="kn">from</span> <span class="nn">..problems.quadratic_program</span> <span class="kn">import</span> <span class="n">QuadraticProgram</span><span class="p">,</span> <span class="n">Variable</span>
 <span class="kn">from</span> <span class="nn">..converters.quadratic_program_to_qubo</span> <span class="kn">import</span> <span class="p">(</span><span class="n">QuadraticProgramToQubo</span><span class="p">,</span>
                                                     <span class="n">QuadraticProgramConverter</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">..problems.quadratic_program</span> <span class="kn">import</span> <span class="n">QuadraticProgram</span><span class="p">,</span> <span class="n">Variable</span>
 
 
 <div class="viewcode-block" id="OptimizationResultStatus"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.OptimizationResultStatus.html#qiskit.optimization.algorithms.OptimizationResultStatus">[문서]</a><span class="k">class</span> <span class="nc">OptimizationResultStatus</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
@@ -336,6 +342,22 @@
 
     <span class="n">INFEASIBLE</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="sd">&quot;&quot;&quot;the optimization algorithm obtained an infeasible solution.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="SolutionSample"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.SolutionSample.html#qiskit.optimization.algorithms.SolutionSample">[문서]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">SolutionSample</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;A sample of an optimization solution</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        x: the values of variables</span>
+<span class="sd">        fval: the objective function value</span>
+<span class="sd">        probability: the probability of this sample</span>
+<span class="sd">        status: the status of this sample</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="n">fval</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">probability</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">status</span><span class="p">:</span> <span class="n">OptimizationResultStatus</span></div>
 
 
 <div class="viewcode-block" id="OptimizationResult"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.OptimizationResult.html#qiskit.optimization.algorithms.OptimizationResult">[문서]</a><span class="k">class</span> <span class="nc">OptimizationResult</span><span class="p">:</span>
@@ -381,7 +403,8 @@
 <div class="viewcode-block" id="OptimizationResult.__init__"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.OptimizationResult.html#qiskit.optimization.algorithms.OptimizationResult.__init__">[문서]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]],</span> <span class="n">fval</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
                  <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Variable</span><span class="p">],</span>
                  <span class="n">status</span><span class="p">:</span> <span class="n">OptimizationResultStatus</span><span class="p">,</span>
-                 <span class="n">raw_results</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                 <span class="n">raw_results</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">samples</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">SolutionSample</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            x: the optimal value found in the optimization, or possibly None in case of FAILURE.</span>
@@ -389,6 +412,7 @@
 <span class="sd">            variables: the list of variables of the optimization problem.</span>
 <span class="sd">            raw_results: the original results object from the optimization algorithm.</span>
 <span class="sd">            status: the termination status of the optimization algorithm.</span>
+<span class="sd">            samples: the solution samples.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            QiskitOptimizationError: if sizes of ``x`` and ``variables`` do not match.</span>
@@ -405,13 +429,20 @@
                     <span class="s1">&#39;Inconsistent size of optimal value and variables. x: size </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">, &#39;</span>
                     <span class="s1">&#39;variables: size </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">x</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">variables</span><span class="p">),</span>
                                                    <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">]))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="n">x</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-                <span class="n">x</span><span class="p">)</span>  <span class="c1"># pylint: disable=invalid-name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_variables_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variable_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="p">))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_fval</span> <span class="o">=</span> <span class="n">fval</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_raw_results</span> <span class="o">=</span> <span class="n">raw_results</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">status</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">status</span>
+        <span class="k">if</span> <span class="n">samples</span><span class="p">:</span>
+            <span class="n">sum_prob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">e</span><span class="o">.</span><span class="n">probability</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">sum_prob</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">):</span>
+                <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The sum of probability of samples is not close to 1: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sum_prob</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_samples</span> <span class="o">=</span> <span class="n">samples</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_samples</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">SolutionSample</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">cast</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="n">fval</span><span class="o">=</span><span class="n">fval</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="p">,</span> <span class="n">probability</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)]</span></div>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="s1">&#39;optimal function value: </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span> \
@@ -509,7 +540,16 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            The list of variable names of the optimization problem.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_names</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_names</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">samples</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">SolutionSample</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the list of solution samples</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The list of solution samples.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_samples</span></div>
 
 
 <div class="viewcode-block" id="OptimizationAlgorithm"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.OptimizationAlgorithm.html#qiskit.optimization.algorithms.OptimizationAlgorithm">[문서]</a><span class="k">class</span> <span class="nc">OptimizationAlgorithm</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
@@ -574,7 +614,8 @@
         <span class="k">if</span> <span class="n">msg</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span><span class="s1">&#39;Incompatible problem: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_get_feasibility_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">,</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_feasibility_status</span><span class="p">(</span><span class="n">problem</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">,</span>
                                 <span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">OptimizationResultStatus</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Returns whether the input result is feasible or not for the given problem.</span>
 
@@ -590,8 +631,9 @@
         <span class="k">return</span> <span class="n">OptimizationResultStatus</span><span class="o">.</span><span class="n">SUCCESS</span> <span class="k">if</span> <span class="n">is_feasible</span> \
             <span class="k">else</span> <span class="n">OptimizationResultStatus</span><span class="o">.</span><span class="n">INFEASIBLE</span>
 
-    <span class="k">def</span> <span class="nf">_prepare_converters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">converters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuadraticProgramConverter</span><span class="p">,</span>
-                                                             <span class="n">List</span><span class="p">[</span><span class="n">QuadraticProgramConverter</span><span class="p">]]],</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_prepare_converters</span><span class="p">(</span><span class="n">converters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuadraticProgramConverter</span><span class="p">,</span>
+                                                       <span class="n">List</span><span class="p">[</span><span class="n">QuadraticProgramConverter</span><span class="p">]]],</span>
                             <span class="n">penalty</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">QuadraticProgramConverter</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Prepare a list of converters from the input.</span>
 
@@ -609,20 +651,18 @@
 <span class="sd">            TypeError: When the converters include those that are not</span>
 <span class="sd">            :class:`~qiskit.optimization.converters.QuadraticProgramConverter type.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">converters_</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[QuadraticProgramConverter]</span>
         <span class="k">if</span> <span class="n">converters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">converters_</span> <span class="o">=</span> <span class="p">[</span><span class="n">QuadraticProgramToQubo</span><span class="p">(</span><span class="n">penalty</span><span class="o">=</span><span class="n">penalty</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">QuadraticProgramToQubo</span><span class="p">(</span><span class="n">penalty</span><span class="o">=</span><span class="n">penalty</span><span class="p">)]</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">converters</span><span class="p">,</span> <span class="n">QuadraticProgramConverter</span><span class="p">):</span>
-            <span class="n">converters_</span> <span class="o">=</span> <span class="p">[</span><span class="n">converters</span><span class="p">]</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">converters</span><span class="p">]</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">converters</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> \
                 <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">converter</span><span class="p">,</span> <span class="n">QuadraticProgramConverter</span><span class="p">)</span> <span class="k">for</span> <span class="n">converter</span> <span class="ow">in</span> <span class="n">converters</span><span class="p">):</span>
-            <span class="n">converters_</span> <span class="o">=</span> <span class="n">converters</span>
+            <span class="k">return</span> <span class="n">converters</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;`converters` must all be of the QuadraticProgramConverter type&#39;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">converters_</span>
-
-    <span class="k">def</span> <span class="nf">_convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">,</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_convert</span><span class="p">(</span><span class="n">problem</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">,</span>
                  <span class="n">converters</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QuadraticProgramConverter</span><span class="p">,</span>
                                    <span class="n">List</span><span class="p">[</span><span class="n">QuadraticProgramConverter</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">QuadraticProgram</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Convert the problem with the converters</span>
@@ -644,25 +684,48 @@
 
         <span class="k">return</span> <span class="n">problem_</span>
 
-    <span class="k">def</span> <span class="nf">_interpret</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">OptimizationResult</span><span class="p">,</span>
-                   <span class="n">converters</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QuadraticProgramConverter</span><span class="p">,</span>
-                                     <span class="n">List</span><span class="p">[</span><span class="n">QuadraticProgramConverter</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">OptimizationResult</span><span class="p">:</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_interpret</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                   <span class="n">problem</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">,</span>
+                   <span class="n">converters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuadraticProgramConverter</span><span class="p">,</span>
+                                              <span class="n">List</span><span class="p">[</span><span class="n">QuadraticProgramConverter</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                   <span class="n">result_class</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">OptimizationResult</span><span class="p">]</span> <span class="o">=</span> <span class="n">OptimizationResult</span><span class="p">,</span>
+                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OptimizationResult</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Convert back the result of the converted problem to the result of the original problem.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            result: The result of the converted problem.</span>
+<span class="sd">            x: The result of the converted problem.</span>
 <span class="sd">            converters: The converters to use for converting back the result of the problem</span>
 <span class="sd">                to the result of the original problem.</span>
+<span class="sd">            problem: The original problem for which `x` is interpreted.</span>
+<span class="sd">            result_class: The class of the result object.</span>
+<span class="sd">            kwargs: parameters of the constructor of result_class</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The result of the original problem.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitOptimizationError: if result_class is not a sub-class of OptimizationResult.</span>
+<span class="sd">            TypeError: if converters are not QuadraticProgramConverter or a list of</span>
+<span class="sd">                QuadraticProgramConverter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">result_class</span><span class="p">,</span> <span class="n">OptimizationResult</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitOptimizationError</span><span class="p">(</span>
+                <span class="s1">&#39;Invalid result class, not derived from OptimizationResult: &#39;</span>
+                <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result_class</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">converters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">converters</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">converters</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">converters</span> <span class="o">=</span> <span class="p">[</span><span class="n">converters</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">conv</span><span class="p">,</span> <span class="n">QuadraticProgramConverter</span><span class="p">)</span> <span class="k">for</span> <span class="n">conv</span> <span class="ow">in</span> <span class="n">converters</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Invalid object of converters: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">converters</span><span class="p">))</span>
 
         <span class="k">for</span> <span class="n">converter</span> <span class="ow">in</span> <span class="n">converters</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">interpret</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">result</span></div>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">interpret</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_class</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                            <span class="n">variables</span><span class="o">=</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span>
+                            <span class="n">status</span><span class="o">=</span><span class="bp">cls</span><span class="o">.</span><span class="n">_get_feasibility_status</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span>
+                            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
 
              </article>
@@ -795,20 +858,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

@@ -14,10 +14,11 @@ qiskit.pulse.library.Drag
    .. autosummary::
    
       ~Drag.__init__
+      ~Drag.assign
       ~Drag.assign_parameters
       ~Drag.draw
-      ~Drag.get_sample_pulse
       ~Drag.get_waveform
+      ~Drag.is_parameterized
       ~Drag.validate_parameters
    
    

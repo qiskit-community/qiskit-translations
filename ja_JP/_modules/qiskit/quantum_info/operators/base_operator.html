@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.quantum_info.operators.base_operator &mdash; Qiskit 0.24.1 ドキュメント</title>
+  <title>qiskit.quantum_info.operators.base_operator &mdash; Qiskit 0.25.0 ドキュメント</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum プロバイダー</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">トラブルシューティング</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Quantum API エラー・コード</a></li>
@@ -316,101 +320,63 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
-
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.exceptions</span> <span class="kn">import</span> <span class="n">QiskitError</span>
-<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.predicates</span> <span class="kn">import</span> <span class="n">ATOL_DEFAULT</span><span class="p">,</span> <span class="n">RTOL_DEFAULT</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.op_shape</span> <span class="kn">import</span> <span class="n">OpShape</span>
+
+<span class="kn">from</span> <span class="nn">.mixins</span> <span class="kn">import</span> <span class="n">GroupMixin</span>
 
 
-<span class="k">class</span> <span class="nc">TolerancesMeta</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Metaclass to handle tolerances&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_ATOL_DEFAULT</span> <span class="o">=</span> <span class="n">ATOL_DEFAULT</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_RTOL_DEFAULT</span> <span class="o">=</span> <span class="n">RTOL_DEFAULT</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_MAX_TOL</span> <span class="o">=</span> <span class="mf">1e-4</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+<span class="c1"># pylint: disable = abstract-method</span>
+<span class="k">class</span> <span class="nc">BaseOperator</span><span class="p">(</span><span class="n">GroupMixin</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract operator base class.&quot;&quot;&quot;</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">atol</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The default absolute tolerance parameter for float comparisons.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_ATOL_DEFAULT</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">num_qubits</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op_shape</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a BaseOperator shape</span>
 
-    <span class="k">def</span> <span class="nf">_check_value</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check if value is within valid ranges&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                <span class="s2">&quot;Invalid </span><span class="si">{}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2">) must be non-negative.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value_name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_MAX_TOL</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                <span class="s2">&quot;Invalid </span><span class="si">{}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2">) must be less than </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value_name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_MAX_TOL</span><span class="p">))</span>
+<span class="sd">        Args:</span>
+<span class="sd">            input_dims (tuple or int or None): Optional, input dimensions.</span>
+<span class="sd">            output_dims (tuple or int or None): Optional, output dimensions.</span>
+<span class="sd">            num_qubits (int): Optional, the number of qubits of the operator.</span>
+<span class="sd">            shape (tuple): Optional, matrix shape for automatically determining</span>
+<span class="sd">                           qubit dimensions.</span>
+<span class="sd">            op_shape (OpShape): Optional, an OpShape object for operator dimensions.</span>
 
-    <span class="nd">@atol</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">atol</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set the class default absolute tolerance parameter for float comparisons.&quot;&quot;&quot;</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_check_value</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;atol&quot;</span><span class="p">)</span>  <span class="c1"># pylint: disable=no-value-for-parameter</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_ATOL_DEFAULT</span> <span class="o">=</span> <span class="n">value</span>
+<span class="sd">        .. note::</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">rtol</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The relative tolerance parameter for float comparisons.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_RTOL_DEFAULT</span>
-
-    <span class="nd">@rtol</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">rtol</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set the class default relative tolerance parameter for float comparisons.&quot;&quot;&quot;</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_check_value</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;rtol&quot;</span><span class="p">)</span>  <span class="c1"># pylint: disable=no-value-for-parameter</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_RTOL_DEFAULT</span> <span class="o">=</span> <span class="n">value</span>
-
-
-<span class="k">class</span> <span class="nc">AbstractTolerancesMeta</span><span class="p">(</span><span class="n">TolerancesMeta</span><span class="p">,</span> <span class="n">ABCMeta</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Abstract Metaclass to handle tolerances&quot;&quot;&quot;</span>
-    <span class="k">pass</span>
-
-
-<span class="k">class</span> <span class="nc">BaseOperator</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">AbstractTolerancesMeta</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Abstract linear operator base class.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize an operator object.&quot;&quot;&quot;</span>
-        <span class="c1"># Dimension attributes</span>
-        <span class="c1"># Note that the tuples of input and output dims are ordered</span>
-        <span class="c1"># from least-significant to most-significant subsystems</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_qargs</span> <span class="o">=</span> <span class="kc">None</span>        <span class="c1"># qargs for composition, set with __call__</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span> <span class="o">=</span> <span class="kc">None</span>   <span class="c1"># tuple of input dimensions of each subsystem</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># tuple of output dimensions of each subsystem</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span> <span class="o">=</span> <span class="kc">None</span>    <span class="c1"># combined input dimension of all subsystems</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span> <span class="o">=</span> <span class="kc">None</span>   <span class="c1"># combined output dimension of all subsystems</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">=</span> <span class="kc">None</span>   <span class="c1"># number of qubit subsystems if N-qubit operator</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_set_dims</span><span class="p">(</span><span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">)</span>
+<span class="sd">            If `op_shape`` is specified it will take precedence over other</span>
+<span class="sd">            kwargs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qargs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">op_shape</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">=</span> <span class="n">op_shape</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">=</span> <span class="n">OpShape</span><span class="o">.</span><span class="n">auto</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span>
+                                          <span class="n">dims_l</span><span class="o">=</span><span class="n">output_dims</span><span class="p">,</span>
+                                          <span class="n">dims_r</span><span class="o">=</span><span class="n">input_dims</span><span class="p">,</span>
+                                          <span class="n">num_qubits</span><span class="o">=</span><span class="n">num_qubits</span><span class="p">)</span>
 
     <span class="c1"># Set higher priority than Numpy array and matrix classes</span>
     <span class="n">__array_priority__</span> <span class="o">=</span> <span class="mi">20</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return a clone with qargs set&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qargs</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="n">qargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qargs</span><span class="p">]</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">qargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a shallow copy with qargs attribute set&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qargs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+            <span class="n">qargs</span> <span class="o">=</span> <span class="n">qargs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">n_qargs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span>
-        <span class="c1"># We don&#39;t know if qargs will be applied to input our output</span>
-        <span class="c1"># dimensions so we just check it matches one of them.</span>
-        <span class="k">if</span> <span class="n">n_qargs</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">n_qargs</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">num_qargs</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                <span class="s2">&quot;Length of qargs (</span><span class="si">{}</span><span class="s2">) does not match number of input (</span><span class="si">{}</span><span class="s2">)&quot;</span>
-                <span class="s2">&quot; or output (</span><span class="si">{}</span><span class="s2">) subsystems.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">n_qargs</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">)))</span>
-        <span class="c1"># Make a shallow copy</span>
+                <span class="s2">&quot;qargs does not match the number of operator qargs &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">n_qargs</span><span class="si">}</span><span class="s2"> not in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">num_qargs</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">ret</span><span class="o">.</span><span class="n">_qargs</span> <span class="o">=</span> <span class="n">qargs</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_qargs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ret</span>
 
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check types and subsystem dimensions are equal&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span> <span class="ow">and</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_input_dims</span> <span class="ow">and</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_op_shape</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">qargs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -420,55 +386,32 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return tuple (input_shape, output_shape).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">_dim_r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">_dim_l</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">num_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the number of qubits if a N-qubit operator or None otherwise.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">num_qubits</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">atol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The default absolute tolerance parameter for float comparisons.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">atol</span>
+    <span class="k">def</span> <span class="nf">_input_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the total input dimension.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">_dim_r</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">rtol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The relative tolerance parameter for float comparisons.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">rtol</span>
+    <span class="k">def</span> <span class="nf">_output_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the total input dimension.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">_dim_l</span>
 
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">set_atol</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set the class default absolute tolerance parameter for float comparisons.</span>
-
-<span class="sd">        DEPRECATED: use operator.atol = value instead</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;`</span><span class="si">{}</span><span class="s2">.set_atol` method is deprecated, use `</span><span class="si">{}</span><span class="s2">.atol = &quot;</span>
-                      <span class="s2">&quot;value` instead.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">),</span>
-                      <span class="ne">DeprecationWarning</span><span class="p">)</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">atol</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">set_rtol</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set the class default relative tolerance parameter for float comparisons.</span>
-
-<span class="sd">        DEPRECATED: use operator.rtol = value instead</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;`</span><span class="si">{}</span><span class="s2">.set_rtol` method is deprecated, use `</span><span class="si">{}</span><span class="s2">.rtol = &quot;</span>
-                      <span class="s2">&quot;value` instead.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">),</span>
-                      <span class="ne">DeprecationWarning</span><span class="p">)</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">rtol</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="k">def</span> <span class="nf">reshape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reshape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_qubits</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a shallow copy with reshaped input and output subsystem dimensions.</span>
 
-<span class="sd">        Arg:</span>
+<span class="sd">        Args:</span>
 <span class="sd">            input_dims (None or tuple): new subsystem input dimensions.</span>
-<span class="sd">                If None the original input dims will be preserved</span>
-<span class="sd">                [Default: None].</span>
+<span class="sd">                If None the original input dims will be preserved [Default: None].</span>
 <span class="sd">            output_dims (None or tuple): new subsystem output dimensions.</span>
-<span class="sd">                If None the original output dims will be preserved</span>
-<span class="sd">                [Default: None].</span>
+<span class="sd">                If None the original output dims will be preserved [Default: None].</span>
+<span class="sd">            num_qubits (None or int): reshape to an N-qubit operator [Default: None].</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            BaseOperator: returns self with reshaped input and output dimensions.</span>
@@ -477,379 +420,24 @@
 <span class="sd">            QiskitError: if combined size of all subsystem input dimension or</span>
 <span class="sd">                         subsystem output dimensions is not constant.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">clone</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">output_dims</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">input_dims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">clone</span>
-        <span class="k">if</span> <span class="n">input_dims</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">input_dims</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                    <span class="s2">&quot;Reshaped input_dims (</span><span class="si">{}</span><span class="s2">) are incompatible with combined&quot;</span>
-                    <span class="s2">&quot; input dimension (</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">input_dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span><span class="p">))</span>
-            <span class="n">clone</span><span class="o">.</span><span class="n">_input_dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">input_dims</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">output_dims</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">output_dims</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                    <span class="s2">&quot;Reshaped output_dims (</span><span class="si">{}</span><span class="s2">) are incompatible with combined&quot;</span>
-                    <span class="s2">&quot; output dimension (</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output_dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span><span class="p">))</span>
-            <span class="n">clone</span><span class="o">.</span><span class="n">_output_dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">output_dims</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">clone</span>
+        <span class="n">new_shape</span> <span class="o">=</span> <span class="n">OpShape</span><span class="o">.</span><span class="n">auto</span><span class="p">(</span>
+            <span class="n">dims_l</span><span class="o">=</span><span class="n">output_dims</span><span class="p">,</span> <span class="n">dims_r</span><span class="o">=</span><span class="n">input_dims</span><span class="p">,</span> <span class="n">num_qubits</span><span class="o">=</span><span class="n">num_qubits</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">=</span> <span class="n">new_shape</span>
+        <span class="k">return</span> <span class="n">ret</span>
 
     <span class="k">def</span> <span class="nf">input_dims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return tuple of input dimension for specified subsystems.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">dims_r</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">output_dims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return tuple of output dimension for specified subsystems.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">dims_l</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Make a deep copy of current operator.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">adjoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the adjoint of the operator.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conjugate</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
-
-    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">conjugate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the conjugate of the operator.&quot;&quot;&quot;</span>
-        <span class="k">pass</span>
-
-    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the transpose of the operator.&quot;&quot;&quot;</span>
-        <span class="k">pass</span>
-
-    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the tensor product operator self ⊗ other.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (BaseOperator): a operator subclass object.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            BaseOperator: the tensor product operator self ⊗ other.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if other is not an operator.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
-
-    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">expand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the tensor product operator other ⊗ self.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (BaseOperator): an operator object.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            BaseOperator: the tensor product operator other ⊗ self.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if other is not an operator.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
-
-    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">front</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the composed operator.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (BaseOperator): an operator object.</span>
-<span class="sd">            qargs (list or None): a list of subsystem positions to apply</span>
-<span class="sd">                                  other on. If None apply on all</span>
-<span class="sd">                                  subsystems [default: None].</span>
-<span class="sd">            front (bool): If True compose using right operator multiplication,</span>
-<span class="sd">                          instead of left multiplication [default: False].</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            BaseOperator: The operator self @ other.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if other cannot be converted to an operator, or has</span>
-<span class="sd">                         incompatible dimensions for specified subsystems.</span>
-
-<span class="sd">        Additional Information:</span>
-<span class="sd">            Composition (``@``) is defined as `left` matrix multiplication for</span>
-<span class="sd">            matrix operators. That is that ``A @ B`` is equal to ``B * A``.</span>
-<span class="sd">            Setting ``front=True`` returns `right` matrix multiplication</span>
-<span class="sd">            ``A * B`` and is equivalent to the :meth:`dot` method.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
-
-    <span class="k">def</span> <span class="nf">dot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the right multiplied operator self * other.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (BaseOperator): an operator object.</span>
-<span class="sd">            qargs (list or None): a list of subsystem positions to apply</span>
-<span class="sd">                                  other on. If None apply on all</span>
-<span class="sd">                                  subsystems [default: None].</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            BaseOperator: The operator self * other.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if other cannot be converted to an operator, or has</span>
-<span class="sd">                         incompatible dimensions for specified subsystems.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">,</span> <span class="n">front</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the compose of a operator with itself n times.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            n (int): the number of times to compose with self (n&gt;0).</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            BaseOperator: the n-times composed operator.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if the input and output dimensions of the operator</span>
-<span class="sd">                         are not equal, or the power is not a positive integer.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># NOTE: if a subclass can have negative or non-integer powers</span>
-        <span class="c1"># this method should be overridden in that class.</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">))</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Can only power with positive integer powers.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Can only power with input_dim = output_dim.&quot;</span><span class="p">)</span>
-        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-            <span class="n">ret</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">ret</span>
-
-    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the linear operator self + other.</span>
-
-<span class="sd">        DEPRECATED: use ``operator + other`` instead.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (BaseOperator): an operator object.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            BaseOperator: the operator self + other.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;`BaseOperator.add` method is deprecated, use&quot;</span>
-                      <span class="s2">&quot;`op + other` instead.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">subtract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the linear operator self - other.</span>
-
-<span class="sd">        DEPRECATED: use ``operator - other`` instead.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (BaseOperator): an operator object.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            BaseOperator: the operator self - other.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;`BaseOperator.subtract` method is deprecated, use&quot;</span>
-                      <span class="s2">&quot;`op - other` instead&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span><span class="o">-</span><span class="n">other</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">multiply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the linear operator other * self.</span>
-
-<span class="sd">        DEPRECATED: use ``other * operator`` instead.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (complex): a complex number.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            BaseOperator: the linear operator other * self.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            NotImplementedError: if subclass does not support multiplication.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;`BaseOperator.multiply` method is deprecated, use&quot;</span>
-                      <span class="s2">&quot;the `other * op` instead&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiply</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the linear operator self + other.</span>
-
-<span class="sd">        If ``qargs`` are specified the other operator will be added</span>
-<span class="sd">        assuming it is identity on all other subsystems.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (BaseOperator): an operator object.</span>
-<span class="sd">            qargs (None or list): optional subsystems to add on</span>
-<span class="sd">                                  (Default: None)</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            BaseOperator: the operator self + other.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            NotImplementedError: if subclass does not support addition.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-            <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> does not support addition&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
-
-    <span class="k">def</span> <span class="nf">_multiply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the linear operator other * self.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (complex): a complex number.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            BaseOperator: the linear operator other * self.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            NotImplementedError: if subclass does not support multiplication.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-            <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> does not support scalar multiplication&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
-
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">_automatic_dims</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check if input dimension corresponds to qubit subsystems.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">dims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">dims</span> <span class="o">=</span> <span class="n">size</span>
-        <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">!=</span> <span class="n">size</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;dimensions do not match size.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
-            <span class="n">num_qubits</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
-            <span class="k">if</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">num_qubits</span> <span class="o">==</span> <span class="n">size</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">num_qubits</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span><span class="p">,)</span>
-            <span class="k">return</span> <span class="p">(</span><span class="n">dims</span><span class="p">,)</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_set_dims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set dimension attributes&quot;&quot;&quot;</span>
-        <span class="c1"># Shape lists the dimension of each subsystem starting from</span>
-        <span class="c1"># least significant through to most significant.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">input_dims</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">output_dims</span><span class="p">)</span>
-        <span class="c1"># The total input and output dimensions are given by the product</span>
-        <span class="c1"># of all subsystem dimension in the input_dims/output_dims.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">input_dims</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">output_dims</span><span class="p">)</span>
-        <span class="c1"># Check if an N-qubit operator</span>
-        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span> <span class="ow">and</span>
-                <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="mi">2</span><span class="p">}):</span>
-            <span class="c1"># If so set the number of qubits</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Otherwise set the number of qubits to None</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">=</span> <span class="kc">None</span>
-
-    <span class="k">def</span> <span class="nf">_get_compose_dims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="p">,</span> <span class="n">front</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check dimensions are compatible for composition.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (BaseOperator): another operator object.</span>
-<span class="sd">            qargs (None or list): compose qargs kwarg value.</span>
-<span class="sd">            front (bool): compose front kwarg value.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            tuple: the tuple (input_dims, output_dims) for the composed</span>
-<span class="sd">                   operator.</span>
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if operator dimensions are invalid for compose.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">front</span><span class="p">:</span>
-            <span class="n">output_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span>
-            <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">_output_dim</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                        <span class="s2">&quot;Other operator combined output dimension (</span><span class="si">{}</span><span class="s2">) does not&quot;</span>
-                        <span class="s2">&quot; match current combined input dimension (</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                            <span class="n">other</span><span class="o">.</span><span class="n">_output_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span><span class="p">))</span>
-                <span class="n">input_dims</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">_input_dims</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">_output_dims</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span><span class="p">(</span><span class="n">qargs</span><span class="p">):</span>
-                    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                        <span class="s2">&quot;Other operator output dimensions (</span><span class="si">{}</span><span class="s2">) does not&quot;</span>
-                        <span class="s2">&quot; match current subsystem input dimensions (</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                            <span class="n">other</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span><span class="p">(</span><span class="n">qargs</span><span class="p">)))</span>
-                <span class="n">input_dims</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qargs</span><span class="p">):</span>
-                    <span class="n">input_dims</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">input_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span>
-            <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_input_dim</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                        <span class="s2">&quot;Other operator combined input dimension (</span><span class="si">{}</span><span class="s2">) does not&quot;</span>
-                        <span class="s2">&quot; match current combined output dimension (</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                            <span class="n">other</span><span class="o">.</span><span class="n">_input_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span><span class="p">))</span>
-                <span class="n">output_dims</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">_output_dims</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                        <span class="s2">&quot;Other operator input dimensions (</span><span class="si">{}</span><span class="s2">) does not&quot;</span>
-                        <span class="s2">&quot; match current subsystem output dimension (</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                            <span class="n">other</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span><span class="p">(</span><span class="n">qargs</span><span class="p">)))</span>
-                <span class="n">output_dims</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qargs</span><span class="p">):</span>
-                    <span class="n">output_dims</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span>
-
-    <span class="k">def</span> <span class="nf">_validate_add_dims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check dimensions are compatible for addition.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (BaseOperator): another operator object.</span>
-<span class="sd">            qargs (None or list): compose qargs kwarg value.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if operators have incompatibile dimensions for addition.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># For adding without qargs we only require that operators have</span>
-            <span class="c1"># the same total dimensions rather than each subsystem dimension</span>
-            <span class="c1"># matching.</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">dim</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                    <span class="s2">&quot;Cannot add operators with different shapes&quot;</span>
-                    <span class="s2">&quot; (</span><span class="si">{}</span><span class="s2"> != </span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">dim</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># If adding on subsystems the operators must have equal</span>
-            <span class="c1"># shape on subsystems</span>
-            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span> <span class="ow">or</span>
-                    <span class="n">other</span><span class="o">.</span><span class="n">_input_dims</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                    <span class="s2">&quot;Cannot add operators on subsystems for non-square&quot;</span>
-                    <span class="s2">&quot; operator.&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                    <span class="s2">&quot;Cannot add operators on subsystems with different&quot;</span>
-                    <span class="s2">&quot; dimensions (</span><span class="si">{}</span><span class="s2"> != </span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span><span class="p">(</span><span class="n">qargs</span><span class="p">),</span> <span class="n">other</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">))</span>
-
-    <span class="c1"># Overloads</span>
-    <span class="k">def</span> <span class="fm">__matmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiply</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__pow__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__xor__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__truediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiply</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">other</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span><span class="o">-</span><span class="n">other</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiply</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 
              </article>
@@ -982,20 +570,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

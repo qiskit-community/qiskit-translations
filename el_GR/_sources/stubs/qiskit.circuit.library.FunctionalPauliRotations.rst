@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~FunctionalPauliRotations.__init__
+      ~FunctionalPauliRotations.add_bits
       ~FunctionalPauliRotations.add_calibration
       ~FunctionalPauliRotations.add_register
       ~FunctionalPauliRotations.append
@@ -48,9 +49,9 @@
       ~FunctionalPauliRotations.decompose
       ~FunctionalPauliRotations.delay
       ~FunctionalPauliRotations.depth
-      ~FunctionalPauliRotations.diag_gate
       ~FunctionalPauliRotations.diagonal
       ~FunctionalPauliRotations.draw
+      ~FunctionalPauliRotations.ecr
       ~FunctionalPauliRotations.extend
       ~FunctionalPauliRotations.fredkin
       ~FunctionalPauliRotations.from_qasm_file
@@ -65,7 +66,6 @@
       ~FunctionalPauliRotations.iso
       ~FunctionalPauliRotations.isometry
       ~FunctionalPauliRotations.iswap
-      ~FunctionalPauliRotations.mcmt
       ~FunctionalPauliRotations.mcp
       ~FunctionalPauliRotations.mcrx
       ~FunctionalPauliRotations.mcry
@@ -76,13 +76,13 @@
       ~FunctionalPauliRotations.measure
       ~FunctionalPauliRotations.measure_active
       ~FunctionalPauliRotations.measure_all
-      ~FunctionalPauliRotations.mirror
       ~FunctionalPauliRotations.ms
       ~FunctionalPauliRotations.num_connected_components
       ~FunctionalPauliRotations.num_nonlocal_gates
       ~FunctionalPauliRotations.num_tensor_factors
       ~FunctionalPauliRotations.num_unitary_factors
       ~FunctionalPauliRotations.p
+      ~FunctionalPauliRotations.pauli
       ~FunctionalPauliRotations.power
       ~FunctionalPauliRotations.qasm
       ~FunctionalPauliRotations.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~FunctionalPauliRotations.reset
       ~FunctionalPauliRotations.reverse_bits
       ~FunctionalPauliRotations.reverse_ops
+      ~FunctionalPauliRotations.rv
       ~FunctionalPauliRotations.rx
       ~FunctionalPauliRotations.rxx
       ~FunctionalPauliRotations.ry
@@ -105,7 +106,26 @@
       ~FunctionalPauliRotations.rzx
       ~FunctionalPauliRotations.rzz
       ~FunctionalPauliRotations.s
+      ~FunctionalPauliRotations.save_amplitudes
+      ~FunctionalPauliRotations.save_amplitudes_squared
+      ~FunctionalPauliRotations.save_density_matrix
+      ~FunctionalPauliRotations.save_expectation_value
+      ~FunctionalPauliRotations.save_expectation_value_variance
+      ~FunctionalPauliRotations.save_matrix_product_state
+      ~FunctionalPauliRotations.save_probabilities
+      ~FunctionalPauliRotations.save_probabilities_dict
+      ~FunctionalPauliRotations.save_stabilizer
+      ~FunctionalPauliRotations.save_state
+      ~FunctionalPauliRotations.save_statevector
+      ~FunctionalPauliRotations.save_statevector_dict
+      ~FunctionalPauliRotations.save_superop
+      ~FunctionalPauliRotations.save_unitary
       ~FunctionalPauliRotations.sdg
+      ~FunctionalPauliRotations.set_density_matrix
+      ~FunctionalPauliRotations.set_stabilizer
+      ~FunctionalPauliRotations.set_statevector
+      ~FunctionalPauliRotations.set_superop
+      ~FunctionalPauliRotations.set_unitary
       ~FunctionalPauliRotations.size
       ~FunctionalPauliRotations.snapshot
       ~FunctionalPauliRotations.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~FunctionalPauliRotations.sxdg
       ~FunctionalPauliRotations.t
       ~FunctionalPauliRotations.tdg
+      ~FunctionalPauliRotations.tensor
       ~FunctionalPauliRotations.to_gate
       ~FunctionalPauliRotations.to_instruction
       ~FunctionalPauliRotations.toffoli
@@ -153,6 +174,7 @@
       ~FunctionalPauliRotations.global_phase
       ~FunctionalPauliRotations.header
       ~FunctionalPauliRotations.instances
+      ~FunctionalPauliRotations.metadata
       ~FunctionalPauliRotations.num_ancilla_qubits
       ~FunctionalPauliRotations.num_ancillas
       ~FunctionalPauliRotations.num_clbits

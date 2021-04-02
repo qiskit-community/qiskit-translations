@@ -29,6 +29,7 @@
       ~UnitaryGate.qasm
       ~UnitaryGate.repeat
       ~UnitaryGate.reverse_ops
+      ~UnitaryGate.soft_compare
       ~UnitaryGate.to_matrix
       ~UnitaryGate.transpose
       ~UnitaryGate.validate_parameter

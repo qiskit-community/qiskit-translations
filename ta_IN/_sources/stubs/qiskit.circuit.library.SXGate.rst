@@ -27,6 +27,7 @@
       ~SXGate.qasm
       ~SXGate.repeat
       ~SXGate.reverse_ops
+      ~SXGate.soft_compare
       ~SXGate.to_matrix
       ~SXGate.validate_parameter
    

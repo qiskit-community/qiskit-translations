@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~GR.__init__
+      ~GR.add_bits
       ~GR.add_calibration
       ~GR.add_register
       ~GR.append
@@ -48,9 +49,9 @@
       ~GR.decompose
       ~GR.delay
       ~GR.depth
-      ~GR.diag_gate
       ~GR.diagonal
       ~GR.draw
+      ~GR.ecr
       ~GR.extend
       ~GR.fredkin
       ~GR.from_qasm_file
@@ -65,7 +66,6 @@
       ~GR.iso
       ~GR.isometry
       ~GR.iswap
-      ~GR.mcmt
       ~GR.mcp
       ~GR.mcrx
       ~GR.mcry
@@ -76,13 +76,13 @@
       ~GR.measure
       ~GR.measure_active
       ~GR.measure_all
-      ~GR.mirror
       ~GR.ms
       ~GR.num_connected_components
       ~GR.num_nonlocal_gates
       ~GR.num_tensor_factors
       ~GR.num_unitary_factors
       ~GR.p
+      ~GR.pauli
       ~GR.power
       ~GR.qasm
       ~GR.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~GR.reset
       ~GR.reverse_bits
       ~GR.reverse_ops
+      ~GR.rv
       ~GR.rx
       ~GR.rxx
       ~GR.ry
@@ -105,7 +106,26 @@
       ~GR.rzx
       ~GR.rzz
       ~GR.s
+      ~GR.save_amplitudes
+      ~GR.save_amplitudes_squared
+      ~GR.save_density_matrix
+      ~GR.save_expectation_value
+      ~GR.save_expectation_value_variance
+      ~GR.save_matrix_product_state
+      ~GR.save_probabilities
+      ~GR.save_probabilities_dict
+      ~GR.save_stabilizer
+      ~GR.save_state
+      ~GR.save_statevector
+      ~GR.save_statevector_dict
+      ~GR.save_superop
+      ~GR.save_unitary
       ~GR.sdg
+      ~GR.set_density_matrix
+      ~GR.set_stabilizer
+      ~GR.set_statevector
+      ~GR.set_superop
+      ~GR.set_unitary
       ~GR.size
       ~GR.snapshot
       ~GR.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~GR.sxdg
       ~GR.t
       ~GR.tdg
+      ~GR.tensor
       ~GR.to_gate
       ~GR.to_instruction
       ~GR.toffoli
@@ -152,6 +173,7 @@
       ~GR.global_phase
       ~GR.header
       ~GR.instances
+      ~GR.metadata
       ~GR.num_ancillas
       ~GR.num_clbits
       ~GR.num_parameters

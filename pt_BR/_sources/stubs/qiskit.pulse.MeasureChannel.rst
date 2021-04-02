@@ -14,6 +14,8 @@
    .. autosummary::
    
       ~MeasureChannel.__init__
+      ~MeasureChannel.assign
+      ~MeasureChannel.is_parameterized
    
    
 
@@ -25,6 +27,7 @@
    
       ~MeasureChannel.index
       ~MeasureChannel.name
+      ~MeasureChannel.parameters
       ~MeasureChannel.prefix
    
    

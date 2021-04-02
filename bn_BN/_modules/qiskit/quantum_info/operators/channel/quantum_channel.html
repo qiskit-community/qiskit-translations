@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.quantum_info.operators.channel.quantum_channel &mdash; Qiskit 0.24.1 documentation</title>
+  <title>qiskit.quantum_info.operators.channel.quantum_channel &mdash; Qiskit 0.25.0 documentation</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit অ্যাকোয়া (অ্যাকোয়া অর্থ জল)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Qiskit IBM কোয়ান্টাম পরিষেবা সরবরাহকারী</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">সমস্যা সমাধান</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">আইবিএম কোয়ান্টাম এপিআই সতর্ক সংকেত</a></li>
@@ -317,45 +321,36 @@
 
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
-<span class="kn">from</span> <span class="nn">numbers</span> <span class="kn">import</span> <span class="n">Number</span>
+<span class="kn">from</span> <span class="nn">numbers</span> <span class="kn">import</span> <span class="n">Number</span><span class="p">,</span> <span class="n">Integral</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.exceptions</span> <span class="kn">import</span> <span class="n">QiskitError</span>
-<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.base_operator</span> <span class="kn">import</span> <span class="n">BaseOperator</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.linear_op</span> <span class="kn">import</span> <span class="n">LinearOp</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.operator</span> <span class="kn">import</span> <span class="n">Operator</span>
-<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.predicates</span> <span class="kn">import</span> <span class="n">is_identity_matrix</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.predicates</span> <span class="kn">import</span> <span class="n">is_positive_semidefinite_matrix</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel.transformations</span> <span class="kn">import</span> <span class="n">_transform_rep</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel.transformations</span> <span class="kn">import</span> <span class="n">_to_choi</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel.transformations</span> <span class="kn">import</span> <span class="n">_to_kraus</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel.transformations</span> <span class="kn">import</span> <span class="n">_to_operator</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.scalar_op</span> <span class="kn">import</span> <span class="n">ScalarOp</span>
 
 
-<span class="k">class</span> <span class="nc">QuantumChannel</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">QuantumChannel</span><span class="p">(</span><span class="n">LinearOp</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Quantum channel representation base class.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">input_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">channel_rep</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">num_qubits</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op_shape</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize a quantum channel Superoperator operator.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            data (array or list): quantum channel data array.</span>
-<span class="sd">            input_dims (tuple): the input subsystem dimensions.</span>
-<span class="sd">                                [Default: None]</span>
-<span class="sd">            output_dims (tuple): the output subsystem dimensions.</span>
-<span class="sd">                                 [Default: None]</span>
-<span class="sd">            channel_rep (str): quantum channel representation name string.</span>
+<span class="sd">            op_shape (OpShape): the operator shape of the channel.</span>
+<span class="sd">            num_qubits (int): the number of qubits if the channel is N-qubit.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            QiskitError: if arguments are invalid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Set channel representation string</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel_rep</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;rep must be a string not a </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">channel_rep</span><span class="o">.</span><span class="vm">__class__</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_channel_rep</span> <span class="o">=</span> <span class="n">channel_rep</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">data</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_qubits</span><span class="o">=</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">op_shape</span><span class="o">=</span><span class="n">op_shape</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">(&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_rep</span><span class="p">)</span>
@@ -363,7 +358,7 @@
         <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">,</span><span class="se">\n</span><span class="si">{}</span><span class="s1">input_dims=</span><span class="si">{}</span><span class="s1">, output_dims=</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">prefix</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array2string</span><span class="p">(</span>
                 <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">),</span> <span class="n">separator</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">),</span>
-            <span class="n">pad</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">)</span>
+            <span class="n">pad</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Test if two QuantumChannels are equal.&quot;&quot;&quot;</span>
@@ -377,90 +372,108 @@
         <span class="sd">&quot;&quot;&quot;Return data.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_channel_rep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return channel representation string&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+    <span class="c1"># ---------------------------------------------------------------------</span>
+    <span class="c1"># LinearOp methods</span>
+    <span class="c1"># ---------------------------------------------------------------------</span>
+
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">front</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the composed quantum channel self @ other.</span>
+    <span class="k">def</span> <span class="nf">conjugate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return the conjugate quantum channel.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This is equivalent to the matrix complex conjugate in the</span>
+<span class="sd">            :class:`~qiskit.quantum_info.SuperOp` representation</span>
+<span class="sd">            ie. for a channel :math:`\mathcal{E}`, the SuperOp of</span>
+<span class="sd">            the conjugate channel :math:`\overline{{\mathcal{{E}}}}` is</span>
+<span class="sd">            :math:`S_{\overline{\mathcal{E}^\dagger}} = \overline{S_{\mathcal{E}}}`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return the transpose quantum channel.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This is equivalent to the matrix tranpsose in the</span>
+<span class="sd">            :class:`~qiskit.quantum_info.SuperOp` representation,</span>
+<span class="sd">            ie. for a channel :math:`\mathcal{E}`, the SuperOp of</span>
+<span class="sd">            the transpose channel :math:`\mathcal{{E}}^T` is</span>
+<span class="sd">            :math:`S_{mathcal{E}^T} = S_{\mathcal{E}}^T`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">adjoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return the adjoint quantum channel.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This is equivalent to the matrix Hermitian conjugate in the</span>
+<span class="sd">            :class:`~qiskit.quantum_info.SuperOp` representation</span>
+<span class="sd">            ie. for a channel :math:`\mathcal{E}`, the SuperOp of</span>
+<span class="sd">            the adjoint channel :math:`\mathcal{{E}}^\dagger` is</span>
+<span class="sd">            :math:`S_{\mathcal{E}^\dagger} = S_{\mathcal{E}}^\dagger`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conjugate</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return the power of the quantum channel.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            other (QuantumChannel): a quantum channel.</span>
-<span class="sd">            qargs (list or None): a list of subsystem positions to apply</span>
-<span class="sd">                                  other on. If None apply on all</span>
-<span class="sd">                                  subsystems [default: None].</span>
-<span class="sd">            front (bool): If True compose using right operator multiplication,</span>
-<span class="sd">                          instead of left multiplication [default: False].</span>
+<span class="sd">            n (float): the power exponent.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            QuantumChannel: The quantum channel self @ other.</span>
+<span class="sd">            CLASS: the channel :math:`\mathcal{{E}} ^n`.</span>
 
 <span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if other has incompatible dimensions.</span>
+<span class="sd">            QiskitError: if the input and output dimensions of the</span>
+<span class="sd">                         CLASS are not equal.</span>
 
-<span class="sd">        Additional Information:</span>
-<span class="sd">            Composition (``@``) is defined as `left` matrix multiplication for</span>
-<span class="sd">            :class:`SuperOp` matrices. That is that ``A @ B`` is equal to ``B * A``.</span>
-<span class="sd">            Setting ``front=True`` returns `right` matrix multiplication</span>
-<span class="sd">            ``A * B`` and is equivalent to the :meth:`dot` method.</span>
+<span class="sd">        .. note::</span>
+<span class="sd">            For non-positive or non-integer exponents the power is</span>
+<span class="sd">            defined as the matrix power of the</span>
+<span class="sd">            :class:`~qiskit.quantum_info.SuperOp` representation</span>
+<span class="sd">            ie. for a channel :math:`\mathcal{{E}}`, the SuperOp of</span>
+<span class="sd">            the powered channel :math:`\mathcal{{E}}^\n` is</span>
+<span class="sd">            :math:`S_{{\mathcal{{E}}^n}} = S_{{\mathcal{{E}}}}^n`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">Integral</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="c1"># Conversion to superoperator</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Can only take power with input_dim = output_dim.&quot;</span><span class="p">)</span>
+        <span class="n">rep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_rep</span>
+        <span class="n">input_dim</span><span class="p">,</span> <span class="n">output_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span>
+        <span class="n">superop</span> <span class="o">=</span> <span class="n">_transform_rep</span><span class="p">(</span><span class="n">rep</span><span class="p">,</span> <span class="s1">&#39;SuperOp&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">)</span>
+        <span class="n">superop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_power</span><span class="p">(</span><span class="n">superop</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+        <span class="c1"># Convert back to original representation</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">_transform_rep</span><span class="p">(</span><span class="s1">&#39;SuperOp&#39;</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">superop</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="n">qargs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;qargs&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span><span class="o">-</span><span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the QuantumChannel self + other.</span>
-
-<span class="sd">        If ``qargs`` are specified the other channel will be added</span>
-<span class="sd">        assuming it is the identity channel on all other subsystems.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (QuantumChannel): a quantum channel.</span>
-<span class="sd">            qargs (None or list): optional subsystems to add on</span>
-<span class="sd">                                  (Default: None)</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            QuantumChannel: the linear addition self + other as a SuperOp object.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if other cannot be converted to a channel or</span>
-<span class="sd">                         has incompatible dimensions.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># NOTE: this method must be overriden for subclasses</span>
+        <span class="c1"># NOTE: this method must be overridden for subclasses</span>
         <span class="c1"># that don&#39;t have a linear matrix representation</span>
         <span class="c1"># ie Kraus and Stinespring</span>
-
-        <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">qargs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;qargs&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span>
-            <span class="n">other</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_add_dims</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)(</span><span class="n">other</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">_validate_add</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_op_shape</span><span class="p">,</span> <span class="n">qargs</span><span class="p">)</span>
         <span class="n">other</span> <span class="o">=</span> <span class="n">ScalarOp</span><span class="o">.</span><span class="n">_pad_with_identity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="p">)</span>
-
         <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">_data</span>
         <span class="k">return</span> <span class="n">ret</span>
 
-    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="c1"># Override for sub so that other is converted before being negated</span>
-        <span class="c1"># which can lead to problems if other is not already a quantum channel</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">QuantumChannel</span><span class="p">):</span>
-            <span class="n">qargs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;qargs&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">other</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">other</span><span class="o">.</span><span class="n">qargs</span> <span class="o">=</span> <span class="n">qargs</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span><span class="o">-</span><span class="n">other</span><span class="p">)</span>
-
     <span class="k">def</span> <span class="nf">_multiply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the QuantumChannel other * self.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (complex): a complex number.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            QuantumChannel: the scalar multiplication other * self.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if other is not a valid scalar.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># NOTE: this method must be overriden for subclasses</span>
+        <span class="c1"># NOTE: this method must be overridden for subclasses</span>
         <span class="c1"># that don&#39;t have a linear matrix representation</span>
         <span class="c1"># ie Kraus and Stinespring</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">):</span>
@@ -469,6 +482,10 @@
         <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">other</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span>
         <span class="k">return</span> <span class="n">ret</span>
 
+    <span class="c1"># ---------------------------------------------------------------------</span>
+    <span class="c1"># Additional methods</span>
+    <span class="c1"># ---------------------------------------------------------------------</span>
+
     <span class="k">def</span> <span class="nf">is_cptp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return True if completely-positive trace-preserving (CPTP).&quot;&quot;&quot;</span>
         <span class="n">choi</span> <span class="o">=</span> <span class="n">_to_choi</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_rep</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>
@@ -476,7 +493,7 @@
             <span class="n">choi</span><span class="p">,</span> <span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">is_tp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Test if a channel is completely-positive (CP)&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Test if a channel is trace-preserving (TP)&quot;&quot;&quot;</span>
         <span class="n">choi</span> <span class="o">=</span> <span class="n">_to_choi</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_rep</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_tp_helper</span><span class="p">(</span><span class="n">choi</span><span class="p">,</span> <span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="p">)</span>
 
@@ -549,7 +566,9 @@
         <span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span>
         <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">choi</span><span class="p">,</span> <span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">,</span> <span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">)),</span> <span class="n">axis1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis2</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">is_identity_matrix</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span>
+        <span class="n">tp_cond</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvalsh</span><span class="p">(</span><span class="n">mat</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mat</span><span class="p">)))</span>
+        <span class="n">zero</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">tp_cond</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">zero</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_format_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">density_matrix</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Format input state so it is statevector or density matrix&quot;&quot;&quot;</span>
@@ -744,20 +763,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

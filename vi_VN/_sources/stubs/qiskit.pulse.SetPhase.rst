@@ -22,6 +22,7 @@
       ~SetPhase.draw
       ~SetPhase.flatten
       ~SetPhase.insert
+      ~SetPhase.is_parameterized
       ~SetPhase.shift
    
    
@@ -34,15 +35,14 @@
    
       ~SetPhase.channel
       ~SetPhase.channels
-      ~SetPhase.command
       ~SetPhase.duration
       ~SetPhase.id
       ~SetPhase.instructions
       ~SetPhase.name
       ~SetPhase.operands
+      ~SetPhase.parameters
       ~SetPhase.phase
       ~SetPhase.start_time
       ~SetPhase.stop_time
-      ~SetPhase.timeslots
    
    

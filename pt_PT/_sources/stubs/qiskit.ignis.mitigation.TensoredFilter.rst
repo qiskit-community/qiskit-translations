@@ -15,6 +15,8 @@
    
       ~TensoredFilter.__init__
       ~TensoredFilter.apply
+      ~TensoredFilter.compute_index_of_cal_mat
+      ~TensoredFilter.flip_state
    
    
 

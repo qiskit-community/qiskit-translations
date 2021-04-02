@@ -29,6 +29,8 @@
       ~ClassicalFunction.repeat
       ~ClassicalFunction.reverse_ops
       ~ClassicalFunction.simulate
+      ~ClassicalFunction.simulate_all
+      ~ClassicalFunction.soft_compare
       ~ClassicalFunction.synth
       ~ClassicalFunction.to_matrix
       ~ClassicalFunction.validate_parameter
@@ -50,6 +52,7 @@
       ~ClassicalFunction.params
       ~ClassicalFunction.qregs
       ~ClassicalFunction.scopes
+      ~ClassicalFunction.truth_table
       ~ClassicalFunction.types
       ~ClassicalFunction.unit
    

@@ -15,8 +15,6 @@
    
       ~QuadraticProgramConverter.__init__
       ~QuadraticProgramConverter.convert
-      ~QuadraticProgramConverter.decode
-      ~QuadraticProgramConverter.encode
       ~QuadraticProgramConverter.interpret
    
    

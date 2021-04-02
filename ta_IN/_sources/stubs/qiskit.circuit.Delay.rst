@@ -25,6 +25,7 @@
       ~Delay.qasm
       ~Delay.repeat
       ~Delay.reverse_ops
+      ~Delay.soft_compare
       ~Delay.to_matrix
       ~Delay.validate_parameter
    

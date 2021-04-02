@@ -14,7 +14,6 @@
    .. autosummary::
    
       ~StabilizerTable.__init__
-      ~StabilizerTable.add
       ~StabilizerTable.adjoint
       ~StabilizerTable.anticommutes_with_all
       ~StabilizerTable.argsort
@@ -31,14 +30,10 @@
       ~StabilizerTable.insert
       ~StabilizerTable.label_iter
       ~StabilizerTable.matrix_iter
-      ~StabilizerTable.multiply
       ~StabilizerTable.output_dims
       ~StabilizerTable.power
       ~StabilizerTable.reshape
-      ~StabilizerTable.set_atol
-      ~StabilizerTable.set_rtol
       ~StabilizerTable.sort
-      ~StabilizerTable.subtract
       ~StabilizerTable.tensor
       ~StabilizerTable.to_labels
       ~StabilizerTable.to_matrix
@@ -56,13 +51,11 @@
       ~StabilizerTable.X
       ~StabilizerTable.Z
       ~StabilizerTable.array
-      ~StabilizerTable.atol
       ~StabilizerTable.dim
       ~StabilizerTable.num_qubits
       ~StabilizerTable.pauli
       ~StabilizerTable.phase
       ~StabilizerTable.qargs
-      ~StabilizerTable.rtol
       ~StabilizerTable.shape
       ~StabilizerTable.size
    

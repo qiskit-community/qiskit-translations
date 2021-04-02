@@ -27,6 +27,7 @@
       ~CSXGate.qasm
       ~CSXGate.repeat
       ~CSXGate.reverse_ops
+      ~CSXGate.soft_compare
       ~CSXGate.to_matrix
       ~CSXGate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~CSXGate.definition
       ~CSXGate.duration
       ~CSXGate.label
+      ~CSXGate.name
       ~CSXGate.num_ctrl_qubits
       ~CSXGate.params
       ~CSXGate.unit

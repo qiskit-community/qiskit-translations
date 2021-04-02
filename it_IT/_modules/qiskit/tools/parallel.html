@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.tools.parallel &mdash; Qiskit 0.24.1 documentazione</title>
+  <title>qiskit.tools.parallel &mdash; Qiskit 0.25.0 documentazione</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Risoluzione Dei Problemi</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Codici di Errore dell' API IBM Quantum</a></li>
@@ -350,18 +354,40 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">platform</span>
 <span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ProcessPoolExecutor</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
 <span class="kn">from</span> <span class="nn">qiskit.exceptions</span> <span class="kn">import</span> <span class="n">QiskitError</span>
-<span class="kn">from</span> <span class="nn">qiskit.util</span> <span class="kn">import</span> <span class="n">local_hardware_info</span>
+<span class="kn">from</span> <span class="nn">qiskit.utils.multiprocessing</span> <span class="kn">import</span> <span class="n">local_hardware_info</span>
 <span class="kn">from</span> <span class="nn">qiskit.tools.events.pubsub</span> <span class="kn">import</span> <span class="n">Publisher</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">user_config</span>
+
+<span class="n">CONFIG</span> <span class="o">=</span> <span class="n">user_config</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;QISKIT_PARALLEL&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">PARALLEL_DEFAULT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;QISKIT_PARALLEL&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># Default False on Windows</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;win32&#39;</span><span class="p">:</span>
+        <span class="n">PARALLEL_DEFAULT</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1"># On macOS default false on Python &gt;=3.8</span>
+    <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;darwin&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">8</span><span class="p">:</span>
+            <span class="n">PARALLEL_DEFAULT</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">PARALLEL_DEFAULT</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="c1"># On linux (and other OSes) default to True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">PARALLEL_DEFAULT</span> <span class="o">=</span> <span class="kc">True</span>
 
 <span class="c1"># Set parallel flag</span>
 <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;QISKIT_IN_PARALLEL&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;QISKIT_IN_PARALLEL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;FALSE&#39;</span>
 
-<span class="c1"># Number of local physical cpus</span>
-<span class="n">CPU_COUNT</span> <span class="o">=</span> <span class="n">local_hardware_info</span><span class="p">()[</span><span class="s1">&#39;cpus&#39;</span><span class="p">]</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;QISKIT_NUM_PROCS&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">CPU_COUNT</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;QISKIT_NUM_PROCS&#39;</span><span class="p">))</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">CPU_COUNT</span> <span class="o">=</span> <span class="n">CONFIG</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_process&#39;</span><span class="p">,</span> <span class="n">local_hardware_info</span><span class="p">()[</span><span class="s1">&#39;cpus&#39;</span><span class="p">])</span>
 
 
 <span class="k">def</span> <span class="nf">_task_wrapper</span><span class="p">(</span><span class="n">param</span><span class="p">):</span>
@@ -414,8 +440,8 @@
         <span class="n">Publisher</span><span class="p">()</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s2">&quot;terra.parallel.done&quot;</span><span class="p">,</span> <span class="n">nfinished</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
     <span class="c1"># Run in parallel if not Win and not in parallel already</span>
-    <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;Windows&#39;</span> <span class="ow">and</span> <span class="n">num_processes</span> <span class="o">&gt;</span> <span class="mi">1</span> \
-       <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;QISKIT_IN_PARALLEL&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;FALSE&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">num_processes</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;QISKIT_IN_PARALLEL&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;FALSE&#39;</span> \
+            <span class="ow">and</span> <span class="n">CONFIG</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parallel_enabled&#39;</span><span class="p">,</span> <span class="n">PARALLEL_DEFAULT</span><span class="p">):</span>
         <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;QISKIT_IN_PARALLEL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;TRUE&#39;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
@@ -430,7 +456,7 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="ne">KeyboardInterrupt</span><span class="p">):</span>
                 <span class="n">Publisher</span><span class="p">()</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s2">&quot;terra.parallel.finish&quot;</span><span class="p">)</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;QISKIT_IN_PARALLEL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;FALSE&#39;</span>
-                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;Keyboard interrupt in parallel_map.&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;Keyboard interrupt in parallel_map.&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">error</span>
             <span class="c1"># Otherwise just reset parallel flag and error</span>
             <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;QISKIT_IN_PARALLEL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;FALSE&#39;</span>
             <span class="k">raise</span> <span class="n">error</span>
@@ -580,20 +606,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

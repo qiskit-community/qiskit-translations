@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~OR.__init__
+      ~OR.add_bits
       ~OR.add_calibration
       ~OR.add_register
       ~OR.append
@@ -48,9 +49,9 @@
       ~OR.decompose
       ~OR.delay
       ~OR.depth
-      ~OR.diag_gate
       ~OR.diagonal
       ~OR.draw
+      ~OR.ecr
       ~OR.extend
       ~OR.fredkin
       ~OR.from_qasm_file
@@ -65,7 +66,6 @@
       ~OR.iso
       ~OR.isometry
       ~OR.iswap
-      ~OR.mcmt
       ~OR.mcp
       ~OR.mcrx
       ~OR.mcry
@@ -76,13 +76,13 @@
       ~OR.measure
       ~OR.measure_active
       ~OR.measure_all
-      ~OR.mirror
       ~OR.ms
       ~OR.num_connected_components
       ~OR.num_nonlocal_gates
       ~OR.num_tensor_factors
       ~OR.num_unitary_factors
       ~OR.p
+      ~OR.pauli
       ~OR.power
       ~OR.qasm
       ~OR.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~OR.reset
       ~OR.reverse_bits
       ~OR.reverse_ops
+      ~OR.rv
       ~OR.rx
       ~OR.rxx
       ~OR.ry
@@ -105,7 +106,26 @@
       ~OR.rzx
       ~OR.rzz
       ~OR.s
+      ~OR.save_amplitudes
+      ~OR.save_amplitudes_squared
+      ~OR.save_density_matrix
+      ~OR.save_expectation_value
+      ~OR.save_expectation_value_variance
+      ~OR.save_matrix_product_state
+      ~OR.save_probabilities
+      ~OR.save_probabilities_dict
+      ~OR.save_stabilizer
+      ~OR.save_state
+      ~OR.save_statevector
+      ~OR.save_statevector_dict
+      ~OR.save_superop
+      ~OR.save_unitary
       ~OR.sdg
+      ~OR.set_density_matrix
+      ~OR.set_stabilizer
+      ~OR.set_statevector
+      ~OR.set_superop
+      ~OR.set_unitary
       ~OR.size
       ~OR.snapshot
       ~OR.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~OR.sxdg
       ~OR.t
       ~OR.tdg
+      ~OR.tensor
       ~OR.to_gate
       ~OR.to_instruction
       ~OR.toffoli
@@ -152,6 +173,7 @@
       ~OR.global_phase
       ~OR.header
       ~OR.instances
+      ~OR.metadata
       ~OR.num_ancillas
       ~OR.num_clbits
       ~OR.num_parameters

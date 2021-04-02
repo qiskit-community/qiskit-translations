@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~LinearAmplitudeFunction.__init__
+      ~LinearAmplitudeFunction.add_bits
       ~LinearAmplitudeFunction.add_calibration
       ~LinearAmplitudeFunction.add_register
       ~LinearAmplitudeFunction.append
@@ -48,9 +49,9 @@
       ~LinearAmplitudeFunction.decompose
       ~LinearAmplitudeFunction.delay
       ~LinearAmplitudeFunction.depth
-      ~LinearAmplitudeFunction.diag_gate
       ~LinearAmplitudeFunction.diagonal
       ~LinearAmplitudeFunction.draw
+      ~LinearAmplitudeFunction.ecr
       ~LinearAmplitudeFunction.extend
       ~LinearAmplitudeFunction.fredkin
       ~LinearAmplitudeFunction.from_qasm_file
@@ -65,7 +66,6 @@
       ~LinearAmplitudeFunction.iso
       ~LinearAmplitudeFunction.isometry
       ~LinearAmplitudeFunction.iswap
-      ~LinearAmplitudeFunction.mcmt
       ~LinearAmplitudeFunction.mcp
       ~LinearAmplitudeFunction.mcrx
       ~LinearAmplitudeFunction.mcry
@@ -76,13 +76,13 @@
       ~LinearAmplitudeFunction.measure
       ~LinearAmplitudeFunction.measure_active
       ~LinearAmplitudeFunction.measure_all
-      ~LinearAmplitudeFunction.mirror
       ~LinearAmplitudeFunction.ms
       ~LinearAmplitudeFunction.num_connected_components
       ~LinearAmplitudeFunction.num_nonlocal_gates
       ~LinearAmplitudeFunction.num_tensor_factors
       ~LinearAmplitudeFunction.num_unitary_factors
       ~LinearAmplitudeFunction.p
+      ~LinearAmplitudeFunction.pauli
       ~LinearAmplitudeFunction.post_processing
       ~LinearAmplitudeFunction.power
       ~LinearAmplitudeFunction.qasm
@@ -98,6 +98,7 @@
       ~LinearAmplitudeFunction.reset
       ~LinearAmplitudeFunction.reverse_bits
       ~LinearAmplitudeFunction.reverse_ops
+      ~LinearAmplitudeFunction.rv
       ~LinearAmplitudeFunction.rx
       ~LinearAmplitudeFunction.rxx
       ~LinearAmplitudeFunction.ry
@@ -106,7 +107,26 @@
       ~LinearAmplitudeFunction.rzx
       ~LinearAmplitudeFunction.rzz
       ~LinearAmplitudeFunction.s
+      ~LinearAmplitudeFunction.save_amplitudes
+      ~LinearAmplitudeFunction.save_amplitudes_squared
+      ~LinearAmplitudeFunction.save_density_matrix
+      ~LinearAmplitudeFunction.save_expectation_value
+      ~LinearAmplitudeFunction.save_expectation_value_variance
+      ~LinearAmplitudeFunction.save_matrix_product_state
+      ~LinearAmplitudeFunction.save_probabilities
+      ~LinearAmplitudeFunction.save_probabilities_dict
+      ~LinearAmplitudeFunction.save_stabilizer
+      ~LinearAmplitudeFunction.save_state
+      ~LinearAmplitudeFunction.save_statevector
+      ~LinearAmplitudeFunction.save_statevector_dict
+      ~LinearAmplitudeFunction.save_superop
+      ~LinearAmplitudeFunction.save_unitary
       ~LinearAmplitudeFunction.sdg
+      ~LinearAmplitudeFunction.set_density_matrix
+      ~LinearAmplitudeFunction.set_stabilizer
+      ~LinearAmplitudeFunction.set_statevector
+      ~LinearAmplitudeFunction.set_superop
+      ~LinearAmplitudeFunction.set_unitary
       ~LinearAmplitudeFunction.size
       ~LinearAmplitudeFunction.snapshot
       ~LinearAmplitudeFunction.snapshot_density_matrix
@@ -120,6 +140,7 @@
       ~LinearAmplitudeFunction.sxdg
       ~LinearAmplitudeFunction.t
       ~LinearAmplitudeFunction.tdg
+      ~LinearAmplitudeFunction.tensor
       ~LinearAmplitudeFunction.to_gate
       ~LinearAmplitudeFunction.to_instruction
       ~LinearAmplitudeFunction.toffoli
@@ -153,6 +174,7 @@
       ~LinearAmplitudeFunction.global_phase
       ~LinearAmplitudeFunction.header
       ~LinearAmplitudeFunction.instances
+      ~LinearAmplitudeFunction.metadata
       ~LinearAmplitudeFunction.num_ancillas
       ~LinearAmplitudeFunction.num_clbits
       ~LinearAmplitudeFunction.num_parameters

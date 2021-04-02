@@ -40,6 +40,7 @@
 
    .. autosummary::
    
+      ~CouplingMap.distance_matrix
       ~CouplingMap.is_symmetric
       ~CouplingMap.physical_qubits
    

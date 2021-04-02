@@ -26,6 +26,7 @@
       ~SnapshotProbabilities.qasm
       ~SnapshotProbabilities.repeat
       ~SnapshotProbabilities.reverse_ops
+      ~SnapshotProbabilities.soft_compare
       ~SnapshotProbabilities.validate_parameter
    
    

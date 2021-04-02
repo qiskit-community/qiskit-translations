@@ -27,6 +27,7 @@
       ~CRYGate.qasm
       ~CRYGate.repeat
       ~CRYGate.reverse_ops
+      ~CRYGate.soft_compare
       ~CRYGate.to_matrix
       ~CRYGate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~CRYGate.definition
       ~CRYGate.duration
       ~CRYGate.label
+      ~CRYGate.name
       ~CRYGate.num_ctrl_qubits
       ~CRYGate.params
       ~CRYGate.unit

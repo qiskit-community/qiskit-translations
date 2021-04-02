@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.optimization.converters.integer_to_binary &mdash; Qiskit 0.24.1 문서</title>
+  <title>qiskit.optimization.converters.integer_to_binary &mdash; Qiskit 0.25.0 문서</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/aqua.html">키스킷 아쿠아</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/ibmq-provider.html">아이비엠 양자 시스템 공급자</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">문제 해결</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Quantum API error codes</a></li>
@@ -319,12 +323,11 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">import</span> <span class="nn">qiskit.optimization.algorithms</span>  <span class="c1"># pylint: disable=unused-import</span>
+<span class="kn">from</span> <span class="nn">.quadratic_program_converter</span> <span class="kn">import</span> <span class="n">QuadraticProgramConverter</span>
 <span class="kn">from</span> <span class="nn">..exceptions</span> <span class="kn">import</span> <span class="n">QiskitOptimizationError</span>
 <span class="kn">from</span> <span class="nn">..problems.quadratic_objective</span> <span class="kn">import</span> <span class="n">QuadraticObjective</span>
 <span class="kn">from</span> <span class="nn">..problems.quadratic_program</span> <span class="kn">import</span> <span class="n">QuadraticProgram</span>
 <span class="kn">from</span> <span class="nn">..problems.variable</span> <span class="kn">import</span> <span class="n">Variable</span>
-<span class="kn">from</span> <span class="nn">.quadratic_program_converter</span> <span class="kn">import</span> <span class="n">QuadraticProgramConverter</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -509,37 +512,25 @@
                 <span class="n">linear</span><span class="p">,</span> <span class="n">quadratic</span><span class="p">,</span> <span class="n">constraint</span><span class="o">.</span><span class="n">sense</span><span class="p">,</span> <span class="n">constraint</span><span class="o">.</span><span class="n">rhs</span> <span class="o">-</span> <span class="n">constant</span><span class="p">,</span> <span class="n">constraint</span><span class="o">.</span><span class="n">name</span>
             <span class="p">)</span>
 
-<div class="viewcode-block" id="IntegerToBinary.interpret"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.converters.IntegerToBinary.html#qiskit.optimization.converters.IntegerToBinary.interpret">[문서]</a>    <span class="k">def</span> <span class="nf">interpret</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="s1">&#39;qiskit.optimization.algorithms.OptimizationResult&#39;</span><span class="p">)</span> \
-            <span class="o">-&gt;</span> <span class="s1">&#39;qiskit.optimization.algorithms.OptimizationResult&#39;</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+<div class="viewcode-block" id="IntegerToBinary.interpret"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.converters.IntegerToBinary.html#qiskit.optimization.converters.IntegerToBinary.interpret">[문서]</a>    <span class="k">def</span> <span class="nf">interpret</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Convert back the converted problem (binary variables)</span>
 <span class="sd">        to the original (integer variables).</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            result: The result of the converted problem or the given result in case of FAILURE.</span>
+<span class="sd">            x: The result of the converted problem or the given result in case of FAILURE.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The result of the original problem.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># pylint: disable=cyclic-import</span>
-        <span class="kn">from</span> <span class="nn">..algorithms.optimization_algorithm</span> <span class="kn">import</span> <span class="n">OptimizationResult</span>
-
-        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">result</span>
-
-        <span class="n">new_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpret_var</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">OptimizationResult</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">new_x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">fval</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span>
-                                  <span class="n">status</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">raw_results</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">raw_results</span><span class="p">)</span></div>
-
-    <span class="k">def</span> <span class="nf">_interpret_var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vals</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
         <span class="c1"># interpret integer values</span>
-        <span class="n">sol</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">vals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">variables</span><span class="p">)}</span>
-        <span class="n">new_vals</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conv</span><span class="p">:</span>
-                <span class="n">new_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">sol</span><span class="p">[</span><span class="n">aux</span><span class="p">]</span> <span class="o">*</span> <span class="n">coef</span> <span class="k">for</span> <span class="n">aux</span><span class="p">,</span> <span class="n">coef</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conv</span><span class="p">[</span><span class="n">x</span><span class="p">])</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">lowerbound</span><span class="p">)</span>
+        <span class="n">sol</span> <span class="o">=</span> <span class="p">{</span><span class="n">var</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dst</span><span class="o">.</span><span class="n">variables</span><span class="p">)}</span>
+        <span class="n">new_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">get_num_vars</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_src</span><span class="o">.</span><span class="n">variables</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conv</span><span class="p">:</span>
+                <span class="n">new_x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">sol</span><span class="p">[</span><span class="n">aux</span><span class="p">]</span> <span class="o">*</span> <span class="n">coef</span> <span class="k">for</span> <span class="n">aux</span><span class="p">,</span> <span class="n">coef</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conv</span><span class="p">[</span><span class="n">var</span><span class="p">])</span> <span class="o">+</span> <span class="n">var</span><span class="o">.</span><span class="n">lowerbound</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">new_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sol</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">new_vals</span></div>
+                <span class="n">new_x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sol</span><span class="p">[</span><span class="n">var</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_x</span><span class="p">)</span></div></div>
 </pre></div>
 
              </article>
@@ -672,20 +663,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

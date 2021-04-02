@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~MCMTVChain.__init__
+      ~MCMTVChain.add_bits
       ~MCMTVChain.add_calibration
       ~MCMTVChain.add_register
       ~MCMTVChain.append
@@ -48,9 +49,9 @@
       ~MCMTVChain.decompose
       ~MCMTVChain.delay
       ~MCMTVChain.depth
-      ~MCMTVChain.diag_gate
       ~MCMTVChain.diagonal
       ~MCMTVChain.draw
+      ~MCMTVChain.ecr
       ~MCMTVChain.extend
       ~MCMTVChain.fredkin
       ~MCMTVChain.from_qasm_file
@@ -65,7 +66,6 @@
       ~MCMTVChain.iso
       ~MCMTVChain.isometry
       ~MCMTVChain.iswap
-      ~MCMTVChain.mcmt
       ~MCMTVChain.mcp
       ~MCMTVChain.mcrx
       ~MCMTVChain.mcry
@@ -76,13 +76,13 @@
       ~MCMTVChain.measure
       ~MCMTVChain.measure_active
       ~MCMTVChain.measure_all
-      ~MCMTVChain.mirror
       ~MCMTVChain.ms
       ~MCMTVChain.num_connected_components
       ~MCMTVChain.num_nonlocal_gates
       ~MCMTVChain.num_tensor_factors
       ~MCMTVChain.num_unitary_factors
       ~MCMTVChain.p
+      ~MCMTVChain.pauli
       ~MCMTVChain.power
       ~MCMTVChain.qasm
       ~MCMTVChain.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~MCMTVChain.reset
       ~MCMTVChain.reverse_bits
       ~MCMTVChain.reverse_ops
+      ~MCMTVChain.rv
       ~MCMTVChain.rx
       ~MCMTVChain.rxx
       ~MCMTVChain.ry
@@ -105,7 +106,26 @@
       ~MCMTVChain.rzx
       ~MCMTVChain.rzz
       ~MCMTVChain.s
+      ~MCMTVChain.save_amplitudes
+      ~MCMTVChain.save_amplitudes_squared
+      ~MCMTVChain.save_density_matrix
+      ~MCMTVChain.save_expectation_value
+      ~MCMTVChain.save_expectation_value_variance
+      ~MCMTVChain.save_matrix_product_state
+      ~MCMTVChain.save_probabilities
+      ~MCMTVChain.save_probabilities_dict
+      ~MCMTVChain.save_stabilizer
+      ~MCMTVChain.save_state
+      ~MCMTVChain.save_statevector
+      ~MCMTVChain.save_statevector_dict
+      ~MCMTVChain.save_superop
+      ~MCMTVChain.save_unitary
       ~MCMTVChain.sdg
+      ~MCMTVChain.set_density_matrix
+      ~MCMTVChain.set_stabilizer
+      ~MCMTVChain.set_statevector
+      ~MCMTVChain.set_superop
+      ~MCMTVChain.set_unitary
       ~MCMTVChain.size
       ~MCMTVChain.snapshot
       ~MCMTVChain.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~MCMTVChain.sxdg
       ~MCMTVChain.t
       ~MCMTVChain.tdg
+      ~MCMTVChain.tensor
       ~MCMTVChain.to_gate
       ~MCMTVChain.to_instruction
       ~MCMTVChain.toffoli
@@ -152,6 +173,7 @@
       ~MCMTVChain.global_phase
       ~MCMTVChain.header
       ~MCMTVChain.instances
+      ~MCMTVChain.metadata
       ~MCMTVChain.num_ancilla_qubits
       ~MCMTVChain.num_ancillas
       ~MCMTVChain.num_clbits

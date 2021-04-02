@@ -47,6 +47,7 @@
 
    .. autosummary::
    
+      ~CircuitOp.ENABLE_DEPRECATION
       ~CircuitOp.INDENTATION
       ~CircuitOp.coeff
       ~CircuitOp.num_qubits

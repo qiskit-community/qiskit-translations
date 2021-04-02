@@ -27,6 +27,7 @@
       ~ZGate.qasm
       ~ZGate.repeat
       ~ZGate.reverse_ops
+      ~ZGate.soft_compare
       ~ZGate.to_matrix
       ~ZGate.validate_parameter
    

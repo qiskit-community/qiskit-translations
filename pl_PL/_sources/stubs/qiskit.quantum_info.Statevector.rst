@@ -14,10 +14,10 @@
    .. autosummary::
    
       ~Statevector.__init__
-      ~Statevector.add
       ~Statevector.conjugate
       ~Statevector.copy
       ~Statevector.dims
+      ~Statevector.draw
       ~Statevector.equiv
       ~Statevector.evolve
       ~Statevector.expand
@@ -27,19 +27,15 @@
       ~Statevector.from_label
       ~Statevector.is_valid
       ~Statevector.measure
-      ~Statevector.multiply
       ~Statevector.probabilities
       ~Statevector.probabilities_dict
       ~Statevector.purity
       ~Statevector.reset
+      ~Statevector.reverse_qargs
       ~Statevector.sample_counts
       ~Statevector.sample_memory
       ~Statevector.seed
-      ~Statevector.set_atol
-      ~Statevector.set_rtol
-      ~Statevector.subtract
       ~Statevector.tensor
-      ~Statevector.to_counts
       ~Statevector.to_dict
       ~Statevector.to_operator
       ~Statevector.trace

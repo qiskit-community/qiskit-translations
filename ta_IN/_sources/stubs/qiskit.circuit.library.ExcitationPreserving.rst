@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~ExcitationPreserving.__init__
+      ~ExcitationPreserving.add_bits
       ~ExcitationPreserving.add_calibration
       ~ExcitationPreserving.add_layer
       ~ExcitationPreserving.add_register
@@ -49,9 +50,9 @@
       ~ExcitationPreserving.decompose
       ~ExcitationPreserving.delay
       ~ExcitationPreserving.depth
-      ~ExcitationPreserving.diag_gate
       ~ExcitationPreserving.diagonal
       ~ExcitationPreserving.draw
+      ~ExcitationPreserving.ecr
       ~ExcitationPreserving.extend
       ~ExcitationPreserving.fredkin
       ~ExcitationPreserving.from_qasm_file
@@ -68,7 +69,6 @@
       ~ExcitationPreserving.iso
       ~ExcitationPreserving.isometry
       ~ExcitationPreserving.iswap
-      ~ExcitationPreserving.mcmt
       ~ExcitationPreserving.mcp
       ~ExcitationPreserving.mcrx
       ~ExcitationPreserving.mcry
@@ -79,13 +79,13 @@
       ~ExcitationPreserving.measure
       ~ExcitationPreserving.measure_active
       ~ExcitationPreserving.measure_all
-      ~ExcitationPreserving.mirror
       ~ExcitationPreserving.ms
       ~ExcitationPreserving.num_connected_components
       ~ExcitationPreserving.num_nonlocal_gates
       ~ExcitationPreserving.num_tensor_factors
       ~ExcitationPreserving.num_unitary_factors
       ~ExcitationPreserving.p
+      ~ExcitationPreserving.pauli
       ~ExcitationPreserving.power
       ~ExcitationPreserving.print_settings
       ~ExcitationPreserving.qasm
@@ -101,6 +101,7 @@
       ~ExcitationPreserving.reset
       ~ExcitationPreserving.reverse_bits
       ~ExcitationPreserving.reverse_ops
+      ~ExcitationPreserving.rv
       ~ExcitationPreserving.rx
       ~ExcitationPreserving.rxx
       ~ExcitationPreserving.ry
@@ -109,7 +110,26 @@
       ~ExcitationPreserving.rzx
       ~ExcitationPreserving.rzz
       ~ExcitationPreserving.s
+      ~ExcitationPreserving.save_amplitudes
+      ~ExcitationPreserving.save_amplitudes_squared
+      ~ExcitationPreserving.save_density_matrix
+      ~ExcitationPreserving.save_expectation_value
+      ~ExcitationPreserving.save_expectation_value_variance
+      ~ExcitationPreserving.save_matrix_product_state
+      ~ExcitationPreserving.save_probabilities
+      ~ExcitationPreserving.save_probabilities_dict
+      ~ExcitationPreserving.save_stabilizer
+      ~ExcitationPreserving.save_state
+      ~ExcitationPreserving.save_statevector
+      ~ExcitationPreserving.save_statevector_dict
+      ~ExcitationPreserving.save_superop
+      ~ExcitationPreserving.save_unitary
       ~ExcitationPreserving.sdg
+      ~ExcitationPreserving.set_density_matrix
+      ~ExcitationPreserving.set_stabilizer
+      ~ExcitationPreserving.set_statevector
+      ~ExcitationPreserving.set_superop
+      ~ExcitationPreserving.set_unitary
       ~ExcitationPreserving.size
       ~ExcitationPreserving.snapshot
       ~ExcitationPreserving.snapshot_density_matrix
@@ -123,6 +143,7 @@
       ~ExcitationPreserving.sxdg
       ~ExcitationPreserving.t
       ~ExcitationPreserving.tdg
+      ~ExcitationPreserving.tensor
       ~ExcitationPreserving.to_gate
       ~ExcitationPreserving.to_instruction
       ~ExcitationPreserving.toffoli
@@ -160,6 +181,7 @@
       ~ExcitationPreserving.initial_state
       ~ExcitationPreserving.insert_barriers
       ~ExcitationPreserving.instances
+      ~ExcitationPreserving.metadata
       ~ExcitationPreserving.num_ancillas
       ~ExcitationPreserving.num_clbits
       ~ExcitationPreserving.num_layers

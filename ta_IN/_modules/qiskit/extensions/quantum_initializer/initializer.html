@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.extensions.quantum_initializer.initializer &mdash; Qiskit 0.24.1 documentation</title>
+  <title>qiskit.extensions.quantum_initializer.initializer &mdash; Qiskit 0.25.0 documentation</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/aqua.html">கிஸ்கிட் அக்வா</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/ibmq-provider.html">கிஸ்கிட் ஐபிஎம் குவாண்டம் வழங்குநர்</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">பழுது இடமறிதல்</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">ஐபிஎம் குவாண்டம் ஏபிஐ பிழைக் குறியீடுகள்</a></li>
@@ -323,10 +327,13 @@
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">Instruction</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.exceptions</span> <span class="kn">import</span> <span class="n">CircuitError</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.x</span> <span class="kn">import</span> <span class="n">CXGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.x</span> <span class="kn">import</span> <span class="n">CXGate</span><span class="p">,</span> <span class="n">XGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.h</span> <span class="kn">import</span> <span class="n">HGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.s</span> <span class="kn">import</span> <span class="n">SGate</span><span class="p">,</span> <span class="n">SdgGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.ry</span> <span class="kn">import</span> <span class="n">RYGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.u1</span> <span class="kn">import</span> <span class="n">U1Gate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.reset</span> <span class="kn">import</span> <span class="n">Reset</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">Statevector</span>
 
 <span class="n">_EPS</span> <span class="o">=</span> <span class="mf">1e-10</span>  <span class="c1"># global variable used to chop very small numbers to zero</span>
 
@@ -335,33 +342,116 @@
     <span class="sd">&quot;&quot;&quot;Complex amplitude initialization.</span>
 
 <span class="sd">    Class that implements the (complex amplitude) initialization of some</span>
-<span class="sd">    flexible collection of qubit registers (assuming the qubits are in the</span>
-<span class="sd">    zero state).</span>
+<span class="sd">    flexible collection of qubit registers.</span>
 <span class="sd">    Note that Initialize is an Instruction and not a Gate since it contains a reset instruction,</span>
 <span class="sd">    which is not unitary.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Initialize.__init__"><a class="viewcode-back" href="../../../../stubs/qiskit.extensions.Initialize.html#qiskit.circuit.Initialize.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<div class="viewcode-block" id="Initialize.__init__"><a class="viewcode-back" href="../../../../stubs/qiskit.extensions.Initialize.html#qiskit.circuit.Initialize.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">num_qubits</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create new initialize composite.</span>
 
-<span class="sd">        params (list): vector of complex amplitudes to initialize to</span>
+<span class="sd">        params (str, list, int or Statevector):</span>
+<span class="sd">          * Statevector: Statevector to initialize to.</span>
+<span class="sd">          * list: vector of complex amplitudes to initialize to.</span>
+<span class="sd">          * string: labels of basis states of the Pauli eigenstates Z, X, Y. See</span>
+<span class="sd">               :meth:`~qiskit.quantum_info.states.statevector.Statevector.from_label`.</span>
+<span class="sd">               Notice the order of the labels is reversed with respect to the qubit index to</span>
+<span class="sd">               be applied to. Example label &#39;01&#39; initializes the qubit zero to `|1&gt;` and the</span>
+<span class="sd">               qubit one to `|0&gt;`.</span>
+<span class="sd">          * int: an integer that is used as a bitmap indicating which qubits to initialize</span>
+<span class="sd">               to `|1&gt;`. Example: setting params to 5 would initialize qubit 0 and qubit 2</span>
+<span class="sd">               to `|1&gt;` and qubit 1 to `|0&gt;`.</span>
+<span class="sd">        num_qubits (int): This parameter is only used if params is an int. Indicates the total</span>
+<span class="sd">            number of qubits in the `initialize` call. Example: `initialize` covers 5 qubits</span>
+<span class="sd">            and params is 3. This allows qubits 0 and 1 to be initialized to `|1&gt;` and the</span>
+<span class="sd">            remaining 3 qubits to be initialized to `|0&gt;`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">num_qubits</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">Statevector</span><span class="p">):</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">data</span>
 
-        <span class="c1"># Check if param is a power of 2</span>
-        <span class="k">if</span> <span class="n">num_qubits</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">num_qubits</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Desired statevector length not a positive power of 2.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">num_qubits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;The num_qubits parameter to Initialize should only be&quot;</span>
+                              <span class="s2">&quot; used when params is an integer&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_from_label</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_from_int</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="c1"># Check if probabilities (amplitudes squared) sum to 1</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">,</span>
-                            <span class="n">abs_tol</span><span class="o">=</span><span class="n">_EPS</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Sum of amplitudes-squared does not equal one.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_from_label</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">num_qubits</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_from_int</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">num_qubits</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">num_qubits</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">params</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">params</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">num_qubits</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
 
-        <span class="n">num_qubits</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
+            <span class="c1"># Check if param is a power of 2</span>
+            <span class="k">if</span> <span class="n">num_qubits</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">num_qubits</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Desired statevector length not a positive power of 2.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check if probabilities (amplitudes squared) sum to 1</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">,</span>
+                                <span class="n">abs_tol</span><span class="o">=</span><span class="n">_EPS</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Sum of amplitudes-squared does not equal one.&quot;</span><span class="p">)</span>
+
+            <span class="n">num_qubits</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;initialize&quot;</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_define</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_label</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_define_from_label</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_int</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_define_from_int</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_define_synthesis</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_define_from_label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s1">&#39;q&#39;</span><span class="p">)</span>
+        <span class="n">initialize_circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;init_def&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">qubit</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)):</span>
+            <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Reset</span><span class="p">(),</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">qubit</span><span class="p">]])</span>
+
+            <span class="k">if</span> <span class="n">param</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span><span class="p">:</span>
+                <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">XGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">qubit</span><span class="p">]])</span>
+            <span class="k">elif</span> <span class="n">param</span> <span class="o">==</span> <span class="s1">&#39;+&#39;</span><span class="p">:</span>
+                <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">qubit</span><span class="p">]])</span>
+            <span class="k">elif</span> <span class="n">param</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
+                <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">XGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">qubit</span><span class="p">]])</span>
+                <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">qubit</span><span class="p">]])</span>
+            <span class="k">elif</span> <span class="n">param</span> <span class="o">==</span> <span class="s1">&#39;r&#39;</span><span class="p">:</span>  <span class="c1"># |+i&gt;</span>
+                <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">qubit</span><span class="p">]])</span>
+                <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">qubit</span><span class="p">]])</span>
+            <span class="k">elif</span> <span class="n">param</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>  <span class="c1"># |-i&gt;</span>
+                <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">qubit</span><span class="p">]])</span>
+                <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SdgGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">qubit</span><span class="p">]])</span>
+
+        <span class="k">return</span> <span class="n">initialize_circuit</span>
+
+    <span class="k">def</span> <span class="nf">_define_from_int</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s1">&#39;q&#39;</span><span class="p">)</span>
+        <span class="n">initialize_circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;init_def&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Convert to int since QuantumCircuit converted to complex</span>
+        <span class="c1"># and make a bit string and reverse it</span>
+        <span class="n">intstr</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span><span class="si">:</span><span class="s1">0</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="si">}</span><span class="s1">b</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Raise if number of bits is greater than num_qubits</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intstr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Initialize integer has </span><span class="si">%s</span><span class="s2"> bits, but this exceeds the&quot;</span>
+                              <span class="s2">&quot; number of qubits in the circuit, </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span>
+                              <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intstr</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">qubit</span><span class="p">,</span> <span class="n">bit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">intstr</span><span class="p">):</span>
+            <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Reset</span><span class="p">(),</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">qubit</span><span class="p">]])</span>
+            <span class="k">if</span> <span class="n">bit</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span><span class="p">:</span>
+                <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">XGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">q</span><span class="p">[</span><span class="n">qubit</span><span class="p">]])</span>
+
+        <span class="k">return</span> <span class="n">initialize_circuit</span>
+
+    <span class="k">def</span> <span class="nf">_define_synthesis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Calculate a subcircuit that implements this initialization</span>
 
 <span class="sd">        Implements a recursive initialization algorithm, including optimizations,</span>
@@ -384,7 +474,7 @@
             <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Reset</span><span class="p">(),</span> <span class="p">[</span><span class="n">qubit</span><span class="p">])</span>
         <span class="n">initialize_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">initialize_instr</span><span class="p">,</span> <span class="n">q</span><span class="p">[:])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">initialize_circuit</span>
+        <span class="k">return</span> <span class="n">initialize_circuit</span>
 
 <div class="viewcode-block" id="Initialize.gates_to_uncompute"><a class="viewcode-back" href="../../../../stubs/qiskit.extensions.Initialize.html#qiskit.circuit.Initialize.gates_to_uncompute">[docs]</a>    <span class="k">def</span> <span class="nf">gates_to_uncompute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Call to create a circuit with gates that take the desired vector to zero.</span>
@@ -558,7 +648,16 @@
         <span class="k">yield</span> <span class="n">flat_qargs</span><span class="p">,</span> <span class="p">[]</span></div>
 
 <div class="viewcode-block" id="Initialize.validate_parameter"><a class="viewcode-back" href="../../../../stubs/qiskit.extensions.Initialize.html#qiskit.circuit.Initialize.validate_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">validate_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize instruction parameter can be int, float, and complex.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Initialize instruction parameter can be str, int, float, and complex.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Initialize instruction parameter can be str</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_label</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="n">parameter</span>
+            <span class="k">raise</span> <span class="n">CircuitError</span><span class="p">(</span><span class="s2">&quot;invalid param label </span><span class="si">{0}</span><span class="s2"> for instruction </span><span class="si">{1}</span><span class="s2">. Label should be &quot;</span>
+                               <span class="s2">&quot;0, 1, +, -, l, or r &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">parameter</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
+        <span class="c1"># Initialize instruction parameter can be int, float, and complex.</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">)):</span>
             <span class="k">return</span> <span class="nb">complex</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">):</span>
@@ -568,11 +667,97 @@
                                <span class="s2">&quot;</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">parameter</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></div></div>
 
 
-<span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">qubits</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Apply initialize to circuit.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qubits</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="n">qubits</span> <span class="o">=</span> <span class="p">[</span><span class="n">qubits</span><span class="p">]</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Initialize</span><span class="p">(</span><span class="n">params</span><span class="p">),</span> <span class="n">qubits</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">qubits</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Initialize qubits in a specific state.</span>
+
+<span class="sd">    Qubit initializalition is done by first resetting the qubits to :math:`|0\rangle`</span>
+<span class="sd">    followed by an state preparing unitary. Both these steps are included in the</span>
+<span class="sd">    `Initialize` instruction.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        params (str or list or int):</span>
+<span class="sd">            * str: labels of basis states of the Pauli eigenstates Z, X, Y. See</span>
+<span class="sd">                :meth:`~qiskit.quantum_info.states.statevector.Statevector.from_label`.</span>
+<span class="sd">                Notice the order of the labels is reversed with respect to the qubit index to</span>
+<span class="sd">                be applied to. Example label &#39;01&#39; initializes the qubit zero to `|1&gt;` and the</span>
+<span class="sd">                qubit one to `|0&gt;`.</span>
+<span class="sd">            * list: vector of complex amplitudes to initialize to.</span>
+<span class="sd">            * int: an integer that is used as a bitmap indicating which qubits to initialize</span>
+<span class="sd">               to `|1&gt;`. Example: setting params to 5 would initialize qubit 0 and qubit 2</span>
+<span class="sd">               to `|1&gt;` and qubit 1 to `|0&gt;`.</span>
+<span class="sd">        qubits (QuantumRegister or int):</span>
+<span class="sd">            * QuantumRegister: A list of qubits to be initialized [Default: None].</span>
+<span class="sd">            * int: Index of qubit to initialized [Default: None].</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        qiskit.circuit.Instruction: a handle to the instruction that was just initialized</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        Prepare a qubit in the state :math:`(|0\rangle - |1\rangle) / \sqrt{2}`.</span>
+
+<span class="sd">        .. jupyter-execute::</span>
+
+<span class="sd">            import numpy as np</span>
+<span class="sd">            from qiskit import QuantumCircuit</span>
+
+<span class="sd">            circuit = QuantumCircuit(1)</span>
+<span class="sd">            circuit.initialize([1/np.sqrt(2), -1/np.sqrt(2)], 0)</span>
+<span class="sd">            circuit.draw()</span>
+
+<span class="sd">        output:</span>
+<span class="sd">             ┌──────────────────────────────┐</span>
+<span class="sd">        q_0: ┤ initialize(0.70711,-0.70711) ├</span>
+<span class="sd">             └──────────────────────────────┘</span>
+
+
+<span class="sd">        Initialize from a string two qubits in the state `|10&gt;`.</span>
+<span class="sd">        The order of the labels is reversed with respect to qubit index.</span>
+<span class="sd">        More information about labels for basis states are in</span>
+<span class="sd">        :meth:`~qiskit.quantum_info.states.statevector.Statevector.from_label`.</span>
+
+<span class="sd">        .. jupyter-execute::</span>
+
+<span class="sd">            import numpy as np</span>
+<span class="sd">            from qiskit import QuantumCircuit</span>
+
+<span class="sd">            circuit = QuantumCircuit(2)</span>
+<span class="sd">            circuit.initialize(&#39;01&#39;, circuit.qubits)</span>
+<span class="sd">            circuit.draw()</span>
+
+<span class="sd">        output:</span>
+<span class="sd">             ┌──────────────────┐</span>
+<span class="sd">        q_0: ┤0                 ├</span>
+<span class="sd">             │  initialize(0,1) │</span>
+<span class="sd">        q_1: ┤1                 ├</span>
+<span class="sd">             └──────────────────┘</span>
+
+
+<span class="sd">        Initialize two qubits from an array of complex amplitudes</span>
+<span class="sd">        .. jupyter-execute::</span>
+
+<span class="sd">            import numpy as np</span>
+<span class="sd">            from qiskit import QuantumCircuit</span>
+
+<span class="sd">            circuit = QuantumCircuit(2)</span>
+<span class="sd">            circuit.initialize([0, 1/np.sqrt(2), -1.j/np.sqrt(2), 0], circuit.qubits)</span>
+<span class="sd">            circuit.draw()</span>
+
+<span class="sd">        output:</span>
+<span class="sd">             ┌────────────────────────────────────┐</span>
+<span class="sd">        q_0: ┤0                                   ├</span>
+<span class="sd">             │  initialize(0,0.70711,-0.70711j,0) │</span>
+<span class="sd">        q_1: ┤1                                   ├</span>
+<span class="sd">             └────────────────────────────────────┘</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">qubits</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">qubits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubits</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qubits</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">qubits</span> <span class="o">=</span> <span class="p">[</span><span class="n">qubits</span><span class="p">]</span>
+        <span class="n">qubits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bit_argument_conversion</span><span class="p">(</span><span class="n">qubits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubits</span><span class="p">)</span>
+
+    <span class="n">num_qubits</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Initialize</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">),</span> <span class="n">qubits</span><span class="p">)</span>
 
 
 <span class="n">QuantumCircuit</span><span class="o">.</span><span class="n">initialize</span> <span class="o">=</span> <span class="n">initialize</span>
@@ -708,20 +893,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.quantum_info.states.densitymatrix &mdash; Qiskit 0.24.1 documentazione</title>
+  <title>qiskit.quantum_info.states.densitymatrix &mdash; Qiskit 0.25.0 documentazione</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Risoluzione Dei Problemi</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Codici di Errore dell' API IBM Quantum</a></li>
@@ -315,7 +319,7 @@
 <span class="sd">DensityMatrix quantum state class.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">numbers</span> <span class="kn">import</span> <span class="n">Number</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -323,25 +327,34 @@
 <span class="kn">from</span> <span class="nn">qiskit.circuit.instruction</span> <span class="kn">import</span> <span class="n">Instruction</span>
 <span class="kn">from</span> <span class="nn">qiskit.exceptions</span> <span class="kn">import</span> <span class="n">QiskitError</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.states.quantum_state</span> <span class="kn">import</span> <span class="n">QuantumState</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.mixins.tolerances</span> <span class="kn">import</span> <span class="n">TolerancesMixin</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.op_shape</span> <span class="kn">import</span> <span class="n">OpShape</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.operator</span> <span class="kn">import</span> <span class="n">Operator</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.symplectic</span> <span class="kn">import</span> <span class="n">Pauli</span><span class="p">,</span> <span class="n">SparsePauliOp</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.scalar_op</span> <span class="kn">import</span> <span class="n">ScalarOp</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.predicates</span> <span class="kn">import</span> <span class="n">is_hermitian_matrix</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.predicates</span> <span class="kn">import</span> <span class="n">is_positive_semidefinite_matrix</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel.quantum_channel</span> <span class="kn">import</span> <span class="n">QuantumChannel</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel.superop</span> <span class="kn">import</span> <span class="n">SuperOp</span>
-<span class="kn">from</span> <span class="nn">qiskit.quantum_info.states.statevector</span> <span class="kn">import</span> <span class="n">Statevector</span>
+
+<span class="c1"># pylint: disable=no-name-in-module</span>
+<span class="kn">from</span> <span class="nn">.cython.exp_value</span> <span class="kn">import</span> <span class="n">density_expval_pauli_no_x</span><span class="p">,</span> <span class="n">density_expval_pauli_with_x</span>
 
 
-<div class="viewcode-block" id="DensityMatrix"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.html#qiskit.quantum_info.DensityMatrix">[documenti]</a><span class="k">class</span> <span class="nc">DensityMatrix</span><span class="p">(</span><span class="n">QuantumState</span><span class="p">):</span>
+<div class="viewcode-block" id="DensityMatrix"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.html#qiskit.quantum_info.DensityMatrix">[documenti]</a><span class="k">class</span> <span class="nc">DensityMatrix</span><span class="p">(</span><span class="n">QuantumState</span><span class="p">,</span> <span class="n">TolerancesMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;DensityMatrix class&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DensityMatrix.__init__"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.html#qiskit.quantum_info.DensityMatrix.__init__">[documenti]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize a density matrix object.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            data (matrix_like or vector_like): a density matrix or</span>
-<span class="sd">                statevector. If a vector the density matrix is constructed</span>
-<span class="sd">                as the projector of that vector.</span>
+<span class="sd">            data (np.ndarray or list or matrix_like or QuantumCircuit or</span>
+<span class="sd">                  qiskit.circuit.Instruction):</span>
+<span class="sd">                A statevector, quantum instruction or an object with a ``to_operator`` or</span>
+<span class="sd">                ``to_matrix`` method from which the density matrix can be constructed.</span>
+<span class="sd">                If a vector the density matrix is constructed as the projector of that vector.</span>
+<span class="sd">                If a quantum instruction, the density matrix is constructed by assuming all</span>
+<span class="sd">                qubits are initialized in the zero state.</span>
 <span class="sd">            dims (int or tuple or list): Optional. The subsystem dimension</span>
 <span class="sd">                    of the state (See additional information).</span>
 
@@ -365,6 +378,10 @@
             <span class="c1"># Finally we check if the input is a raw matrix in either a</span>
             <span class="c1"># python list or numpy array format.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">)):</span>
+            <span class="c1"># If the data is a circuit or an instruction use the classmethod</span>
+            <span class="c1"># to construct the DensityMatrix object</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="o">.</span><span class="n">from_instruction</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">_data</span>
         <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;to_operator&#39;</span><span class="p">):</span>
             <span class="c1"># If the data object has a &#39;to_operator&#39; attribute this is given</span>
             <span class="c1"># higher preference than the &#39;to_matrix&#39; method for initializing</span>
@@ -372,7 +389,7 @@
             <span class="n">op</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to_operator</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">data</span>
             <span class="k">if</span> <span class="n">dims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">dims</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">_output_dims</span>
+                <span class="n">dims</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">output_dims</span><span class="p">()</span>
         <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;to_matrix&#39;</span><span class="p">):</span>
             <span class="c1"># If no &#39;to_operator&#39; attribute exists we next look for a</span>
             <span class="c1"># &#39;to_matrix&#39; attribute to a matrix that will be cast into</span>
@@ -389,11 +406,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
                 <span class="s2">&quot;Invalid DensityMatrix input: not a square matrix.&quot;</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_automatic_dims</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">op_shape</span><span class="o">=</span><span class="n">OpShape</span><span class="o">.</span><span class="n">auto</span><span class="p">(</span>
+            <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dims_l</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">dims_r</span><span class="o">=</span><span class="n">dims</span><span class="p">))</span></div>
+
+    <span class="k">def</span> <span class="nf">__array__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">dtype</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
 
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
@@ -405,7 +427,56 @@
         <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">,</span><span class="se">\n</span><span class="si">{}</span><span class="s1">dims=</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">prefix</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array2string</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">separator</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">),</span>
-            <span class="n">pad</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dims</span><span class="p">)</span>
+            <span class="n">pad</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">dims_l</span><span class="p">())</span>
+
+<div class="viewcode-block" id="DensityMatrix.draw"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.html#qiskit.quantum_info.DensityMatrix.draw">[documenti]</a>    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">drawer_args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a visualization of the Statevector.</span>
+
+<span class="sd">        **repr**: ASCII TextMatrix of the state&#39;s ``__repr__``.</span>
+
+<span class="sd">        **text**: ASCII TextMatrix that can be printed in the console.</span>
+
+<span class="sd">        **latex**: An IPython Latex object for displaying in Jupyter Notebooks.</span>
+
+<span class="sd">        **latex_source**: Raw, uncompiled ASCII source to generate array using LaTeX.</span>
+
+<span class="sd">        **qsphere**: Matplotlib figure, rendering of density matrix using `plot_state_qsphere()`.</span>
+
+<span class="sd">        **hinton**: Matplotlib figure, rendering of density matrix using `plot_state_hinton()`.</span>
+
+<span class="sd">        **bloch**: Matplotlib figure, rendering of density matrix using `plot_bloch_multivector()`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            output (str): Select the output method to use for drawing the</span>
+<span class="sd">                state. Valid choices are `repr`, `text`, `latex`, `latex_source`,</span>
+<span class="sd">                `qsphere`, `hinton`, or `bloch`. Default is `repr`. Default can</span>
+<span class="sd">                be changed by adding the line ``state_drawer = &lt;default&gt;`` to</span>
+<span class="sd">                ``~/.qiskit/settings.conf`` under ``[default]``.</span>
+<span class="sd">            drawer_args: Arguments to be passed directly to the relevant drawing</span>
+<span class="sd">                function or constructor (`TextMatrix()`, `array_to_latex()`,</span>
+<span class="sd">                `plot_state_qsphere()`, `plot_state_hinton()` or `plot_bloch_multivector()`).</span>
+<span class="sd">                See the relevant function under `qiskit.visualization` for that function&#39;s</span>
+<span class="sd">                documentation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            :class:`matplotlib.Figure` or :class:`str` or</span>
+<span class="sd">            :class:`TextMatrix` or :class:`IPython.display.Latex`:</span>
+<span class="sd">            Drawing of the Statevector.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: when an invalid output method is selected.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># pylint: disable=cyclic-import</span>
+        <span class="kn">from</span> <span class="nn">qiskit.visualization.state_visualization</span> <span class="kn">import</span> <span class="n">state_drawer</span>
+        <span class="k">return</span> <span class="n">state_drawer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">,</span> <span class="o">**</span><span class="n">drawer_args</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_ipython_display_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span>
+            <span class="n">display</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -462,9 +533,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">DensityMatrix</span><span class="p">):</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="n">dims</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">dims</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">()</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span></div>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_op_shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
 
 <div class="viewcode-block" id="DensityMatrix.expand"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.html#qiskit.quantum_info.DensityMatrix.expand">[documenti]</a>    <span class="k">def</span> <span class="nf">expand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the tensor product state other ⊗ self.</span>
@@ -480,9 +552,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">DensityMatrix</span><span class="p">):</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">()</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">dims</span><span class="p">()</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span></div>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_op_shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
 
     <span class="k">def</span> <span class="nf">_add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the linear combination self + other.</span>
@@ -499,9 +572,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">DensityMatrix</span><span class="p">):</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">dim</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;other DensityMatrix has different dimensions.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">_validate_add</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_op_shape</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">return</span> <span class="n">ret</span>
 
     <span class="k">def</span> <span class="nf">_multiply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the scalar multiplied state other * self.</span>
@@ -517,7 +591,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;other is not a number&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">other</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">())</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">other</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">return</span> <span class="n">ret</span>
 
 <div class="viewcode-block" id="DensityMatrix.evolve"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.html#qiskit.quantum_info.DensityMatrix.evolve">[documenti]</a>    <span class="k">def</span> <span class="nf">evolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evolve a quantum state by an operator.</span>
@@ -553,6 +629,54 @@
             <span class="n">other</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evolve_operator</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="DensityMatrix.reverse_qargs"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.html#qiskit.quantum_info.DensityMatrix.reverse_qargs">[documenti]</a>    <span class="k">def</span> <span class="nf">reverse_qargs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return a DensityMatrix with reversed subsystem ordering.</span>
+
+<span class="sd">        For a tensor product state this is equivalent to reversing the order</span>
+<span class="sd">        of tensor product subsystems. For a density matrix</span>
+<span class="sd">        :math:`\rho = \rho_{n-1} \otimes ... \otimes \rho_0`</span>
+<span class="sd">        the returned state will be</span>
+<span class="sd">        :math:`\rho_0 \otimes ... \otimes \rho_{n-1}`.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            DensityMatrix: the state with reversed subsystem order.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">_num_qargs_l</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="n">axes</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span> <span class="o">+</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">tensor_shape</span><span class="p">),</span> <span class="n">axes</span><span class="p">),</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+    <span class="k">def</span> <span class="nf">_expectation_value_pauli</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pauli</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the expectation value of a Pauli.</span>
+
+<span class="sd">            Args:</span>
+<span class="sd">                pauli (Pauli): a Pauli operator to evaluate expval of.</span>
+
+<span class="sd">            Returns:</span>
+<span class="sd">                complex: the expectation value.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="n">n_pauli</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pauli</span><span class="p">)</span>
+        <span class="n">qubits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_pauli</span><span class="p">)</span>
+        <span class="n">x_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">qubits</span><span class="p">,</span> <span class="n">pauli</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">z_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">qubits</span><span class="p">,</span> <span class="n">pauli</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+        <span class="n">pauli_phase</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span><span class="p">)</span> <span class="o">**</span> <span class="n">pauli</span><span class="o">.</span><span class="n">phase</span> <span class="k">if</span> <span class="n">pauli</span><span class="o">.</span><span class="n">phase</span> <span class="k">else</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">x_mask</span> <span class="o">+</span> <span class="n">z_mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pauli_phase</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">trace</span><span class="p">()</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x_mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pauli_phase</span> <span class="o">*</span> <span class="n">density_expval_pauli_no_x</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">z_mask</span><span class="p">)</span>
+
+        <span class="n">x_max</span> <span class="o">=</span> <span class="n">qubits</span><span class="p">[</span><span class="n">pauli</span><span class="o">.</span><span class="n">x</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">y_phase</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span><span class="p">)</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">pauli</span><span class="o">.</span><span class="n">x</span> <span class="o">&amp;</span> <span class="n">pauli</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pauli_phase</span> <span class="o">*</span> <span class="n">density_expval_pauli_with_x</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">z_mask</span><span class="p">,</span> <span class="n">x_mask</span><span class="p">,</span> <span class="n">y_phase</span><span class="p">,</span> <span class="n">x_max</span><span class="p">)</span>
+
 <div class="viewcode-block" id="DensityMatrix.expectation_value"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.html#qiskit.quantum_info.DensityMatrix.expectation_value">[documenti]</a>    <span class="k">def</span> <span class="nf">expectation_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oper</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Compute the expectation value of an operator.</span>
 
@@ -563,9 +687,16 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            complex: the expectation value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oper</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation_value_pauli</span><span class="p">(</span><span class="n">oper</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oper</span><span class="p">,</span> <span class="n">SparsePauliOp</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">coeff</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation_value_pauli</span><span class="p">(</span><span class="n">Pauli</span><span class="p">((</span><span class="n">z</span><span class="p">,</span> <span class="n">x</span><span class="p">)))</span>
+                        <span class="k">for</span> <span class="n">z</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">coeff</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">oper</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">Z</span><span class="p">,</span> <span class="n">oper</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">oper</span><span class="o">.</span><span class="n">coeffs</span><span class="p">)])</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oper</span><span class="p">,</span> <span class="n">Operator</span><span class="p">):</span>
             <span class="n">oper</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">oper</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">Operator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">oper</span><span class="o">.</span><span class="n">adjoint</span><span class="p">(),</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">Operator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">oper</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DensityMatrix.probabilities"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.html#qiskit.quantum_info.DensityMatrix.probabilities">[documenti]</a>    <span class="k">def</span> <span class="nf">probabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the subsystem measurement probability vector.</span>
@@ -625,7 +756,7 @@
 <span class="sd">                print(&#39;Swapped probs: {}&#39;.format(probs_swapped))</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subsystem_probabilities</span><span class="p">(</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">diagonal</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dims</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">diagonal</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">dims_l</span><span class="p">(),</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">decimals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">probs</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">decimals</span><span class="o">=</span><span class="n">decimals</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">probs</span></div>
@@ -649,9 +780,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Resetting all qubits does not require sampling or RNG</span>
-            <span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dim</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
             <span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="k">return</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dims</span><span class="p">)</span>
+            <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">state</span>
+            <span class="k">return</span> <span class="n">ret</span>
 
         <span class="c1"># Reset by evolving by reset SuperOp</span>
         <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span>
@@ -692,6 +825,7 @@
 <span class="sd">            QiskitError: if the label contains invalid characters, or the length</span>
 <span class="sd">                         of the label is larger than an explicitly specified num_qubits.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">qiskit.quantum_info.states.statevector</span> <span class="kn">import</span> <span class="n">Statevector</span>
         <span class="k">return</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">Statevector</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">label</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="DensityMatrix.from_int"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.html#qiskit.quantum_info.DensityMatrix.from_int">[documenti]</a>    <span class="nd">@staticmethod</span>
@@ -811,52 +945,42 @@
 <span class="sd">                print(rho.to_dict())</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_matrix_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
-                                    <span class="bp">self</span><span class="o">.</span><span class="n">_dims</span><span class="p">,</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">dims_l</span><span class="p">(),</span>
                                     <span class="n">decimals</span><span class="o">=</span><span class="n">decimals</span><span class="p">,</span>
                                     <span class="n">string_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the tensor shape of the matrix operator&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">()))</span>
-
     <span class="k">def</span> <span class="nf">_evolve_operator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evolve density matrix by an operator&quot;&quot;&quot;</span>
+        <span class="c1"># Get shape of output density matrix</span>
+        <span class="n">new_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_op_shape</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
+        <span class="n">new_shape</span><span class="o">.</span><span class="n">_dims_r</span> <span class="o">=</span> <span class="n">new_shape</span><span class="o">.</span><span class="n">_dims_l</span>
+        <span class="n">new_shape</span><span class="o">.</span><span class="n">_num_qargs_r</span> <span class="o">=</span> <span class="n">new_shape</span><span class="o">.</span><span class="n">_num_qargs_l</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Evolution on full matrix</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_input_dim</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                    <span class="s2">&quot;Operator input dimension is not equal to density matrix dimension.&quot;</span>
-                <span class="p">)</span>
             <span class="n">op_mat</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span>
-            <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">op_mat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">op_mat</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">conj</span><span class="p">())</span>
-            <span class="k">return</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">other</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">)</span>
-        <span class="c1"># Otherwise we are applying an operator only to subsystems</span>
-        <span class="c1"># Check dimensions of subsystems match the operator</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">input_dims</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                <span class="s2">&quot;Operator input dimensions are not equal to statevector subsystem dimensions.&quot;</span>
-            <span class="p">)</span>
+            <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">op_mat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">op_mat</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">conj</span><span class="p">())</span>
+            <span class="n">ret</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">=</span> <span class="n">new_shape</span>
+            <span class="k">return</span> <span class="n">ret</span>
+
         <span class="c1"># Reshape statevector and operator</span>
-        <span class="n">tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
+        <span class="n">tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">tensor_shape</span><span class="p">)</span>
         <span class="c1"># Construct list of tensor indices of statevector to be contracted</span>
         <span class="n">num_indices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">())</span>
         <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_indices</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">qubit</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">]</span>
         <span class="c1"># Left multiple by mat</span>
-        <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
+        <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">tensor_shape</span><span class="p">)</span>
         <span class="n">tensor</span> <span class="o">=</span> <span class="n">Operator</span><span class="o">.</span><span class="n">_einsum_matmul</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
         <span class="c1"># Right multiply by mat ** dagger</span>
         <span class="n">adj</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">adjoint</span><span class="p">()</span>
-        <span class="n">mat_adj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">adj</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">adj</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
+        <span class="n">mat_adj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">adj</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">adj</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">tensor_shape</span><span class="p">)</span>
         <span class="n">tensor</span> <span class="o">=</span> <span class="n">Operator</span><span class="o">.</span><span class="n">_einsum_matmul</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">mat_adj</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">num_indices</span><span class="p">,</span>
                                          <span class="kc">True</span><span class="p">)</span>
         <span class="c1"># Replace evolved dimensions</span>
-        <span class="n">new_dims</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">())</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qargs</span><span class="p">):</span>
-            <span class="n">new_dims</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-        <span class="n">new_dim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">new_dims</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="p">(</span><span class="n">new_dim</span><span class="p">,</span> <span class="n">new_dim</span><span class="p">)),</span>
-                             <span class="n">dims</span><span class="o">=</span><span class="n">new_dims</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">new_shape</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">=</span> <span class="n">new_shape</span>
+        <span class="k">return</span> <span class="n">ret</span>
 
     <span class="k">def</span> <span class="nf">_append_instruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Update the current Statevector by applying an instruction.&quot;&quot;&quot;</span>
@@ -891,6 +1015,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> instruction definition is </span><span class="si">{}</span><span class="s1">; expected QuantumCircuit&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">definition</span><span class="p">)))</span>
+        <span class="n">qubit_indices</span> <span class="o">=</span> <span class="p">{</span><span class="n">bit</span><span class="p">:</span> <span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">bit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">qubits</span><span class="p">)}</span>
         <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">qregs</span><span class="p">,</span> <span class="n">cregs</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">definition</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">cregs</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
@@ -898,16 +1023,16 @@
                     <span class="nb">format</span><span class="p">(</span><span class="n">instr</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
             <span class="c1"># Get the integer position of the flat register</span>
             <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">new_qargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">]</span>
+                <span class="n">new_qargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qubit_indices</span><span class="p">[</span><span class="n">tup</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">new_qargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qargs</span><span class="p">[</span><span class="n">tup</span><span class="o">.</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">]</span>
+                <span class="n">new_qargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qargs</span><span class="p">[</span><span class="n">qubit_indices</span><span class="p">[</span><span class="n">tup</span><span class="p">]]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_append_instruction</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">new_qargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_evolve_instruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a new statevector by applying an instruction.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
             <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">to_instruction</span><span class="p">()</span>
-        <span class="n">vec</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dims</span><span class="p">)</span>
+        <span class="n">vec</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">vec</span><span class="o">.</span><span class="n">_append_instruction</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">vec</span>
 
@@ -925,6 +1050,7 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            QiskitError: if the state is not pure.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">qiskit.quantum_info.states.statevector</span> <span class="kn">import</span> <span class="n">Statevector</span>
         <span class="k">if</span> <span class="n">atol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">atol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atol</span>
         <span class="k">if</span> <span class="n">rtol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -941,22 +1067,7 @@
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Density matrix is not a pure state&quot;</span><span class="p">)</span>
 
         <span class="n">psi</span> <span class="o">=</span> <span class="n">evecs</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">evals</span><span class="p">)]</span>  <span class="c1"># eigenvectors returned in columns.</span>
-        <span class="k">return</span> <span class="n">Statevector</span><span class="p">(</span><span class="n">psi</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="DensityMatrix.to_counts"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.DensityMatrix.html#qiskit.quantum_info.DensityMatrix.to_counts">[documenti]</a>    <span class="k">def</span> <span class="nf">to_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the density matrix as a counts dict of probabilities.</span>
-
-<span class="sd">        DEPRECATED: use :meth:`probabilities_dict` instead.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            dict: Counts of probabilities.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s1">&#39;The `Statevector.to_counts` method is deprecated as of 0.13.0,&#39;</span>
-            <span class="s1">&#39; and will be removed no earlier than 3 months after that &#39;</span>
-            <span class="s1">&#39;release date. You should use the `Statevector.probabilities_dict`&#39;</span>
-            <span class="s1">&#39; method instead.&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">probabilities_dict</span><span class="p">()</span></div></div>
+        <span class="k">return</span> <span class="n">Statevector</span><span class="p">(</span><span class="n">psi</span><span class="p">)</span></div></div>
 </pre></div>
 
              </article>
@@ -1089,20 +1200,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

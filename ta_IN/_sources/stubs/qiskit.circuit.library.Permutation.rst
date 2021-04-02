@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~Permutation.__init__
+      ~Permutation.add_bits
       ~Permutation.add_calibration
       ~Permutation.add_register
       ~Permutation.append
@@ -48,9 +49,9 @@
       ~Permutation.decompose
       ~Permutation.delay
       ~Permutation.depth
-      ~Permutation.diag_gate
       ~Permutation.diagonal
       ~Permutation.draw
+      ~Permutation.ecr
       ~Permutation.extend
       ~Permutation.fredkin
       ~Permutation.from_qasm_file
@@ -65,7 +66,6 @@
       ~Permutation.iso
       ~Permutation.isometry
       ~Permutation.iswap
-      ~Permutation.mcmt
       ~Permutation.mcp
       ~Permutation.mcrx
       ~Permutation.mcry
@@ -76,13 +76,13 @@
       ~Permutation.measure
       ~Permutation.measure_active
       ~Permutation.measure_all
-      ~Permutation.mirror
       ~Permutation.ms
       ~Permutation.num_connected_components
       ~Permutation.num_nonlocal_gates
       ~Permutation.num_tensor_factors
       ~Permutation.num_unitary_factors
       ~Permutation.p
+      ~Permutation.pauli
       ~Permutation.power
       ~Permutation.qasm
       ~Permutation.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~Permutation.reset
       ~Permutation.reverse_bits
       ~Permutation.reverse_ops
+      ~Permutation.rv
       ~Permutation.rx
       ~Permutation.rxx
       ~Permutation.ry
@@ -105,7 +106,26 @@
       ~Permutation.rzx
       ~Permutation.rzz
       ~Permutation.s
+      ~Permutation.save_amplitudes
+      ~Permutation.save_amplitudes_squared
+      ~Permutation.save_density_matrix
+      ~Permutation.save_expectation_value
+      ~Permutation.save_expectation_value_variance
+      ~Permutation.save_matrix_product_state
+      ~Permutation.save_probabilities
+      ~Permutation.save_probabilities_dict
+      ~Permutation.save_stabilizer
+      ~Permutation.save_state
+      ~Permutation.save_statevector
+      ~Permutation.save_statevector_dict
+      ~Permutation.save_superop
+      ~Permutation.save_unitary
       ~Permutation.sdg
+      ~Permutation.set_density_matrix
+      ~Permutation.set_stabilizer
+      ~Permutation.set_statevector
+      ~Permutation.set_superop
+      ~Permutation.set_unitary
       ~Permutation.size
       ~Permutation.snapshot
       ~Permutation.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~Permutation.sxdg
       ~Permutation.t
       ~Permutation.tdg
+      ~Permutation.tensor
       ~Permutation.to_gate
       ~Permutation.to_instruction
       ~Permutation.toffoli
@@ -152,6 +173,7 @@
       ~Permutation.global_phase
       ~Permutation.header
       ~Permutation.instances
+      ~Permutation.metadata
       ~Permutation.num_ancillas
       ~Permutation.num_clbits
       ~Permutation.num_parameters

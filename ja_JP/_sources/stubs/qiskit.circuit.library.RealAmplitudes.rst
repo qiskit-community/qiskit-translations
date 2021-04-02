@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~RealAmplitudes.__init__
+      ~RealAmplitudes.add_bits
       ~RealAmplitudes.add_calibration
       ~RealAmplitudes.add_layer
       ~RealAmplitudes.add_register
@@ -49,9 +50,9 @@
       ~RealAmplitudes.decompose
       ~RealAmplitudes.delay
       ~RealAmplitudes.depth
-      ~RealAmplitudes.diag_gate
       ~RealAmplitudes.diagonal
       ~RealAmplitudes.draw
+      ~RealAmplitudes.ecr
       ~RealAmplitudes.extend
       ~RealAmplitudes.fredkin
       ~RealAmplitudes.from_qasm_file
@@ -68,7 +69,6 @@
       ~RealAmplitudes.iso
       ~RealAmplitudes.isometry
       ~RealAmplitudes.iswap
-      ~RealAmplitudes.mcmt
       ~RealAmplitudes.mcp
       ~RealAmplitudes.mcrx
       ~RealAmplitudes.mcry
@@ -79,13 +79,13 @@
       ~RealAmplitudes.measure
       ~RealAmplitudes.measure_active
       ~RealAmplitudes.measure_all
-      ~RealAmplitudes.mirror
       ~RealAmplitudes.ms
       ~RealAmplitudes.num_connected_components
       ~RealAmplitudes.num_nonlocal_gates
       ~RealAmplitudes.num_tensor_factors
       ~RealAmplitudes.num_unitary_factors
       ~RealAmplitudes.p
+      ~RealAmplitudes.pauli
       ~RealAmplitudes.power
       ~RealAmplitudes.print_settings
       ~RealAmplitudes.qasm
@@ -101,6 +101,7 @@
       ~RealAmplitudes.reset
       ~RealAmplitudes.reverse_bits
       ~RealAmplitudes.reverse_ops
+      ~RealAmplitudes.rv
       ~RealAmplitudes.rx
       ~RealAmplitudes.rxx
       ~RealAmplitudes.ry
@@ -109,7 +110,26 @@
       ~RealAmplitudes.rzx
       ~RealAmplitudes.rzz
       ~RealAmplitudes.s
+      ~RealAmplitudes.save_amplitudes
+      ~RealAmplitudes.save_amplitudes_squared
+      ~RealAmplitudes.save_density_matrix
+      ~RealAmplitudes.save_expectation_value
+      ~RealAmplitudes.save_expectation_value_variance
+      ~RealAmplitudes.save_matrix_product_state
+      ~RealAmplitudes.save_probabilities
+      ~RealAmplitudes.save_probabilities_dict
+      ~RealAmplitudes.save_stabilizer
+      ~RealAmplitudes.save_state
+      ~RealAmplitudes.save_statevector
+      ~RealAmplitudes.save_statevector_dict
+      ~RealAmplitudes.save_superop
+      ~RealAmplitudes.save_unitary
       ~RealAmplitudes.sdg
+      ~RealAmplitudes.set_density_matrix
+      ~RealAmplitudes.set_stabilizer
+      ~RealAmplitudes.set_statevector
+      ~RealAmplitudes.set_superop
+      ~RealAmplitudes.set_unitary
       ~RealAmplitudes.size
       ~RealAmplitudes.snapshot
       ~RealAmplitudes.snapshot_density_matrix
@@ -123,6 +143,7 @@
       ~RealAmplitudes.sxdg
       ~RealAmplitudes.t
       ~RealAmplitudes.tdg
+      ~RealAmplitudes.tensor
       ~RealAmplitudes.to_gate
       ~RealAmplitudes.to_instruction
       ~RealAmplitudes.toffoli
@@ -160,6 +181,7 @@
       ~RealAmplitudes.initial_state
       ~RealAmplitudes.insert_barriers
       ~RealAmplitudes.instances
+      ~RealAmplitudes.metadata
       ~RealAmplitudes.num_ancillas
       ~RealAmplitudes.num_clbits
       ~RealAmplitudes.num_layers

@@ -26,6 +26,7 @@
       ~Snapshot.qasm
       ~Snapshot.repeat
       ~Snapshot.reverse_ops
+      ~Snapshot.soft_compare
       ~Snapshot.validate_parameter
    
    

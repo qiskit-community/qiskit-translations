@@ -15,8 +15,6 @@
    
       ~QuadraticProgramToQubo.__init__
       ~QuadraticProgramToQubo.convert
-      ~QuadraticProgramToQubo.decode
-      ~QuadraticProgramToQubo.encode
       ~QuadraticProgramToQubo.get_compatibility_msg
       ~QuadraticProgramToQubo.interpret
       ~QuadraticProgramToQubo.is_compatible

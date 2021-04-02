@@ -14,7 +14,6 @@
    .. autosummary::
    
       ~SparsePauliOp.__init__
-      ~SparsePauliOp.add
       ~SparsePauliOp.adjoint
       ~SparsePauliOp.compose
       ~SparsePauliOp.conjugate
@@ -27,14 +26,10 @@
       ~SparsePauliOp.is_unitary
       ~SparsePauliOp.label_iter
       ~SparsePauliOp.matrix_iter
-      ~SparsePauliOp.multiply
       ~SparsePauliOp.output_dims
       ~SparsePauliOp.power
       ~SparsePauliOp.reshape
-      ~SparsePauliOp.set_atol
-      ~SparsePauliOp.set_rtol
       ~SparsePauliOp.simplify
-      ~SparsePauliOp.subtract
       ~SparsePauliOp.tensor
       ~SparsePauliOp.to_list
       ~SparsePauliOp.to_matrix

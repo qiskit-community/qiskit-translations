@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.quantum_info.operators.measures &mdash; documentación de Qiskit - 0.24.1</title>
+  <title>qiskit.quantum_info.operators.measures &mdash; documentación de Qiskit - 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/ibmq-provider.html">Proveedor Cuántico IBM Qiskit</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Solución de Problemas</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Códigos de error de IBM Quantum API</a></li>
@@ -311,19 +315,23 @@
 <span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
 <span class="c1"># that they have been altered from the originals.</span>
 
-<span class="c1"># pylint: disable=invalid-name</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">A collection of useful quantum information functions for operators.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">sparse</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.exceptions</span> <span class="kn">import</span> <span class="n">QiskitError</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.gate</span> <span class="kn">import</span> <span class="n">Gate</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.base_operator</span> <span class="kn">import</span> <span class="n">BaseOperator</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.operator</span> <span class="kn">import</span> <span class="n">Operator</span>
-<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.pauli</span> <span class="kn">import</span> <span class="n">Pauli</span>
-<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel</span> <span class="kn">import</span> <span class="n">SuperOp</span><span class="p">,</span> <span class="n">Choi</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel.quantum_channel</span> <span class="kn">import</span> <span class="n">QuantumChannel</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel</span> <span class="kn">import</span> <span class="n">Choi</span><span class="p">,</span> <span class="n">SuperOp</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.states.densitymatrix</span> <span class="kn">import</span> <span class="n">DensityMatrix</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.states.measures</span> <span class="kn">import</span> <span class="n">state_fidelity</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">cvxpy</span>
@@ -331,95 +339,114 @@
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">_HAS_CVX</span> <span class="o">=</span> <span class="kc">False</span>
 
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="process_fidelity"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.process_fidelity.html#qiskit.quantum_info.process_fidelity">[documentos]</a><span class="k">def</span> <span class="nf">process_fidelity</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span>
                      <span class="n">target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">require_cp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                     <span class="n">require_tp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                     <span class="n">require_cptp</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                     <span class="n">require_tp</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return the process fidelity of a noisy quantum channel.</span>
 
-<span class="sd">    This process fidelity :math:`F_{\text{pro}}` is given by</span>
+
+<span class="sd">    The process fidelity :math:`F_{\text{pro}}(\mathcal{E}, \methcal{F})`</span>
+<span class="sd">    between two quantum channels :math:`\mathcal{E}, \mathcal{F}` is given by</span>
+
+<span class="sd">    .. math:</span>
+<span class="sd">        F_{\text{pro}}(\mathcal{E}, \mathcal{F})</span>
+<span class="sd">            = F(\rho_{\mathcal{E}}, \rho_{\mathcal{F}})</span>
+
+<span class="sd">    where :math:`F` is the :func:`~qiskit.quantum_info.state_fidelity`,</span>
+<span class="sd">    :math:`\rho_{\mathcal{E}} = \Lambda_{\mathcal{E}} / d` is the</span>
+<span class="sd">    normalized :class:`~qiskit.quantum_info.Choi` matrix for the channel</span>
+<span class="sd">    :math:`\mathcal{E}`, and :math:`d` is the input dimension of</span>
+<span class="sd">    :math:`\mathcal{E}`.</span>
+
+<span class="sd">    When the target channel is unitary this is equivalent to</span>
 
 <span class="sd">    .. math::</span>
 <span class="sd">        F_{\text{pro}}(\mathcal{E}, U)</span>
 <span class="sd">            = \frac{Tr[S_U^\dagger S_{\mathcal{E}}]}{d^2}</span>
 
 <span class="sd">    where :math:`S_{\mathcal{E}}, S_{U}` are the</span>
-<span class="sd">    :class:`~qiskit.quantum_info.SuperOp` matrices for the input quantum</span>
-<span class="sd">    *channel* :math:`\cal{E}` and *target* unitary :math:`U` respectively,</span>
-<span class="sd">    and :math:`d` is the dimension of the *channel*.</span>
+<span class="sd">    :class:`~qiskit.quantum_info.SuperOp` matrices for the *input* quantum</span>
+<span class="sd">    channel :math:`\mathcal{E}` and *target* unitary :math:`U` respectively,</span>
+<span class="sd">    and :math:`d` is the input dimension of the channel.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        channel (QuantumChannel): noisy quantum channel.</span>
-<span class="sd">        target (Operator or None): target unitary operator.</span>
+<span class="sd">        channel (Operator or QuantumChannel): input quantum channel.</span>
+<span class="sd">        target (Operator or QuantumChannel or None): target quantum channel.</span>
 <span class="sd">            If `None` target is the identity operator [Default: None].</span>
-<span class="sd">        require_cp (bool): require channel to be completely-positive</span>
-<span class="sd">            [Default: True].</span>
-<span class="sd">        require_tp (bool): require channel to be trace-preserving</span>
-<span class="sd">            [Default: False].</span>
-<span class="sd">        require_cptp (bool): (DEPRECATED) require input channels to be</span>
-<span class="sd">            CPTP [Default: False].</span>
+<span class="sd">        require_cp (bool): check if input and target channels are</span>
+<span class="sd">                           completely-positive and if non-CP log warning</span>
+<span class="sd">                           containing negative eigenvalues of Choi-matrix</span>
+<span class="sd">                           [Default: True].</span>
+<span class="sd">        require_tp (bool): check if input and target channels are</span>
+<span class="sd">                           trace-preserving and if non-TP log warning</span>
+<span class="sd">                           containing negative eigenvalues of partial</span>
+<span class="sd">                           Choi-matrix :math:`Tr_{\mbox{out}}[\mathcal{E}] - I`</span>
+<span class="sd">                           [Default: True].</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        float: The process fidelity :math:`F_{\text{pro}}`.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        QiskitError: if the channel and target do not have the same dimensions,</span>
-<span class="sd">                     or have different input and output dimensions.</span>
-<span class="sd">        QiskitError: if the channel and target or are not completely-positive</span>
-<span class="sd">                     (with ``require_cp=True``) or not trace-preserving</span>
-<span class="sd">                     (with ``require_tp=True``).</span>
+<span class="sd">        QiskitError: if the channel and target do not have the same dimensions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Format inputs</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Operator</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">)):</span>
-        <span class="n">channel</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">channel</span> <span class="o">=</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
-    <span class="n">input_dim</span><span class="p">,</span> <span class="n">output_dim</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">dim</span>
-    <span class="k">if</span> <span class="n">input_dim</span> <span class="o">!=</span> <span class="n">output_dim</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-            <span class="s1">&#39;Quantum channel must have equal input and output dimensions.&#39;</span><span class="p">)</span>
+    <span class="n">channel</span> <span class="o">=</span> <span class="n">_input_formatter</span><span class="p">(</span>
+        <span class="n">channel</span><span class="p">,</span> <span class="n">SuperOp</span><span class="p">,</span> <span class="s1">&#39;process_fidelity&#39;</span><span class="p">,</span> <span class="s1">&#39;channel&#39;</span><span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">_input_formatter</span><span class="p">(</span>
+        <span class="n">target</span><span class="p">,</span> <span class="n">Operator</span><span class="p">,</span> <span class="s1">&#39;process_fidelity&#39;</span><span class="p">,</span> <span class="s1">&#39;target&#39;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># Multiple channel by adjoint of target</span>
-        <span class="n">target</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">input_dim</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">)</span> <span class="o">!=</span> <span class="n">target</span><span class="o">.</span><span class="n">dim</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">target</span><span class="p">:</span>
+        <span class="c1"># Validate dimensions</span>
+        <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">dim</span> <span class="o">!=</span> <span class="n">target</span><span class="o">.</span><span class="n">dim</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                <span class="s1">&#39;Quantum channel and target must have the same dimensions.&#39;</span><span class="p">)</span>
-        <span class="n">channel</span> <span class="o">=</span> <span class="n">channel</span> <span class="o">@</span> <span class="n">target</span><span class="o">.</span><span class="n">adjoint</span><span class="p">()</span>
+                <span class="s1">&#39;Input quantum channel and target unitary must have the same &#39;</span>
+                <span class="s1">&#39;dimensions (</span><span class="si">{}</span><span class="s1"> != </span><span class="si">{}</span><span class="s1">).&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">dim</span><span class="p">))</span>
 
     <span class="c1"># Validate complete-positivity and trace-preserving</span>
-    <span class="k">if</span> <span class="n">require_cptp</span><span class="p">:</span>
-        <span class="c1"># require_cptp kwarg is DEPRECATED</span>
-        <span class="c1"># Remove in future qiskit version</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;Please use `require_cp=True, require_tp=True` &quot;</span>
-            <span class="s2">&quot;instead of `require_cptp=True`.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
-        <span class="n">require_cp</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">require_tp</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">Operator</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">require_cp</span> <span class="ow">or</span> <span class="n">require_tp</span><span class="p">):</span>
-        <span class="n">is_unitary</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">is_unitary</span><span class="p">()</span>
-        <span class="c1"># Validate as unitary</span>
-        <span class="k">if</span> <span class="n">require_cp</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_unitary</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;channel is not completely-positive&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">require_tp</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_unitary</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;channel is not trace-preserving&#39;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># Validate as QuantumChannel</span>
-        <span class="k">if</span> <span class="n">require_cp</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">channel</span><span class="o">.</span><span class="n">is_cp</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;channel is not completely-positive&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">require_tp</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">channel</span><span class="o">.</span><span class="n">is_tp</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;channel is not trace-preserving&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">chan</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">&#39;Input&#39;</span><span class="p">,</span> <span class="n">channel</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;Target&#39;</span><span class="p">,</span> <span class="n">target</span><span class="p">)]:</span>
+        <span class="k">if</span> <span class="n">chan</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">require_cp</span><span class="p">:</span>
+            <span class="n">cp_cond</span> <span class="o">=</span> <span class="n">_cp_condition</span><span class="p">(</span><span class="n">chan</span><span class="p">)</span>
+            <span class="n">neg</span> <span class="o">=</span> <span class="n">cp_cond</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">chan</span><span class="o">.</span><span class="n">atol</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">neg</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> channel is not CP. Choi-matrix has negative eigenvalues: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">label</span><span class="p">,</span> <span class="n">cp_cond</span><span class="p">[</span><span class="n">neg</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">chan</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">require_tp</span><span class="p">:</span>
+            <span class="n">tp_cond</span> <span class="o">=</span> <span class="n">_tp_condition</span><span class="p">(</span><span class="n">chan</span><span class="p">)</span>
+            <span class="n">non_zero</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span>
+                <span class="n">tp_cond</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">chan</span><span class="o">.</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">chan</span><span class="o">.</span><span class="n">rtol</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">non_zero</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> channel is not TP. Tr_2[Choi] - I has non-zero eigenvalues: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">label</span><span class="p">,</span> <span class="n">tp_cond</span><span class="p">[</span><span class="n">non_zero</span><span class="p">])</span>
 
-    <span class="c1"># Compute process fidelity with identity channel</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">Operator</span><span class="p">):</span>
-        <span class="c1"># |Tr[U]/dim| ** 2</span>
-        <span class="n">fid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">/</span> <span class="n">input_dim</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># Tr[S] / (dim ** 2)</span>
-        <span class="n">fid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">input_dim</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fid</span><span class="p">))</span></div>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">Operator</span><span class="p">):</span>
+        <span class="c1"># Compute fidelity with unitary target by applying the inverse</span>
+        <span class="c1"># to channel and computing fidelity with the identity</span>
+        <span class="n">channel</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">adjoint</span><span class="p">())</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">input_dim</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">dim</span>
+    <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Compute process fidelity with identity channel</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">Operator</span><span class="p">):</span>
+            <span class="c1"># |Tr[U]/dim| ** 2</span>
+            <span class="n">fid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">/</span> <span class="n">input_dim</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Tr[S] / (dim ** 2)</span>
+            <span class="n">fid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">SuperOp</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">input_dim</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fid</span><span class="p">))</span>
+
+    <span class="c1"># For comparing two non-unitary channels we compute the state fidelity of</span>
+    <span class="c1"># the normalized Choi-matrices. This is equivalent to the previous definition</span>
+    <span class="c1"># when the target is a unitary channel.</span>
+    <span class="n">state1</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">Choi</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">/</span> <span class="n">input_dim</span><span class="p">)</span>
+    <span class="n">state2</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">Choi</span><span class="p">(</span><span class="n">target</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">/</span> <span class="n">input_dim</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">state_fidelity</span><span class="p">(</span><span class="n">state1</span><span class="p">,</span> <span class="n">state2</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="average_gate_fidelity"><a class="viewcode-back" href="../../../../stubs/qiskit.quantum_info.average_gate_fidelity.html#qiskit.quantum_info.average_gate_fidelity">[documentos]</a><span class="k">def</span> <span class="nf">average_gate_fidelity</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span>
@@ -442,13 +469,18 @@
 <span class="sd">    :math:`d` is the dimension of the *channel*.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        channel (QuantumChannel): noisy quantum channel.</span>
+<span class="sd">        channel (QuantumChannel or Operator): noisy quantum channel.</span>
 <span class="sd">        target (Operator or None): target unitary operator.</span>
 <span class="sd">            If `None` target is the identity operator [Default: None].</span>
-<span class="sd">        require_cp (bool): require channel to be completely-positive</span>
-<span class="sd">            [Default: True].</span>
-<span class="sd">        require_tp (bool): require channel to be trace-preserving</span>
-<span class="sd">            [Default: False].</span>
+<span class="sd">        require_cp (bool): check if input and target channels are</span>
+<span class="sd">                           completely-positive and if non-CP log warning</span>
+<span class="sd">                           containing negative eigenvalues of Choi-matrix</span>
+<span class="sd">                           [Default: True].</span>
+<span class="sd">        require_tp (bool): check if input and target channels are</span>
+<span class="sd">                           trace-preserving and if non-TP log warning</span>
+<span class="sd">                           containing negative eigenvalues of partial</span>
+<span class="sd">                           Choi-matrix :math:`Tr_{\mbox{out}}[\mathcal{E}] - I`</span>
+<span class="sd">                           [Default: True].</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        float: The average gate fidelity :math:`F_{\text{ave}}`.</span>
@@ -456,14 +488,21 @@
 <span class="sd">    Raises:</span>
 <span class="sd">        QiskitError: if the channel and target do not have the same dimensions,</span>
 <span class="sd">                     or have different input and output dimensions.</span>
-<span class="sd">        QiskitError: if the channel and target or are not completely-positive</span>
-<span class="sd">                     (with ``require_cp=True``) or not trace-preserving</span>
-<span class="sd">                     (with ``require_tp=True``).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Operator</span><span class="p">,</span> <span class="n">Pauli</span><span class="p">)):</span>
-        <span class="n">channel</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">channel</span> <span class="o">=</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+    <span class="c1"># Format inputs</span>
+    <span class="n">channel</span> <span class="o">=</span> <span class="n">_input_formatter</span><span class="p">(</span>
+        <span class="n">channel</span><span class="p">,</span> <span class="n">SuperOp</span><span class="p">,</span> <span class="s1">&#39;average_gate_fidelity&#39;</span><span class="p">,</span> <span class="s1">&#39;channel&#39;</span><span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">_input_formatter</span><span class="p">(</span>
+        <span class="n">target</span><span class="p">,</span> <span class="n">Operator</span><span class="p">,</span> <span class="s1">&#39;average_gate_fidelity&#39;</span><span class="p">,</span> <span class="s1">&#39;target&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">QiskitError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="s1">&#39;Target channel is not a unitary channel. To compare &#39;</span>
+                <span class="s1">&#39;two non-unitary channels use the &#39;</span>
+                <span class="s1">&#39;`qiskit.quantum_info.process_fidelity` function instead.&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
     <span class="n">dim</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">dim</span>
     <span class="n">f_pro</span> <span class="o">=</span> <span class="n">process_fidelity</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span>
                              <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
@@ -489,10 +528,15 @@
 <span class="sd">        channel (QuantumChannel): noisy quantum channel.</span>
 <span class="sd">        target (Operator or None): target unitary operator.</span>
 <span class="sd">            If `None` target is the identity operator [Default: None].</span>
-<span class="sd">        require_cp (bool): require channel to be completely-positive</span>
-<span class="sd">            [Default: True].</span>
-<span class="sd">        require_tp (bool): require channel to be trace-preserving</span>
-<span class="sd">            [Default: False].</span>
+<span class="sd">        require_cp (bool): check if input and target channels are</span>
+<span class="sd">                           completely-positive and if non-CP log warning</span>
+<span class="sd">                           containing negative eigenvalues of Choi-matrix</span>
+<span class="sd">                           [Default: True].</span>
+<span class="sd">        require_tp (bool): check if input and target channels are</span>
+<span class="sd">                           trace-preserving and if non-TP log warning</span>
+<span class="sd">                           containing negative eigenvalues of partial</span>
+<span class="sd">                           Choi-matrix :math:`Tr_{\mbox{out}}[\mathcal{E}] - I`</span>
+<span class="sd">                           [Default: True].</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        float: The average gate error :math:`E`.</span>
@@ -500,10 +544,12 @@
 <span class="sd">    Raises:</span>
 <span class="sd">        QiskitError: if the channel and target do not have the same dimensions,</span>
 <span class="sd">                     or have different input and output dimensions.</span>
-<span class="sd">        QiskitError: if the channel and target or are not completely-positive</span>
-<span class="sd">                     (with ``require_cp=True``) or not trace-preserving</span>
-<span class="sd">                     (with ``require_tp=True``).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Format inputs</span>
+    <span class="n">channel</span> <span class="o">=</span> <span class="n">_input_formatter</span><span class="p">(</span>
+        <span class="n">channel</span><span class="p">,</span> <span class="n">SuperOp</span><span class="p">,</span> <span class="s1">&#39;gate_error&#39;</span><span class="p">,</span> <span class="s1">&#39;channel&#39;</span><span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">_input_formatter</span><span class="p">(</span>
+        <span class="n">target</span><span class="p">,</span> <span class="n">Operator</span><span class="p">,</span> <span class="s1">&#39;gate_error&#39;</span><span class="p">,</span> <span class="s1">&#39;target&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">average_gate_fidelity</span><span class="p">(</span>
         <span class="n">channel</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span> <span class="n">require_cp</span><span class="o">=</span><span class="n">require_cp</span><span class="p">,</span> <span class="n">require_tp</span><span class="o">=</span><span class="n">require_tp</span><span class="p">)</span></div>
 
@@ -546,8 +592,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_cvxpy_check</span><span class="p">(</span><span class="s1">&#39;`diamond_norm`&#39;</span><span class="p">)</span>  <span class="c1"># Check CVXPY is installed</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">choi</span><span class="p">,</span> <span class="n">Choi</span><span class="p">):</span>
-        <span class="n">choi</span> <span class="o">=</span> <span class="n">Choi</span><span class="p">(</span><span class="n">choi</span><span class="p">)</span>
+    <span class="n">choi</span> <span class="o">=</span> <span class="n">Choi</span><span class="p">(</span><span class="n">_input_formatter</span><span class="p">(</span><span class="n">choi</span><span class="p">,</span> <span class="n">Choi</span><span class="p">,</span> <span class="s1">&#39;diamond_norm&#39;</span><span class="p">,</span> <span class="s1">&#39;choi&#39;</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">cvx_bmat</span><span class="p">(</span><span class="n">mat_r</span><span class="p">,</span> <span class="n">mat_i</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Block matrix for embedding complex matrix in reals&quot;&quot;&quot;</span>
@@ -613,6 +658,63 @@
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
             <span class="s1">&#39;Incompatible CVXPY version </span><span class="si">{}</span><span class="s1"> found.&#39;</span>
             <span class="s1">&#39; Install version &gt;=1.0.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">version</span><span class="p">))</span>
+
+
+<span class="c1"># pylint: disable=too-many-return-statements</span>
+<span class="k">def</span> <span class="nf">_input_formatter</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">fallback_class</span><span class="p">,</span> <span class="n">func_name</span><span class="p">,</span> <span class="n">arg_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Formatting function for input conversion&quot;&quot;&quot;</span>
+    <span class="c1"># Empty input</span>
+    <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="c1"># Channel-like input</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">QuantumChannel</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;to_quantumchannel&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">to_quantumchannel</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;to_channel&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">to_channel</span><span class="p">()</span>
+
+    <span class="c1"># Unitary-like input</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">Gate</span><span class="p">,</span> <span class="n">BaseOperator</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">Operator</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;to_operator&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">to_operator</span><span class="p">()</span>
+
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="s1">&#39;Passing in a list or Numpy array to `</span><span class="si">{}</span><span class="s1">` `</span><span class="si">{}</span><span class="s1">` argument is &#39;</span>
+        <span class="s1">&#39;deprecated as of 0.17.0 since the matrix representation cannot be inferred &#39;</span>
+        <span class="s1">&#39;unambiguously. Use a Gate or BaseOperator subclass (eg. Operator, &#39;</span>
+        <span class="s1">&#39;SuperOp, Choi) object instead.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">func_name</span><span class="p">,</span> <span class="n">arg_name</span><span class="p">),</span>
+        <span class="ne">DeprecationWarning</span><span class="p">)</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="s1">&#39;Treating array input as a </span><span class="si">{}</span><span class="s1"> object&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fallback_class</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">fallback_class</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_cp_condition</span><span class="p">(</span><span class="n">channel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return Choi-matrix eigenvalues for checking if channel is CP&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">QuantumChannel</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">Choi</span><span class="p">):</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">Choi</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvalsh</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">unitary</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">tensordot</span><span class="p">(</span><span class="n">unitary</span><span class="p">,</span> <span class="n">unitary</span><span class="o">.</span><span class="n">conj</span><span class="p">(),</span> <span class="n">axes</span><span class="o">=</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">real</span>
+
+
+<span class="k">def</span> <span class="nf">_tp_condition</span><span class="p">(</span><span class="n">channel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return partial tr Choi-matrix eigenvalues for checking if channel is TP&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">QuantumChannel</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">Choi</span><span class="p">):</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">Choi</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="n">choi</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">choi</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">dims</span> <span class="o">+</span> <span class="n">dims</span>
+        <span class="n">tr_choi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">choi</span><span class="p">,</span> <span class="n">shape</span><span class="p">),</span> <span class="n">axis1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis2</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">unitary</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">tr_choi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tensordot</span><span class="p">(</span><span class="n">unitary</span><span class="p">,</span> <span class="n">unitary</span><span class="o">.</span><span class="n">conj</span><span class="p">(),</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvalsh</span><span class="p">(</span><span class="n">tr_choi</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tr_choi</span><span class="p">)))</span>
 </pre></div>
 
              </article>
@@ -745,20 +847,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

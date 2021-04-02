@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~PiecewiseLinearPauliRotations.__init__
+      ~PiecewiseLinearPauliRotations.add_bits
       ~PiecewiseLinearPauliRotations.add_calibration
       ~PiecewiseLinearPauliRotations.add_register
       ~PiecewiseLinearPauliRotations.append
@@ -48,9 +49,9 @@
       ~PiecewiseLinearPauliRotations.decompose
       ~PiecewiseLinearPauliRotations.delay
       ~PiecewiseLinearPauliRotations.depth
-      ~PiecewiseLinearPauliRotations.diag_gate
       ~PiecewiseLinearPauliRotations.diagonal
       ~PiecewiseLinearPauliRotations.draw
+      ~PiecewiseLinearPauliRotations.ecr
       ~PiecewiseLinearPauliRotations.evaluate
       ~PiecewiseLinearPauliRotations.extend
       ~PiecewiseLinearPauliRotations.fredkin
@@ -66,7 +67,6 @@
       ~PiecewiseLinearPauliRotations.iso
       ~PiecewiseLinearPauliRotations.isometry
       ~PiecewiseLinearPauliRotations.iswap
-      ~PiecewiseLinearPauliRotations.mcmt
       ~PiecewiseLinearPauliRotations.mcp
       ~PiecewiseLinearPauliRotations.mcrx
       ~PiecewiseLinearPauliRotations.mcry
@@ -77,13 +77,13 @@
       ~PiecewiseLinearPauliRotations.measure
       ~PiecewiseLinearPauliRotations.measure_active
       ~PiecewiseLinearPauliRotations.measure_all
-      ~PiecewiseLinearPauliRotations.mirror
       ~PiecewiseLinearPauliRotations.ms
       ~PiecewiseLinearPauliRotations.num_connected_components
       ~PiecewiseLinearPauliRotations.num_nonlocal_gates
       ~PiecewiseLinearPauliRotations.num_tensor_factors
       ~PiecewiseLinearPauliRotations.num_unitary_factors
       ~PiecewiseLinearPauliRotations.p
+      ~PiecewiseLinearPauliRotations.pauli
       ~PiecewiseLinearPauliRotations.power
       ~PiecewiseLinearPauliRotations.qasm
       ~PiecewiseLinearPauliRotations.qbit_argument_conversion
@@ -98,6 +98,7 @@
       ~PiecewiseLinearPauliRotations.reset
       ~PiecewiseLinearPauliRotations.reverse_bits
       ~PiecewiseLinearPauliRotations.reverse_ops
+      ~PiecewiseLinearPauliRotations.rv
       ~PiecewiseLinearPauliRotations.rx
       ~PiecewiseLinearPauliRotations.rxx
       ~PiecewiseLinearPauliRotations.ry
@@ -106,7 +107,26 @@
       ~PiecewiseLinearPauliRotations.rzx
       ~PiecewiseLinearPauliRotations.rzz
       ~PiecewiseLinearPauliRotations.s
+      ~PiecewiseLinearPauliRotations.save_amplitudes
+      ~PiecewiseLinearPauliRotations.save_amplitudes_squared
+      ~PiecewiseLinearPauliRotations.save_density_matrix
+      ~PiecewiseLinearPauliRotations.save_expectation_value
+      ~PiecewiseLinearPauliRotations.save_expectation_value_variance
+      ~PiecewiseLinearPauliRotations.save_matrix_product_state
+      ~PiecewiseLinearPauliRotations.save_probabilities
+      ~PiecewiseLinearPauliRotations.save_probabilities_dict
+      ~PiecewiseLinearPauliRotations.save_stabilizer
+      ~PiecewiseLinearPauliRotations.save_state
+      ~PiecewiseLinearPauliRotations.save_statevector
+      ~PiecewiseLinearPauliRotations.save_statevector_dict
+      ~PiecewiseLinearPauliRotations.save_superop
+      ~PiecewiseLinearPauliRotations.save_unitary
       ~PiecewiseLinearPauliRotations.sdg
+      ~PiecewiseLinearPauliRotations.set_density_matrix
+      ~PiecewiseLinearPauliRotations.set_stabilizer
+      ~PiecewiseLinearPauliRotations.set_statevector
+      ~PiecewiseLinearPauliRotations.set_superop
+      ~PiecewiseLinearPauliRotations.set_unitary
       ~PiecewiseLinearPauliRotations.size
       ~PiecewiseLinearPauliRotations.snapshot
       ~PiecewiseLinearPauliRotations.snapshot_density_matrix
@@ -120,6 +140,7 @@
       ~PiecewiseLinearPauliRotations.sxdg
       ~PiecewiseLinearPauliRotations.t
       ~PiecewiseLinearPauliRotations.tdg
+      ~PiecewiseLinearPauliRotations.tensor
       ~PiecewiseLinearPauliRotations.to_gate
       ~PiecewiseLinearPauliRotations.to_instruction
       ~PiecewiseLinearPauliRotations.toffoli
@@ -158,6 +179,7 @@
       ~PiecewiseLinearPauliRotations.instances
       ~PiecewiseLinearPauliRotations.mapped_offsets
       ~PiecewiseLinearPauliRotations.mapped_slopes
+      ~PiecewiseLinearPauliRotations.metadata
       ~PiecewiseLinearPauliRotations.num_ancilla_qubits
       ~PiecewiseLinearPauliRotations.num_ancillas
       ~PiecewiseLinearPauliRotations.num_clbits

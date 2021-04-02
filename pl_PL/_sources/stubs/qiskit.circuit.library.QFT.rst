@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~QFT.__init__
+      ~QFT.add_bits
       ~QFT.add_calibration
       ~QFT.add_register
       ~QFT.append
@@ -48,9 +49,9 @@
       ~QFT.decompose
       ~QFT.delay
       ~QFT.depth
-      ~QFT.diag_gate
       ~QFT.diagonal
       ~QFT.draw
+      ~QFT.ecr
       ~QFT.extend
       ~QFT.fredkin
       ~QFT.from_qasm_file
@@ -66,7 +67,6 @@
       ~QFT.iso
       ~QFT.isometry
       ~QFT.iswap
-      ~QFT.mcmt
       ~QFT.mcp
       ~QFT.mcrx
       ~QFT.mcry
@@ -77,13 +77,13 @@
       ~QFT.measure
       ~QFT.measure_active
       ~QFT.measure_all
-      ~QFT.mirror
       ~QFT.ms
       ~QFT.num_connected_components
       ~QFT.num_nonlocal_gates
       ~QFT.num_tensor_factors
       ~QFT.num_unitary_factors
       ~QFT.p
+      ~QFT.pauli
       ~QFT.power
       ~QFT.qasm
       ~QFT.qbit_argument_conversion
@@ -98,6 +98,7 @@
       ~QFT.reset
       ~QFT.reverse_bits
       ~QFT.reverse_ops
+      ~QFT.rv
       ~QFT.rx
       ~QFT.rxx
       ~QFT.ry
@@ -106,7 +107,26 @@
       ~QFT.rzx
       ~QFT.rzz
       ~QFT.s
+      ~QFT.save_amplitudes
+      ~QFT.save_amplitudes_squared
+      ~QFT.save_density_matrix
+      ~QFT.save_expectation_value
+      ~QFT.save_expectation_value_variance
+      ~QFT.save_matrix_product_state
+      ~QFT.save_probabilities
+      ~QFT.save_probabilities_dict
+      ~QFT.save_stabilizer
+      ~QFT.save_state
+      ~QFT.save_statevector
+      ~QFT.save_statevector_dict
+      ~QFT.save_superop
+      ~QFT.save_unitary
       ~QFT.sdg
+      ~QFT.set_density_matrix
+      ~QFT.set_stabilizer
+      ~QFT.set_statevector
+      ~QFT.set_superop
+      ~QFT.set_unitary
       ~QFT.size
       ~QFT.snapshot
       ~QFT.snapshot_density_matrix
@@ -120,6 +140,7 @@
       ~QFT.sxdg
       ~QFT.t
       ~QFT.tdg
+      ~QFT.tensor
       ~QFT.to_gate
       ~QFT.to_instruction
       ~QFT.toffoli
@@ -156,6 +177,7 @@
       ~QFT.header
       ~QFT.insert_barriers
       ~QFT.instances
+      ~QFT.metadata
       ~QFT.num_ancillas
       ~QFT.num_clbits
       ~QFT.num_parameters

@@ -14,6 +14,8 @@
    .. autosummary::
    
       ~DriveChannel.__init__
+      ~DriveChannel.assign
+      ~DriveChannel.is_parameterized
    
    
 
@@ -25,6 +27,7 @@
    
       ~DriveChannel.index
       ~DriveChannel.name
+      ~DriveChannel.parameters
       ~DriveChannel.prefix
    
    

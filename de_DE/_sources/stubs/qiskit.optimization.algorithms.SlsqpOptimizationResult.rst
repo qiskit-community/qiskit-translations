@@ -28,6 +28,7 @@
       ~SlsqpOptimizationResult.imode
       ~SlsqpOptimizationResult.its
       ~SlsqpOptimizationResult.raw_results
+      ~SlsqpOptimizationResult.samples
       ~SlsqpOptimizationResult.smode
       ~SlsqpOptimizationResult.status
       ~SlsqpOptimizationResult.variable_names

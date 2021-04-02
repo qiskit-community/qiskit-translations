@@ -22,6 +22,7 @@ qiskit.pulse.instructions.ShiftFrequency
       ~ShiftFrequency.draw
       ~ShiftFrequency.flatten
       ~ShiftFrequency.insert
+      ~ShiftFrequency.is_parameterized
       ~ShiftFrequency.shift
    
    
@@ -34,15 +35,14 @@ qiskit.pulse.instructions.ShiftFrequency
    
       ~ShiftFrequency.channel
       ~ShiftFrequency.channels
-      ~ShiftFrequency.command
       ~ShiftFrequency.duration
       ~ShiftFrequency.frequency
       ~ShiftFrequency.id
       ~ShiftFrequency.instructions
       ~ShiftFrequency.name
       ~ShiftFrequency.operands
+      ~ShiftFrequency.parameters
       ~ShiftFrequency.start_time
       ~ShiftFrequency.stop_time
-      ~ShiftFrequency.timeslots
    
    

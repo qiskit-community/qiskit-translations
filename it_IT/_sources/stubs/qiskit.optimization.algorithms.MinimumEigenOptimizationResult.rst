@@ -27,6 +27,7 @@
       ~MinimumEigenOptimizationResult.fval
       ~MinimumEigenOptimizationResult.min_eigen_solver_result
       ~MinimumEigenOptimizationResult.raw_results
+      ~MinimumEigenOptimizationResult.raw_samples
       ~MinimumEigenOptimizationResult.samples
       ~MinimumEigenOptimizationResult.status
       ~MinimumEigenOptimizationResult.variable_names

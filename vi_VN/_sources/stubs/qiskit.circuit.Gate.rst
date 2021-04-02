@@ -27,6 +27,7 @@
       ~Gate.qasm
       ~Gate.repeat
       ~Gate.reverse_ops
+      ~Gate.soft_compare
       ~Gate.to_matrix
       ~Gate.validate_parameter
    

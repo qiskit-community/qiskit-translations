@@ -16,6 +16,7 @@ qiskit.pulse.library.Waveform
       ~Waveform.__init__
       ~Waveform.assign_parameters
       ~Waveform.draw
+      ~Waveform.is_parameterized
    
    
 
@@ -26,6 +27,7 @@ qiskit.pulse.library.Waveform
    .. autosummary::
    
       ~Waveform.id
+      ~Waveform.parameters
       ~Waveform.samples
    
    

@@ -15,8 +15,12 @@
    
       ~QuadraticProgram.__init__
       ~QuadraticProgram.binary_var
+      ~QuadraticProgram.binary_var_dict
+      ~QuadraticProgram.binary_var_list
       ~QuadraticProgram.clear
       ~QuadraticProgram.continuous_var
+      ~QuadraticProgram.continuous_var_dict
+      ~QuadraticProgram.continuous_var_list
       ~QuadraticProgram.export_as_lp_string
       ~QuadraticProgram.from_docplex
       ~QuadraticProgram.from_ising
@@ -31,6 +35,8 @@
       ~QuadraticProgram.get_quadratic_constraint
       ~QuadraticProgram.get_variable
       ~QuadraticProgram.integer_var
+      ~QuadraticProgram.integer_var_dict
+      ~QuadraticProgram.integer_var_list
       ~QuadraticProgram.is_feasible
       ~QuadraticProgram.linear_constraint
       ~QuadraticProgram.maximize

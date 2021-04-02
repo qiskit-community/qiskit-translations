@@ -25,6 +25,7 @@
    
       ~ADMMOptimizationResult.fval
       ~ADMMOptimizationResult.raw_results
+      ~ADMMOptimizationResult.samples
       ~ADMMOptimizationResult.state
       ~ADMMOptimizationResult.status
       ~ADMMOptimizationResult.variable_names

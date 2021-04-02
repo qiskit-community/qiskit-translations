@@ -27,6 +27,7 @@
       ~CRXGate.qasm
       ~CRXGate.repeat
       ~CRXGate.reverse_ops
+      ~CRXGate.soft_compare
       ~CRXGate.to_matrix
       ~CRXGate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~CRXGate.definition
       ~CRXGate.duration
       ~CRXGate.label
+      ~CRXGate.name
       ~CRXGate.num_ctrl_qubits
       ~CRXGate.params
       ~CRXGate.unit

@@ -49,6 +49,7 @@
 
    .. autosummary::
    
+      ~ComposedOp.ENABLE_DEPRECATION
       ~ComposedOp.INDENTATION
       ~ComposedOp.abelian
       ~ComposedOp.coeff

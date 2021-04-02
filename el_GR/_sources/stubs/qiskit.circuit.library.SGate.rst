@@ -27,6 +27,7 @@
       ~SGate.qasm
       ~SGate.repeat
       ~SGate.reverse_ops
+      ~SGate.soft_compare
       ~SGate.to_matrix
       ~SGate.validate_parameter
    

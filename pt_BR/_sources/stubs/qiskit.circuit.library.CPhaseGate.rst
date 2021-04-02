@@ -27,6 +27,7 @@
       ~CPhaseGate.qasm
       ~CPhaseGate.repeat
       ~CPhaseGate.reverse_ops
+      ~CPhaseGate.soft_compare
       ~CPhaseGate.to_matrix
       ~CPhaseGate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~CPhaseGate.definition
       ~CPhaseGate.duration
       ~CPhaseGate.label
+      ~CPhaseGate.name
       ~CPhaseGate.num_ctrl_qubits
       ~CPhaseGate.params
       ~CPhaseGate.unit

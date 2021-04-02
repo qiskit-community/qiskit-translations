@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.assembler.assemble_circuits &mdash; Qiskit 0.24.1 belgelendirmesi</title>
+  <title>qiskit.assembler.assemble_circuits &mdash; Qiskit 0.25.0 belgelendirmesi</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/ibmq-provider.html">Qiskit IBM Kuantum Sağlayıcısı</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Hata Giderme</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Kuantum API hata kodları</a></li>
@@ -368,8 +372,14 @@
             <span class="n">clbit_labels</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">creg</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>
         <span class="n">memory_slots</span> <span class="o">+=</span> <span class="n">creg</span><span class="o">.</span><span class="n">size</span>
 
+    <span class="n">qubit_indices</span> <span class="o">=</span> <span class="p">{</span><span class="n">qubit</span><span class="p">:</span> <span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">qubits</span><span class="p">)}</span>
+    <span class="n">clbit_indices</span> <span class="o">=</span> <span class="p">{</span><span class="n">clbit</span><span class="p">:</span> <span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">clbit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">clbits</span><span class="p">)}</span>
+
     <span class="c1"># TODO: why do we need creq_sizes and qreg_sizes in header</span>
     <span class="c1"># TODO: we need to rethink memory_slots as they are tied to classical bit</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">metadata</span>
+    <span class="k">if</span> <span class="n">metadata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">header</span> <span class="o">=</span> <span class="n">QobjExperimentHeader</span><span class="p">(</span><span class="n">qubit_labels</span><span class="o">=</span><span class="n">qubit_labels</span><span class="p">,</span>
                                   <span class="n">n_qubits</span><span class="o">=</span><span class="n">num_qubits</span><span class="p">,</span>
                                   <span class="n">qreg_sizes</span><span class="o">=</span><span class="n">qreg_sizes</span><span class="p">,</span>
@@ -377,7 +387,8 @@
                                   <span class="n">memory_slots</span><span class="o">=</span><span class="n">memory_slots</span><span class="p">,</span>
                                   <span class="n">creg_sizes</span><span class="o">=</span><span class="n">creg_sizes</span><span class="p">,</span>
                                   <span class="n">name</span><span class="o">=</span><span class="n">circuit</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                                  <span class="n">global_phase</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">global_phase</span><span class="p">))</span>
+                                  <span class="n">global_phase</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">global_phase</span><span class="p">),</span>
+                                  <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
 
     <span class="c1"># TODO: why do we need n_qubits and memory_slots in both the header and the config</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">QasmQobjExperimentConfig</span><span class="p">(</span><span class="n">n_qubits</span><span class="o">=</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">memory_slots</span><span class="o">=</span><span class="n">memory_slots</span><span class="p">)</span>
@@ -403,17 +414,13 @@
         <span class="n">qargs</span> <span class="o">=</span> <span class="n">op_context</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">cargs</span> <span class="o">=</span> <span class="n">op_context</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">qargs</span><span class="p">:</span>
-            <span class="n">qubit_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">qubit_labels</span><span class="o">.</span><span class="n">index</span><span class="p">([</span><span class="n">qubit</span><span class="o">.</span><span class="n">register</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">qubit</span><span class="o">.</span><span class="n">index</span><span class="p">])</span>
-                             <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">]</span>
-            <span class="n">instruction</span><span class="o">.</span><span class="n">qubits</span> <span class="o">=</span> <span class="n">qubit_indices</span>
+            <span class="n">instruction</span><span class="o">.</span><span class="n">qubits</span> <span class="o">=</span> <span class="p">[</span><span class="n">qubit_indices</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">cargs</span><span class="p">:</span>
-            <span class="n">clbit_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">clbit_labels</span><span class="o">.</span><span class="n">index</span><span class="p">([</span><span class="n">clbit</span><span class="o">.</span><span class="n">register</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">clbit</span><span class="o">.</span><span class="n">index</span><span class="p">])</span>
-                             <span class="k">for</span> <span class="n">clbit</span> <span class="ow">in</span> <span class="n">cargs</span><span class="p">]</span>
-            <span class="n">instruction</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="n">clbit_indices</span>
+            <span class="n">instruction</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="p">[</span><span class="n">clbit_indices</span><span class="p">[</span><span class="n">clbit</span><span class="p">]</span> <span class="k">for</span> <span class="n">clbit</span> <span class="ow">in</span> <span class="n">cargs</span><span class="p">]</span>
             <span class="c1"># If the experiment has conditional instructions, assume every</span>
             <span class="c1"># measurement result may be needed for a conditional gate.</span>
             <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;measure&quot;</span> <span class="ow">and</span> <span class="n">is_conditional_experiment</span><span class="p">:</span>
-                <span class="n">instruction</span><span class="o">.</span><span class="n">register</span> <span class="o">=</span> <span class="n">clbit_indices</span>
+                <span class="n">instruction</span><span class="o">.</span><span class="n">register</span> <span class="o">=</span> <span class="p">[</span><span class="n">clbit_indices</span><span class="p">[</span><span class="n">clbit</span><span class="p">]</span> <span class="k">for</span> <span class="n">clbit</span> <span class="ow">in</span> <span class="n">cargs</span><span class="p">]</span>
 
         <span class="c1"># To convert to a qobj-style conditional, insert a bfunc prior</span>
         <span class="c1"># to the conditional instruction to map the creg ?= val condition</span>
@@ -437,7 +444,7 @@
             <span class="n">instruction</span><span class="o">.</span><span class="n">conditional</span> <span class="o">=</span> <span class="n">conditional_reg_idx</span>
             <span class="n">max_conditional_idx</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="c1"># Delete condition attribute now that we have replaced it with</span>
-            <span class="c1"># the conditional and bfuc</span>
+            <span class="c1"># the conditional and bfunc</span>
             <span class="k">del</span> <span class="n">instruction</span><span class="o">.</span><span class="n">_condition</span>
 
         <span class="n">instructions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span>
@@ -717,20 +724,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

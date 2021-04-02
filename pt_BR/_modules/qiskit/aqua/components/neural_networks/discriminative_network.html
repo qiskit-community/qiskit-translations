@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.components.neural_networks.discriminative_network &mdash; documentação Qiskit 0.24.1</title>
+  <title>qiskit.aqua.components.neural_networks.discriminative_network &mdash; documentação Qiskit 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Qiskit IBM Provedor Quântico</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Solução de problemas</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Códigos de erro da API Quantum da IBM</a></li>
@@ -301,7 +305,7 @@
   <h1>Código fonte para qiskit.aqua.components.neural_networks.discriminative_network</h1><div class="highlight"><pre>
 <span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
-<span class="c1"># (C) Copyright IBM 2019, 2020.</span>
+<span class="c1"># (C) Copyright IBM 2019, 2021.</span>
 <span class="c1">#</span>
 <span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
 <span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
@@ -313,8 +317,13 @@
 
 <span class="sd">&quot;&quot;&quot; Discriminative Quantum or Classical Neural Networks.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">QuantumInstance</span>
+<span class="kn">from</span> <span class="nn">...deprecation</span> <span class="kn">import</span> <span class="n">warn_package</span>
 
 
 <div class="viewcode-block" id="DiscriminativeNetwork"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.neural_networks.DiscriminativeNetwork.html#qiskit.aqua.components.neural_networks.DiscriminativeNetwork">[documentos]</a><span class="k">class</span> <span class="nc">DiscriminativeNetwork</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
@@ -329,7 +338,10 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_num_parameters</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>  <span class="c1"># type: List[object]</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>  <span class="c1"># type: List[object]</span>
+        <span class="n">warn_package</span><span class="p">(</span><span class="s1">&#39;aqua.components.neural_networks&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;qiskit_machine_learning.algorithms.distribution_learners.qgan&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;qiskit-machine-learning&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DiscriminativeNetwork.set_seed"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.neural_networks.DiscriminativeNetwork.html#qiskit.aqua.components.neural_networks.DiscriminativeNetwork.set_seed">[documentos]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">set_seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">):</span>
@@ -345,7 +357,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="DiscriminativeNetwork.get_label"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.neural_networks.DiscriminativeNetwork.html#qiskit.aqua.components.neural_networks.DiscriminativeNetwork.get_label">[documentos]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">get_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Apply quantum/classical neural network to the given input sample and compute</span>
 <span class="sd">        the respective data label</span>
@@ -358,15 +370,32 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
+<div class="viewcode-block" id="DiscriminativeNetwork.save_model"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.neural_networks.DiscriminativeNetwork.html#qiskit.aqua.components.neural_networks.DiscriminativeNetwork.save_model">[documentos]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">save_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save discriminator model</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            snapshot_dir: Directory to save the model</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: not implemented</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
 <div class="viewcode-block" id="DiscriminativeNetwork.loss"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.neural_networks.DiscriminativeNetwork.html#qiskit.aqua.components.neural_networks.DiscriminativeNetwork.loss">[documentos]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+             <span class="n">x</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">,</span>
+             <span class="n">y</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">,</span>
+             <span class="n">weights</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loss function used for optimization</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            x (Discriminator): output.</span>
-<span class="sd">            y (Label): the data point</span>
-<span class="sd">            weights (numpy.ndarray): Data weights.</span>
+<span class="sd">            x: output.</span>
+<span class="sd">            y: the data point</span>
+<span class="sd">            weights: Data weights.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Loss w.r.t to the generated data points.</span>
@@ -377,22 +406,27 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="DiscriminativeNetwork.train"><a class="viewcode-back" href="../../../../../stubs/qiskit.aqua.components.neural_networks.DiscriminativeNetwork.html#qiskit.aqua.components.neural_networks.DiscriminativeNetwork.train">[documentos]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">penalty</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+              <span class="n">data</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">,</span>
+              <span class="n">weights</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">,</span>
+              <span class="n">penalty</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+              <span class="n">quantum_instance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">QuantumInstance</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">shots</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Perform one training step w.r.t to the discriminator&#39;s parameters</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            data (numpy.ndarray): Data batch.</span>
-<span class="sd">            weights (numpy.ndarray): Data sample weights.</span>
-<span class="sd">            penalty (bool): Indicate whether or not penalty function</span>
+<span class="sd">            data: Data batch.</span>
+<span class="sd">            weights: Data sample weights.</span>
+<span class="sd">            penalty: Indicate whether or not penalty function</span>
 <span class="sd">               is applied to the loss function. Ignored if no penalty function defined.</span>
 <span class="sd">            quantum_instance (QuantumInstance): used to run Quantum network.</span>
 <span class="sd">               Ignored for a classical network.</span>
-<span class="sd">            shots (int): Number of shots for hardware or qasm execution.</span>
+<span class="sd">            shots: Number of shots for hardware or qasm execution.</span>
 <span class="sd">                Ignored for classical network</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            dict: with Discriminator loss and updated parameters.</span>
+<span class="sd">            dict: with discriminator loss and updated parameters.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: not implemented</span>
@@ -531,20 +565,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

@@ -14,7 +14,6 @@
    .. autosummary::
    
       ~CNOTDihedral.__init__
-      ~CNOTDihedral.add
       ~CNOTDihedral.adjoint
       ~CNOTDihedral.cnot
       ~CNOTDihedral.compose
@@ -26,14 +25,10 @@
       ~CNOTDihedral.from_circuit
       ~CNOTDihedral.input_dims
       ~CNOTDihedral.is_cnotdihedral
-      ~CNOTDihedral.multiply
       ~CNOTDihedral.output_dims
       ~CNOTDihedral.phase
       ~CNOTDihedral.power
       ~CNOTDihedral.reshape
-      ~CNOTDihedral.set_atol
-      ~CNOTDihedral.set_rtol
-      ~CNOTDihedral.subtract
       ~CNOTDihedral.tensor
       ~CNOTDihedral.to_circuit
       ~CNOTDihedral.to_instruction
@@ -49,11 +44,9 @@
 
    .. autosummary::
    
-      ~CNOTDihedral.atol
       ~CNOTDihedral.dim
       ~CNOTDihedral.key
       ~CNOTDihedral.num_qubits
       ~CNOTDihedral.qargs
-      ~CNOTDihedral.rtol
    
    

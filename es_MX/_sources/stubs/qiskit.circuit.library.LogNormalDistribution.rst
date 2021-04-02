@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~LogNormalDistribution.__init__
+      ~LogNormalDistribution.add_bits
       ~LogNormalDistribution.add_calibration
       ~LogNormalDistribution.add_register
       ~LogNormalDistribution.append
@@ -48,9 +49,9 @@
       ~LogNormalDistribution.decompose
       ~LogNormalDistribution.delay
       ~LogNormalDistribution.depth
-      ~LogNormalDistribution.diag_gate
       ~LogNormalDistribution.diagonal
       ~LogNormalDistribution.draw
+      ~LogNormalDistribution.ecr
       ~LogNormalDistribution.extend
       ~LogNormalDistribution.fredkin
       ~LogNormalDistribution.from_qasm_file
@@ -65,7 +66,6 @@
       ~LogNormalDistribution.iso
       ~LogNormalDistribution.isometry
       ~LogNormalDistribution.iswap
-      ~LogNormalDistribution.mcmt
       ~LogNormalDistribution.mcp
       ~LogNormalDistribution.mcrx
       ~LogNormalDistribution.mcry
@@ -76,13 +76,13 @@
       ~LogNormalDistribution.measure
       ~LogNormalDistribution.measure_active
       ~LogNormalDistribution.measure_all
-      ~LogNormalDistribution.mirror
       ~LogNormalDistribution.ms
       ~LogNormalDistribution.num_connected_components
       ~LogNormalDistribution.num_nonlocal_gates
       ~LogNormalDistribution.num_tensor_factors
       ~LogNormalDistribution.num_unitary_factors
       ~LogNormalDistribution.p
+      ~LogNormalDistribution.pauli
       ~LogNormalDistribution.power
       ~LogNormalDistribution.qasm
       ~LogNormalDistribution.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~LogNormalDistribution.reset
       ~LogNormalDistribution.reverse_bits
       ~LogNormalDistribution.reverse_ops
+      ~LogNormalDistribution.rv
       ~LogNormalDistribution.rx
       ~LogNormalDistribution.rxx
       ~LogNormalDistribution.ry
@@ -105,7 +106,26 @@
       ~LogNormalDistribution.rzx
       ~LogNormalDistribution.rzz
       ~LogNormalDistribution.s
+      ~LogNormalDistribution.save_amplitudes
+      ~LogNormalDistribution.save_amplitudes_squared
+      ~LogNormalDistribution.save_density_matrix
+      ~LogNormalDistribution.save_expectation_value
+      ~LogNormalDistribution.save_expectation_value_variance
+      ~LogNormalDistribution.save_matrix_product_state
+      ~LogNormalDistribution.save_probabilities
+      ~LogNormalDistribution.save_probabilities_dict
+      ~LogNormalDistribution.save_stabilizer
+      ~LogNormalDistribution.save_state
+      ~LogNormalDistribution.save_statevector
+      ~LogNormalDistribution.save_statevector_dict
+      ~LogNormalDistribution.save_superop
+      ~LogNormalDistribution.save_unitary
       ~LogNormalDistribution.sdg
+      ~LogNormalDistribution.set_density_matrix
+      ~LogNormalDistribution.set_stabilizer
+      ~LogNormalDistribution.set_statevector
+      ~LogNormalDistribution.set_superop
+      ~LogNormalDistribution.set_unitary
       ~LogNormalDistribution.size
       ~LogNormalDistribution.snapshot
       ~LogNormalDistribution.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~LogNormalDistribution.sxdg
       ~LogNormalDistribution.t
       ~LogNormalDistribution.tdg
+      ~LogNormalDistribution.tensor
       ~LogNormalDistribution.to_gate
       ~LogNormalDistribution.to_instruction
       ~LogNormalDistribution.toffoli
@@ -153,6 +174,7 @@
       ~LogNormalDistribution.global_phase
       ~LogNormalDistribution.header
       ~LogNormalDistribution.instances
+      ~LogNormalDistribution.metadata
       ~LogNormalDistribution.num_ancillas
       ~LogNormalDistribution.num_clbits
       ~LogNormalDistribution.num_parameters

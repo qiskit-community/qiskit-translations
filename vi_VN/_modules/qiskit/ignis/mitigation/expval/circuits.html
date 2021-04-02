@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.ignis.mitigation.expval.circuits &mdash; Tài liệu Qiskit 0.24.1</title>
+  <title>qiskit.ignis.mitigation.expval.circuits &mdash; Tài liệu Qiskit 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Trình cung cấp lượng tử IBM Qiskit</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Xử lí sự cố</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Mã lỗi IBM Quantum API</a></li>
@@ -316,6 +320,7 @@
 <span class="sd">Expectation value measurement error migitation generator.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">ceil</span><span class="p">,</span> <span class="n">log2</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
 
 <span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
@@ -353,11 +358,37 @@
 <span class="sd">          are specified. Ftting will return a</span>
 <span class="sd">          :class:`~qiskit.ignis.mitigation.TensoredExpvalMeasMitigator`. This</span>
 <span class="sd">          method assumes measurement errors are uncorrelated between qubits.</span>
-<span class="sd">        * The ``&#39;CTMP&#39;`` method will generate :math:`n+2` input state circuits</span>
-<span class="sd">          unless custom labels are specified. The default input states are</span>
-<span class="sd">          the all 0 state, the all 1 state, and the :math:`n` state with a</span>
-<span class="sd">          single qubit in the 1 state and all others in the 0 state.</span>
-<span class="sd">          Ftting will return a</span>
+<span class="sd">        * The ``&#39;CTMP&#39;`` method will generate input state circuits,</span>
+<span class="sd">          unless custom labels are specified. The default input states must</span>
+<span class="sd">          obey the following cirterion: for every pair of qubits, projection</span>
+<span class="sd">          of the input states on the two qubits contains all four possible</span>
+<span class="sd">          assignments to the qubits (`00, 01, 10, 11`). For `n&lt;7`, these</span>
+<span class="sd">          would be the all 1 state and the :math:`n` states with a</span>
+<span class="sd">          single qubit in the 1 state and all others in the 0 state (also</span>
+<span class="sd">          the all 0 state, if n&lt;3). For `n&gt;=7`, these would be the all 0</span>
+<span class="sd">          state, the all 1 state, and 2*ceil(log2(n)) states resulting from</span>
+<span class="sd">          the following procedure: For each qubits, write its index in binary</span>
+<span class="sd">          form, horizontically. For example: with 8 qubits `0, 1, 2,..., 7`,</span>
+<span class="sd">          for qubit 7 we write:</span>
+<span class="sd">          1</span>
+<span class="sd">          1</span>
+<span class="sd">          1</span>
+<span class="sd">          And for all 8 qubits, we obtain `ceil(log2(n))=3` lines:</span>
+<span class="sd">          00001111</span>
+<span class="sd">          00110011</span>
+<span class="sd">          01010101</span>
+<span class="sd">          One can see that the every column is the binary form of the column</span>
+<span class="sd">          number.</span>
+<span class="sd">          Then write again, the same lines, negated:</span>
+<span class="sd">          11110000</span>
+<span class="sd">          11001100</span>
+<span class="sd">          10101010</span>
+<span class="sd">          The all 0 and all 1 states guarantee that each pair of qubits has</span>
+<span class="sd">          input states with projections `00` and `11`. The other lines</span>
+<span class="sd">          guarantee the projections `01` and `10` (since the qubits are</span>
+<span class="sd">          different, when written in binary form, there must be a digit</span>
+<span class="sd">          in which they differ).</span>
+<span class="sd">          Fitting will return a</span>
 <span class="sd">          :class:`~qiskit.ignis.mitigation.CTMPExpvalMeasMitigator`.</span>
 
 <span class="sd">    Example:</span>
@@ -454,10 +485,27 @@
             <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">*</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">*</span> <span class="s1">&#39;1&#39;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;CTMP&#39;</span><span class="p">,</span> <span class="s1">&#39;ctmp&#39;</span><span class="p">]:</span>
-            <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">*</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">*</span> <span class="s1">&#39;1&#39;</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">):</span>
-                <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">-</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="s1">&#39;0&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;1&#39;</span> <span class="o">+</span>
-                              <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="s1">&#39;0&#39;</span><span class="p">))</span>
+            <span class="c1"># See details at the docstring of expval_meas_mitigator_circuits</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">&gt;=</span> <span class="mi">7</span><span class="p">:</span>
+                <span class="n">length</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">log2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">))</span>
+                <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">length</span>
+                <span class="n">labels</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">*</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">*</span> <span class="s1">&#39;1&#39;</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">):</span>
+                    <span class="n">bits</span> <span class="o">=</span> <span class="nb">bin</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span>
+                    <span class="n">bits</span> <span class="o">=</span> <span class="p">(</span><span class="n">length</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">bits</span><span class="p">))</span> <span class="o">*</span> <span class="s1">&#39;0&#39;</span> <span class="o">+</span> <span class="n">bits</span>
+                    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bits</span><span class="p">):</span>
+                        <span class="n">labels</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="n">b</span>
+                        <span class="k">if</span> <span class="n">b</span> <span class="o">==</span> <span class="s1">&#39;0&#39;</span><span class="p">:</span>
+                            <span class="n">labels</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="n">length</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="n">length</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;1&#39;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">labels</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="n">length</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="n">length</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;0&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">*</span> <span class="s1">&#39;1&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">*</span> <span class="s1">&#39;0&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span><span class="p">):</span>
+                    <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qubits</span> <span class="o">-</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="s1">&#39;0&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;1&#39;</span> <span class="o">+</span>
+                                  <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="s1">&#39;0&#39;</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">labels</span>
 
         <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;complete&#39;</span><span class="p">:</span>
@@ -627,20 +675,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

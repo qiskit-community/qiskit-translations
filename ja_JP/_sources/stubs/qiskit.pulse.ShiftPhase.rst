@@ -22,6 +22,7 @@
       ~ShiftPhase.draw
       ~ShiftPhase.flatten
       ~ShiftPhase.insert
+      ~ShiftPhase.is_parameterized
       ~ShiftPhase.shift
    
    
@@ -34,15 +35,14 @@
    
       ~ShiftPhase.channel
       ~ShiftPhase.channels
-      ~ShiftPhase.command
       ~ShiftPhase.duration
       ~ShiftPhase.id
       ~ShiftPhase.instructions
       ~ShiftPhase.name
       ~ShiftPhase.operands
+      ~ShiftPhase.parameters
       ~ShiftPhase.phase
       ~ShiftPhase.start_time
       ~ShiftPhase.stop_time
-      ~ShiftPhase.timeslots
    
    

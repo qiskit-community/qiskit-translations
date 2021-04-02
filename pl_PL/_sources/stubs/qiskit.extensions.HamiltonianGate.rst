@@ -29,6 +29,7 @@
       ~HamiltonianGate.qasm
       ~HamiltonianGate.repeat
       ~HamiltonianGate.reverse_ops
+      ~HamiltonianGate.soft_compare
       ~HamiltonianGate.to_matrix
       ~HamiltonianGate.transpose
       ~HamiltonianGate.validate_parameter

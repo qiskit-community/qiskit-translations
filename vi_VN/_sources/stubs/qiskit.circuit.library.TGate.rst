@@ -27,6 +27,7 @@
       ~TGate.qasm
       ~TGate.repeat
       ~TGate.reverse_ops
+      ~TGate.soft_compare
       ~TGate.to_matrix
       ~TGate.validate_parameter
    

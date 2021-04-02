@@ -47,6 +47,7 @@
 
    .. autosummary::
    
+      ~ListOp.ENABLE_DEPRECATION
       ~ListOp.INDENTATION
       ~ListOp.abelian
       ~ListOp.coeff

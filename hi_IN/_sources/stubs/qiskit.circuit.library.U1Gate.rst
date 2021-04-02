@@ -27,6 +27,7 @@
       ~U1Gate.qasm
       ~U1Gate.repeat
       ~U1Gate.reverse_ops
+      ~U1Gate.soft_compare
       ~U1Gate.to_matrix
       ~U1Gate.validate_parameter
    

@@ -14,10 +14,10 @@
    .. autosummary::
    
       ~DensityMatrix.__init__
-      ~DensityMatrix.add
       ~DensityMatrix.conjugate
       ~DensityMatrix.copy
       ~DensityMatrix.dims
+      ~DensityMatrix.draw
       ~DensityMatrix.evolve
       ~DensityMatrix.expand
       ~DensityMatrix.expectation_value
@@ -26,19 +26,15 @@
       ~DensityMatrix.from_label
       ~DensityMatrix.is_valid
       ~DensityMatrix.measure
-      ~DensityMatrix.multiply
       ~DensityMatrix.probabilities
       ~DensityMatrix.probabilities_dict
       ~DensityMatrix.purity
       ~DensityMatrix.reset
+      ~DensityMatrix.reverse_qargs
       ~DensityMatrix.sample_counts
       ~DensityMatrix.sample_memory
       ~DensityMatrix.seed
-      ~DensityMatrix.set_atol
-      ~DensityMatrix.set_rtol
-      ~DensityMatrix.subtract
       ~DensityMatrix.tensor
-      ~DensityMatrix.to_counts
       ~DensityMatrix.to_dict
       ~DensityMatrix.to_operator
       ~DensityMatrix.to_statevector

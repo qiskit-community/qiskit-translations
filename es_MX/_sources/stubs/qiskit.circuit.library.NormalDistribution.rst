@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~NormalDistribution.__init__
+      ~NormalDistribution.add_bits
       ~NormalDistribution.add_calibration
       ~NormalDistribution.add_register
       ~NormalDistribution.append
@@ -48,9 +49,9 @@
       ~NormalDistribution.decompose
       ~NormalDistribution.delay
       ~NormalDistribution.depth
-      ~NormalDistribution.diag_gate
       ~NormalDistribution.diagonal
       ~NormalDistribution.draw
+      ~NormalDistribution.ecr
       ~NormalDistribution.extend
       ~NormalDistribution.fredkin
       ~NormalDistribution.from_qasm_file
@@ -65,7 +66,6 @@
       ~NormalDistribution.iso
       ~NormalDistribution.isometry
       ~NormalDistribution.iswap
-      ~NormalDistribution.mcmt
       ~NormalDistribution.mcp
       ~NormalDistribution.mcrx
       ~NormalDistribution.mcry
@@ -76,13 +76,13 @@
       ~NormalDistribution.measure
       ~NormalDistribution.measure_active
       ~NormalDistribution.measure_all
-      ~NormalDistribution.mirror
       ~NormalDistribution.ms
       ~NormalDistribution.num_connected_components
       ~NormalDistribution.num_nonlocal_gates
       ~NormalDistribution.num_tensor_factors
       ~NormalDistribution.num_unitary_factors
       ~NormalDistribution.p
+      ~NormalDistribution.pauli
       ~NormalDistribution.power
       ~NormalDistribution.qasm
       ~NormalDistribution.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~NormalDistribution.reset
       ~NormalDistribution.reverse_bits
       ~NormalDistribution.reverse_ops
+      ~NormalDistribution.rv
       ~NormalDistribution.rx
       ~NormalDistribution.rxx
       ~NormalDistribution.ry
@@ -105,7 +106,26 @@
       ~NormalDistribution.rzx
       ~NormalDistribution.rzz
       ~NormalDistribution.s
+      ~NormalDistribution.save_amplitudes
+      ~NormalDistribution.save_amplitudes_squared
+      ~NormalDistribution.save_density_matrix
+      ~NormalDistribution.save_expectation_value
+      ~NormalDistribution.save_expectation_value_variance
+      ~NormalDistribution.save_matrix_product_state
+      ~NormalDistribution.save_probabilities
+      ~NormalDistribution.save_probabilities_dict
+      ~NormalDistribution.save_stabilizer
+      ~NormalDistribution.save_state
+      ~NormalDistribution.save_statevector
+      ~NormalDistribution.save_statevector_dict
+      ~NormalDistribution.save_superop
+      ~NormalDistribution.save_unitary
       ~NormalDistribution.sdg
+      ~NormalDistribution.set_density_matrix
+      ~NormalDistribution.set_stabilizer
+      ~NormalDistribution.set_statevector
+      ~NormalDistribution.set_superop
+      ~NormalDistribution.set_unitary
       ~NormalDistribution.size
       ~NormalDistribution.snapshot
       ~NormalDistribution.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~NormalDistribution.sxdg
       ~NormalDistribution.t
       ~NormalDistribution.tdg
+      ~NormalDistribution.tensor
       ~NormalDistribution.to_gate
       ~NormalDistribution.to_instruction
       ~NormalDistribution.toffoli
@@ -153,6 +174,7 @@
       ~NormalDistribution.global_phase
       ~NormalDistribution.header
       ~NormalDistribution.instances
+      ~NormalDistribution.metadata
       ~NormalDistribution.num_ancillas
       ~NormalDistribution.num_clbits
       ~NormalDistribution.num_parameters

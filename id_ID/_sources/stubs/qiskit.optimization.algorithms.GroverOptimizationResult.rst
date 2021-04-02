@@ -29,6 +29,7 @@
       ~GroverOptimizationResult.n_output_qubits
       ~GroverOptimizationResult.operation_counts
       ~GroverOptimizationResult.raw_results
+      ~GroverOptimizationResult.samples
       ~GroverOptimizationResult.status
       ~GroverOptimizationResult.threshold
       ~GroverOptimizationResult.variable_names

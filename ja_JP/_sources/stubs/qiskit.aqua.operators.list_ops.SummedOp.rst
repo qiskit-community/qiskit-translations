@@ -50,6 +50,7 @@
 
    .. autosummary::
    
+      ~SummedOp.ENABLE_DEPRECATION
       ~SummedOp.INDENTATION
       ~SummedOp.abelian
       ~SummedOp.coeff

@@ -27,6 +27,7 @@
       ~CYGate.qasm
       ~CYGate.repeat
       ~CYGate.reverse_ops
+      ~CYGate.soft_compare
       ~CYGate.to_matrix
       ~CYGate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~CYGate.definition
       ~CYGate.duration
       ~CYGate.label
+      ~CYGate.name
       ~CYGate.num_ctrl_qubits
       ~CYGate.params
       ~CYGate.unit

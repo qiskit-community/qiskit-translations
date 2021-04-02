@@ -19,8 +19,11 @@
       ~CVaRMeasurement.assign_parameters
       ~CVaRMeasurement.bind_parameters
       ~CVaRMeasurement.compose
+      ~CVaRMeasurement.compute_cvar
       ~CVaRMeasurement.equals
       ~CVaRMeasurement.eval
+      ~CVaRMeasurement.eval_variance
+      ~CVaRMeasurement.get_outcome_energies_probabilities
       ~CVaRMeasurement.mul
       ~CVaRMeasurement.neg
       ~CVaRMeasurement.permute
@@ -45,6 +48,7 @@
 
    .. autosummary::
    
+      ~CVaRMeasurement.ENABLE_DEPRECATION
       ~CVaRMeasurement.INDENTATION
       ~CVaRMeasurement.alpha
       ~CVaRMeasurement.coeff

@@ -27,6 +27,7 @@
       ~RYGate.qasm
       ~RYGate.repeat
       ~RYGate.reverse_ops
+      ~RYGate.soft_compare
       ~RYGate.to_matrix
       ~RYGate.validate_parameter
    

@@ -14,10 +14,11 @@ qiskit.pulse.library.GaussianSquare
    .. autosummary::
    
       ~GaussianSquare.__init__
+      ~GaussianSquare.assign
       ~GaussianSquare.assign_parameters
       ~GaussianSquare.draw
-      ~GaussianSquare.get_sample_pulse
       ~GaussianSquare.get_waveform
+      ~GaussianSquare.is_parameterized
       ~GaussianSquare.validate_parameters
    
    

@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~LinearPauliRotations.__init__
+      ~LinearPauliRotations.add_bits
       ~LinearPauliRotations.add_calibration
       ~LinearPauliRotations.add_register
       ~LinearPauliRotations.append
@@ -48,9 +49,9 @@
       ~LinearPauliRotations.decompose
       ~LinearPauliRotations.delay
       ~LinearPauliRotations.depth
-      ~LinearPauliRotations.diag_gate
       ~LinearPauliRotations.diagonal
       ~LinearPauliRotations.draw
+      ~LinearPauliRotations.ecr
       ~LinearPauliRotations.extend
       ~LinearPauliRotations.fredkin
       ~LinearPauliRotations.from_qasm_file
@@ -65,7 +66,6 @@
       ~LinearPauliRotations.iso
       ~LinearPauliRotations.isometry
       ~LinearPauliRotations.iswap
-      ~LinearPauliRotations.mcmt
       ~LinearPauliRotations.mcp
       ~LinearPauliRotations.mcrx
       ~LinearPauliRotations.mcry
@@ -76,13 +76,13 @@
       ~LinearPauliRotations.measure
       ~LinearPauliRotations.measure_active
       ~LinearPauliRotations.measure_all
-      ~LinearPauliRotations.mirror
       ~LinearPauliRotations.ms
       ~LinearPauliRotations.num_connected_components
       ~LinearPauliRotations.num_nonlocal_gates
       ~LinearPauliRotations.num_tensor_factors
       ~LinearPauliRotations.num_unitary_factors
       ~LinearPauliRotations.p
+      ~LinearPauliRotations.pauli
       ~LinearPauliRotations.power
       ~LinearPauliRotations.qasm
       ~LinearPauliRotations.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~LinearPauliRotations.reset
       ~LinearPauliRotations.reverse_bits
       ~LinearPauliRotations.reverse_ops
+      ~LinearPauliRotations.rv
       ~LinearPauliRotations.rx
       ~LinearPauliRotations.rxx
       ~LinearPauliRotations.ry
@@ -105,7 +106,26 @@
       ~LinearPauliRotations.rzx
       ~LinearPauliRotations.rzz
       ~LinearPauliRotations.s
+      ~LinearPauliRotations.save_amplitudes
+      ~LinearPauliRotations.save_amplitudes_squared
+      ~LinearPauliRotations.save_density_matrix
+      ~LinearPauliRotations.save_expectation_value
+      ~LinearPauliRotations.save_expectation_value_variance
+      ~LinearPauliRotations.save_matrix_product_state
+      ~LinearPauliRotations.save_probabilities
+      ~LinearPauliRotations.save_probabilities_dict
+      ~LinearPauliRotations.save_stabilizer
+      ~LinearPauliRotations.save_state
+      ~LinearPauliRotations.save_statevector
+      ~LinearPauliRotations.save_statevector_dict
+      ~LinearPauliRotations.save_superop
+      ~LinearPauliRotations.save_unitary
       ~LinearPauliRotations.sdg
+      ~LinearPauliRotations.set_density_matrix
+      ~LinearPauliRotations.set_stabilizer
+      ~LinearPauliRotations.set_statevector
+      ~LinearPauliRotations.set_superop
+      ~LinearPauliRotations.set_unitary
       ~LinearPauliRotations.size
       ~LinearPauliRotations.snapshot
       ~LinearPauliRotations.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~LinearPauliRotations.sxdg
       ~LinearPauliRotations.t
       ~LinearPauliRotations.tdg
+      ~LinearPauliRotations.tensor
       ~LinearPauliRotations.to_gate
       ~LinearPauliRotations.to_instruction
       ~LinearPauliRotations.toffoli
@@ -153,6 +174,7 @@
       ~LinearPauliRotations.global_phase
       ~LinearPauliRotations.header
       ~LinearPauliRotations.instances
+      ~LinearPauliRotations.metadata
       ~LinearPauliRotations.num_ancilla_qubits
       ~LinearPauliRotations.num_ancillas
       ~LinearPauliRotations.num_clbits

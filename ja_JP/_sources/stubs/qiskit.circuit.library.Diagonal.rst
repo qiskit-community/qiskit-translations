@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~Diagonal.__init__
+      ~Diagonal.add_bits
       ~Diagonal.add_calibration
       ~Diagonal.add_register
       ~Diagonal.append
@@ -48,9 +49,9 @@
       ~Diagonal.decompose
       ~Diagonal.delay
       ~Diagonal.depth
-      ~Diagonal.diag_gate
       ~Diagonal.diagonal
       ~Diagonal.draw
+      ~Diagonal.ecr
       ~Diagonal.extend
       ~Diagonal.fredkin
       ~Diagonal.from_qasm_file
@@ -65,7 +66,6 @@
       ~Diagonal.iso
       ~Diagonal.isometry
       ~Diagonal.iswap
-      ~Diagonal.mcmt
       ~Diagonal.mcp
       ~Diagonal.mcrx
       ~Diagonal.mcry
@@ -76,13 +76,13 @@
       ~Diagonal.measure
       ~Diagonal.measure_active
       ~Diagonal.measure_all
-      ~Diagonal.mirror
       ~Diagonal.ms
       ~Diagonal.num_connected_components
       ~Diagonal.num_nonlocal_gates
       ~Diagonal.num_tensor_factors
       ~Diagonal.num_unitary_factors
       ~Diagonal.p
+      ~Diagonal.pauli
       ~Diagonal.power
       ~Diagonal.qasm
       ~Diagonal.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~Diagonal.reset
       ~Diagonal.reverse_bits
       ~Diagonal.reverse_ops
+      ~Diagonal.rv
       ~Diagonal.rx
       ~Diagonal.rxx
       ~Diagonal.ry
@@ -105,7 +106,26 @@
       ~Diagonal.rzx
       ~Diagonal.rzz
       ~Diagonal.s
+      ~Diagonal.save_amplitudes
+      ~Diagonal.save_amplitudes_squared
+      ~Diagonal.save_density_matrix
+      ~Diagonal.save_expectation_value
+      ~Diagonal.save_expectation_value_variance
+      ~Diagonal.save_matrix_product_state
+      ~Diagonal.save_probabilities
+      ~Diagonal.save_probabilities_dict
+      ~Diagonal.save_stabilizer
+      ~Diagonal.save_state
+      ~Diagonal.save_statevector
+      ~Diagonal.save_statevector_dict
+      ~Diagonal.save_superop
+      ~Diagonal.save_unitary
       ~Diagonal.sdg
+      ~Diagonal.set_density_matrix
+      ~Diagonal.set_stabilizer
+      ~Diagonal.set_statevector
+      ~Diagonal.set_superop
+      ~Diagonal.set_unitary
       ~Diagonal.size
       ~Diagonal.snapshot
       ~Diagonal.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~Diagonal.sxdg
       ~Diagonal.t
       ~Diagonal.tdg
+      ~Diagonal.tensor
       ~Diagonal.to_gate
       ~Diagonal.to_instruction
       ~Diagonal.toffoli
@@ -152,6 +173,7 @@
       ~Diagonal.global_phase
       ~Diagonal.header
       ~Diagonal.instances
+      ~Diagonal.metadata
       ~Diagonal.num_ancillas
       ~Diagonal.num_clbits
       ~Diagonal.num_parameters

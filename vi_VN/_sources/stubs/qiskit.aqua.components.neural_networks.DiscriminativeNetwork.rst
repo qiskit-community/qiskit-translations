@@ -16,6 +16,7 @@
       ~DiscriminativeNetwork.__init__
       ~DiscriminativeNetwork.get_label
       ~DiscriminativeNetwork.loss
+      ~DiscriminativeNetwork.save_model
       ~DiscriminativeNetwork.set_seed
       ~DiscriminativeNetwork.train
    

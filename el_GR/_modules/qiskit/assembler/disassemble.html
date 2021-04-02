@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.assembler.disassemble &mdash; Τεκμηρίωση του Qiskit - 0.24.1</title>
+  <title>qiskit.assembler.disassemble &mdash; Τεκμηρίωση του Qiskit - 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Troubleshooting</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Quantum API error codes</a></li>
@@ -320,7 +324,6 @@
 <span class="kn">from</span> <span class="nn">qiskit.circuit.instruction</span> <span class="kn">import</span> <span class="n">Instruction</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumcircuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumregister</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
-<span class="kn">from</span> <span class="nn">qiskit.pulse.schedule</span> <span class="kn">import</span> <span class="n">ParameterizedSchedule</span>
 <span class="kn">from</span> <span class="nn">qiskit.qobj.converters</span> <span class="kn">import</span> <span class="n">QobjToInstructionConverter</span>
 
 <span class="c1"># A ``CircuitModule`` is a representation of a circuit execution on the backend.</span>
@@ -382,97 +385,94 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        list: A list of QuantumCircuit objects from the qobj</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">qobj</span><span class="o">.</span><span class="n">experiments</span><span class="p">:</span>
-        <span class="n">circuits</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">qobj</span><span class="o">.</span><span class="n">experiments</span><span class="p">:</span>
-            <span class="n">quantum_registers</span> <span class="o">=</span> <span class="p">[</span><span class="n">QuantumRegister</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">qreg_sizes</span><span class="p">]</span>
-            <span class="n">classical_registers</span> <span class="o">=</span> <span class="p">[</span><span class="n">ClassicalRegister</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                                   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">creg_sizes</span><span class="p">]</span>
-            <span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="o">*</span><span class="n">quantum_registers</span><span class="p">,</span>
-                                     <span class="o">*</span><span class="n">classical_registers</span><span class="p">,</span>
-                                     <span class="n">name</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="n">qreg_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
-            <span class="n">creg_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">reg</span> <span class="ow">in</span> <span class="n">quantum_registers</span><span class="p">:</span>
-                <span class="n">qreg_dict</span><span class="p">[</span><span class="n">reg</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reg</span>
-            <span class="k">for</span> <span class="n">reg</span> <span class="ow">in</span> <span class="n">classical_registers</span><span class="p">:</span>
-                <span class="n">creg_dict</span><span class="p">[</span><span class="n">reg</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reg</span>
-            <span class="n">conditional</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">instructions</span><span class="p">:</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span>
-                <span class="n">qubits</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="n">params</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;params&#39;</span><span class="p">,</span> <span class="p">[])</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">qubits</span><span class="p">:</span>
-                        <span class="n">qubit_label</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">qubit_labels</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span>
-                        <span class="n">qubits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                            <span class="n">qreg_dict</span><span class="p">[</span><span class="n">qubit_label</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">qubit_label</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
-                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
-                    <span class="k">pass</span>
-                <span class="n">clbits</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">clbit</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">memory</span><span class="p">:</span>
-                        <span class="n">clbit_label</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">clbit_labels</span><span class="p">[</span><span class="n">clbit</span><span class="p">]</span>
-                        <span class="n">clbits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                            <span class="n">creg_dict</span><span class="p">[</span><span class="n">clbit_label</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">clbit_label</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
-                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
-                    <span class="k">pass</span>
-                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-                    <span class="n">instr_method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;snapshot&#39;</span><span class="p">]:</span>
-                        <span class="n">_inst</span> <span class="o">=</span> <span class="n">instr_method</span><span class="p">(</span>
-                            <span class="n">i</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
-                            <span class="n">snapshot_type</span><span class="o">=</span><span class="n">i</span><span class="o">.</span><span class="n">snapshot_type</span><span class="p">,</span>
-                            <span class="n">qubits</span><span class="o">=</span><span class="n">qubits</span><span class="p">,</span>
-                            <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
-                    <span class="k">elif</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;initialize&#39;</span><span class="p">:</span>
-                        <span class="n">_inst</span> <span class="o">=</span> <span class="n">instr_method</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">qubits</span><span class="p">)</span>
-                    <span class="k">elif</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;isometry&#39;</span><span class="p">:</span>
-                        <span class="n">_inst</span> <span class="o">=</span> <span class="n">instr_method</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="p">,</span> <span class="n">qubits</span><span class="p">,</span> <span class="n">clbits</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">_inst</span> <span class="o">=</span> <span class="n">instr_method</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="p">,</span> <span class="o">*</span><span class="n">qubits</span><span class="p">,</span> <span class="o">*</span><span class="n">clbits</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;bfunc&#39;</span><span class="p">:</span>
-                    <span class="n">conditional</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">val</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
-                    <span class="n">full_bit_size</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">creg_dict</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">creg_dict</span><span class="p">])</span>
-                    <span class="n">mask_map</span> <span class="o">=</span> <span class="p">{}</span>
-                    <span class="n">raw_map</span> <span class="o">=</span> <span class="p">{}</span>
-                    <span class="n">raw</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">qobj</span><span class="o">.</span><span class="n">experiments</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
 
-                    <span class="k">for</span> <span class="n">creg</span> <span class="ow">in</span> <span class="n">creg_dict</span><span class="p">:</span>
-                        <span class="n">size</span> <span class="o">=</span> <span class="n">creg_dict</span><span class="p">[</span><span class="n">creg</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
-                        <span class="n">reg_raw</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">size</span>
-                        <span class="k">if</span> <span class="ow">not</span> <span class="n">raw</span><span class="p">:</span>
-                            <span class="n">raw</span> <span class="o">=</span> <span class="n">reg_raw</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">raw</span><span class="p">):</span>
-                                <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                                    <span class="n">raw</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-                            <span class="n">raw</span> <span class="o">=</span> <span class="n">reg_raw</span> <span class="o">+</span> <span class="n">raw</span>
-                        <span class="n">mask</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">full_bit_size</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw</span><span class="p">))</span> <span class="o">+</span> <span class="n">raw</span>
-                        <span class="n">raw_map</span><span class="p">[</span><span class="n">creg</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask</span>
-                        <span class="n">mask_map</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mask</span><span class="p">),</span> <span class="mi">2</span><span class="p">)]</span> <span class="o">=</span> <span class="n">creg</span>
-                    <span class="n">creg</span> <span class="o">=</span> <span class="n">mask_map</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="mi">16</span><span class="p">)]</span>
-                    <span class="n">conditional</span><span class="p">[</span><span class="s1">&#39;register&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">creg_dict</span><span class="p">[</span><span class="n">creg</span><span class="p">]</span>
-                    <span class="n">val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">val</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
-                    <span class="n">mask</span> <span class="o">=</span> <span class="n">raw_map</span><span class="p">[</span><span class="n">creg</span><span class="p">]</span>
-                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
-                        <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                            <span class="n">val</span> <span class="o">=</span> <span class="n">val</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">conditional</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
-                            <span class="k">break</span>
+    <span class="n">circuits</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">exp</span> <span class="ow">in</span> <span class="n">qobj</span><span class="o">.</span><span class="n">experiments</span><span class="p">:</span>
+        <span class="n">quantum_registers</span> <span class="o">=</span> <span class="p">[</span><span class="n">QuantumRegister</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">exp</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">qreg_sizes</span><span class="p">]</span>
+        <span class="n">classical_registers</span> <span class="o">=</span> <span class="p">[</span><span class="n">ClassicalRegister</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">exp</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">creg_sizes</span><span class="p">]</span>
+        <span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="o">*</span><span class="n">quantum_registers</span><span class="p">,</span> <span class="o">*</span><span class="n">classical_registers</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">exp</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">qreg_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">creg_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">reg</span> <span class="ow">in</span> <span class="n">quantum_registers</span><span class="p">:</span>
+            <span class="n">qreg_dict</span><span class="p">[</span><span class="n">reg</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reg</span>
+        <span class="k">for</span> <span class="n">reg</span> <span class="ow">in</span> <span class="n">classical_registers</span><span class="p">:</span>
+            <span class="n">creg_dict</span><span class="p">[</span><span class="n">reg</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reg</span>
+        <span class="n">conditional</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">exp</span><span class="o">.</span><span class="n">instructions</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">qubits</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;params&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">qubits</span><span class="p">:</span>
+                    <span class="n">qubit_label</span> <span class="o">=</span> <span class="n">exp</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">qubit_labels</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span>
+                    <span class="n">qubits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">qreg_dict</span><span class="p">[</span><span class="n">qubit_label</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">qubit_label</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
+                <span class="k">pass</span>
+            <span class="n">clbits</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">clbit</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">memory</span><span class="p">:</span>
+                    <span class="n">clbit_label</span> <span class="o">=</span> <span class="n">exp</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">clbit_labels</span><span class="p">[</span><span class="n">clbit</span><span class="p">]</span>
+                    <span class="n">clbits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">creg_dict</span><span class="p">[</span><span class="n">clbit_label</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">clbit_label</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
+                <span class="k">pass</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+                <span class="n">instr_method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;snapshot&#39;</span><span class="p">]:</span>
+                    <span class="n">_inst</span> <span class="o">=</span> <span class="n">instr_method</span><span class="p">(</span>
+                        <span class="n">i</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+                        <span class="n">snapshot_type</span><span class="o">=</span><span class="n">i</span><span class="o">.</span><span class="n">snapshot_type</span><span class="p">,</span>
+                        <span class="n">qubits</span><span class="o">=</span><span class="n">qubits</span><span class="p">,</span>
+                        <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;initialize&#39;</span><span class="p">:</span>
+                    <span class="n">_inst</span> <span class="o">=</span> <span class="n">instr_method</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">qubits</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;isometry&#39;</span><span class="p">:</span>
+                    <span class="n">_inst</span> <span class="o">=</span> <span class="n">instr_method</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="p">,</span> <span class="n">qubits</span><span class="p">,</span> <span class="n">clbits</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">_inst</span> <span class="o">=</span> <span class="n">temp_opaque_instruction</span> <span class="o">=</span> <span class="n">Instruction</span><span class="p">(</span>
-                        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">num_qubits</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">qubits</span><span class="p">),</span>
-                        <span class="n">num_clbits</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">clbits</span><span class="p">),</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
-                    <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_opaque_instruction</span><span class="p">,</span> <span class="n">qubits</span><span class="p">,</span> <span class="n">clbits</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">conditional</span> <span class="ow">and</span> <span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;bfunc&#39;</span><span class="p">:</span>
-                    <span class="n">_inst</span><span class="o">.</span><span class="n">c_if</span><span class="p">(</span><span class="n">conditional</span><span class="p">[</span><span class="s1">&#39;register&#39;</span><span class="p">],</span> <span class="n">conditional</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
-                    <span class="n">conditional</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">circuits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">circuits</span>
-    <span class="k">return</span> <span class="kc">None</span>
+                    <span class="n">_inst</span> <span class="o">=</span> <span class="n">instr_method</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="p">,</span> <span class="o">*</span><span class="n">qubits</span><span class="p">,</span> <span class="o">*</span><span class="n">clbits</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;bfunc&#39;</span><span class="p">:</span>
+                <span class="n">conditional</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">val</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+                <span class="n">full_bit_size</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">creg_dict</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">creg_dict</span><span class="p">])</span>
+                <span class="n">mask_map</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">raw_map</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">raw</span> <span class="o">=</span> <span class="p">[]</span>
+
+                <span class="k">for</span> <span class="n">creg</span> <span class="ow">in</span> <span class="n">creg_dict</span><span class="p">:</span>
+                    <span class="n">size</span> <span class="o">=</span> <span class="n">creg_dict</span><span class="p">[</span><span class="n">creg</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+                    <span class="n">reg_raw</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">size</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">raw</span><span class="p">:</span>
+                        <span class="n">raw</span> <span class="o">=</span> <span class="n">reg_raw</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">raw</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="n">raw</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="n">raw</span> <span class="o">=</span> <span class="n">reg_raw</span> <span class="o">+</span> <span class="n">raw</span>
+                    <span class="n">mask</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">full_bit_size</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw</span><span class="p">))</span> <span class="o">+</span> <span class="n">raw</span>
+                    <span class="n">raw_map</span><span class="p">[</span><span class="n">creg</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask</span>
+                    <span class="n">mask_map</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mask</span><span class="p">),</span> <span class="mi">2</span><span class="p">)]</span> <span class="o">=</span> <span class="n">creg</span>
+                <span class="n">creg</span> <span class="o">=</span> <span class="n">mask_map</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="mi">16</span><span class="p">)]</span>
+                <span class="n">conditional</span><span class="p">[</span><span class="s1">&#39;register&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">creg_dict</span><span class="p">[</span><span class="n">creg</span><span class="p">]</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">val</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">raw_map</span><span class="p">[</span><span class="n">creg</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">val</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">conditional</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                        <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_inst</span> <span class="o">=</span> <span class="n">temp_opaque_instruction</span> <span class="o">=</span> <span class="n">Instruction</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">num_qubits</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">qubits</span><span class="p">),</span>
+                    <span class="n">num_clbits</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">clbits</span><span class="p">),</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+                <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_opaque_instruction</span><span class="p">,</span> <span class="n">qubits</span><span class="p">,</span> <span class="n">clbits</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">conditional</span> <span class="ow">and</span> <span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;bfunc&#39;</span><span class="p">:</span>
+                <span class="n">_inst</span><span class="o">.</span><span class="n">c_if</span><span class="p">(</span><span class="n">conditional</span><span class="p">[</span><span class="s1">&#39;register&#39;</span><span class="p">],</span> <span class="n">conditional</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+                <span class="n">conditional</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">circuits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">circuits</span>
 
 
 <span class="k">def</span> <span class="nf">_disassemble_pulse_schedule</span><span class="p">(</span><span class="n">qobj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PulseModule</span><span class="p">:</span>
@@ -528,11 +528,7 @@
     <span class="k">for</span> <span class="n">program</span> <span class="ow">in</span> <span class="n">qobj</span><span class="o">.</span><span class="n">experiments</span><span class="p">:</span>
         <span class="n">insts</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">inst</span> <span class="ow">in</span> <span class="n">program</span><span class="o">.</span><span class="n">instructions</span><span class="p">:</span>
-            <span class="n">pulse_inst</span> <span class="o">=</span> <span class="n">converter</span><span class="p">(</span><span class="n">inst</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pulse_inst</span><span class="p">,</span> <span class="n">ParameterizedSchedule</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="n">pulse</span><span class="o">.</span><span class="n">PulseError</span><span class="p">(</span><span class="s1">&#39;Parameterized instructions are not &#39;</span>
-                                       <span class="s1">&#39;yet supported in the pulse schedule.&#39;</span><span class="p">)</span>
-            <span class="n">insts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pulse_inst</span><span class="p">)</span>
+            <span class="n">insts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">converter</span><span class="p">(</span><span class="n">inst</span><span class="p">))</span>
 
         <span class="n">schedule</span> <span class="o">=</span> <span class="n">pulse</span><span class="o">.</span><span class="n">Schedule</span><span class="p">(</span><span class="o">*</span><span class="n">insts</span><span class="p">)</span>
         <span class="n">schedules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">schedule</span><span class="p">)</span>
@@ -669,20 +665,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

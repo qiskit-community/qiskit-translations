@@ -27,6 +27,7 @@
       ~RZXGate.qasm
       ~RZXGate.repeat
       ~RZXGate.reverse_ops
+      ~RZXGate.soft_compare
       ~RZXGate.to_matrix
       ~RZXGate.validate_parameter
    

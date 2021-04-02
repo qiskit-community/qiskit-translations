@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.circuit.library.arithmetic.polynomial_pauli_rotations &mdash; Tài liệu Qiskit 0.24.1</title>
+  <title>qiskit.circuit.library.arithmetic.polynomial_pauli_rotations &mdash; Tài liệu Qiskit 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Trình cung cấp lượng tử IBM Qiskit</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Xử lí sự cố</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Mã lỗi IBM Quantum API</a></li>
@@ -320,7 +324,7 @@
 
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
 
-<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">AncillaRegister</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.exceptions</span> <span class="kn">import</span> <span class="n">CircuitError</span>
 
 <span class="kn">from</span> <span class="nn">.functional_pauli_rotations</span> <span class="kn">import</span> <span class="n">FunctionalPauliRotations</span>
@@ -343,7 +347,7 @@
 
 
 <span class="k">def</span> <span class="nf">_large_coefficients_iter</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;&quot;Return an iterator of multinomial coefficientss</span>
+    <span class="sd">&quot;&quot;&quot;&quot;Return an iterator of multinomial coefficients</span>
 
 <span class="sd">    Based-on/forked from sympy&#39;s multinomial_coefficients_iterator() function [#]</span>
 
@@ -389,7 +393,7 @@
 
 
 <span class="k">def</span> <span class="nf">_multinomial_coefficients</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;&quot;Return an iterator of multinomial coefficientss</span>
+    <span class="sd">&quot;&quot;&quot;&quot;Return an iterator of multinomial coefficients</span>
 
 <span class="sd">    Based-on/forked from sympy&#39;s multinomial_coefficients() function [#]</span>
 
@@ -509,10 +513,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_invalidate</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span> <span class="o">=</span> <span class="n">coeffs</span>
 
-        <span class="c1"># the number of ancilla&#39;s depends on the number of coefficients, so update if necessary</span>
-        <span class="k">if</span> <span class="n">coeffs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_reset_registers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span><span class="p">)</span>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">degree</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the degree of the polynomial, equals to the number of coefficients minus 1.</span>
@@ -547,15 +547,10 @@
             <span class="c1"># set new register of appropriate size</span>
             <span class="n">qr_state</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">num_state_qubits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;state&#39;</span><span class="p">)</span>
             <span class="n">qr_target</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">)</span>
-            <span class="n">num_ancillas</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="n">qr_ancilla</span> <span class="o">=</span> <span class="n">AncillaRegister</span><span class="p">(</span><span class="n">num_ancillas</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">qregs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qr_state</span><span class="p">,</span> <span class="n">qr_target</span><span class="p">,</span> <span class="n">qr_ancilla</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_qubits</span> <span class="o">=</span> <span class="n">qr_state</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_target</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">qr_ancilla</span><span class="p">[:]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ancillas</span> <span class="o">=</span> <span class="n">qr_ancilla</span><span class="p">[:]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">qregs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qr_state</span><span class="p">,</span> <span class="n">qr_target</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">qregs</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_qubits</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ancillas</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span> <span class="nf">_check_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raise_on_failure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
@@ -610,11 +605,17 @@
         <span class="k">return</span> <span class="n">rotation_coeffs</span>
 
     <span class="k">def</span> <span class="nf">_build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_build</span><span class="p">()</span>
+        <span class="c1"># do not build the circuit if _data is already populated</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># check whether the configuration is valid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_configuration</span><span class="p">()</span>
 
         <span class="n">qr_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubits</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span><span class="p">]</span>
         <span class="n">qr_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubits</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span><span class="p">]</span>
-        <span class="n">qr_ancilla</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubits</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">num_state_qubits</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
 
         <span class="n">rotation_coeffs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rotation_coefficients</span><span class="p">()</span>
 
@@ -639,11 +640,11 @@
             <span class="c1"># apply controlled rotations</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qr_control</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">==</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">mcrx</span><span class="p">(</span><span class="n">rotation_coeffs</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="n">qr_control</span><span class="p">,</span> <span class="n">qr_target</span><span class="p">,</span> <span class="n">qr_ancilla</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">mcrx</span><span class="p">(</span><span class="n">rotation_coeffs</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="n">qr_control</span><span class="p">,</span> <span class="n">qr_target</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">==</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">mcry</span><span class="p">(</span><span class="n">rotation_coeffs</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="n">qr_control</span><span class="p">,</span> <span class="n">qr_target</span><span class="p">,</span> <span class="n">qr_ancilla</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">mcry</span><span class="p">(</span><span class="n">rotation_coeffs</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="n">qr_control</span><span class="p">,</span> <span class="n">qr_target</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">mcrz</span><span class="p">(</span><span class="n">rotation_coeffs</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="n">qr_control</span><span class="p">,</span> <span class="n">qr_target</span><span class="p">,</span> <span class="n">qr_ancilla</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">mcrz</span><span class="p">(</span><span class="n">rotation_coeffs</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="n">qr_control</span><span class="p">,</span> <span class="n">qr_target</span><span class="p">)</span>
 
             <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">qr_control</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">==</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span>
@@ -784,20 +785,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

@@ -14,6 +14,8 @@
    .. autosummary::
    
       ~ControlChannel.__init__
+      ~ControlChannel.assign
+      ~ControlChannel.is_parameterized
    
    
 
@@ -25,6 +27,7 @@
    
       ~ControlChannel.index
       ~ControlChannel.name
+      ~ControlChannel.parameters
       ~ControlChannel.prefix
    
    

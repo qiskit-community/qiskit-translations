@@ -27,6 +27,7 @@
       ~C3SXGate.qasm
       ~C3SXGate.repeat
       ~C3SXGate.reverse_ops
+      ~C3SXGate.soft_compare
       ~C3SXGate.to_matrix
       ~C3SXGate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~C3SXGate.definition
       ~C3SXGate.duration
       ~C3SXGate.label
+      ~C3SXGate.name
       ~C3SXGate.num_ctrl_qubits
       ~C3SXGate.params
       ~C3SXGate.unit

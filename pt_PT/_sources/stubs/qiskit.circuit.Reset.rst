@@ -25,6 +25,7 @@
       ~Reset.qasm
       ~Reset.repeat
       ~Reset.reverse_ops
+      ~Reset.soft_compare
       ~Reset.validate_parameter
    
    

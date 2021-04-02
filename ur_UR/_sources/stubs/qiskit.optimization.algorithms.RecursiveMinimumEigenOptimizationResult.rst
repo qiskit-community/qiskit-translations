@@ -27,6 +27,7 @@
       ~RecursiveMinimumEigenOptimizationResult.history
       ~RecursiveMinimumEigenOptimizationResult.raw_results
       ~RecursiveMinimumEigenOptimizationResult.replacements
+      ~RecursiveMinimumEigenOptimizationResult.samples
       ~RecursiveMinimumEigenOptimizationResult.status
       ~RecursiveMinimumEigenOptimizationResult.variable_names
       ~RecursiveMinimumEigenOptimizationResult.variables

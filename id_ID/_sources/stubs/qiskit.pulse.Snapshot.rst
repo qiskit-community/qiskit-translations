@@ -22,6 +22,7 @@
       ~Snapshot.draw
       ~Snapshot.flatten
       ~Snapshot.insert
+      ~Snapshot.is_parameterized
       ~Snapshot.shift
    
    
@@ -34,16 +35,15 @@
    
       ~Snapshot.channel
       ~Snapshot.channels
-      ~Snapshot.command
       ~Snapshot.duration
       ~Snapshot.id
       ~Snapshot.instructions
       ~Snapshot.label
       ~Snapshot.name
       ~Snapshot.operands
+      ~Snapshot.parameters
       ~Snapshot.start_time
       ~Snapshot.stop_time
-      ~Snapshot.timeslots
       ~Snapshot.type
    
    

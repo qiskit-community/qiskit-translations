@@ -27,6 +27,7 @@
       ~CHGate.qasm
       ~CHGate.repeat
       ~CHGate.reverse_ops
+      ~CHGate.soft_compare
       ~CHGate.to_matrix
       ~CHGate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~CHGate.definition
       ~CHGate.duration
       ~CHGate.label
+      ~CHGate.name
       ~CHGate.num_ctrl_qubits
       ~CHGate.params
       ~CHGate.unit

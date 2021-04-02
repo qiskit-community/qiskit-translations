@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.providers.aer.QasmSimulator &mdash; Τεκμηρίωση του Qiskit - 0.24.1</title>
+  <title>qiskit.providers.aer.QasmSimulator &mdash; Τεκμηρίωση του Qiskit - 0.25.0</title>
   
 
   
@@ -41,7 +41,7 @@
     <link rel="index" title="Ευρετήριο" href="../genindex.html" />
     <link rel="search" title="Αναζήτηση" href="../search.html" />
     <link rel="next" title="qiskit.providers.aer.StatevectorSimulator" href="qiskit.providers.aer.StatevectorSimulator.html" />
-    <link rel="prev" title="qiskit.providers.aer.AerProvider" href="qiskit.providers.aer.AerProvider.html" /> 
+    <link rel="prev" title="qiskit.providers.aer.PulseSimulator" href="qiskit.providers.aer.PulseSimulator.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -229,6 +229,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Troubleshooting</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Quantum API error codes</a></li>
@@ -337,7 +341,7 @@ and coupling map.</p>
 </div>
 <p><strong>Simulation Method Option</strong></p>
 <p>The simulation method is set using the <code class="docutils literal notranslate"><span class="pre">method</span></code> kwarg.
-Supported simulation methods are:</p>
+Supported simulation methods are</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;statevector&quot;</span></code>: A dense statevector simulation that can sample
 measurement outcomes from <em>ideal</em> circuits with all measurements at
@@ -435,13 +439,31 @@ instruction (Default: 32).</p></li>
 <p>These backend options only apply when using the <code class="docutils literal notranslate"><span class="pre">&quot;extended_stabilizer&quot;</span></code>
 simulation method:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">extended_stabilizer_measure_sampling</span></code> (bool): Enable measure
-sampling optimization on supported circuits. This prevents the
-simulator from re-running the measure monte-carlo step for each
-shot. Enabling measure sampling may reduce accuracy of the
-measurement counts if the output distribution is strongly
-peaked (Default: False).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">extended_stabilizer_mixing_time</span></code> (int): Set how long the
+<li><p><code class="docutils literal notranslate"><span class="pre">extended_stabilizer_sampling_methid</span></code> (string): Choose how to simulate
+measurements on qubits. The performance of the simulator depends
+significantly on this choice. In the following, let n be the number of
+qubits in the circuit, m the number of qubits measured, and S be the
+number of shots. (Default: resampled_metropolis)</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;metropolis&quot;</span></code>: Use a Monte-Carlo method to sample many output
+strings from the simulator at once. To be accurate, this method
+requires that all the possible output strings have a non-zero
+probability. It will give inaccurate results on cases where
+the circuit has many zero-probability outcomes.
+This method has an overall runtime that scales as n^{2} + (S-1)n.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;resampled_metropolis&quot;</span></code>: A variant of the metropolis method,
+where the Monte-Carlo method is reinitialised for every shot. This
+gives better results for circuits where some outcomes have zero
+probability, but will still fail if the output distribution
+is sparse. The overall runtime scales as Sn^{2}.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;norm_estimation&quot;</span></code>: An alternative sampling method using
+random state inner products to estimate outcome probabilites. This
+method requires twice as much memory, and significantly longer
+runtimes, but gives accurate results on circuits with sparse
+output distributions. The overall runtime scales as Sn^{3}m^{3}.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extended_stabilizer_metropolis_mixing_time</span></code> (int): Set how long the
 monte-carlo method runs before performing measurements. If the
 output distribution is strongly peaked, this can be decreased
 alongside setting extended_stabilizer_disable_measurement_opt
@@ -450,14 +472,22 @@ to True (Default: 5000).</p></li>
 in the approximation for the extended_stabilizer method. A
 smaller error needs more memory and computational time
 (Default: 0.05).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">extended_stabilizer_norm_estimation_samples</span></code> (int): Number of
-samples used to compute the correct normalization for a
-statevector snapshot (Default: 100).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extended_stabilizer_norm_estimation_samples</span></code> (int): The default number
+of samples for the norm estimation sampler. The method will use the
+default, or 4m^{2} samples where m is the number of qubits to be
+measured, whichever is larger (Default: 100).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extended_stabilizer_norm_estimation_repetitions</span></code> (int): The number
+of times to repeat the norm estimation. The median of these reptitions
+is used to estimate and sample output strings (Default: 3).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">extended_stabilizer_parallel_threshold</span></code> (int): Set the minimum
 size of the extended stabilizer decomposition before we enable
 OpenMP parallelization. If parallel circuit or shot execution
 is enabled this will only use unallocated CPU cores up to
 max_parallel_threads (Default: 100).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extended_stabilizer_probabilities_snapshot_samples</span></code> (int): If using
+the metropolis or resampled_metropolis sampling method, set the number of
+samples used to estimate probabilities in a probabilities snapshot
+(Default: 3000).</p></li>
 </ul>
 <p>These backend options only apply when using the <code class="docutils literal notranslate"><span class="pre">&quot;matrix_product_state&quot;</span></code>
 simulation method:</p>
@@ -503,7 +533,7 @@ not available.</p>
 <li><p><strong>defaults</strong> (<a class="reference internal" href="qiskit.providers.models.PulseDefaults.html#qiskit.providers.models.PulseDefaults" title="qiskit.providers.models.PulseDefaults"><em>PulseDefaults</em></a><em> or </em><em>None</em>) – Optional, backend pulse defaults.</p></li>
 <li><p><strong>available_methods</strong> (<em>list</em><em> or </em><em>None</em>) – Optional, the available simulation methods
 if backend supports multiple methods.</p></li>
-<li><p><strong>provider</strong> (<a class="reference internal" href="qiskit.providers.BaseProvider.html#qiskit.providers.BaseProvider" title="qiskit.providers.BaseProvider"><em>BaseProvider</em></a>) – Optional, provider responsible for this backend.</p></li>
+<li><p><strong>provider</strong> (<a class="reference internal" href="qiskit.providers.Provider.html#qiskit.providers.Provider" title="qiskit.providers.Provider"><em>Provider</em></a>) – Optional, provider responsible for this backend.</p></li>
 <li><p><strong>backend_options</strong> (<em>dict</em><em> or </em><em>None</em>) – Optional set custom backend options.</p></li>
 </ul>
 </dd>
@@ -526,7 +556,7 @@ not available.</p>
 <li><p><strong>defaults</strong> (<a class="reference internal" href="qiskit.providers.models.PulseDefaults.html#qiskit.providers.models.PulseDefaults" title="qiskit.providers.models.PulseDefaults"><em>PulseDefaults</em></a><em> or </em><em>None</em>) – Optional, backend pulse defaults.</p></li>
 <li><p><strong>available_methods</strong> (<em>list</em><em> or </em><em>None</em>) – Optional, the available simulation methods
 if backend supports multiple methods.</p></li>
-<li><p><strong>provider</strong> (<a class="reference internal" href="qiskit.providers.BaseProvider.html#qiskit.providers.BaseProvider" title="qiskit.providers.BaseProvider"><em>BaseProvider</em></a>) – Optional, provider responsible for this backend.</p></li>
+<li><p><strong>provider</strong> (<a class="reference internal" href="qiskit.providers.Provider.html#qiskit.providers.Provider" title="qiskit.providers.Provider"><em>Provider</em></a>) – Optional, provider responsible for this backend.</p></li>
 <li><p><strong>backend_options</strong> (<em>dict</em><em> or </em><em>None</em>) – Optional set custom backend options.</p></li>
 </ul>
 </dd>
@@ -570,17 +600,17 @@ if backend supports multiple methods.</p></li>
 <tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.providers.aer.QasmSimulator.provider" title="qiskit.providers.aer.QasmSimulator.provider"><code class="xref py py-obj docutils literal notranslate"><span class="pre">provider</span></code></a>()</p></td>
 <td><p>Return the backend Provider.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#qiskit.providers.aer.QasmSimulator.run" title="qiskit.providers.aer.QasmSimulator.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(qobj[, backend_options, validate])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#qiskit.providers.aer.QasmSimulator.run" title="qiskit.providers.aer.QasmSimulator.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(circuits[, backend_options, validate])</p></td>
 <td><p>Run a qobj on the backend.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.providers.aer.QasmSimulator.set_options" title="qiskit.providers.aer.QasmSimulator.set_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_options</span></code></a>(**backend_options)</p></td>
-<td><p>Set the simulator options</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.providers.aer.QasmSimulator.set_option" title="qiskit.providers.aer.QasmSimulator.set_option"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_option</span></code></a>(key, value)</p></td>
+<td><p>Special handling for setting backend options.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#qiskit.providers.aer.QasmSimulator.status" title="qiskit.providers.aer.QasmSimulator.status"><code class="xref py py-obj docutils literal notranslate"><span class="pre">status</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#qiskit.providers.aer.QasmSimulator.set_options" title="qiskit.providers.aer.QasmSimulator.set_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_options</span></code></a>(**fields)</p></td>
+<td><p>Set the options fields for the backend</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.providers.aer.QasmSimulator.status" title="qiskit.providers.aer.QasmSimulator.status"><code class="xref py py-obj docutils literal notranslate"><span class="pre">status</span></code></a>()</p></td>
 <td><p>Return backend status.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.providers.aer.QasmSimulator.version" title="qiskit.providers.aer.QasmSimulator.version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">version</span></code></a>()</p></td>
-<td><p>Return the backend version.</p></td>
 </tr>
 </tbody>
 </table>
@@ -592,7 +622,10 @@ if backend supports multiple methods.</p></li>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#qiskit.providers.aer.QasmSimulator.options" title="qiskit.providers.aer.QasmSimulator.options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">options</span></code></a></p></td>
-<td><p>Return the current simulator options</p></td>
+<td><p>Return the options for the backend</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">version</span></code></p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -610,7 +643,7 @@ if backend supports multiple methods.</p></li>
 
 <dl class="py method">
 <dt id="qiskit.providers.aer.QasmSimulator.configuration">
-<code class="sig-name descname">configuration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit.providers.aer.QasmSimulator.configuration" title="Μόνιμος σύνδεσμος σε αυτόν τον ορισμό">¶</a></dt>
+<code class="sig-name descname">configuration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/providers/aer/backends/qasm_simulator.html#QasmSimulator.configuration"><span class="viewcode-link">[πηγή]</span></a><a class="headerlink" href="#qiskit.providers.aer.QasmSimulator.configuration" title="Μόνιμος σύνδεσμος σε αυτόν τον ορισμό">¶</a></dt>
 <dd><p>Return the simulator backend configuration.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Επιστρέφει</dt>
@@ -663,7 +696,10 @@ if backend supports multiple methods.</p></li>
 <dl class="py method">
 <dt id="qiskit.providers.aer.QasmSimulator.options">
 <em class="property">property </em><code class="sig-name descname">options</code><a class="headerlink" href="#qiskit.providers.aer.QasmSimulator.options" title="Μόνιμος σύνδεσμος σε αυτόν τον ορισμό">¶</a></dt>
-<dd><p>Return the current simulator options</p>
+<dd><p>Return the options for the backend</p>
+<p>The options of a backend are the dynamic parameters defining
+how the backend is used. These are used to control the <a class="reference internal" href="#qiskit.providers.aer.QasmSimulator.run" title="qiskit.providers.aer.QasmSimulator.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code></a>
+method.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -693,19 +729,20 @@ if backend supports multiple methods.</p></li>
 <dd class="field-odd"><p>the Provider responsible for the backend.</p>
 </dd>
 <dt class="field-even">Επιστρεφόμενος τύπος</dt>
-<dd class="field-even"><p><a class="reference internal" href="qiskit.providers.BaseProvider.html#qiskit.providers.BaseProvider" title="qiskit.providers.BaseProvider">BaseProvider</a></p>
+<dd class="field-even"><p><a class="reference internal" href="qiskit.providers.Provider.html#qiskit.providers.Provider" title="qiskit.providers.Provider">Provider</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="qiskit.providers.aer.QasmSimulator.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">qobj</span></em>, <em class="sig-param"><span class="n">backend_options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">validate</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">run_options</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit.providers.aer.QasmSimulator.run" title="Μόνιμος σύνδεσμος σε αυτόν τον ορισμό">¶</a></dt>
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">circuits</span></em>, <em class="sig-param"><span class="n">backend_options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">validate</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">run_options</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit.providers.aer.QasmSimulator.run" title="Μόνιμος σύνδεσμος σε αυτόν τον ορισμό">¶</a></dt>
 <dd><p>Run a qobj on the backend.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Παράμετροι</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>qobj</strong> (<a class="reference internal" href="qiskit.qobj.QasmQobj.html#qiskit.qobj.QasmQobj" title="qiskit.qobj.QasmQobj"><em>QasmQobj</em></a>) – The Qobj to be executed.</p></li>
+<li><p><strong>circuits</strong> (<a class="reference internal" href="qiskit.circuit.QuantumCircuit.html#qiskit.circuit.QuantumCircuit" title="qiskit.circuit.QuantumCircuit"><em>QuantumCircuit</em></a><em> or </em><em>list</em>) – The QuantumCircuit (or list
+of QuantumCircuit objects) to run</p></li>
 <li><p><strong>backend_options</strong> (<em>dict</em><em> or </em><em>None</em>) – DEPRECATED dictionary of backend options
 for the execution (default: None).</p></li>
 <li><p><strong>validate</strong> (<em>bool</em>) – validate the Qobj before running (default: False).</p></li>
@@ -734,9 +771,40 @@ and direct kwarg’s should be used for options to pass them to
 </dd></dl>
 
 <dl class="py method">
+<dt id="qiskit.providers.aer.QasmSimulator.set_option">
+<code class="sig-name descname">set_option</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit.providers.aer.QasmSimulator.set_option" title="Μόνιμος σύνδεσμος σε αυτόν τον ορισμό">¶</a></dt>
+<dd><p>Special handling for setting backend options.</p>
+<p>This method should be extended by sub classes to
+update special option values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Παράμετροι</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – key to update</p></li>
+<li><p><strong>value</strong> (<em>any</em>) – value to update.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Προκαλεί</dt>
+<dd class="field-even"><p><a class="reference internal" href="qiskit.providers.aer.AerError.html#qiskit.providers.aer.AerError" title="qiskit.providers.aer.AerError"><strong>AerError</strong></a> – if key is “method” and val isn’t in available methods.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="qiskit.providers.aer.QasmSimulator.set_options">
-<code class="sig-name descname">set_options</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">backend_options</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit.providers.aer.QasmSimulator.set_options" title="Μόνιμος σύνδεσμος σε αυτόν τον ορισμό">¶</a></dt>
-<dd><p>Set the simulator options</p>
+<code class="sig-name descname">set_options</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">fields</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit/providers/aer/backends/qasm_simulator.html#QasmSimulator.set_options"><span class="viewcode-link">[πηγή]</span></a><a class="headerlink" href="#qiskit.providers.aer.QasmSimulator.set_options" title="Μόνιμος σύνδεσμος σε αυτόν τον ορισμό">¶</a></dt>
+<dd><p>Set the options fields for the backend</p>
+<p>This method is used to update the options of a backend. If
+you need to change any of the options prior to running just
+pass in the kwarg with the new value for the options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Παράμετροι</dt>
+<dd class="field-odd"><p><strong>fields</strong> – The fields to update the options</p>
+</dd>
+<dt class="field-even">Προκαλεί</dt>
+<dd class="field-even"><p><strong>AttributeError</strong> – If the field passed in is not part of the
+    options</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -749,20 +817,6 @@ and direct kwarg’s should be used for options to pass them to
 </dd>
 <dt class="field-even">Επιστρεφόμενος τύπος</dt>
 <dd class="field-even"><p><a class="reference internal" href="qiskit.providers.models.BackendStatus.html#qiskit.providers.models.BackendStatus" title="qiskit.providers.models.BackendStatus">BackendStatus</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qiskit.providers.aer.QasmSimulator.version">
-<code class="sig-name descname">version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit.providers.aer.QasmSimulator.version" title="Μόνιμος σύνδεσμος σε αυτόν τον ορισμό">¶</a></dt>
-<dd><p>Return the backend version.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Επιστρέφει</dt>
-<dd class="field-odd"><p>the X.X.X version of the backend.</p>
-</dd>
-<dt class="field-even">Επιστρεφόμενος τύπος</dt>
-<dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -782,7 +836,7 @@ and direct kwarg’s should be used for options to pass them to
         <a href="qiskit.providers.aer.StatevectorSimulator.html" class="btn btn-neutral float-right" title="qiskit.providers.aer.StatevectorSimulator" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-orange.svg" class="next-page"></a>
       
       
-        <a href="qiskit.providers.aer.AerProvider.html" class="btn btn-neutral" title="qiskit.providers.aer.AerProvider" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
+        <a href="qiskit.providers.aer.PulseSimulator.html" class="btn btn-neutral" title="qiskit.providers.aer.PulseSimulator" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
       
     </div>
   
@@ -914,20 +968,8 @@ and direct kwarg’s should be used for options to pass them to
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

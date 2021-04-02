@@ -27,6 +27,7 @@
       ~MCPhaseGate.qasm
       ~MCPhaseGate.repeat
       ~MCPhaseGate.reverse_ops
+      ~MCPhaseGate.soft_compare
       ~MCPhaseGate.to_matrix
       ~MCPhaseGate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~MCPhaseGate.definition
       ~MCPhaseGate.duration
       ~MCPhaseGate.label
+      ~MCPhaseGate.name
       ~MCPhaseGate.num_ctrl_qubits
       ~MCPhaseGate.params
       ~MCPhaseGate.unit

@@ -26,6 +26,7 @@
       ~SnapshotExpectationValue.qasm
       ~SnapshotExpectationValue.repeat
       ~SnapshotExpectationValue.reverse_ops
+      ~SnapshotExpectationValue.soft_compare
       ~SnapshotExpectationValue.validate_parameter
    
    

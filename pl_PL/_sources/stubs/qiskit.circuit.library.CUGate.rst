@@ -27,6 +27,7 @@
       ~CUGate.qasm
       ~CUGate.repeat
       ~CUGate.reverse_ops
+      ~CUGate.soft_compare
       ~CUGate.to_matrix
       ~CUGate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~CUGate.definition
       ~CUGate.duration
       ~CUGate.label
+      ~CUGate.name
       ~CUGate.num_ctrl_qubits
       ~CUGate.params
       ~CUGate.unit

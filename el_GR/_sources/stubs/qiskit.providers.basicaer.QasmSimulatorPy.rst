@@ -20,8 +20,8 @@
       ~QasmSimulatorPy.provider
       ~QasmSimulatorPy.run
       ~QasmSimulatorPy.run_experiment
+      ~QasmSimulatorPy.set_options
       ~QasmSimulatorPy.status
-      ~QasmSimulatorPy.version
    
    
 
@@ -35,5 +35,7 @@
       ~QasmSimulatorPy.DEFAULT_OPTIONS
       ~QasmSimulatorPy.MAX_QUBITS_MEMORY
       ~QasmSimulatorPy.SHOW_FINAL_STATE
+      ~QasmSimulatorPy.options
+      ~QasmSimulatorPy.version
    
    

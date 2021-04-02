@@ -28,6 +28,7 @@
       ~MCXGate.qasm
       ~MCXGate.repeat
       ~MCXGate.reverse_ops
+      ~MCXGate.soft_compare
       ~MCXGate.to_matrix
       ~MCXGate.validate_parameter
    
@@ -44,6 +45,7 @@
       ~MCXGate.definition
       ~MCXGate.duration
       ~MCXGate.label
+      ~MCXGate.name
       ~MCXGate.num_ancilla_qubits
       ~MCXGate.num_ctrl_qubits
       ~MCXGate.params

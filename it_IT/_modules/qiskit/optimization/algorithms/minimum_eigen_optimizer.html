@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.optimization.algorithms.minimum_eigen_optimizer &mdash; Qiskit 0.24.1 documentazione</title>
+  <title>qiskit.optimization.algorithms.minimum_eigen_optimizer &mdash; Qiskit 0.25.0 documentazione</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Risoluzione Dei Problemi</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Codici di Errore dell' API IBM Quantum</a></li>
@@ -301,7 +305,7 @@
   <h1>Codice sorgente per qiskit.optimization.algorithms.minimum_eigen_optimizer</h1><div class="highlight"><pre>
 <span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
-<span class="c1"># (C) Copyright IBM 2020.</span>
+<span class="c1"># (C) Copyright IBM 2020, 2021.</span>
 <span class="c1">#</span>
 <span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
 <span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
@@ -312,15 +316,15 @@
 <span class="c1"># that they have been altered from the originals.</span>
 
 <span class="sd">&quot;&quot;&quot;A wrapper for minimum eigen solvers from Aqua to be used within the optimization module.&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
 <span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">MinimumEigensolver</span><span class="p">,</span> <span class="n">MinimumEigensolverResult</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">StateFn</span><span class="p">,</span> <span class="n">DictStateFn</span>
-
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">QiskitOptimizationError</span>
 <span class="kn">from</span> <span class="nn">.optimization_algorithm</span> <span class="kn">import</span> <span class="p">(</span><span class="n">OptimizationResultStatus</span><span class="p">,</span> <span class="n">OptimizationAlgorithm</span><span class="p">,</span>
-                                     <span class="n">OptimizationResult</span><span class="p">)</span>
+                                     <span class="n">OptimizationResult</span><span class="p">,</span> <span class="n">SolutionSample</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">QiskitOptimizationError</span>
 <span class="kn">from</span> <span class="nn">..converters.quadratic_program_to_qubo</span> <span class="kn">import</span> <span class="n">QuadraticProgramToQubo</span><span class="p">,</span> <span class="n">QuadraticProgramConverter</span>
 <span class="kn">from</span> <span class="nn">..problems.quadratic_program</span> <span class="kn">import</span> <span class="n">QuadraticProgram</span><span class="p">,</span> <span class="n">Variable</span>
 
@@ -329,25 +333,26 @@
     <span class="sd">&quot;&quot;&quot; Minimum Eigen Optimizer Result.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="MinimumEigenOptimizationResult.__init__"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.MinimumEigenOptimizationResult.html#qiskit.optimization.algorithms.MinimumEigenOptimizationResult.__init__">[documenti]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">fval</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Variable</span><span class="p">],</span>
-                 <span class="n">status</span><span class="p">:</span> <span class="n">OptimizationResultStatus</span><span class="p">,</span> <span class="n">samples</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
-                 <span class="n">min_eigen_solver_result</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MinimumEigensolverResult</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                 <span class="n">status</span><span class="p">:</span> <span class="n">OptimizationResultStatus</span><span class="p">,</span>
+                 <span class="n">samples</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">SolutionSample</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">min_eigen_solver_result</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MinimumEigensolverResult</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">raw_samples</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">SolutionSample</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            x: the optimal value found by ``MinimumEigensolver``.</span>
 <span class="sd">            fval: the optimal function value.</span>
 <span class="sd">            variables: the list of variables of the optimization problem.</span>
 <span class="sd">            status: the termination status of the optimization algorithm.</span>
-<span class="sd">            samples: the basis state as bitstring, the QUBO value, and the probability of sampling.</span>
 <span class="sd">            min_eigen_solver_result: the result obtained from the underlying algorithm.</span>
+<span class="sd">            samples: the x value, the objective function value of the original problem,</span>
+<span class="sd">                the probability, and the status of sampling.</span>
+<span class="sd">            raw_samples: the x values of the QUBO, the objective function value of the QUBO,</span>
+<span class="sd">                and the probability of sampling.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_samples</span> <span class="o">=</span> <span class="n">samples</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_min_eigen_solver_result</span> <span class="o">=</span> <span class="n">min_eigen_solver_result</span></div>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">samples</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;Returns samples.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_samples</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">fval</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="n">variables</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="p">,</span> <span class="n">raw_results</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">samples</span><span class="o">=</span><span class="n">samples</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_min_eigen_solver_result</span> <span class="o">=</span> <span class="n">min_eigen_solver_result</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_raw_samples</span> <span class="o">=</span> <span class="n">raw_samples</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">min_eigen_solver_result</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MinimumEigensolverResult</span><span class="p">:</span>
@@ -357,8 +362,8 @@
 <div class="viewcode-block" id="MinimumEigenOptimizationResult.get_correlations"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.MinimumEigenOptimizationResult.html#qiskit.optimization.algorithms.MinimumEigenOptimizationResult.get_correlations">[documenti]</a>    <span class="k">def</span> <span class="nf">get_correlations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Get &lt;Zi x Zj&gt; correlation matrix from samples.&quot;&quot;&quot;</span>
 
-        <span class="n">states</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">]</span>
-        <span class="n">probs</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">]</span>
+        <span class="n">states</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">x</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">]</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">probability</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">]</span>
 
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">correlations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
@@ -370,7 +375,16 @@
                         <span class="n">correlations</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">prob</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">correlations</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">-=</span> <span class="n">prob</span>
-        <span class="k">return</span> <span class="n">correlations</span></div></div>
+        <span class="k">return</span> <span class="n">correlations</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">raw_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">SolutionSample</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the list of raw solution samples of ``MinimumEigensolver``.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The list of raw solution samples of ``MinimumEigensolver``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw_samples</span></div>
 
 
 <div class="viewcode-block" id="MinimumEigenOptimizer"><a class="viewcode-back" href="../../../../stubs/qiskit.optimization.algorithms.MinimumEigenOptimizer.html#qiskit.optimization.algorithms.MinimumEigenOptimizer">[documenti]</a><span class="k">class</span> <span class="nc">MinimumEigenOptimizer</span><span class="p">(</span><span class="n">OptimizationAlgorithm</span><span class="p">):</span>
@@ -480,7 +494,7 @@
 
         <span class="c1"># only try to solve non-empty Ising Hamiltonians</span>
         <span class="n">x</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[Any]</span>
-        <span class="n">eigen_result</span> <span class="o">=</span> <span class="kc">None</span>     <span class="c1"># type: MinimumEigensolverResult</span>
+        <span class="n">eigen_result</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: MinimumEigensolverResult</span>
         <span class="k">if</span> <span class="n">operator</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
 
             <span class="c1"># approximate ground state of operator using min eigen solver</span>
@@ -490,50 +504,65 @@
             <span class="c1"># backend = getattr(self._min_eigen_solver, &#39;quantum_instance&#39;, None)</span>
             <span class="n">fval</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">x</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">x_str</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">samples</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">raw_samples</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="n">eigen_result</span><span class="o">.</span><span class="n">eigenstate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">samples</span> <span class="o">=</span> <span class="n">_eigenvector_to_solutions</span><span class="p">(</span><span class="n">eigen_result</span><span class="o">.</span><span class="n">eigenstate</span><span class="p">,</span> <span class="n">problem_</span><span class="p">)</span>
+                <span class="n">raw_samples</span> <span class="o">=</span> <span class="n">_eigenvector_to_solutions</span><span class="p">(</span><span class="n">eigen_result</span><span class="o">.</span><span class="n">eigenstate</span><span class="p">,</span> <span class="n">problem_</span><span class="p">)</span>
                 <span class="c1"># print(offset, samples)</span>
                 <span class="c1"># samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])</span>
                 <span class="c1">#    for res in samples]</span>
-                <span class="n">samples</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">problem_</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">sense</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-                <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
-                <span class="n">fval</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">raw_samples</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">problem_</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">sense</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">x</span><span class="o">.</span><span class="n">fval</span><span class="p">)</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">raw_samples</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">x</span>
+                <span class="n">fval</span> <span class="o">=</span> <span class="n">raw_samples</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fval</span>
 
         <span class="c1"># if Hamiltonian is empty, then the objective function is constant to the offset</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">problem_</span><span class="o">.</span><span class="n">get_num_binary_vars</span><span class="p">()</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">problem_</span><span class="o">.</span><span class="n">get_num_binary_vars</span><span class="p">())</span>
             <span class="n">fval</span> <span class="o">=</span> <span class="n">offset</span>
-            <span class="n">x_str</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span> <span class="o">*</span> <span class="n">problem_</span><span class="o">.</span><span class="n">get_num_binary_vars</span><span class="p">()</span>
-            <span class="n">samples</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x_str</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)]</span>
+            <span class="n">raw_samples</span> <span class="o">=</span> <span class="p">[</span><span class="n">SolutionSample</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">OptimizationResultStatus</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">)]</span>
 
-        <span class="c1"># translate result back to integers</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">OptimizationResult</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">fval</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="n">problem_</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span>
-                                    <span class="n">status</span><span class="o">=</span><span class="n">OptimizationResultStatus</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">)</span>
-
-        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpret</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_converters</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">fval</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">fval</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># if not function value is given, then something went wrong, e.g., a</span>
             <span class="c1"># NumPyMinimumEigensolver has been configured with an infeasible filter criterion.</span>
             <span class="k">return</span> <span class="n">MinimumEigenOptimizationResult</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                                  <span class="n">variables</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span>
+                                                  <span class="n">variables</span><span class="o">=</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span>
                                                   <span class="n">status</span><span class="o">=</span><span class="n">OptimizationResultStatus</span><span class="o">.</span><span class="n">FAILURE</span><span class="p">,</span>
-                                                  <span class="n">samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                                  <span class="n">samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">raw_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                                   <span class="n">min_eigen_solver_result</span><span class="o">=</span><span class="n">eigen_result</span><span class="p">)</span>
+        <span class="c1"># translate result back to integers</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpret_samples</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">raw_samples</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">MinimumEigenOptimizationResult</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_interpret</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">converters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_converters</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">,</span>
+                                    <span class="n">result_class</span><span class="o">=</span><span class="n">MinimumEigenOptimizationResult</span><span class="p">,</span>
+                                    <span class="n">samples</span><span class="o">=</span><span class="n">samples</span><span class="p">,</span> <span class="n">raw_samples</span><span class="o">=</span><span class="n">raw_samples</span><span class="p">,</span>
+                                    <span class="n">min_eigen_solver_result</span><span class="o">=</span><span class="n">eigen_result</span><span class="p">))</span></div>
 
-        <span class="k">return</span> <span class="n">MinimumEigenOptimizationResult</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">fval</span><span class="p">,</span>
-                                              <span class="n">variables</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span>
-                                              <span class="n">status</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_feasibility_status</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span>
-                                                                                  <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">),</span>
-                                              <span class="n">samples</span><span class="o">=</span><span class="n">samples</span><span class="p">,</span> <span class="n">min_eigen_solver_result</span><span class="o">=</span><span class="n">eigen_result</span><span class="p">)</span></div></div>
+    <span class="k">def</span> <span class="nf">_interpret_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">,</span> <span class="n">raw_samples</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SolutionSample</span><span class="p">])</span> \
+            <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">SolutionSample</span><span class="p">]:</span>
+        <span class="n">prob</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: dict</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">raw_samples</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">x</span>
+            <span class="k">for</span> <span class="n">converter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_converters</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">interpret</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">prob</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">sample</span><span class="o">.</span><span class="n">probability</span>
+            <span class="n">array</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+
+        <span class="n">samples</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">array</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">probability</span> <span class="o">=</span> <span class="n">prob</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="n">fval</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_feasibility_status</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="n">samples</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SolutionSample</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="p">,</span> <span class="n">probability</span><span class="p">,</span> <span class="n">status</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span>
+                      <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">sense</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">fval</span><span class="p">))</span></div>
 
 
 <span class="k">def</span> <span class="nf">_eigenvector_to_solutions</span><span class="p">(</span><span class="n">eigenvector</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">StateFn</span><span class="p">],</span>
                               <span class="n">qubo</span><span class="p">:</span> <span class="n">QuadraticProgram</span><span class="p">,</span>
                               <span class="n">min_probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
-                              <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+                              <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">SolutionSample</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Convert the eigenvector to the bitstrings and corresponding eigenvalues.</span>
 
 <span class="sd">    Args:</span>
@@ -567,6 +596,12 @@
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eigenvector</span><span class="p">,</span> <span class="n">StateFn</span><span class="p">):</span>
         <span class="n">eigenvector</span> <span class="o">=</span> <span class="n">eigenvector</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
 
+    <span class="k">def</span> <span class="nf">generate_solution</span><span class="p">(</span><span class="n">bitstr</span><span class="p">,</span> <span class="n">qubo</span><span class="p">,</span> <span class="n">probability</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromiter</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">bitstr</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">fval</span> <span class="o">=</span> <span class="n">qubo</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">SolutionSample</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">fval</span><span class="o">=</span><span class="n">fval</span><span class="p">,</span> <span class="n">probability</span><span class="o">=</span><span class="n">probability</span><span class="p">,</span>
+                              <span class="n">status</span><span class="o">=</span><span class="n">OptimizationResultStatus</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">)</span>
+
     <span class="n">solutions</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eigenvector</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="n">all_counts</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">eigenvector</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
@@ -574,10 +609,8 @@
         <span class="k">for</span> <span class="n">bitstr</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">eigenvector</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">sampling_probability</span> <span class="o">=</span> <span class="n">count</span> <span class="o">/</span> <span class="n">all_counts</span>
             <span class="c1"># add the bitstring, if the sampling probability exceeds the threshold</span>
-            <span class="k">if</span> <span class="n">sampling_probability</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">sampling_probability</span> <span class="o">&gt;=</span> <span class="n">min_probability</span><span class="p">:</span>
-                    <span class="n">value</span> <span class="o">=</span> <span class="n">qubo</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">evaluate</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">bit</span><span class="p">)</span> <span class="k">for</span> <span class="n">bit</span> <span class="ow">in</span> <span class="n">bitstr</span><span class="p">])</span>
-                    <span class="n">solutions</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">bitstr</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">sampling_probability</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="n">sampling_probability</span> <span class="o">&gt;=</span> <span class="n">min_probability</span><span class="p">:</span>
+                <span class="n">solutions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">generate_solution</span><span class="p">(</span><span class="n">bitstr</span><span class="p">,</span> <span class="n">qubo</span><span class="p">,</span> <span class="n">sampling_probability</span><span class="p">))</span>
 
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eigenvector</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
         <span class="n">num_qubits</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">eigenvector</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
@@ -585,13 +618,10 @@
 
         <span class="c1"># iterate over all states and their sampling probabilities</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sampling_probability</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">probabilities</span><span class="p">):</span>
-
             <span class="c1"># add the i-th state if the sampling probability exceeds the threshold</span>
-            <span class="k">if</span> <span class="n">sampling_probability</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">sampling_probability</span> <span class="o">&gt;=</span> <span class="n">min_probability</span><span class="p">:</span>
-                    <span class="n">bitstr</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{:b}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                    <span class="n">value</span> <span class="o">=</span> <span class="n">qubo</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">evaluate</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">bit</span><span class="p">)</span> <span class="k">for</span> <span class="n">bit</span> <span class="ow">in</span> <span class="n">bitstr</span><span class="p">])</span>
-                    <span class="n">solutions</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">bitstr</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">sampling_probability</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="n">sampling_probability</span> <span class="o">&gt;=</span> <span class="n">min_probability</span><span class="p">:</span>
+                <span class="n">bitstr</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{:b}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">solutions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">generate_solution</span><span class="p">(</span><span class="n">bitstr</span><span class="p">,</span> <span class="n">qubo</span><span class="p">,</span> <span class="n">sampling_probability</span><span class="p">))</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Unsupported format of eigenvector. Provide a dict or numpy.ndarray.&#39;</span><span class="p">)</span>
@@ -729,20 +759,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

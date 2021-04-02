@@ -14,10 +14,11 @@
    .. autosummary::
    
       ~Constant.__init__
+      ~Constant.assign
       ~Constant.assign_parameters
       ~Constant.draw
-      ~Constant.get_sample_pulse
       ~Constant.get_waveform
+      ~Constant.is_parameterized
       ~Constant.validate_parameters
    
    

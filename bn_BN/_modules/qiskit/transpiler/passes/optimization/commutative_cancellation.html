@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.passes.optimization.commutative_cancellation &mdash; Qiskit 0.24.1 documentation</title>
+  <title>qiskit.transpiler.passes.optimization.commutative_cancellation &mdash; Qiskit 0.25.0 documentation</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit অ্যাকোয়া (অ্যাকোয়া অর্থ জল)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Qiskit IBM কোয়ান্টাম পরিষেবা সরবরাহকারী</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">সমস্যা সমাধান</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">আইবিএম কোয়ান্টাম এপিআই সতর্ক সংকেত</a></li>
@@ -323,6 +327,9 @@
 <span class="kn">from</span> <span class="nn">qiskit.dagcircuit</span> <span class="kn">import</span> <span class="n">DAGCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.u1</span> <span class="kn">import</span> <span class="n">U1Gate</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.rx</span> <span class="kn">import</span> <span class="n">RXGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.p</span> <span class="kn">import</span> <span class="n">PhaseGate</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates.rz</span> <span class="kn">import</span> <span class="n">RZGate</span>
+
 
 <span class="n">_CUTOFF_PRECISION</span> <span class="o">=</span> <span class="mf">1E-5</span>
 
@@ -336,8 +343,23 @@
 <span class="sd">        H, X, Y, Z, CX, CY, CZ</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="CommutativeCancellation.__init__"><a class="viewcode-back" href="../../../../../stubs/qiskit.transpiler.passes.CommutativeCancellation.html#qiskit.transpiler.passes.CommutativeCancellation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="CommutativeCancellation.__init__"><a class="viewcode-back" href="../../../../../stubs/qiskit.transpiler.passes.CommutativeCancellation.html#qiskit.transpiler.passes.CommutativeCancellation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">basis_gates</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CommutativeCancellation initializer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            basis_gates (list[str]): Basis gates to consider, e.g.</span>
+<span class="sd">                ``[&#39;u3&#39;, &#39;cx&#39;]``. For the effects of this pass, the basis is</span>
+<span class="sd">                the set intersection between the ``basis_gates`` parameter</span>
+<span class="sd">                and the gates in the dag.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">basis_gates</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_var_z_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;rz&#39;</span><span class="p">:</span> <span class="n">RZGate</span><span class="p">,</span> <span class="s1">&#39;p&#39;</span><span class="p">:</span> <span class="n">PhaseGate</span><span class="p">,</span> <span class="s1">&#39;u1&#39;</span><span class="p">:</span> <span class="n">U1Gate</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">requires</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CommutationAnalysis</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="CommutativeCancellation.run"><a class="viewcode-back" href="../../../../../stubs/qiskit.transpiler.passes.CommutativeCancellation.html#qiskit.transpiler.passes.CommutativeCancellation.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dag</span><span class="p">):</span>
@@ -352,6 +374,18 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            TranspilerError: when the 1-qubit rotation gates are not found</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">var_z_gate</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">z_var_gates</span> <span class="o">=</span> <span class="p">[</span><span class="n">gate</span> <span class="k">for</span> <span class="n">gate</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">count_ops</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                       <span class="k">if</span> <span class="n">gate</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var_z_map</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">z_var_gates</span><span class="p">:</span>
+            <span class="c1"># priortize z gates in circuit</span>
+            <span class="n">var_z_gate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var_z_map</span><span class="p">[</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">z_var_gates</span><span class="p">))]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">z_var_gates</span> <span class="o">=</span> <span class="p">[</span><span class="n">gate</span> <span class="k">for</span> <span class="n">gate</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span>
+                           <span class="k">if</span> <span class="n">gate</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var_z_map</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">z_var_gates</span><span class="p">:</span>
+                <span class="n">var_z_gate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var_z_map</span><span class="p">[</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">z_var_gates</span><span class="p">))]</span>
+
         <span class="c1"># Now the gates supported are hard-coded</span>
         <span class="n">q_gate_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;cx&#39;</span><span class="p">,</span> <span class="s1">&#39;cy&#39;</span><span class="p">,</span> <span class="s1">&#39;cz&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">]</span>
 
@@ -367,8 +401,7 @@
         <span class="c1">#    qubits and commutation sets.</span>
 
         <span class="k">for</span> <span class="n">wire</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">wires</span><span class="p">:</span>
-            <span class="n">wire_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">[</span><span class="si">{}</span><span class="s2">]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">wire</span><span class="o">.</span><span class="n">register</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">wire</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
-            <span class="n">wire_commutation_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">property_set</span><span class="p">[</span><span class="s1">&#39;commutation_set&#39;</span><span class="p">][</span><span class="n">wire_name</span><span class="p">]</span>
+            <span class="n">wire_commutation_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">property_set</span><span class="p">[</span><span class="s1">&#39;commutation_set&#39;</span><span class="p">][</span><span class="n">wire</span><span class="p">]</span>
 
             <span class="k">for</span> <span class="n">com_set_idx</span><span class="p">,</span> <span class="n">com_set</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">wire_commutation_set</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">com_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;in&#39;</span><span class="p">,</span> <span class="s1">&#39;out&#39;</span><span class="p">]:</span>
@@ -376,21 +409,22 @@
                 <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">com_set</span><span class="p">:</span>
                     <span class="n">num_qargs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">num_qargs</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">q_gate_list</span><span class="p">:</span>
-                        <span class="n">cancellation_sets</span><span class="p">[(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">wire_name</span><span class="p">,</span> <span class="n">com_set_idx</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">num_qargs</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;u1&#39;</span><span class="p">,</span> <span class="s1">&#39;rz&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">]:</span>
-                        <span class="n">cancellation_sets</span><span class="p">[(</span><span class="s1">&#39;z_rotation&#39;</span><span class="p">,</span> <span class="n">wire_name</span><span class="p">,</span> <span class="n">com_set_idx</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+                        <span class="n">cancellation_sets</span><span class="p">[(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">wire</span><span class="p">,</span> <span class="n">com_set_idx</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">num_qargs</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;u1&#39;</span><span class="p">,</span> <span class="s1">&#39;rz&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">]:</span>
+                        <span class="n">cancellation_sets</span><span class="p">[(</span><span class="s1">&#39;z_rotation&#39;</span><span class="p">,</span> <span class="n">wire</span><span class="p">,</span> <span class="n">com_set_idx</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">num_qargs</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;rx&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">]:</span>
-                        <span class="n">cancellation_sets</span><span class="p">[(</span><span class="s1">&#39;x_rotation&#39;</span><span class="p">,</span> <span class="n">wire_name</span><span class="p">,</span> <span class="n">com_set_idx</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+                        <span class="n">cancellation_sets</span><span class="p">[(</span><span class="s1">&#39;x_rotation&#39;</span><span class="p">,</span> <span class="n">wire</span><span class="p">,</span> <span class="n">com_set_idx</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
                     <span class="c1"># Don&#39;t deal with Y rotation, because Y rotation doesn&#39;t commute with CNOT, so</span>
                     <span class="c1"># it should be dealt with by optimized1qgate pass</span>
                     <span class="k">elif</span> <span class="n">num_qargs</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">qargs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">wire</span><span class="p">:</span>
-                        <span class="n">second_op_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">[</span><span class="si">{}</span><span class="s2">]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">qargs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">register</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
-                                                         <span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">qargs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
-                        <span class="n">q2_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">wire_name</span><span class="p">,</span> <span class="n">second_op_name</span><span class="p">,</span> <span class="n">com_set_idx</span><span class="p">,</span>
-                                  <span class="bp">self</span><span class="o">.</span><span class="n">property_set</span><span class="p">[</span><span class="s1">&#39;commutation_set&#39;</span><span class="p">][(</span><span class="n">node</span><span class="p">,</span> <span class="n">second_op_name</span><span class="p">)])</span>
+                        <span class="n">second_qarg</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">qargs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="n">q2_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">wire</span><span class="p">,</span> <span class="n">second_qarg</span><span class="p">,</span> <span class="n">com_set_idx</span><span class="p">,</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">property_set</span><span class="p">[</span><span class="s1">&#39;commutation_set&#39;</span><span class="p">][(</span><span class="n">node</span><span class="p">,</span> <span class="n">second_qarg</span><span class="p">)])</span>
                         <span class="n">cancellation_sets</span><span class="p">[</span><span class="n">q2_key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">cancel_set_key</span> <span class="ow">in</span> <span class="n">cancellation_sets</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cancel_set_key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;z_rotation&#39;</span> <span class="ow">and</span> <span class="n">var_z_gate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
             <span class="n">set_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cancellation_sets</span><span class="p">[</span><span class="n">cancel_set_key</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">set_len</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">cancel_set_key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">q_gate_list</span><span class="p">:</span>
                 <span class="n">gates_to_cancel</span> <span class="o">=</span> <span class="n">cancellation_sets</span><span class="p">[</span><span class="n">cancel_set_key</span><span class="p">]</span>
@@ -401,13 +435,14 @@
                 <span class="n">run</span> <span class="o">=</span> <span class="n">cancellation_sets</span><span class="p">[</span><span class="n">cancel_set_key</span><span class="p">]</span>
                 <span class="n">run_qarg</span> <span class="o">=</span> <span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">qargs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">total_angle</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># lambda</span>
+                <span class="n">total_phase</span> <span class="o">=</span> <span class="mf">0.0</span>
                 <span class="k">for</span> <span class="n">current_node</span> <span class="ow">in</span> <span class="n">run</span><span class="p">:</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">current_node</span><span class="o">.</span><span class="n">condition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
                             <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_node</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span>
                             <span class="ow">or</span> <span class="n">current_node</span><span class="o">.</span><span class="n">qargs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">run_qarg</span><span class="p">):</span>
                         <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s2">&quot;internal error&quot;</span><span class="p">)</span>
 
-                    <span class="k">if</span> <span class="n">current_node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;u1&#39;</span><span class="p">,</span> <span class="s1">&#39;rz&#39;</span><span class="p">,</span> <span class="s1">&#39;rx&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">current_node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="s1">&#39;u1&#39;</span><span class="p">,</span> <span class="s1">&#39;rz&#39;</span><span class="p">,</span> <span class="s1">&#39;rx&#39;</span><span class="p">]:</span>
                         <span class="n">current_angle</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">current_node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                     <span class="k">elif</span> <span class="n">current_node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">]:</span>
                         <span class="n">current_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
@@ -418,19 +453,26 @@
 
                     <span class="c1"># Compose gates</span>
                     <span class="n">total_angle</span> <span class="o">=</span> <span class="n">current_angle</span> <span class="o">+</span> <span class="n">total_angle</span>
+                    <span class="k">if</span> <span class="n">current_node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">definition</span><span class="p">:</span>
+                        <span class="n">total_phase</span> <span class="o">+=</span> <span class="n">current_node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">global_phase</span>
 
                 <span class="c1"># Replace the data of the first node in the run</span>
                 <span class="k">if</span> <span class="n">cancel_set_key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;z_rotation&#39;</span><span class="p">:</span>
-                    <span class="n">new_op</span> <span class="o">=</span> <span class="n">U1Gate</span><span class="p">(</span><span class="n">total_angle</span><span class="p">)</span>
+                    <span class="n">new_op</span> <span class="o">=</span> <span class="n">var_z_gate</span><span class="p">(</span><span class="n">total_angle</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">cancel_set_key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;x_rotation&#39;</span><span class="p">:</span>
                     <span class="n">new_op</span> <span class="o">=</span> <span class="n">RXGate</span><span class="p">(</span><span class="n">total_angle</span><span class="p">)</span>
 
+                <span class="n">new_op_phase</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">total_angle</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">_CUTOFF_PRECISION</span><span class="p">:</span>
                     <span class="n">new_qarg</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;q&#39;</span><span class="p">)</span>
                     <span class="n">new_dag</span> <span class="o">=</span> <span class="n">DAGCircuit</span><span class="p">()</span>
                     <span class="n">new_dag</span><span class="o">.</span><span class="n">add_qreg</span><span class="p">(</span><span class="n">new_qarg</span><span class="p">)</span>
                     <span class="n">new_dag</span><span class="o">.</span><span class="n">apply_operation_back</span><span class="p">(</span><span class="n">new_op</span><span class="p">,</span> <span class="p">[</span><span class="n">new_qarg</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
                     <span class="n">dag</span><span class="o">.</span><span class="n">substitute_node_with_dag</span><span class="p">(</span><span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">new_dag</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">new_op</span><span class="o">.</span><span class="n">definition</span><span class="p">:</span>
+                        <span class="n">new_op_phase</span> <span class="o">=</span> <span class="n">new_op</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">global_phase</span>
+
+                <span class="n">dag</span><span class="o">.</span><span class="n">global_phase</span> <span class="o">=</span> <span class="n">total_phase</span> <span class="o">-</span> <span class="n">new_op_phase</span>
 
                 <span class="c1"># Delete the other nodes in the run</span>
                 <span class="k">for</span> <span class="n">current_node</span> <span class="ow">in</span> <span class="n">run</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
@@ -572,20 +614,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

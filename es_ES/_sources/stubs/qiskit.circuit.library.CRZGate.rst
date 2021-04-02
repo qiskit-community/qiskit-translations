@@ -27,6 +27,7 @@
       ~CRZGate.qasm
       ~CRZGate.repeat
       ~CRZGate.reverse_ops
+      ~CRZGate.soft_compare
       ~CRZGate.to_matrix
       ~CRZGate.validate_parameter
    
@@ -43,6 +44,7 @@
       ~CRZGate.definition
       ~CRZGate.duration
       ~CRZGate.label
+      ~CRZGate.name
       ~CRZGate.num_ctrl_qubits
       ~CRZGate.params
       ~CRZGate.unit

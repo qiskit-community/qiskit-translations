@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.pulse.instruction_schedule_map &mdash; Qiskit 0.24.1 documentation</title>
+  <title>qiskit.pulse.instruction_schedule_map &mdash; Qiskit 0.25.0 documentation</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/aqua.html">கிஸ்கிட் அக்வா</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/ibmq-provider.html">கிஸ்கிட் ஐபிஎம் குவாண்டம் வழங்குநர்</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">பழுது இடமறிதல்</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">ஐபிஎம் குவாண்டம் ஏபிஐ பிழைக் குறியீடுகள்</a></li>
@@ -328,12 +332,23 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">zip_longest</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">NamedTuple</span>
 
-<span class="kn">from</span> <span class="nn">qiskit.circuit.parameterexpression</span> <span class="kn">import</span> <span class="n">ParameterExpression</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">ParameterExpression</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.instruction</span> <span class="kn">import</span> <span class="n">Instruction</span>
 <span class="kn">from</span> <span class="nn">qiskit.pulse.exceptions</span> <span class="kn">import</span> <span class="n">PulseError</span>
-<span class="kn">from</span> <span class="nn">qiskit.pulse.schedule</span> <span class="kn">import</span> <span class="n">ParameterizedSchedule</span><span class="p">,</span> <span class="n">Schedule</span>
+<span class="kn">from</span> <span class="nn">qiskit.pulse.schedule</span> <span class="kn">import</span> <span class="n">Schedule</span><span class="p">,</span> <span class="n">ParameterizedSchedule</span>
+
+<span class="n">ScheduleArgumentsTuple</span> <span class="o">=</span> <span class="n">NamedTuple</span><span class="p">(</span><span class="s1">&#39;ScheduleArgumentsTuple&#39;</span><span class="p">,</span>
+                                    <span class="p">[(</span><span class="s1">&#39;schedule&#39;</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">]),</span>
+                                     <span class="p">(</span><span class="s1">&#39;arguments&#39;</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">])])</span>
+<span class="n">ScheduleArgumentsTuple</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s1">&#39;Set of schedule generator and associated argument names.&#39;</span>
+<span class="n">ScheduleArgumentsTuple</span><span class="o">.</span><span class="n">schedule</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s1">&#39;Schedule generator function or Schedule.&#39;</span>
+<span class="n">ScheduleArgumentsTuple</span><span class="o">.</span><span class="n">arguments</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s1">&#39;Name of parameters to be assigned.&#39;</span>
 
 
 <div class="viewcode-block" id="InstructionScheduleMap"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap">[docs]</a><span class="k">class</span> <span class="nc">InstructionScheduleMap</span><span class="p">():</span>
@@ -353,7 +368,7 @@
 <div class="viewcode-block" id="InstructionScheduleMap.__init__"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize a circuit instruction to schedule mapper instance.&quot;&quot;&quot;</span>
         <span class="c1"># The processed and reformatted circuit instruction definitions</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_map</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_map</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">ScheduleArgumentsTuple</span><span class="p">))</span>
         <span class="c1"># A backwards mapping from qubit to supported instructions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qubit_instructions</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span></div>
 
@@ -369,7 +384,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
-<div class="viewcode-block" id="InstructionScheduleMap.qubits_with_instruction"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap.qubits_with_instruction">[docs]</a>    <span class="k">def</span> <span class="nf">qubits_with_instruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instruction</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]:</span>
+<div class="viewcode-block" id="InstructionScheduleMap.qubits_with_instruction"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap.qubits_with_instruction">[docs]</a>    <span class="k">def</span> <span class="nf">qubits_with_instruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">instruction</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span>
+                                                                                    <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]:</span>
         <span class="sd">&quot;&quot;&quot;Return a list of the qubits for which the given instruction is defined. Single qubit</span>
 <span class="sd">        instructions return a flat list, and multiqubit instructions return a list of ordered</span>
 <span class="sd">        tuples.</span>
@@ -384,6 +401,7 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            PulseError: If the instruction is not found.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">instruction</span> <span class="o">=</span> <span class="n">_get_instruction_string</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">instruction</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[]</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">qubits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">qubits</span>
@@ -406,7 +424,7 @@
             <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qubit_instructions</span><span class="p">[</span><span class="n">_to_tuple</span><span class="p">(</span><span class="n">qubits</span><span class="p">)])</span>
         <span class="k">return</span> <span class="p">[]</span></div>
 
-<div class="viewcode-block" id="InstructionScheduleMap.has"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap.has">[docs]</a>    <span class="k">def</span> <span class="nf">has</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instruction</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="InstructionScheduleMap.has"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap.has">[docs]</a>    <span class="k">def</span> <span class="nf">has</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instruction</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">],</span> <span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Is the instruction defined for the given qubits?</span>
 
 <span class="sd">        Args:</span>
@@ -416,10 +434,13 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            True iff the instruction is defined.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">instruction</span> <span class="o">=</span> <span class="n">_get_instruction_string</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">instruction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span> <span class="ow">and</span> \
             <span class="n">_to_tuple</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">instruction</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="InstructionScheduleMap.assert_has"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap.assert_has">[docs]</a>    <span class="k">def</span> <span class="nf">assert_has</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instruction</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="InstructionScheduleMap.assert_has"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap.assert_has">[docs]</a>    <span class="k">def</span> <span class="nf">assert_has</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                   <span class="n">instruction</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">],</span>
+                   <span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Error if the given instruction is not defined.</span>
 
 <span class="sd">        Args:</span>
@@ -429,6 +450,7 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            PulseError: If the instruction is not defined on the qubits.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">instruction</span> <span class="o">=</span> <span class="n">_get_instruction_string</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="n">instruction</span><span class="p">,</span> <span class="n">_to_tuple</span><span class="p">(</span><span class="n">qubits</span><span class="p">)):</span>
             <span class="k">if</span> <span class="n">instruction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;Operation &#39;</span><span class="si">{inst}</span><span class="s2">&#39; exists, but is only defined for qubits &quot;</span>
@@ -439,60 +461,134 @@
                              <span class="s2">&quot;system.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inst</span><span class="o">=</span><span class="n">instruction</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="InstructionScheduleMap.get"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-            <span class="n">instruction</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">instruction</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">],</span>
             <span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
             <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">],</span>
             <span class="o">**</span><span class="n">kwparams</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Schedule</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the defined :py:class:`~qiskit.pulse.Schedule` for the given instruction on</span>
 <span class="sd">        the given qubits.</span>
 
+<span class="sd">        If all keys are not specified this method returns schedule with unbound parameters.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            instruction: Name of the instruction.</span>
+<span class="sd">            instruction: Name of the instruction or the instruction itself.</span>
 <span class="sd">            qubits: The qubits for the instruction.</span>
 <span class="sd">            *params: Command parameters for generating the output schedule.</span>
 <span class="sd">            **kwparams: Keyworded command parameters for generating the schedule.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The Schedule defined for the input.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assert_has</span><span class="p">(</span><span class="n">instruction</span><span class="p">,</span> <span class="n">qubits</span><span class="p">)</span>
-        <span class="n">schedule_generator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">instruction</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_to_tuple</span><span class="p">(</span><span class="n">qubits</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">schedule_generator</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">schedule_generator</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="p">,</span> <span class="o">**</span><span class="n">kwparams</span><span class="p">)</span>
-        <span class="c1"># otherwise this is just a Schedule</span>
-        <span class="k">return</span> <span class="n">schedule_generator</span></div>
+<span class="sd">        Raises:</span>
+<span class="sd">            PulseError: When invalid parameters are specified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">instruction</span> <span class="o">=</span> <span class="n">_get_instruction_string</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assert_has</span><span class="p">(</span><span class="n">instruction</span><span class="p">,</span> <span class="n">qubits</span><span class="p">)</span>
+        <span class="n">schedule_args_tuple</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">instruction</span><span class="p">][</span><span class="n">_to_tuple</span><span class="p">(</span><span class="n">qubits</span><span class="p">)]</span>
+
+        <span class="c1"># Verify parameter-value mapping</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">schedule_args_tuple</span><span class="o">.</span><span class="n">arguments</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s1">&#39;Too many values to bind: </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">params</span><span class="p">))))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="n">schedule_args_tuple</span><span class="o">.</span><span class="n">arguments</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwparams</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s1">&#39;Parameters not defined: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">kwparams</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+
+        <span class="n">bind_parameters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">zip_longest</span><span class="p">(</span><span class="n">schedule_args_tuple</span><span class="o">.</span><span class="n">arguments</span><span class="p">,</span> <span class="n">params</span><span class="p">))</span>
+        <span class="n">bind_parameters</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwparams</span><span class="p">)</span>
+
+        <span class="n">sched</span> <span class="o">=</span> <span class="n">schedule_args_tuple</span><span class="o">.</span><span class="n">schedule</span>
+
+        <span class="c1"># callback function</span>
+        <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">sched</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">sched</span><span class="p">(</span><span class="o">**</span><span class="n">bind_parameters</span><span class="p">)</span>
+
+        <span class="c1"># schedule</span>
+        <span class="k">if</span> <span class="n">sched</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">():</span>
+            <span class="n">parameter_mapping</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">param_obj</span> <span class="ow">in</span> <span class="n">sched</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+                <span class="n">bind_value</span> <span class="o">=</span> <span class="n">bind_parameters</span><span class="p">[</span><span class="n">param_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+                <span class="c1"># if value is not set, keep the parameter unassigned</span>
+                <span class="k">if</span> <span class="n">bind_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">parameter_mapping</span><span class="p">[</span><span class="n">param_obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">bind_value</span>
+            <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">sched</span><span class="p">)</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="n">parameter_mapping</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">sched</span></div>
 
 <div class="viewcode-block" id="InstructionScheduleMap.add"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-            <span class="n">instruction</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">instruction</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">],</span>
             <span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
-            <span class="n">schedule</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Schedule</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">schedule</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Schedule</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">]],</span>
+            <span class="n">arguments</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Add a new known instruction for the given qubits and its mapping to a pulse schedule.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            instruction: The name of the instruction to add.</span>
 <span class="sd">            qubits: The qubits which the instruction applies to.</span>
 <span class="sd">            schedule: The Schedule that implements the given instruction.</span>
+<span class="sd">            arguments: List of parameter names to create a parameter-bound schedule from the</span>
+<span class="sd">                associated gate instruction. If :py:meth:`get` is called with arguments rather</span>
+<span class="sd">                than keyword arguments, this parameter list is used to map the input arguments to</span>
+<span class="sd">                parameter objects stored in the target schedule.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            PulseError: If the qubits are provided as an empty iterable.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">instruction</span> <span class="o">=</span> <span class="n">_get_instruction_string</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span>
+
+        <span class="c1"># validation of target qubit</span>
         <span class="n">qubits</span> <span class="o">=</span> <span class="n">_to_tuple</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">qubits</span> <span class="o">==</span> <span class="p">():</span>
             <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;Cannot add definition </span><span class="si">{}</span><span class="s2"> with no target qubits.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">instruction</span><span class="p">))</span>
+
+        <span class="c1"># TODO this block will be removed</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">schedule</span><span class="p">,</span> <span class="n">ParameterizedSchedule</span><span class="p">):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;ParameterizedSchedule has been deprecated. &#39;</span>
+                          <span class="s1">&#39;Define Schedule with Parameter objects.&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+
+            <span class="k">def</span> <span class="nf">sched_callback</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="n">bind_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">pname</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">pname</span><span class="p">]</span> <span class="k">for</span> <span class="n">pname</span> <span class="ow">in</span> <span class="n">schedule</span><span class="o">.</span><span class="n">parameters</span><span class="p">}</span>
+                <span class="k">return</span> <span class="n">schedule</span><span class="o">.</span><span class="n">bind_parameters</span><span class="p">(</span><span class="o">**</span><span class="n">bind_dict</span><span class="p">)</span>
+            <span class="n">arguments</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">schedule</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">instruction</span><span class="p">][</span><span class="n">qubits</span><span class="p">]</span> <span class="o">=</span> <span class="n">ScheduleArgumentsTuple</span><span class="p">(</span><span class="n">sched_callback</span><span class="p">,</span> <span class="n">arguments</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qubit_instructions</span><span class="p">[</span><span class="n">qubits</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span>
+
+            <span class="k">return</span>
+
+        <span class="c1"># validation of input data</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">schedule</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">)</span> <span class="ow">or</span> <span class="n">callable</span><span class="p">(</span><span class="n">schedule</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s1">&#39;Supplied schedule must be either a Schedule, or a &#39;</span>
                              <span class="s1">&#39;callable that outputs a schedule.&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">instruction</span><span class="p">][</span><span class="n">qubits</span><span class="p">]</span> <span class="o">=</span> <span class="n">schedule</span>
+
+        <span class="c1"># initialize parameter list</span>
+        <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">schedule</span><span class="p">):</span>
+            <span class="n">func_parameters</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">schedule</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">func_parameters</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">schedule</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">arguments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># for backward compatibility</span>
+            <span class="n">arguments</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">func_parameters</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># check parameter list consistency</span>
+            <span class="k">if</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">func_parameters</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">arguments</span><span class="p">):</span>
+                <span class="n">str_func_parameters</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">func_parameters</span><span class="p">)</span>
+                <span class="n">str_arguments</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arguments</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s1">&#39;Program signature and specified parameter names do not match &#39;</span>
+                                 <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> != </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">str_func_parameters</span><span class="p">,</span> <span class="n">str_arguments</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">instruction</span><span class="p">][</span><span class="n">qubits</span><span class="p">]</span> <span class="o">=</span> <span class="n">ScheduleArgumentsTuple</span><span class="p">(</span><span class="n">schedule</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">arguments</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qubit_instructions</span><span class="p">[</span><span class="n">qubits</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="InstructionScheduleMap.remove"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instruction</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="InstructionScheduleMap.remove"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">instruction</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">],</span>
+               <span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Remove the given instruction from the listing of instructions defined in self.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            instruction: The name of the instruction to add.</span>
 <span class="sd">            qubits: The qubits which the instruction applies to.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">instruction</span> <span class="o">=</span> <span class="n">_get_instruction_string</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span>
         <span class="n">qubits</span> <span class="o">=</span> <span class="n">_to_tuple</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">assert_has</span><span class="p">(</span><span class="n">instruction</span><span class="p">,</span> <span class="n">qubits</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">instruction</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span>
@@ -503,7 +599,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_qubit_instructions</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="InstructionScheduleMap.pop"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap.pop">[docs]</a>    <span class="k">def</span> <span class="nf">pop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-            <span class="n">instruction</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">instruction</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">],</span>
             <span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
             <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">],</span>
             <span class="o">**</span><span class="n">kwparams</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Schedule</span><span class="p">:</span>
@@ -519,11 +615,15 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            The Schedule defined for the input.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">instruction</span> <span class="o">=</span> <span class="n">_get_instruction_string</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span>
         <span class="n">schedule</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">instruction</span><span class="p">,</span> <span class="n">qubits</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">,</span> <span class="o">**</span><span class="n">kwparams</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">instruction</span><span class="p">,</span> <span class="n">qubits</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">schedule</span></div>
 
-<div class="viewcode-block" id="InstructionScheduleMap.get_parameters"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap.get_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instruction</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="InstructionScheduleMap.get_parameters"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap.get_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">instruction</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">],</span>
+                       <span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span>
+                       <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ParameterExpression</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;Return the list of parameters taken by the given instruction on the given qubits.</span>
 
 <span class="sd">        Args:</span>
@@ -533,14 +633,10 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            The names of the parameters required by the instruction.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">instruction</span> <span class="o">=</span> <span class="n">_get_instruction_string</span><span class="p">(</span><span class="n">instruction</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">assert_has</span><span class="p">(</span><span class="n">instruction</span><span class="p">,</span> <span class="n">qubits</span><span class="p">)</span>
-        <span class="n">schedule_generator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">instruction</span><span class="p">][</span><span class="n">_to_tuple</span><span class="p">(</span><span class="n">qubits</span><span class="p">)]</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">schedule_generator</span><span class="p">,</span> <span class="n">ParameterizedSchedule</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">schedule_generator</span><span class="o">.</span><span class="n">parameters</span>
-        <span class="k">elif</span> <span class="n">callable</span><span class="p">(</span><span class="n">schedule_generator</span><span class="p">):</span>
-            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">schedule_generator</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">()</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">instruction</span><span class="p">][</span><span class="n">_to_tuple</span><span class="p">(</span><span class="n">qubits</span><span class="p">)]</span><span class="o">.</span><span class="n">arguments</span></div>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">single_q_insts</span> <span class="o">=</span> <span class="s2">&quot;1Q instructions:</span><span class="se">\n</span><span class="s2">&quot;</span>
@@ -568,6 +664,17 @@
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">values</span><span class="p">,)</span>
+
+
+<span class="k">def</span> <span class="nf">_get_instruction_string</span><span class="p">(</span><span class="n">inst</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Instruction</span><span class="p">]):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">inst</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">inst</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s1">&#39;Input &quot;inst&quot; has no attribute &quot;name&quot;.&#39;</span>
+                             <span class="s1">&#39;This should be a circuit &quot;Instruction&quot;.&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
 </pre></div>
 
              </article>
@@ -700,20 +807,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

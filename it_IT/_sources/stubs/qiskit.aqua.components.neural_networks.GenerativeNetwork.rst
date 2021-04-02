@@ -16,11 +16,18 @@
       ~GenerativeNetwork.__init__
       ~GenerativeNetwork.get_output
       ~GenerativeNetwork.loss
+      ~GenerativeNetwork.set_discriminator
       ~GenerativeNetwork.set_seed
       ~GenerativeNetwork.train
    
    
 
    
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GenerativeNetwork.parameter_values
    
    

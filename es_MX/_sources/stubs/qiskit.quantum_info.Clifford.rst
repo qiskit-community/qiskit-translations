@@ -14,7 +14,6 @@
    .. autosummary::
    
       ~Clifford.__init__
-      ~Clifford.add
       ~Clifford.adjoint
       ~Clifford.compose
       ~Clifford.conjugate
@@ -26,13 +25,9 @@
       ~Clifford.from_label
       ~Clifford.input_dims
       ~Clifford.is_unitary
-      ~Clifford.multiply
       ~Clifford.output_dims
       ~Clifford.power
       ~Clifford.reshape
-      ~Clifford.set_atol
-      ~Clifford.set_rtol
-      ~Clifford.subtract
       ~Clifford.tensor
       ~Clifford.to_circuit
       ~Clifford.to_dict
@@ -49,12 +44,10 @@
 
    .. autosummary::
    
-      ~Clifford.atol
       ~Clifford.destabilizer
       ~Clifford.dim
       ~Clifford.num_qubits
       ~Clifford.qargs
-      ~Clifford.rtol
       ~Clifford.stabilizer
       ~Clifford.table
    

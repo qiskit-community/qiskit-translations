@@ -14,7 +14,6 @@
    .. autosummary::
    
       ~PauliTable.__init__
-      ~PauliTable.add
       ~PauliTable.adjoint
       ~PauliTable.anticommutes_with_all
       ~PauliTable.argsort
@@ -31,14 +30,10 @@
       ~PauliTable.insert
       ~PauliTable.label_iter
       ~PauliTable.matrix_iter
-      ~PauliTable.multiply
       ~PauliTable.output_dims
       ~PauliTable.power
       ~PauliTable.reshape
-      ~PauliTable.set_atol
-      ~PauliTable.set_rtol
       ~PauliTable.sort
-      ~PauliTable.subtract
       ~PauliTable.tensor
       ~PauliTable.to_labels
       ~PauliTable.to_matrix
@@ -56,11 +51,9 @@
       ~PauliTable.X
       ~PauliTable.Z
       ~PauliTable.array
-      ~PauliTable.atol
       ~PauliTable.dim
       ~PauliTable.num_qubits
       ~PauliTable.qargs
-      ~PauliTable.rtol
       ~PauliTable.shape
       ~PauliTable.size
    

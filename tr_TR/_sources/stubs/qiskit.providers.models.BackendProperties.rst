@@ -25,6 +25,7 @@
       ~BackendProperties.is_qubit_operational
       ~BackendProperties.qubit_property
       ~BackendProperties.readout_error
+      ~BackendProperties.readout_length
       ~BackendProperties.t1
       ~BackendProperties.t2
       ~BackendProperties.to_dict

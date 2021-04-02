@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~PolynomialPauliRotations.__init__
+      ~PolynomialPauliRotations.add_bits
       ~PolynomialPauliRotations.add_calibration
       ~PolynomialPauliRotations.add_register
       ~PolynomialPauliRotations.append
@@ -48,9 +49,9 @@
       ~PolynomialPauliRotations.decompose
       ~PolynomialPauliRotations.delay
       ~PolynomialPauliRotations.depth
-      ~PolynomialPauliRotations.diag_gate
       ~PolynomialPauliRotations.diagonal
       ~PolynomialPauliRotations.draw
+      ~PolynomialPauliRotations.ecr
       ~PolynomialPauliRotations.extend
       ~PolynomialPauliRotations.fredkin
       ~PolynomialPauliRotations.from_qasm_file
@@ -65,7 +66,6 @@
       ~PolynomialPauliRotations.iso
       ~PolynomialPauliRotations.isometry
       ~PolynomialPauliRotations.iswap
-      ~PolynomialPauliRotations.mcmt
       ~PolynomialPauliRotations.mcp
       ~PolynomialPauliRotations.mcrx
       ~PolynomialPauliRotations.mcry
@@ -76,13 +76,13 @@
       ~PolynomialPauliRotations.measure
       ~PolynomialPauliRotations.measure_active
       ~PolynomialPauliRotations.measure_all
-      ~PolynomialPauliRotations.mirror
       ~PolynomialPauliRotations.ms
       ~PolynomialPauliRotations.num_connected_components
       ~PolynomialPauliRotations.num_nonlocal_gates
       ~PolynomialPauliRotations.num_tensor_factors
       ~PolynomialPauliRotations.num_unitary_factors
       ~PolynomialPauliRotations.p
+      ~PolynomialPauliRotations.pauli
       ~PolynomialPauliRotations.power
       ~PolynomialPauliRotations.qasm
       ~PolynomialPauliRotations.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~PolynomialPauliRotations.reset
       ~PolynomialPauliRotations.reverse_bits
       ~PolynomialPauliRotations.reverse_ops
+      ~PolynomialPauliRotations.rv
       ~PolynomialPauliRotations.rx
       ~PolynomialPauliRotations.rxx
       ~PolynomialPauliRotations.ry
@@ -105,7 +106,26 @@
       ~PolynomialPauliRotations.rzx
       ~PolynomialPauliRotations.rzz
       ~PolynomialPauliRotations.s
+      ~PolynomialPauliRotations.save_amplitudes
+      ~PolynomialPauliRotations.save_amplitudes_squared
+      ~PolynomialPauliRotations.save_density_matrix
+      ~PolynomialPauliRotations.save_expectation_value
+      ~PolynomialPauliRotations.save_expectation_value_variance
+      ~PolynomialPauliRotations.save_matrix_product_state
+      ~PolynomialPauliRotations.save_probabilities
+      ~PolynomialPauliRotations.save_probabilities_dict
+      ~PolynomialPauliRotations.save_stabilizer
+      ~PolynomialPauliRotations.save_state
+      ~PolynomialPauliRotations.save_statevector
+      ~PolynomialPauliRotations.save_statevector_dict
+      ~PolynomialPauliRotations.save_superop
+      ~PolynomialPauliRotations.save_unitary
       ~PolynomialPauliRotations.sdg
+      ~PolynomialPauliRotations.set_density_matrix
+      ~PolynomialPauliRotations.set_stabilizer
+      ~PolynomialPauliRotations.set_statevector
+      ~PolynomialPauliRotations.set_superop
+      ~PolynomialPauliRotations.set_unitary
       ~PolynomialPauliRotations.size
       ~PolynomialPauliRotations.snapshot
       ~PolynomialPauliRotations.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~PolynomialPauliRotations.sxdg
       ~PolynomialPauliRotations.t
       ~PolynomialPauliRotations.tdg
+      ~PolynomialPauliRotations.tensor
       ~PolynomialPauliRotations.to_gate
       ~PolynomialPauliRotations.to_instruction
       ~PolynomialPauliRotations.toffoli
@@ -155,6 +176,7 @@
       ~PolynomialPauliRotations.global_phase
       ~PolynomialPauliRotations.header
       ~PolynomialPauliRotations.instances
+      ~PolynomialPauliRotations.metadata
       ~PolynomialPauliRotations.num_ancilla_qubits
       ~PolynomialPauliRotations.num_ancillas
       ~PolynomialPauliRotations.num_clbits

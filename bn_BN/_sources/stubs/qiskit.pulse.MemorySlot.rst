@@ -14,6 +14,8 @@
    .. autosummary::
    
       ~MemorySlot.__init__
+      ~MemorySlot.assign
+      ~MemorySlot.is_parameterized
    
    
 
@@ -25,6 +27,7 @@
    
       ~MemorySlot.index
       ~MemorySlot.name
+      ~MemorySlot.parameters
       ~MemorySlot.prefix
    
    

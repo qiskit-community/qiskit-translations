@@ -23,9 +23,9 @@
       ~QasmSimulator.properties
       ~QasmSimulator.provider
       ~QasmSimulator.run
+      ~QasmSimulator.set_option
       ~QasmSimulator.set_options
       ~QasmSimulator.status
-      ~QasmSimulator.version
    
    
 
@@ -36,5 +36,6 @@
    .. autosummary::
    
       ~QasmSimulator.options
+      ~QasmSimulator.version
    
    

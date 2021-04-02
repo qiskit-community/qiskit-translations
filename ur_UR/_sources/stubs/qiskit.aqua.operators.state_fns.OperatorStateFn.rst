@@ -45,6 +45,7 @@
 
    .. autosummary::
    
+      ~OperatorStateFn.ENABLE_DEPRECATION
       ~OperatorStateFn.INDENTATION
       ~OperatorStateFn.coeff
       ~OperatorStateFn.is_measurement

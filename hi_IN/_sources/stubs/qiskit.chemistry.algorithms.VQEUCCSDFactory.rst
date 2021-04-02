@@ -27,6 +27,7 @@
    
       ~VQEUCCSDFactory.excitation_type
       ~VQEUCCSDFactory.expectation
+      ~VQEUCCSDFactory.gradient
       ~VQEUCCSDFactory.include_custom
       ~VQEUCCSDFactory.initial_point
       ~VQEUCCSDFactory.method_doubles

@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.providers.basicaer.basicaerjob &mdash; Qiskit 0.24.1 - dokumentacja</title>
+  <title>qiskit.providers.basicaer.basicaerjob &mdash; Qiskit 0.25.0 - dokumentacja</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Rozwiązywanie problemów</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Kody błędów interfejsu IBM Quantum API</a></li>
@@ -311,130 +315,60 @@
 <span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
 <span class="c1"># that they have been altered from the originals.</span>
 
+<span class="c1"># pylint: disable=abstract-method</span>
+
+
 <span class="sd">&quot;&quot;&quot;This module implements the job class used by Basic Aer Provider.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">concurrent</span> <span class="kn">import</span> <span class="n">futures</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
-<span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">BaseJob</span><span class="p">,</span> <span class="n">JobStatus</span><span class="p">,</span> <span class="n">JobError</span>
-<span class="kn">from</span> <span class="nn">qiskit.qobj</span> <span class="kn">import</span> <span class="n">validate_qobj_against_schema</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">JobStatus</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers.job</span> <span class="kn">import</span> <span class="n">JobV1</span>
 
 
-<span class="k">def</span> <span class="nf">requires_submit</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Decorator to ensure that a submit has been performed before</span>
-<span class="sd">    calling the method.</span>
+<div class="viewcode-block" id="BasicAerJob"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.basicaer.BasicAerJob.html#qiskit.providers.basicaer.BasicAerJob">[dokumentacja]</a><span class="k">class</span> <span class="nc">BasicAerJob</span><span class="p">(</span><span class="n">JobV1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;BasicAerJob class.&quot;&quot;&quot;</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        func (callable): test function to be decorated.</span>
+    <span class="n">_async</span> <span class="o">=</span> <span class="kc">False</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        callable: the decorated function.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_future</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">JobError</span><span class="p">(</span><span class="s2">&quot;Job not submitted yet!. You have to .submit() first!&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">_wrapper</span>
-
-
-<div class="viewcode-block" id="BasicAerJob"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.basicaer.BasicAerJob.html#qiskit.providers.basicaer.BasicAerJob">[dokumentacja]</a><span class="k">class</span> <span class="nc">BasicAerJob</span><span class="p">(</span><span class="n">BaseJob</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;BasicAerJob class.</span>
-
-<span class="sd">    Attributes:</span>
-<span class="sd">        _executor (futures.Executor): executor to handle asynchronous jobs</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;darwin&#39;</span><span class="p">,</span> <span class="s1">&#39;win32&#39;</span><span class="p">]:</span>
-        <span class="n">_executor</span> <span class="o">=</span> <span class="n">futures</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">_executor</span> <span class="o">=</span> <span class="n">futures</span><span class="o">.</span><span class="n">ProcessPoolExecutor</span><span class="p">()</span>
-
-<div class="viewcode-block" id="BasicAerJob.__init__"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.basicaer.BasicAerJob.html#qiskit.providers.basicaer.BasicAerJob.__init__">[dokumentacja]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">qobj</span><span class="p">):</span>
+<div class="viewcode-block" id="BasicAerJob.__init__"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.basicaer.BasicAerJob.html#qiskit.providers.basicaer.BasicAerJob.__init__">[dokumentacja]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="n">fn</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_qobj</span> <span class="o">=</span> <span class="n">qobj</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_future</span> <span class="o">=</span> <span class="kc">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="n">result</span></div>
 
 <div class="viewcode-block" id="BasicAerJob.submit"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.basicaer.BasicAerJob.html#qiskit.providers.basicaer.BasicAerJob.submit">[dokumentacja]</a>    <span class="k">def</span> <span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Submit the job to the backend for execution.</span>
 
 <span class="sd">        Raises:</span>
-<span class="sd">            QobjValidationError: if the JSON serialization of the Qobj passed</span>
-<span class="sd">            during construction does not validate against the Qobj schema.</span>
-
 <span class="sd">            JobError: if trying to re-submit the job.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_future</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">JobError</span><span class="p">(</span><span class="s2">&quot;We have already submitted the job!&quot;</span><span class="p">)</span>
+        <span class="k">return</span></div>
 
-        <span class="n">validate_qobj_against_schema</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qobj</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qobj</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="BasicAerJob.result"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.basicaer.BasicAerJob.html#qiskit.providers.basicaer.BasicAerJob.result">[dokumentacja]</a>    <span class="nd">@requires_submit</span>
-    <span class="k">def</span> <span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BasicAerJob.result"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.basicaer.BasicAerJob.html#qiskit.providers.basicaer.BasicAerJob.result">[dokumentacja]</a>    <span class="k">def</span> <span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># pylint: disable=arguments-differ</span>
-        <span class="sd">&quot;&quot;&quot;Get job result. The behavior is the same as the underlying</span>
-<span class="sd">        concurrent Future objects,</span>
-
-<span class="sd">        https://docs.python.org/3/library/concurrent.futures.html#future-objects</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            timeout (float): number of seconds to wait for results.</span>
+        <span class="sd">&quot;&quot;&quot;Get job result .</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            qiskit.Result: Result object</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            concurrent.futures.TimeoutError: if timeout occurred.</span>
-<span class="sd">            concurrent.futures.CancelledError: if job cancelled before completed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="o">.</span><span class="n">result</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The timeout kwarg doesn&#39;t have any meaning with &quot;</span>
+                          <span class="s2">&quot;BasicAer because execution is synchronous and the &quot;</span>
+                          <span class="s2">&quot;result already exists when run() returns.&quot;</span><span class="p">,</span>
+                          <span class="ne">UserWarning</span><span class="p">)</span>
 
-<div class="viewcode-block" id="BasicAerJob.cancel"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.basicaer.BasicAerJob.html#qiskit.providers.basicaer.BasicAerJob.cancel">[dokumentacja]</a>    <span class="nd">@requires_submit</span>
-    <span class="k">def</span> <span class="nf">cancel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span></div>
 
-<div class="viewcode-block" id="BasicAerJob.status"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.basicaer.BasicAerJob.html#qiskit.providers.basicaer.BasicAerJob.status">[dokumentacja]</a>    <span class="nd">@requires_submit</span>
-    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="BasicAerJob.status"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.basicaer.BasicAerJob.html#qiskit.providers.basicaer.BasicAerJob.status">[dokumentacja]</a>    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Gets the status of the job by querying the Python&#39;s future</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            qiskit.providers.JobStatus: The current JobStatus</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            JobError: If the future is in unexpected state</span>
-<span class="sd">            concurrent.futures.TimeoutError: if timeout occurred.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># The order is important here</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="o">.</span><span class="n">running</span><span class="p">():</span>
-            <span class="n">_status</span> <span class="o">=</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">RUNNING</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="o">.</span><span class="n">cancelled</span><span class="p">():</span>
-            <span class="n">_status</span> <span class="o">=</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">CANCELLED</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
-            <span class="n">_status</span> <span class="o">=</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">DONE</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="o">.</span><span class="n">exception</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">ERROR</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Note: There is an undocumented Future state: PENDING, that seems to show up when</span>
-            <span class="c1"># the job is enqueued, waiting for someone to pick it up. We need to deal with this</span>
-            <span class="c1"># state but there&#39;s no public API for it, so we are assuming that if the job is not</span>
-            <span class="c1"># in any of the previous states, is PENDING, ergo INITIALIZING for us.</span>
-            <span class="n">_status</span> <span class="o">=</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">INITIALIZING</span>
-
-        <span class="k">return</span> <span class="n">_status</span></div>
+        <span class="k">return</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">DONE</span></div>
 
 <div class="viewcode-block" id="BasicAerJob.backend"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.basicaer.BasicAerJob.html#qiskit.providers.basicaer.BasicAerJob.backend">[dokumentacja]</a>    <span class="k">def</span> <span class="nf">backend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the instance of the backend used for this job.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span></div>
-
-<div class="viewcode-block" id="BasicAerJob.qobj"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.basicaer.BasicAerJob.html#qiskit.providers.basicaer.BasicAerJob.qobj">[dokumentacja]</a>    <span class="k">def</span> <span class="nf">qobj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the Qobj submitted for this job.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Qobj: the Qobj submitted for this job.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qobj</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span></div></div>
 </pre></div>
 
              </article>
@@ -567,20 +501,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

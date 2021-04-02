@@ -31,4 +31,10 @@
 
    
    
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~AerJob.version
+   
    

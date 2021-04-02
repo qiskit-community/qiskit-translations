@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~GraphState.__init__
+      ~GraphState.add_bits
       ~GraphState.add_calibration
       ~GraphState.add_register
       ~GraphState.append
@@ -48,9 +49,9 @@
       ~GraphState.decompose
       ~GraphState.delay
       ~GraphState.depth
-      ~GraphState.diag_gate
       ~GraphState.diagonal
       ~GraphState.draw
+      ~GraphState.ecr
       ~GraphState.extend
       ~GraphState.fredkin
       ~GraphState.from_qasm_file
@@ -65,7 +66,6 @@
       ~GraphState.iso
       ~GraphState.isometry
       ~GraphState.iswap
-      ~GraphState.mcmt
       ~GraphState.mcp
       ~GraphState.mcrx
       ~GraphState.mcry
@@ -76,13 +76,13 @@
       ~GraphState.measure
       ~GraphState.measure_active
       ~GraphState.measure_all
-      ~GraphState.mirror
       ~GraphState.ms
       ~GraphState.num_connected_components
       ~GraphState.num_nonlocal_gates
       ~GraphState.num_tensor_factors
       ~GraphState.num_unitary_factors
       ~GraphState.p
+      ~GraphState.pauli
       ~GraphState.power
       ~GraphState.qasm
       ~GraphState.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~GraphState.reset
       ~GraphState.reverse_bits
       ~GraphState.reverse_ops
+      ~GraphState.rv
       ~GraphState.rx
       ~GraphState.rxx
       ~GraphState.ry
@@ -105,7 +106,26 @@
       ~GraphState.rzx
       ~GraphState.rzz
       ~GraphState.s
+      ~GraphState.save_amplitudes
+      ~GraphState.save_amplitudes_squared
+      ~GraphState.save_density_matrix
+      ~GraphState.save_expectation_value
+      ~GraphState.save_expectation_value_variance
+      ~GraphState.save_matrix_product_state
+      ~GraphState.save_probabilities
+      ~GraphState.save_probabilities_dict
+      ~GraphState.save_stabilizer
+      ~GraphState.save_state
+      ~GraphState.save_statevector
+      ~GraphState.save_statevector_dict
+      ~GraphState.save_superop
+      ~GraphState.save_unitary
       ~GraphState.sdg
+      ~GraphState.set_density_matrix
+      ~GraphState.set_stabilizer
+      ~GraphState.set_statevector
+      ~GraphState.set_superop
+      ~GraphState.set_unitary
       ~GraphState.size
       ~GraphState.snapshot
       ~GraphState.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~GraphState.sxdg
       ~GraphState.t
       ~GraphState.tdg
+      ~GraphState.tensor
       ~GraphState.to_gate
       ~GraphState.to_instruction
       ~GraphState.toffoli
@@ -152,6 +173,7 @@
       ~GraphState.global_phase
       ~GraphState.header
       ~GraphState.instances
+      ~GraphState.metadata
       ~GraphState.num_ancillas
       ~GraphState.num_clbits
       ~GraphState.num_parameters

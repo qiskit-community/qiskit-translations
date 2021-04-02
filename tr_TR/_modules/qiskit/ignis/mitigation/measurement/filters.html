@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.ignis.mitigation.measurement.filters &mdash; Qiskit 0.24.1 belgelendirmesi</title>
+  <title>qiskit.ignis.mitigation.measurement.filters &mdash; Qiskit 0.25.0 belgelendirmesi</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Qiskit IBM Kuantum Sağlayıcısı</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Hata Giderme</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Kuantum API hata kodları</a></li>
@@ -320,6 +324,8 @@
 <span class="sd">Measurement correction filters.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
 <span class="kn">import</span> <span class="nn">scipy.linalg</span> <span class="k">as</span> <span class="nn">la</span>
@@ -520,22 +526,28 @@
 
 <div class="viewcode-block" id="TensoredFilter.__init__"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.mitigation.TensoredFilter.html#qiskit.ignis.mitigation.TensoredFilter.__init__">[belgeler]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">cal_matrices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">,</span>
-                 <span class="n">substate_labels_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+                 <span class="n">substate_labels_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+                 <span class="n">mit_pattern</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize a tensored measurement error mitigation filter using</span>
 <span class="sd">        the cal_matrices from a tensored measurement calibration fitter.</span>
+<span class="sd">        A simple usage this class is explained [here]</span>
+<span class="sd">        (https://qiskit.org/documentation/tutorials/noise/3_measurement_error_mitigation.html).</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            cal_matrices: the calibration matrices for applying the correction.</span>
 <span class="sd">            substate_labels_list: for each calibration matrix</span>
 <span class="sd">                a list of the states (as strings, states in the subspace)</span>
+<span class="sd">            mit_pattern: for each calibration matrix</span>
+<span class="sd">                a list of the logical qubit indices (as int, states in the subspace)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_cal_matrices</span> <span class="o">=</span> <span class="n">cal_matrices</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qubit_list_sizes</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_indices_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_substate_labels_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">substate_labels_list</span> <span class="o">=</span> <span class="n">substate_labels_list</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">substate_labels_list</span> <span class="o">=</span> <span class="n">substate_labels_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mit_pattern</span> <span class="o">=</span> <span class="n">mit_pattern</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">cal_matrices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -580,7 +592,10 @@
         <span class="sd">&quot;&quot;&quot;Return the number of qubits. See also MeasurementFilter.apply() &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qubit_list_sizes</span><span class="p">)</span>
 
-<div class="viewcode-block" id="TensoredFilter.apply"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.mitigation.TensoredFilter.html#qiskit.ignis.mitigation.TensoredFilter.apply">[belgeler]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;least_squares&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="TensoredFilter.apply"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.mitigation.TensoredFilter.html#qiskit.ignis.mitigation.TensoredFilter.apply">[belgeler]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+              <span class="n">raw_data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">qiskit</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">Result</span><span class="p">,</span> <span class="nb">dict</span><span class="p">],</span>
+              <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;least_squares&#39;</span><span class="p">,</span>
+              <span class="n">meas_layout</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Apply the calibration matrices to results.</span>
 
@@ -594,10 +609,49 @@
 <span class="sd">            method (str): fitting method. The following methods are supported:</span>
 
 <span class="sd">                * &#39;pseudo_inverse&#39;: direct inversion of the cal matrices.</span>
+<span class="sd">                    Mitigated counts can contain negative values</span>
+<span class="sd">                    and the sum of counts would not equal to the shots.</span>
+<span class="sd">                    Mitigation is conducted qubit wise:</span>
+<span class="sd">                    For each qubit, mitigate the whole counts using the calibration matrices</span>
+<span class="sd">                    which affect the corresponding qubit.</span>
+<span class="sd">                    For example, assume we are mitigating the 3rd bit of the 4-bit counts</span>
+<span class="sd">                    using &#39;2\times 2&#39; calibration matrix `A_3`.</span>
+<span class="sd">                    When mitigating the count of &#39;0110&#39; in this step,</span>
+<span class="sd">                    the following formula is applied:</span>
+<span class="sd">                    `count[&#39;0110&#39;] = A_3^{-1}[1, 0]*count[&#39;0100&#39;] + A_3^{-1}[1, 1]*count[&#39;0110&#39;]`.</span>
+
+<span class="sd">                    The total time complexity of this method is `O(m2^{n + t})`,</span>
+<span class="sd">                    where `n` is the size of calibrated qubits,</span>
+<span class="sd">                    `m` is the number of sets in `mit_pattern`,</span>
+<span class="sd">                    and `t` is the size of largest set of mit_pattern.</span>
+<span class="sd">                    If the `mit_pattern` is shaped like `[[0], [1], [2], ..., [n-1]]`,</span>
+<span class="sd">                    which corresponds to the tensor product noise model without cross-talk,</span>
+<span class="sd">                    then the time complexity would be `O(n2^n)`.</span>
+<span class="sd">                    If the `mit_pattern` is shaped like `[[0, 1, 2, ..., n-1]]`,</span>
+<span class="sd">                    which exactly corresponds to the complete error mitigation,</span>
+<span class="sd">                    then the time complexity would be `O(2^(n+n)) = O(4^n)`.</span>
+
 
 <span class="sd">                * &#39;least_squares&#39;: constrained to have physical probabilities.</span>
+<span class="sd">                    Instead of directly applying inverse calibration matrices,</span>
+<span class="sd">                    this method solve a constrained optimization problem to find</span>
+<span class="sd">                    the closest probability vector to the result from &#39;pseudo_inverse&#39; method.</span>
+<span class="sd">                    Sequential least square quadratic programming (SLSQP) is used</span>
+<span class="sd">                    in the internal process.</span>
+<span class="sd">                    Every updating step in SLSQP takes `O(m2^{n+t})` time.</span>
+<span class="sd">                    Since this method is using the SLSQP optimization over</span>
+<span class="sd">                    the vector with lenght `2^n`, the mitigation for 8 bit counts</span>
+<span class="sd">                    with the `mit_pattern = [[0], [1], [2], ..., [n-1]]` would</span>
+<span class="sd">                    take 10 seconds or more.</span>
 
 <span class="sd">                * If `None`, &#39;least_squares&#39; is used.</span>
+
+<span class="sd">            meas_layout (list of int): the mapping from classical registers to qubits</span>
+
+<span class="sd">                * If you measure qubit `2` to clbit `0`, `0` to `1`, and `1` to `2`,</span>
+<span class="sd">                    the list becomes `[2, 0, 1]`</span>
+
+<span class="sd">                * If `None`, flatten(mit_pattern) is used.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            dict or Result: The corrected data in the same form as raw_data</span>
@@ -608,6 +662,11 @@
 
         <span class="n">all_states</span> <span class="o">=</span> <span class="n">count_keys</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nqubits</span><span class="p">)</span>
         <span class="n">num_of_states</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">nqubits</span>
+
+        <span class="k">if</span> <span class="n">meas_layout</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">meas_layout</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">qubits</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mit_pattern</span><span class="p">:</span>
+                <span class="n">meas_layout</span> <span class="o">+=</span> <span class="n">qubits</span>
 
         <span class="c1"># check forms of raw_data</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
@@ -627,7 +686,7 @@
             <span class="n">new_counts_list</span> <span class="o">=</span> <span class="n">parallel_map</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_apply_correction</span><span class="p">,</span>
                 <span class="p">[</span><span class="n">resultidx</span> <span class="k">for</span> <span class="n">resultidx</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">raw_data</span><span class="o">.</span><span class="n">results</span><span class="p">)],</span>
-                <span class="n">task_args</span><span class="o">=</span><span class="p">(</span><span class="n">raw_data</span><span class="p">,</span> <span class="n">method</span><span class="p">))</span>
+                <span class="n">task_args</span><span class="o">=</span><span class="p">(</span><span class="n">raw_data</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">meas_layout</span><span class="p">))</span>
 
             <span class="k">for</span> <span class="n">resultidx</span><span class="p">,</span> <span class="n">new_counts</span> <span class="ow">in</span> <span class="n">new_counts_list</span><span class="p">:</span>
                 <span class="n">new_result</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="n">resultidx</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">counts</span> <span class="o">=</span> <span class="n">new_counts</span>
@@ -642,73 +701,49 @@
             <span class="k">for</span> <span class="n">cal_mat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cal_matrices</span><span class="p">:</span>
                 <span class="n">pinv_cal_matrices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">la</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">cal_mat</span><span class="p">))</span>
 
+        <span class="n">meas_layout</span> <span class="o">=</span> <span class="n">meas_layout</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># reverse endian</span>
+        <span class="n">qubits_to_clbits</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">meas_layout</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">meas_layout</span><span class="p">):</span>
+            <span class="n">qubits_to_clbits</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+
         <span class="c1"># Apply the correction</span>
         <span class="k">for</span> <span class="n">data_idx</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">raw_data2</span><span class="p">):</span>
 
             <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;pseudo_inverse&#39;</span><span class="p">:</span>
-                <span class="n">inv_mat_dot_raw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">num_of_states</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">state1_idx</span><span class="p">,</span> <span class="n">state1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_states</span><span class="p">):</span>
-                    <span class="k">for</span> <span class="n">state2_idx</span><span class="p">,</span> <span class="n">state2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_states</span><span class="p">):</span>
-                        <span class="k">if</span> <span class="n">raw_data2</span><span class="p">[</span><span class="n">data_idx</span><span class="p">][</span><span class="n">state2_idx</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                            <span class="k">continue</span>
-
-                        <span class="n">product</span> <span class="o">=</span> <span class="mf">1.</span>
-                        <span class="n">end_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nqubits</span>
-                        <span class="k">for</span> <span class="n">p_ind</span><span class="p">,</span> <span class="n">pinv_mat</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pinv_cal_matrices</span><span class="p">):</span>
-
-                            <span class="n">start_index</span> <span class="o">=</span> <span class="n">end_index</span> <span class="o">-</span> \
-                                <span class="bp">self</span><span class="o">.</span><span class="n">_qubit_list_sizes</span><span class="p">[</span><span class="n">p_ind</span><span class="p">]</span>
-
-                            <span class="n">state1_as_int</span> <span class="o">=</span> \
-                                <span class="bp">self</span><span class="o">.</span><span class="n">_indices_list</span><span class="p">[</span><span class="n">p_ind</span><span class="p">][</span>
-                                    <span class="n">state1</span><span class="p">[</span><span class="n">start_index</span><span class="p">:</span><span class="n">end_index</span><span class="p">]]</span>
-
-                            <span class="n">state2_as_int</span> <span class="o">=</span> \
-                                <span class="bp">self</span><span class="o">.</span><span class="n">_indices_list</span><span class="p">[</span><span class="n">p_ind</span><span class="p">][</span>
-                                    <span class="n">state2</span><span class="p">[</span><span class="n">start_index</span><span class="p">:</span><span class="n">end_index</span><span class="p">]]</span>
-
-                            <span class="n">end_index</span> <span class="o">=</span> <span class="n">start_index</span>
-                            <span class="n">product</span> <span class="o">*=</span> \
-                                <span class="n">pinv_mat</span><span class="p">[</span><span class="n">state1_as_int</span><span class="p">][</span><span class="n">state2_as_int</span><span class="p">]</span>
-                            <span class="k">if</span> <span class="n">product</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                                <span class="k">break</span>
-                        <span class="n">inv_mat_dot_raw</span><span class="p">[</span><span class="n">state1_idx</span><span class="p">]</span> <span class="o">+=</span> \
-                            <span class="p">(</span><span class="n">product</span> <span class="o">*</span> <span class="n">raw_data2</span><span class="p">[</span><span class="n">data_idx</span><span class="p">][</span><span class="n">state2_idx</span><span class="p">])</span>
-                <span class="n">raw_data2</span><span class="p">[</span><span class="n">data_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">inv_mat_dot_raw</span>
+                <span class="k">for</span> <span class="n">pinv_cal_mat</span><span class="p">,</span> <span class="n">pos_qubits</span><span class="p">,</span> <span class="n">indices</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pinv_cal_matrices</span><span class="p">,</span>
+                                                             <span class="bp">self</span><span class="o">.</span><span class="n">_mit_pattern</span><span class="p">,</span>
+                                                             <span class="bp">self</span><span class="o">.</span><span class="n">_indices_list</span><span class="p">):</span>
+                    <span class="n">inv_mat_dot_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">num_of_states</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                    <span class="n">pos_clbits</span> <span class="o">=</span> <span class="p">[</span><span class="n">qubits_to_clbits</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">pos_qubits</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">state_idx</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_states</span><span class="p">):</span>
+                        <span class="n">first_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_index_of_cal_mat</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">pos_clbits</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pinv_cal_mat</span><span class="p">)):</span>  <span class="c1"># i is index of pinv_cal_mat</span>
+                            <span class="n">source_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flip_state</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">pos_clbits</span><span class="p">)</span>
+                            <span class="n">second_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_index_of_cal_mat</span><span class="p">(</span><span class="n">source_state</span><span class="p">,</span>
+                                                                         <span class="n">pos_clbits</span><span class="p">,</span>
+                                                                         <span class="n">indices</span><span class="p">)</span>
+                            <span class="n">inv_mat_dot_x</span><span class="p">[</span><span class="n">state_idx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">pinv_cal_mat</span><span class="p">[</span><span class="n">first_index</span><span class="p">,</span> <span class="n">second_index</span><span class="p">]</span>\
+                                <span class="o">*</span> <span class="n">raw_data2</span><span class="p">[</span><span class="n">data_idx</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">source_state</span><span class="p">,</span> <span class="mi">2</span><span class="p">)]</span>
+                    <span class="n">raw_data2</span><span class="p">[</span><span class="n">data_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">inv_mat_dot_x</span>
 
             <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;least_squares&#39;</span><span class="p">:</span>
-
                 <span class="k">def</span> <span class="nf">fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-                    <span class="n">mat_dot_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">num_of_states</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-                    <span class="k">for</span> <span class="n">state1_idx</span><span class="p">,</span> <span class="n">state1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_states</span><span class="p">):</span>
-                        <span class="n">mat_dot_x</span><span class="p">[</span><span class="n">state1_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
-                        <span class="k">for</span> <span class="n">state2_idx</span><span class="p">,</span> <span class="n">state2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_states</span><span class="p">):</span>
-                            <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">state2_idx</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                                <span class="n">product</span> <span class="o">=</span> <span class="mf">1.</span>
-                                <span class="n">end_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nqubits</span>
-                                <span class="k">for</span> <span class="n">c_ind</span><span class="p">,</span> <span class="n">cal_mat</span> <span class="ow">in</span> \
-                                        <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cal_matrices</span><span class="p">):</span>
-
-                                    <span class="n">start_index</span> <span class="o">=</span> <span class="n">end_index</span> <span class="o">-</span> \
-                                        <span class="bp">self</span><span class="o">.</span><span class="n">_qubit_list_sizes</span><span class="p">[</span><span class="n">c_ind</span><span class="p">]</span>
-
-                                    <span class="n">state1_as_int</span> <span class="o">=</span> \
-                                        <span class="bp">self</span><span class="o">.</span><span class="n">_indices_list</span><span class="p">[</span><span class="n">c_ind</span><span class="p">][</span>
-                                            <span class="n">state1</span><span class="p">[</span><span class="n">start_index</span><span class="p">:</span><span class="n">end_index</span><span class="p">]]</span>
-
-                                    <span class="n">state2_as_int</span> <span class="o">=</span> \
-                                        <span class="bp">self</span><span class="o">.</span><span class="n">_indices_list</span><span class="p">[</span><span class="n">c_ind</span><span class="p">][</span>
-                                            <span class="n">state2</span><span class="p">[</span><span class="n">start_index</span><span class="p">:</span><span class="n">end_index</span><span class="p">]]</span>
-
-                                    <span class="n">end_index</span> <span class="o">=</span> <span class="n">start_index</span>
-                                    <span class="n">product</span> <span class="o">*=</span> \
-                                        <span class="n">cal_mat</span><span class="p">[</span><span class="n">state1_as_int</span><span class="p">][</span><span class="n">state2_as_int</span><span class="p">]</span>
-                                    <span class="k">if</span> <span class="n">product</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                                        <span class="k">break</span>
-                                <span class="n">mat_dot_x</span><span class="p">[</span><span class="n">state1_idx</span><span class="p">]</span> <span class="o">+=</span> \
-                                    <span class="p">(</span><span class="n">product</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">state2_idx</span><span class="p">])</span>
-                    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span>
-                        <span class="p">(</span><span class="n">raw_data2</span><span class="p">[</span><span class="n">data_idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat_dot_x</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="n">mat_dot_x</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">cal_mat</span><span class="p">,</span> <span class="n">pos_qubits</span><span class="p">,</span> <span class="n">indices</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cal_matrices</span><span class="p">,</span>
+                                                            <span class="bp">self</span><span class="o">.</span><span class="n">_mit_pattern</span><span class="p">,</span>
+                                                            <span class="bp">self</span><span class="o">.</span><span class="n">_indices_list</span><span class="p">):</span>
+                        <span class="n">res_mat_dot_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">num_of_states</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                        <span class="n">pos_clbits</span> <span class="o">=</span> <span class="p">[</span><span class="n">qubits_to_clbits</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">pos_qubits</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">state_idx</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_states</span><span class="p">):</span>
+                            <span class="n">second_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_index_of_cal_mat</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">pos_clbits</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cal_mat</span><span class="p">)):</span>
+                                <span class="n">target_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flip_state</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">pos_clbits</span><span class="p">)</span>
+                                <span class="n">first_index</span> <span class="o">=</span>\
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">compute_index_of_cal_mat</span><span class="p">(</span><span class="n">target_state</span><span class="p">,</span> <span class="n">pos_clbits</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
+                                <span class="n">res_mat_dot_x</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">target_state</span><span class="p">,</span> <span class="mi">2</span><span class="p">)]</span>\
+                                    <span class="o">+=</span> <span class="n">cal_mat</span><span class="p">[</span><span class="n">first_index</span><span class="p">,</span> <span class="n">second_index</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat_dot_x</span><span class="p">[</span><span class="n">state_idx</span><span class="p">]</span>
+                        <span class="n">mat_dot_x</span> <span class="o">=</span> <span class="n">res_mat_dot_x</span>
+                    <span class="k">return</span> <span class="nb">sum</span><span class="p">((</span><span class="n">raw_data2</span><span class="p">[</span><span class="n">data_idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat_dot_x</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 
                 <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">num_of_states</span><span class="p">)</span>
                 <span class="n">x0</span> <span class="o">=</span> <span class="n">x0</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span>
@@ -730,10 +765,34 @@
 
         <span class="k">return</span> <span class="n">new_count_dict</span></div>
 
-    <span class="k">def</span> <span class="nf">_apply_correction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resultidx</span><span class="p">,</span> <span class="n">raw_data</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+<div class="viewcode-block" id="TensoredFilter.flip_state"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.mitigation.TensoredFilter.html#qiskit.ignis.mitigation.TensoredFilter.flip_state">[belgeler]</a>    <span class="k">def</span> <span class="nf">flip_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mat_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">flip_poses</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Flip the state according to the chosen qubit positions&quot;&quot;&quot;</span>
+        <span class="n">flip_poses</span> <span class="o">=</span> <span class="p">[</span><span class="n">pos</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flip_poses</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">mat_index</span> <span class="o">&gt;&gt;</span> <span class="n">i</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">flip_poses</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">flip_poses</span><span class="p">)</span>
+        <span class="n">new_state</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">flip_pos</span> <span class="ow">in</span> <span class="n">flip_poses</span><span class="p">:</span>
+            <span class="n">new_state</span> <span class="o">+=</span> <span class="n">state</span><span class="p">[</span><span class="n">pos</span><span class="p">:</span><span class="n">flip_pos</span><span class="p">]</span>
+            <span class="n">new_state</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="n">flip_pos</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span> <span class="o">^</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># flip the state</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">flip_pos</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">new_state</span> <span class="o">+=</span> <span class="n">state</span><span class="p">[</span><span class="n">pos</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="n">new_state</span></div>
+
+<div class="viewcode-block" id="TensoredFilter.compute_index_of_cal_mat"><a class="viewcode-back" href="../../../../../stubs/qiskit.ignis.mitigation.TensoredFilter.html#qiskit.ignis.mitigation.TensoredFilter.compute_index_of_cal_mat">[belgeler]</a>    <span class="k">def</span> <span class="nf">compute_index_of_cal_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pos_qubits</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">indices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the index of (pseudo inverse) calibration matrix for the input quantum state&quot;&quot;&quot;</span>
+        <span class="n">sub_state</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">pos_qubits</span><span class="p">:</span>
+            <span class="n">sub_state</span> <span class="o">+=</span> <span class="n">state</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">indices</span><span class="p">[</span><span class="n">sub_state</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">_apply_correction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                          <span class="n">resultidx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                          <span class="n">raw_data</span><span class="p">:</span> <span class="n">qiskit</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">Result</span><span class="p">,</span>
+                          <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                          <span class="n">meas_layout</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
         <span class="sd">&quot;&quot;&quot;Wrapper to call apply with a counts dictionary.&quot;&quot;&quot;</span>
         <span class="n">new_counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
-            <span class="n">raw_data</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="n">resultidx</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+            <span class="n">raw_data</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="n">resultidx</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">meas_layout</span><span class="o">=</span><span class="n">meas_layout</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">resultidx</span><span class="p">,</span> <span class="n">new_counts</span></div>
 </pre></div>
 
@@ -867,20 +926,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

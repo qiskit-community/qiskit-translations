@@ -14,7 +14,6 @@
    .. autosummary::
    
       ~Operator.__init__
-      ~Operator.add
       ~Operator.adjoint
       ~Operator.compose
       ~Operator.conjugate
@@ -25,13 +24,10 @@
       ~Operator.from_label
       ~Operator.input_dims
       ~Operator.is_unitary
-      ~Operator.multiply
       ~Operator.output_dims
       ~Operator.power
       ~Operator.reshape
-      ~Operator.set_atol
-      ~Operator.set_rtol
-      ~Operator.subtract
+      ~Operator.reverse_qargs
       ~Operator.tensor
       ~Operator.to_instruction
       ~Operator.to_operator

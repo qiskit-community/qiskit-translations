@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~IntegerComparator.__init__
+      ~IntegerComparator.add_bits
       ~IntegerComparator.add_calibration
       ~IntegerComparator.add_register
       ~IntegerComparator.append
@@ -48,9 +49,9 @@
       ~IntegerComparator.decompose
       ~IntegerComparator.delay
       ~IntegerComparator.depth
-      ~IntegerComparator.diag_gate
       ~IntegerComparator.diagonal
       ~IntegerComparator.draw
+      ~IntegerComparator.ecr
       ~IntegerComparator.extend
       ~IntegerComparator.fredkin
       ~IntegerComparator.from_qasm_file
@@ -65,7 +66,6 @@
       ~IntegerComparator.iso
       ~IntegerComparator.isometry
       ~IntegerComparator.iswap
-      ~IntegerComparator.mcmt
       ~IntegerComparator.mcp
       ~IntegerComparator.mcrx
       ~IntegerComparator.mcry
@@ -76,13 +76,13 @@
       ~IntegerComparator.measure
       ~IntegerComparator.measure_active
       ~IntegerComparator.measure_all
-      ~IntegerComparator.mirror
       ~IntegerComparator.ms
       ~IntegerComparator.num_connected_components
       ~IntegerComparator.num_nonlocal_gates
       ~IntegerComparator.num_tensor_factors
       ~IntegerComparator.num_unitary_factors
       ~IntegerComparator.p
+      ~IntegerComparator.pauli
       ~IntegerComparator.power
       ~IntegerComparator.qasm
       ~IntegerComparator.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~IntegerComparator.reset
       ~IntegerComparator.reverse_bits
       ~IntegerComparator.reverse_ops
+      ~IntegerComparator.rv
       ~IntegerComparator.rx
       ~IntegerComparator.rxx
       ~IntegerComparator.ry
@@ -105,7 +106,26 @@
       ~IntegerComparator.rzx
       ~IntegerComparator.rzz
       ~IntegerComparator.s
+      ~IntegerComparator.save_amplitudes
+      ~IntegerComparator.save_amplitudes_squared
+      ~IntegerComparator.save_density_matrix
+      ~IntegerComparator.save_expectation_value
+      ~IntegerComparator.save_expectation_value_variance
+      ~IntegerComparator.save_matrix_product_state
+      ~IntegerComparator.save_probabilities
+      ~IntegerComparator.save_probabilities_dict
+      ~IntegerComparator.save_stabilizer
+      ~IntegerComparator.save_state
+      ~IntegerComparator.save_statevector
+      ~IntegerComparator.save_statevector_dict
+      ~IntegerComparator.save_superop
+      ~IntegerComparator.save_unitary
       ~IntegerComparator.sdg
+      ~IntegerComparator.set_density_matrix
+      ~IntegerComparator.set_stabilizer
+      ~IntegerComparator.set_statevector
+      ~IntegerComparator.set_superop
+      ~IntegerComparator.set_unitary
       ~IntegerComparator.size
       ~IntegerComparator.snapshot
       ~IntegerComparator.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~IntegerComparator.sxdg
       ~IntegerComparator.t
       ~IntegerComparator.tdg
+      ~IntegerComparator.tensor
       ~IntegerComparator.to_gate
       ~IntegerComparator.to_instruction
       ~IntegerComparator.toffoli
@@ -153,6 +174,7 @@
       ~IntegerComparator.global_phase
       ~IntegerComparator.header
       ~IntegerComparator.instances
+      ~IntegerComparator.metadata
       ~IntegerComparator.num_ancilla_qubits
       ~IntegerComparator.num_ancillas
       ~IntegerComparator.num_clbits

@@ -27,6 +27,7 @@
       ~PhaseGate.qasm
       ~PhaseGate.repeat
       ~PhaseGate.reverse_ops
+      ~PhaseGate.soft_compare
       ~PhaseGate.to_matrix
       ~PhaseGate.validate_parameter
    

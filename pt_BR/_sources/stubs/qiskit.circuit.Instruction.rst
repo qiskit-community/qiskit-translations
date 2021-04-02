@@ -25,6 +25,7 @@
       ~Instruction.qasm
       ~Instruction.repeat
       ~Instruction.reverse_ops
+      ~Instruction.soft_compare
       ~Instruction.validate_parameter
    
    

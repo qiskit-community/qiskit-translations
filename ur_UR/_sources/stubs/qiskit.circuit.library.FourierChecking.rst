@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~FourierChecking.__init__
+      ~FourierChecking.add_bits
       ~FourierChecking.add_calibration
       ~FourierChecking.add_register
       ~FourierChecking.append
@@ -48,9 +49,9 @@
       ~FourierChecking.decompose
       ~FourierChecking.delay
       ~FourierChecking.depth
-      ~FourierChecking.diag_gate
       ~FourierChecking.diagonal
       ~FourierChecking.draw
+      ~FourierChecking.ecr
       ~FourierChecking.extend
       ~FourierChecking.fredkin
       ~FourierChecking.from_qasm_file
@@ -65,7 +66,6 @@
       ~FourierChecking.iso
       ~FourierChecking.isometry
       ~FourierChecking.iswap
-      ~FourierChecking.mcmt
       ~FourierChecking.mcp
       ~FourierChecking.mcrx
       ~FourierChecking.mcry
@@ -76,13 +76,13 @@
       ~FourierChecking.measure
       ~FourierChecking.measure_active
       ~FourierChecking.measure_all
-      ~FourierChecking.mirror
       ~FourierChecking.ms
       ~FourierChecking.num_connected_components
       ~FourierChecking.num_nonlocal_gates
       ~FourierChecking.num_tensor_factors
       ~FourierChecking.num_unitary_factors
       ~FourierChecking.p
+      ~FourierChecking.pauli
       ~FourierChecking.power
       ~FourierChecking.qasm
       ~FourierChecking.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~FourierChecking.reset
       ~FourierChecking.reverse_bits
       ~FourierChecking.reverse_ops
+      ~FourierChecking.rv
       ~FourierChecking.rx
       ~FourierChecking.rxx
       ~FourierChecking.ry
@@ -105,7 +106,26 @@
       ~FourierChecking.rzx
       ~FourierChecking.rzz
       ~FourierChecking.s
+      ~FourierChecking.save_amplitudes
+      ~FourierChecking.save_amplitudes_squared
+      ~FourierChecking.save_density_matrix
+      ~FourierChecking.save_expectation_value
+      ~FourierChecking.save_expectation_value_variance
+      ~FourierChecking.save_matrix_product_state
+      ~FourierChecking.save_probabilities
+      ~FourierChecking.save_probabilities_dict
+      ~FourierChecking.save_stabilizer
+      ~FourierChecking.save_state
+      ~FourierChecking.save_statevector
+      ~FourierChecking.save_statevector_dict
+      ~FourierChecking.save_superop
+      ~FourierChecking.save_unitary
       ~FourierChecking.sdg
+      ~FourierChecking.set_density_matrix
+      ~FourierChecking.set_stabilizer
+      ~FourierChecking.set_statevector
+      ~FourierChecking.set_superop
+      ~FourierChecking.set_unitary
       ~FourierChecking.size
       ~FourierChecking.snapshot
       ~FourierChecking.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~FourierChecking.sxdg
       ~FourierChecking.t
       ~FourierChecking.tdg
+      ~FourierChecking.tensor
       ~FourierChecking.to_gate
       ~FourierChecking.to_instruction
       ~FourierChecking.toffoli
@@ -152,6 +173,7 @@
       ~FourierChecking.global_phase
       ~FourierChecking.header
       ~FourierChecking.instances
+      ~FourierChecking.metadata
       ~FourierChecking.num_ancillas
       ~FourierChecking.num_clbits
       ~FourierChecking.num_parameters

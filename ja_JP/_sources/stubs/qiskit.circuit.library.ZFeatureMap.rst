@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~ZFeatureMap.__init__
+      ~ZFeatureMap.add_bits
       ~ZFeatureMap.add_calibration
       ~ZFeatureMap.add_layer
       ~ZFeatureMap.add_register
@@ -49,9 +50,9 @@
       ~ZFeatureMap.decompose
       ~ZFeatureMap.delay
       ~ZFeatureMap.depth
-      ~ZFeatureMap.diag_gate
       ~ZFeatureMap.diagonal
       ~ZFeatureMap.draw
+      ~ZFeatureMap.ecr
       ~ZFeatureMap.extend
       ~ZFeatureMap.fredkin
       ~ZFeatureMap.from_qasm_file
@@ -68,7 +69,6 @@
       ~ZFeatureMap.iso
       ~ZFeatureMap.isometry
       ~ZFeatureMap.iswap
-      ~ZFeatureMap.mcmt
       ~ZFeatureMap.mcp
       ~ZFeatureMap.mcrx
       ~ZFeatureMap.mcry
@@ -79,13 +79,13 @@
       ~ZFeatureMap.measure
       ~ZFeatureMap.measure_active
       ~ZFeatureMap.measure_all
-      ~ZFeatureMap.mirror
       ~ZFeatureMap.ms
       ~ZFeatureMap.num_connected_components
       ~ZFeatureMap.num_nonlocal_gates
       ~ZFeatureMap.num_tensor_factors
       ~ZFeatureMap.num_unitary_factors
       ~ZFeatureMap.p
+      ~ZFeatureMap.pauli
       ~ZFeatureMap.pauli_block
       ~ZFeatureMap.pauli_evolution
       ~ZFeatureMap.power
@@ -103,6 +103,7 @@
       ~ZFeatureMap.reset
       ~ZFeatureMap.reverse_bits
       ~ZFeatureMap.reverse_ops
+      ~ZFeatureMap.rv
       ~ZFeatureMap.rx
       ~ZFeatureMap.rxx
       ~ZFeatureMap.ry
@@ -111,7 +112,26 @@
       ~ZFeatureMap.rzx
       ~ZFeatureMap.rzz
       ~ZFeatureMap.s
+      ~ZFeatureMap.save_amplitudes
+      ~ZFeatureMap.save_amplitudes_squared
+      ~ZFeatureMap.save_density_matrix
+      ~ZFeatureMap.save_expectation_value
+      ~ZFeatureMap.save_expectation_value_variance
+      ~ZFeatureMap.save_matrix_product_state
+      ~ZFeatureMap.save_probabilities
+      ~ZFeatureMap.save_probabilities_dict
+      ~ZFeatureMap.save_stabilizer
+      ~ZFeatureMap.save_state
+      ~ZFeatureMap.save_statevector
+      ~ZFeatureMap.save_statevector_dict
+      ~ZFeatureMap.save_superop
+      ~ZFeatureMap.save_unitary
       ~ZFeatureMap.sdg
+      ~ZFeatureMap.set_density_matrix
+      ~ZFeatureMap.set_stabilizer
+      ~ZFeatureMap.set_statevector
+      ~ZFeatureMap.set_superop
+      ~ZFeatureMap.set_unitary
       ~ZFeatureMap.size
       ~ZFeatureMap.snapshot
       ~ZFeatureMap.snapshot_density_matrix
@@ -125,6 +145,7 @@
       ~ZFeatureMap.sxdg
       ~ZFeatureMap.t
       ~ZFeatureMap.tdg
+      ~ZFeatureMap.tensor
       ~ZFeatureMap.to_gate
       ~ZFeatureMap.to_instruction
       ~ZFeatureMap.toffoli
@@ -150,6 +171,7 @@
 
    .. autosummary::
    
+      ~ZFeatureMap.alpha
       ~ZFeatureMap.ancillas
       ~ZFeatureMap.calibrations
       ~ZFeatureMap.clbits
@@ -163,6 +185,7 @@
       ~ZFeatureMap.initial_state
       ~ZFeatureMap.insert_barriers
       ~ZFeatureMap.instances
+      ~ZFeatureMap.metadata
       ~ZFeatureMap.num_ancillas
       ~ZFeatureMap.num_clbits
       ~ZFeatureMap.num_layers

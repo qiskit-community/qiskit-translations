@@ -20,7 +20,6 @@
       ~BasicAerJob.done
       ~BasicAerJob.in_final_state
       ~BasicAerJob.job_id
-      ~BasicAerJob.qobj
       ~BasicAerJob.result
       ~BasicAerJob.running
       ~BasicAerJob.status
@@ -30,5 +29,11 @@
    
 
    
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~BasicAerJob.version
    
    

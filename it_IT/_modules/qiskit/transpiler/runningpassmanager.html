@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.runningpassmanager &mdash; Qiskit 0.24.1 documentazione</title>
+  <title>qiskit.transpiler.runningpassmanager &mdash; Qiskit 0.25.0 documentazione</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Risoluzione Dei Problemi</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Codici di Errore dell' API IBM Quantum</a></li>
@@ -376,12 +380,21 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            TranspilerError: if a pass in passes is not a proper pass.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">flow_controller_conditions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_flow_controller</span><span class="p">(</span><span class="n">flow_controller_conditions</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">working_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="n">FlowController</span><span class="o">.</span><span class="n">controller_factory</span><span class="p">(</span><span class="n">passes</span><span class="p">,</span>
-                                              <span class="bp">self</span><span class="o">.</span><span class="n">passmanager_options</span><span class="p">,</span>
-                                              <span class="o">**</span><span class="n">flow_controller_conditions</span><span class="p">))</span>
+        <span class="c1"># attaches the property set to the controller so it has access to it.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">passes</span><span class="p">,</span> <span class="n">ConditionalController</span><span class="p">):</span>
+            <span class="n">passes</span><span class="o">.</span><span class="n">condition</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">passes</span><span class="o">.</span><span class="n">condition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fenced_property_set</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">working_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">passes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">passes</span><span class="p">,</span> <span class="n">DoWhileController</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">passes</span><span class="o">.</span><span class="n">do_while</span><span class="p">,</span> <span class="n">partial</span><span class="p">):</span>
+                <span class="n">passes</span><span class="o">.</span><span class="n">do_while</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">passes</span><span class="o">.</span><span class="n">do_while</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fenced_property_set</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">working_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">passes</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flow_controller_conditions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_flow_controller</span><span class="p">(</span><span class="n">flow_controller_conditions</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">working_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">FlowController</span><span class="o">.</span><span class="n">controller_factory</span><span class="p">(</span><span class="n">passes</span><span class="p">,</span>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">passmanager_options</span><span class="p">,</span>
+                                                  <span class="o">**</span><span class="n">flow_controller_conditions</span><span class="p">))</span>
+            <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">_normalize_flow_controller</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow_controller</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">flow_controller</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -596,10 +609,10 @@
 <span class="k">class</span> <span class="nc">DoWhileController</span><span class="p">(</span><span class="n">FlowController</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Implements a set of passes in a do-while loop.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">passes</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">do_while</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">passes</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">do_while</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="o">**</span><span class="n">partial_controller</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">do_while</span> <span class="o">=</span> <span class="n">do_while</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_iteration</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;max_iteration&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_iteration</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;max_iteration&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">1000</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">passes</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="o">**</span><span class="n">partial_controller</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -615,7 +628,7 @@
 <span class="k">class</span> <span class="nc">ConditionalController</span><span class="p">(</span><span class="n">FlowController</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Implements a set of passes under a certain condition.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">passes</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">passes</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="o">**</span><span class="n">partial_controller</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">condition</span> <span class="o">=</span> <span class="n">condition</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">passes</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="o">**</span><span class="n">partial_controller</span><span class="p">)</span>
@@ -760,20 +773,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~ParameterVector.__init__
+      ~ParameterVector.index
       ~ParameterVector.resize
    
    

@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.passmanager &mdash; Qiskit 0.24.1 Dokumentation</title>
+  <title>qiskit.transpiler.passmanager &mdash; Qiskit 0.25.0 Dokumentation</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Problembehandlung</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Quantum API Fehlercodes</a></li>
@@ -313,7 +317,6 @@
 
 <span class="sd">&quot;&quot;&quot;Manager for a set of Passes and their scheduling during transpilation.&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
 
 <span class="kn">import</span> <span class="nn">dill</span>
@@ -323,7 +326,7 @@
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">.basepasses</span> <span class="kn">import</span> <span class="n">BasePass</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="kn">import</span> <span class="n">TranspilerError</span>
-<span class="kn">from</span> <span class="nn">.runningpassmanager</span> <span class="kn">import</span> <span class="n">RunningPassManager</span>
+<span class="kn">from</span> <span class="nn">.runningpassmanager</span> <span class="kn">import</span> <span class="n">RunningPassManager</span><span class="p">,</span> <span class="n">FlowController</span>
 
 
 <div class="viewcode-block" id="PassManager"><a class="viewcode-back" href="../../../stubs/qiskit.transpiler.PassManager.html#qiskit.transpiler.PassManager">[Doku]</a><span class="k">class</span> <span class="nc">PassManager</span><span class="p">:</span>
@@ -332,9 +335,7 @@
 <div class="viewcode-block" id="PassManager.__init__"><a class="viewcode-back" href="../../../stubs/qiskit.transpiler.PassManager.html#qiskit.transpiler.PassManager.__init__">[Doku]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">passes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BasePass</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">BasePass</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">max_iteration</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
-            <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="p">):</span>
+            <span class="n">max_iteration</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize an empty `PassManager` object (with no passes scheduled).</span>
 
 <span class="sd">        Args:</span>
@@ -342,19 +343,7 @@
 <span class="sd">                to be added to the pass manager schedule.</span>
 <span class="sd">            max_iteration: The maximum number of iterations the schedule will be looped if the</span>
 <span class="sd">                condition is not met.</span>
-<span class="sd">            callback: DEPRECATED - A callback function that will be called after each pass</span>
-<span class="sd">                execution.</span>
-
-<span class="sd">        .. deprecated:: 0.13.0</span>
-<span class="sd">            The ``callback`` parameter is deprecated in favor of</span>
-<span class="sd">            ``PassManager.run(..., callback=callback, ...)``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Setting a callback at construction time is being deprecated in favor of&quot;</span>
-                          <span class="s2">&quot;PassManager.run(..., callback=callback,...)&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="o">=</span> <span class="n">callback</span>
         <span class="c1"># the pass manager&#39;s schedule of passes, including any control-flow.</span>
         <span class="c1"># Populated via PassManager.append().</span>
 
@@ -376,6 +365,9 @@
 <span class="sd">            passes: A set of passes (a pass set) to be added to schedule. A pass set is a list of</span>
 <span class="sd">                    passes that are controlled by the same flow controller. If a single pass is</span>
 <span class="sd">                    provided, the pass set will only have that pass a single element.</span>
+<span class="sd">                    It is also possible to append a</span>
+<span class="sd">                    :class:`~qiskit.transpiler.runningpassmanager.FlowController` instance and the</span>
+<span class="sd">                    rest of the parameter will be ignored.</span>
 <span class="sd">            max_iteration: max number of iterations of passes.</span>
 <span class="sd">            flow_controller_conditions: control flow plugins.</span>
 
@@ -425,8 +417,8 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_pass_sets</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;passes&#39;</span><span class="p">:</span> <span class="n">passes</span><span class="p">,</span>
                                       <span class="s1">&#39;flow_controllers&#39;</span><span class="p">:</span> <span class="n">flow_controller_conditions</span><span class="p">}</span>
-        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s1">&#39;Index to replace </span><span class="si">%s</span><span class="s1"> does not exists&#39;</span> <span class="o">%</span> <span class="n">index</span><span class="p">)</span></div>
+        <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Index to replace </span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s1"> does not exists&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span></div>
 
 <div class="viewcode-block" id="PassManager.remove"><a class="viewcode-back" href="../../../stubs/qiskit.transpiler.PassManager.html#qiskit.transpiler.PassManager.remove">[Doku]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Removes a particular pass in the scheduler.</span>
@@ -439,8 +431,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pass_sets</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="s1">&#39;Index to replace </span><span class="si">%s</span><span class="s1"> does not exists&#39;</span> <span class="o">%</span> <span class="n">index</span><span class="p">)</span></div>
+        <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TranspilerError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Index to replace </span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s1"> does not exists&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span></div>
 
     <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
@@ -449,7 +441,7 @@
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pass_sets</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="n">new_passmanager</span> <span class="o">=</span> <span class="n">PassManager</span><span class="p">(</span><span class="n">max_iteration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iteration</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">callback</span><span class="p">)</span>
+        <span class="n">new_passmanager</span> <span class="o">=</span> <span class="n">PassManager</span><span class="p">(</span><span class="n">max_iteration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iteration</span><span class="p">)</span>
         <span class="n">_pass_sets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pass_sets</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_pass_sets</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="n">_pass_sets</span> <span class="o">=</span> <span class="p">[</span><span class="n">_pass_sets</span><span class="p">]</span>
@@ -458,22 +450,25 @@
 
     <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">PassManager</span><span class="p">):</span>
-            <span class="n">new_passmanager</span> <span class="o">=</span> <span class="n">PassManager</span><span class="p">(</span><span class="n">max_iteration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iteration</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">callback</span><span class="p">)</span>
+            <span class="n">new_passmanager</span> <span class="o">=</span> <span class="n">PassManager</span><span class="p">(</span><span class="n">max_iteration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iteration</span><span class="p">)</span>
             <span class="n">new_passmanager</span><span class="o">.</span><span class="n">_pass_sets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pass_sets</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">_pass_sets</span>
             <span class="k">return</span> <span class="n">new_passmanager</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">new_passmanager</span> <span class="o">=</span> <span class="n">PassManager</span><span class="p">(</span><span class="n">max_iteration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iteration</span><span class="p">,</span>
-                                              <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">callback</span><span class="p">)</span>
+                <span class="n">new_passmanager</span> <span class="o">=</span> <span class="n">PassManager</span><span class="p">(</span><span class="n">max_iteration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iteration</span><span class="p">)</span>
                 <span class="n">new_passmanager</span><span class="o">.</span><span class="n">_pass_sets</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pass_sets</span>
                 <span class="n">new_passmanager</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">new_passmanager</span>
-            <span class="k">except</span> <span class="n">TranspilerError</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;unsupported operand type + for </span><span class="si">%s</span><span class="s1"> and </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span>
-                                                                              <span class="n">other</span><span class="o">.</span><span class="vm">__class__</span><span class="p">))</span>
+            <span class="k">except</span> <span class="n">TranspilerError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;unsupported operand type + for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="si">}</span><span class="s1"> and </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="vm">__class__</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_normalize_passes</span><span class="p">(</span><span class="n">passes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BasePass</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">BasePass</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">BasePass</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">_normalize_passes</span><span class="p">(</span><span class="n">passes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BasePass</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">BasePass</span><span class="p">],</span> <span class="n">FlowController</span><span class="p">])</span>\
+            <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">BasePass</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">passes</span><span class="p">,</span> <span class="n">FlowController</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">passes</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">passes</span><span class="p">,</span> <span class="n">BasePass</span><span class="p">):</span>
             <span class="n">passes</span> <span class="o">=</span> <span class="p">[</span><span class="n">passes</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">pass_</span> <span class="ow">in</span> <span class="n">passes</span><span class="p">:</span>
@@ -584,8 +579,6 @@
 <span class="sd">            The transformed circuit.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">running_passmanager</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_running_passmanager</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">callback</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback</span><span class="p">:</span>  <span class="c1"># TODO to remove with __init__(callback)</span>
-            <span class="n">callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">running_passmanager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="n">output_name</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">property_set</span> <span class="o">=</span> <span class="n">running_passmanager</span><span class="o">.</span><span class="n">property_set</span>
         <span class="k">return</span> <span class="n">result</span>
@@ -761,20 +754,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

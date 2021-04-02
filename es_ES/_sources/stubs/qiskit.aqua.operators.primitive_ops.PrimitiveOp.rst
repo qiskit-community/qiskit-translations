@@ -47,6 +47,7 @@
 
    .. autosummary::
    
+      ~PrimitiveOp.ENABLE_DEPRECATION
       ~PrimitiveOp.INDENTATION
       ~PrimitiveOp.coeff
       ~PrimitiveOp.num_qubits

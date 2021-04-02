@@ -27,6 +27,7 @@
       ~RXGate.qasm
       ~RXGate.repeat
       ~RXGate.reverse_ops
+      ~RXGate.soft_compare
       ~RXGate.to_matrix
       ~RXGate.validate_parameter
    

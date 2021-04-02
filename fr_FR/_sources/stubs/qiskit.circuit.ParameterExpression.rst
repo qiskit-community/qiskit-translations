@@ -14,10 +14,19 @@
    .. autosummary::
    
       ~ParameterExpression.__init__
+      ~ParameterExpression.arccos
+      ~ParameterExpression.arcsin
+      ~ParameterExpression.arctan
       ~ParameterExpression.assign
       ~ParameterExpression.bind
       ~ParameterExpression.conjugate
+      ~ParameterExpression.cos
+      ~ParameterExpression.exp
+      ~ParameterExpression.gradient
+      ~ParameterExpression.log
+      ~ParameterExpression.sin
       ~ParameterExpression.subs
+      ~ParameterExpression.tan
    
    
 

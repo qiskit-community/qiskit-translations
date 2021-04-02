@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~MCMT.__init__
+      ~MCMT.add_bits
       ~MCMT.add_calibration
       ~MCMT.add_register
       ~MCMT.append
@@ -48,9 +49,9 @@
       ~MCMT.decompose
       ~MCMT.delay
       ~MCMT.depth
-      ~MCMT.diag_gate
       ~MCMT.diagonal
       ~MCMT.draw
+      ~MCMT.ecr
       ~MCMT.extend
       ~MCMT.fredkin
       ~MCMT.from_qasm_file
@@ -65,7 +66,6 @@
       ~MCMT.iso
       ~MCMT.isometry
       ~MCMT.iswap
-      ~MCMT.mcmt
       ~MCMT.mcp
       ~MCMT.mcrx
       ~MCMT.mcry
@@ -76,13 +76,13 @@
       ~MCMT.measure
       ~MCMT.measure_active
       ~MCMT.measure_all
-      ~MCMT.mirror
       ~MCMT.ms
       ~MCMT.num_connected_components
       ~MCMT.num_nonlocal_gates
       ~MCMT.num_tensor_factors
       ~MCMT.num_unitary_factors
       ~MCMT.p
+      ~MCMT.pauli
       ~MCMT.power
       ~MCMT.qasm
       ~MCMT.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~MCMT.reset
       ~MCMT.reverse_bits
       ~MCMT.reverse_ops
+      ~MCMT.rv
       ~MCMT.rx
       ~MCMT.rxx
       ~MCMT.ry
@@ -105,7 +106,26 @@
       ~MCMT.rzx
       ~MCMT.rzz
       ~MCMT.s
+      ~MCMT.save_amplitudes
+      ~MCMT.save_amplitudes_squared
+      ~MCMT.save_density_matrix
+      ~MCMT.save_expectation_value
+      ~MCMT.save_expectation_value_variance
+      ~MCMT.save_matrix_product_state
+      ~MCMT.save_probabilities
+      ~MCMT.save_probabilities_dict
+      ~MCMT.save_stabilizer
+      ~MCMT.save_state
+      ~MCMT.save_statevector
+      ~MCMT.save_statevector_dict
+      ~MCMT.save_superop
+      ~MCMT.save_unitary
       ~MCMT.sdg
+      ~MCMT.set_density_matrix
+      ~MCMT.set_stabilizer
+      ~MCMT.set_statevector
+      ~MCMT.set_superop
+      ~MCMT.set_unitary
       ~MCMT.size
       ~MCMT.snapshot
       ~MCMT.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~MCMT.sxdg
       ~MCMT.t
       ~MCMT.tdg
+      ~MCMT.tensor
       ~MCMT.to_gate
       ~MCMT.to_instruction
       ~MCMT.toffoli
@@ -152,6 +173,7 @@
       ~MCMT.global_phase
       ~MCMT.header
       ~MCMT.instances
+      ~MCMT.metadata
       ~MCMT.num_ancilla_qubits
       ~MCMT.num_ancillas
       ~MCMT.num_clbits

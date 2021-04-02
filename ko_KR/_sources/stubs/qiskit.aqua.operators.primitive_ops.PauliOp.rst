@@ -49,6 +49,7 @@
 
    .. autosummary::
    
+      ~PauliOp.ENABLE_DEPRECATION
       ~PauliOp.INDENTATION
       ~PauliOp.coeff
       ~PauliOp.num_qubits

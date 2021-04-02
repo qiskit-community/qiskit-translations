@@ -14,7 +14,6 @@
    .. autosummary::
    
       ~Stinespring.__init__
-      ~Stinespring.add
       ~Stinespring.adjoint
       ~Stinespring.compose
       ~Stinespring.conjugate
@@ -26,13 +25,9 @@
       ~Stinespring.is_cptp
       ~Stinespring.is_tp
       ~Stinespring.is_unitary
-      ~Stinespring.multiply
       ~Stinespring.output_dims
       ~Stinespring.power
       ~Stinespring.reshape
-      ~Stinespring.set_atol
-      ~Stinespring.set_rtol
-      ~Stinespring.subtract
       ~Stinespring.tensor
       ~Stinespring.to_instruction
       ~Stinespring.to_operator

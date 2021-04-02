@@ -14,10 +14,11 @@
    .. autosummary::
    
       ~Gaussian.__init__
+      ~Gaussian.assign
       ~Gaussian.assign_parameters
       ~Gaussian.draw
-      ~Gaussian.get_sample_pulse
       ~Gaussian.get_waveform
+      ~Gaussian.is_parameterized
       ~Gaussian.validate_parameters
    
    

@@ -14,7 +14,6 @@
    .. autosummary::
    
       ~ScalarOp.__init__
-      ~ScalarOp.add
       ~ScalarOp.adjoint
       ~ScalarOp.compose
       ~ScalarOp.conjugate
@@ -23,13 +22,9 @@
       ~ScalarOp.expand
       ~ScalarOp.input_dims
       ~ScalarOp.is_unitary
-      ~ScalarOp.multiply
       ~ScalarOp.output_dims
       ~ScalarOp.power
       ~ScalarOp.reshape
-      ~ScalarOp.set_atol
-      ~ScalarOp.set_rtol
-      ~ScalarOp.subtract
       ~ScalarOp.tensor
       ~ScalarOp.to_matrix
       ~ScalarOp.to_operator

@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.layout &mdash; Documentação Qiskit 0.24.1</title>
+  <title>qiskit.transpiler.layout &mdash; Documentação Qiskit 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Troubleshooting</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Quantum API error codes</a></li>
@@ -319,7 +323,7 @@
 <span class="sd">Physical (qu)bits are integers.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">qiskit.circuit.quantumregister</span> <span class="kn">import</span> <span class="n">Qubit</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.quantumregister</span> <span class="kn">import</span> <span class="n">Qubit</span><span class="p">,</span> <span class="n">QuantumRegister</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.exceptions</span> <span class="kn">import</span> <span class="n">LayoutError</span>
 <span class="kn">from</span> <span class="nn">qiskit.converters</span> <span class="kn">import</span> <span class="n">isinstanceint</span>
 
@@ -330,6 +334,7 @@
 <div class="viewcode-block" id="Layout.__init__"><a class="viewcode-back" href="../../../stubs/qiskit.transpiler.Layout.html#qiskit.transpiler.Layout.__init__">[documentos]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;construct a Layout from a bijective dictionary, mapping</span>
 <span class="sd">        virtual qubits to physical qubits&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_regs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_p2v</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_v2p</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">input_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -402,6 +407,9 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_v2p</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;The item </span><span class="si">%s</span><span class="s1"> does not exist in the Layout&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item</span><span class="p">,))</span>
 
+    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2v</span> <span class="ow">or</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_v2p</span>
+
     <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="n">virtual</span><span class="p">,</span> <span class="n">physical</span> <span class="o">=</span> <span class="n">Layout</span><span class="o">.</span><span class="n">order_based_on_type</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_type_checked_item</span><span class="p">(</span><span class="n">virtual</span><span class="p">,</span> <span class="n">physical</span><span class="p">)</span>
@@ -430,10 +438,16 @@
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_p2v</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Layout</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2v</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_p2v</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_v2p</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_v2p</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
 <div class="viewcode-block" id="Layout.copy"><a class="viewcode-back" href="../../../stubs/qiskit.transpiler.Layout.html#qiskit.transpiler.Layout.copy">[documentos]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a copy of a Layout instance.&quot;&quot;&quot;</span>
         <span class="n">layout_copy</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)()</span>
 
+        <span class="n">layout_copy</span><span class="o">.</span><span class="n">_regs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">layout_copy</span><span class="o">.</span><span class="n">_p2v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2v</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">layout_copy</span><span class="o">.</span><span class="n">_v2p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_v2p</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
@@ -462,16 +476,18 @@
 <span class="sd">        Args:</span>
 <span class="sd">            reg (Register): A (qu)bit Register. For example, QuantumRegister(3, &#39;qr&#39;).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_regs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reg</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">bit</span> <span class="ow">in</span> <span class="n">reg</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">bit</span><span class="p">)</span></div>
+            <span class="k">if</span> <span class="n">bit</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">bit</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Layout.get_registers"><a class="viewcode-back" href="../../../stubs/qiskit.transpiler.Layout.html#qiskit.transpiler.Layout.get_registers">[documentos]</a>    <span class="k">def</span> <span class="nf">get_registers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the registers in the layout [QuantumRegister(2, &#39;qr0&#39;), QuantumRegister(3, &#39;qr1&#39;)]</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            List: A list of Register in the layout</span>
+<span class="sd">            Set: A set of Registers in the layout</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">bit</span><span class="o">.</span><span class="n">register</span> <span class="k">for</span> <span class="n">bit</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_virtual_bits</span><span class="p">()}</span></div>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_regs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Layout.get_virtual_bits"><a class="viewcode-back" href="../../../stubs/qiskit.transpiler.Layout.html#qiskit.transpiler.Layout.get_virtual_bits">[documentos]</a>    <span class="k">def</span> <span class="nf">get_virtual_bits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -554,16 +570,19 @@
 
 <div class="viewcode-block" id="Layout.generate_trivial_layout"><a class="viewcode-back" href="../../../stubs/qiskit.transpiler.Layout.html#qiskit.transpiler.Layout.generate_trivial_layout">[documentos]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">generate_trivial_layout</span><span class="p">(</span><span class="o">*</span><span class="n">regs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Creates a trivial (&quot;one-to-one&quot;) Layout with the registers in `regs`.</span>
+        <span class="sd">&quot;&quot;&quot;Creates a trivial (&quot;one-to-one&quot;) Layout with the registers and qubits in `regs`.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            *regs (Registers): registers to include in the layout.</span>
+<span class="sd">            *regs (Registers, Qubits): registers and qubits to include in the layout.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            Layout: A layout with all the `regs` in the given order.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">reg</span> <span class="ow">in</span> <span class="n">regs</span><span class="p">:</span>
-            <span class="n">layout</span><span class="o">.</span><span class="n">add_register</span><span class="p">(</span><span class="n">reg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reg</span><span class="p">,</span> <span class="n">QuantumRegister</span><span class="p">):</span>
+                <span class="n">layout</span><span class="o">.</span><span class="n">add_register</span><span class="p">(</span><span class="n">reg</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">layout</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">reg</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">layout</span></div>
 
 <div class="viewcode-block" id="Layout.from_intlist"><a class="viewcode-back" href="../../../stubs/qiskit.transpiler.Layout.html#qiskit.transpiler.Layout.from_intlist">[documentos]</a>    <span class="nd">@staticmethod</span>
@@ -595,13 +614,14 @@
             <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">qreg</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
                 <span class="n">out</span><span class="p">[</span><span class="n">qreg</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span> <span class="o">=</span> <span class="n">int_list</span><span class="p">[</span><span class="n">main_idx</span><span class="p">]</span>
                 <span class="n">main_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">add_register</span><span class="p">(</span><span class="n">qreg</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">main_idx</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">int_list</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">int_item</span> <span class="ow">in</span> <span class="n">int_list</span><span class="p">[</span><span class="n">main_idx</span><span class="p">:]:</span>
                 <span class="n">out</span><span class="p">[</span><span class="n">int_item</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">out</span></div>
 
 <div class="viewcode-block" id="Layout.from_qubit_list"><a class="viewcode-back" href="../../../stubs/qiskit.transpiler.Layout.html#qiskit.transpiler.Layout.from_qubit_list">[documentos]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">from_qubit_list</span><span class="p">(</span><span class="n">qubit_list</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_qubit_list</span><span class="p">(</span><span class="n">qubit_list</span><span class="p">,</span> <span class="o">*</span><span class="n">qregs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Populates a Layout from a list containing virtual</span>
 <span class="sd">        qubits, Qubit or None.</span>
@@ -609,6 +629,8 @@
 <span class="sd">        Args:</span>
 <span class="sd">            qubit_list (list):</span>
 <span class="sd">                e.g.: [qr[0], None, qr[2], qr[3]]</span>
+<span class="sd">            *qregs (QuantumRegisters): The quantum registers to apply</span>
+<span class="sd">                the layout to.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            Layout: the corresponding Layout object</span>
 <span class="sd">        Raises:</span>
@@ -624,6 +646,8 @@
                 <span class="n">out</span><span class="p">[</span><span class="n">virtual</span><span class="p">]</span> <span class="o">=</span> <span class="n">physical</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">LayoutError</span><span class="p">(</span><span class="s2">&quot;The list should contain elements of the Bits or NoneTypes&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">qreg</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">add_register</span><span class="p">(</span><span class="n">qreg</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">out</span></div></div>
 </pre></div>
 
@@ -758,20 +782,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

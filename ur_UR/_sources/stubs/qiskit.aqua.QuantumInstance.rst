@@ -18,6 +18,7 @@
       ~QuantumInstance.cals_matrix
       ~QuantumInstance.execute
       ~QuantumInstance.maybe_refresh_cals_matrix
+      ~QuantumInstance.reset_execution_results
       ~QuantumInstance.set_config
       ~QuantumInstance.transpile
    
@@ -45,5 +46,6 @@
       ~QuantumInstance.qjob_config
       ~QuantumInstance.run_config
       ~QuantumInstance.skip_qobj_validation
+      ~QuantumInstance.time_taken
    
    

@@ -27,6 +27,7 @@
       ~TdgGate.qasm
       ~TdgGate.repeat
       ~TdgGate.reverse_ops
+      ~TdgGate.soft_compare
       ~TdgGate.to_matrix
       ~TdgGate.validate_parameter
    

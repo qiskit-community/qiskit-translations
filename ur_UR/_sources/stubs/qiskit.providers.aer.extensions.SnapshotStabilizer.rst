@@ -26,6 +26,7 @@
       ~SnapshotStabilizer.qasm
       ~SnapshotStabilizer.repeat
       ~SnapshotStabilizer.reverse_ops
+      ~SnapshotStabilizer.soft_compare
       ~SnapshotStabilizer.validate_parameter
    
    

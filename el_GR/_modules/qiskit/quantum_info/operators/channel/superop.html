@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.quantum_info.operators.channel.superop &mdash; Τεκμηρίωση του Qiskit - 0.24.1</title>
+  <title>qiskit.quantum_info.operators.channel.superop &mdash; Τεκμηρίωση του Qiskit - 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Troubleshooting</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Quantum API error codes</a></li>
@@ -311,20 +315,21 @@
 <span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
 <span class="c1"># that they have been altered from the originals.</span>
 
-<span class="c1"># pylint: disable=unpacking-non-sequence</span>
-
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Superoperator representation of a Quantum Channel.&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.circuit.quantumcircuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.instruction</span> <span class="kn">import</span> <span class="n">Instruction</span>
 <span class="kn">from</span> <span class="nn">qiskit.exceptions</span> <span class="kn">import</span> <span class="n">QiskitError</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.op_shape</span> <span class="kn">import</span> <span class="n">OpShape</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.operator</span> <span class="kn">import</span> <span class="n">Operator</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel.quantum_channel</span> <span class="kn">import</span> <span class="n">QuantumChannel</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel.transformations</span> <span class="kn">import</span> <span class="n">_to_superop</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.channel.transformations</span> <span class="kn">import</span> <span class="n">_bipartite_tensor</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.mixins</span> <span class="kn">import</span> <span class="n">generate_apidocs</span>
 
 
 <div class="viewcode-block" id="SuperOp"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.SuperOp.html#qiskit.quantum_info.SuperOp">[τεκμηρίωση]</a><span class="k">class</span> <span class="nc">SuperOp</span><span class="p">(</span><span class="n">QuantumChannel</span><span class="p">):</span>
@@ -385,6 +390,8 @@
             <span class="n">output_dim</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dout</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">output_dim</span><span class="o">**</span><span class="mi">2</span> <span class="o">!=</span> <span class="n">dout</span> <span class="ow">or</span> <span class="n">input_dim</span><span class="o">**</span><span class="mi">2</span> <span class="o">!=</span> <span class="n">din</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Invalid shape for SuperOp matrix.&quot;</span><span class="p">)</span>
+            <span class="n">op_shape</span> <span class="o">=</span> <span class="n">OpShape</span><span class="o">.</span><span class="n">auto</span><span class="p">(</span><span class="n">dims_l</span><span class="o">=</span><span class="n">output_dims</span><span class="p">,</span> <span class="n">dims_r</span><span class="o">=</span><span class="n">input_dims</span><span class="p">,</span>
+                                    <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">output_dim</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Otherwise we initialize by conversion from another Qiskit</span>
             <span class="c1"># object into the QuantumChannel.</span>
@@ -403,24 +410,23 @@
                 <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_transformer</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
             <span class="c1"># Now that the input is an operator we convert it to a</span>
             <span class="c1"># SuperOp object</span>
+            <span class="n">op_shape</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">_op_shape</span>
             <span class="n">input_dim</span><span class="p">,</span> <span class="n">output_dim</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dim</span>
             <span class="n">rep</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;_channel_rep&#39;</span><span class="p">,</span> <span class="s1">&#39;Operator&#39;</span><span class="p">)</span>
             <span class="n">super_mat</span> <span class="o">=</span> <span class="n">_to_superop</span><span class="p">(</span><span class="n">rep</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">input_dims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">input_dims</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">input_dims</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">output_dims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">output_dims</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">output_dims</span><span class="p">()</span>
-        <span class="c1"># Finally we format and validate the channel input and</span>
-        <span class="c1"># output dimensions</span>
-        <span class="n">input_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_automatic_dims</span><span class="p">(</span><span class="n">input_dims</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">)</span>
-        <span class="n">output_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_automatic_dims</span><span class="p">(</span><span class="n">output_dims</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">super_mat</span><span class="p">,</span> <span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">,</span> <span class="s1">&#39;SuperOp&#39;</span><span class="p">)</span></div>
+        <span class="c1"># Initialize QuantumChannel</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">super_mat</span><span class="p">,</span> <span class="n">op_shape</span><span class="o">=</span><span class="n">op_shape</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__array__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">dtype</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_tensor_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the tensor shape of the superoperator matrix&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span><span class="p">()))</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">tuple</span><span class="p">(</span>
-            <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">dims_l</span><span class="p">()))</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">dims_r</span><span class="p">()))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_bipartite_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -428,49 +434,56 @@
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span><span class="p">)</span>
 
+    <span class="c1"># ---------------------------------------------------------------------</span>
+    <span class="c1"># BaseOperator methods</span>
+    <span class="c1"># ---------------------------------------------------------------------</span>
+
 <div class="viewcode-block" id="SuperOp.conjugate"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.SuperOp.html#qiskit.quantum_info.SuperOp.conjugate">[τεκμηρίωση]</a>    <span class="k">def</span> <span class="nf">conjugate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the conjugate of the QuantumChannel.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span><span class="p">(),</span>
-                       <span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span><span class="p">())</span></div>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
 
 <div class="viewcode-block" id="SuperOp.transpose"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.SuperOp.html#qiskit.quantum_info.SuperOp.transpose">[τεκμηρίωση]</a>    <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the transpose of the QuantumChannel.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">),</span>
-                       <span class="n">input_dims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span><span class="p">(),</span>
-                       <span class="n">output_dims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span><span class="p">())</span></div>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+<div class="viewcode-block" id="SuperOp.adjoint"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.SuperOp.html#qiskit.quantum_info.SuperOp.adjoint">[τεκμηρίωση]</a>    <span class="k">def</span> <span class="nf">adjoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">))</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+<div class="viewcode-block" id="SuperOp.tensor"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.SuperOp.html#qiskit.quantum_info.SuperOp.tensor">[τεκμηρίωση]</a>    <span class="k">def</span> <span class="nf">tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SuperOp</span><span class="p">):</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SuperOp.expand"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.SuperOp.html#qiskit.quantum_info.SuperOp.expand">[τεκμηρίωση]</a>    <span class="k">def</span> <span class="nf">expand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SuperOp</span><span class="p">):</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tensor</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_tensor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">_op_shape</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">_bipartite_tensor</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+                                      <span class="n">shape1</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">_bipartite_shape</span><span class="p">,</span>
+                                      <span class="n">shape2</span><span class="o">=</span><span class="n">b</span><span class="o">.</span><span class="n">_bipartite_shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span>
 
 <div class="viewcode-block" id="SuperOp.compose"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.SuperOp.html#qiskit.quantum_info.SuperOp.compose">[τεκμηρίωση]</a>    <span class="k">def</span> <span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">front</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the composed quantum channel self @ other.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (QuantumChannel): a quantum channel.</span>
-<span class="sd">            qargs (list or None): a list of subsystem positions to apply</span>
-<span class="sd">                                  other on. If None apply on all</span>
-<span class="sd">                                  subsystems [default: None].</span>
-<span class="sd">            front (bool): If True compose using right operator multiplication,</span>
-<span class="sd">                          instead of left multiplication [default: False].</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            SuperOp: The quantum channel self @ other.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if other has incompatible dimensions.</span>
-
-<span class="sd">        Additional Information:</span>
-<span class="sd">            Composition (``@``) is defined as `left` matrix multiplication for</span>
-<span class="sd">            :class:`SuperOp` matrices. That is that ``A @ B`` is equal to ``B * A``.</span>
-<span class="sd">            Setting ``front=True`` returns `right` matrix multiplication</span>
-<span class="sd">            ``A * B`` and is equivalent to the :meth:`dot` method.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">qargs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;qargs&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="c1"># Convert other to SuperOp</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SuperOp</span><span class="p">):</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="c1"># Validate dimensions are compatible and return the composed</span>
         <span class="c1"># operator dimensions</span>
-        <span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_compose_dims</span><span class="p">(</span>
-            <span class="n">other</span><span class="p">,</span> <span class="n">qargs</span><span class="p">,</span> <span class="n">front</span><span class="p">)</span>
+        <span class="n">new_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_op_shape</span><span class="p">,</span> <span class="n">qargs</span><span class="p">,</span> <span class="n">front</span><span class="p">)</span>
+        <span class="n">input_dims</span> <span class="o">=</span> <span class="n">new_shape</span><span class="o">.</span><span class="n">dims_r</span><span class="p">()</span>
+        <span class="n">output_dims</span> <span class="o">=</span> <span class="n">new_shape</span><span class="o">.</span><span class="n">dims_l</span><span class="p">()</span>
 
         <span class="c1"># Full composition of superoperators</span>
         <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -478,15 +491,18 @@
                 <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">)</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">)</span>
+            <span class="n">ret</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">=</span> <span class="n">new_shape</span>
+            <span class="k">return</span> <span class="n">ret</span>
 
         <span class="c1"># Compute tensor contraction indices from qargs</span>
+        <span class="n">num_qargs_l</span><span class="p">,</span> <span class="n">num_qargs_r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">num_qargs</span>
         <span class="k">if</span> <span class="n">front</span><span class="p">:</span>
-            <span class="n">num_indices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_dims</span><span class="p">)</span>
-            <span class="n">shift</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">)</span>
+            <span class="n">num_indices</span> <span class="o">=</span> <span class="n">num_qargs_r</span>
+            <span class="n">shift</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">num_qargs_l</span>
             <span class="n">right_mul</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">num_indices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">)</span>
+            <span class="n">num_indices</span> <span class="o">=</span> <span class="n">num_qargs_l</span>
             <span class="n">shift</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">right_mul</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -494,8 +510,8 @@
         <span class="c1"># Note that we must reverse the subsystem dimension order as</span>
         <span class="c1"># qubit 0 corresponds to the right-most position in the tensor</span>
         <span class="c1"># product, which is the last tensor wire index.</span>
-        <span class="n">tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
-        <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
+        <span class="n">tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tensor_shape</span><span class="p">)</span>
+        <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_tensor_shape</span><span class="p">)</span>
         <span class="c1"># Add first set of indices</span>
         <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_indices</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">qubit</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">qargs</span>
                    <span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">num_indices</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">qubit</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">qargs</span><span class="p">]</span>
@@ -503,80 +519,13 @@
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
             <span class="n">Operator</span><span class="o">.</span><span class="n">_einsum_matmul</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">shift</span><span class="p">,</span> <span class="n">right_mul</span><span class="p">),</span>
             <span class="n">final_shape</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">)</span></div>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_op_shape</span> <span class="o">=</span> <span class="n">new_shape</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="SuperOp.power"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.SuperOp.html#qiskit.quantum_info.SuperOp.power">[τεκμηρίωση]</a>    <span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the compose of a QuantumChannel with itself n times.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            n (int): compute the matrix power of the superoperator matrix.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            SuperOp: the n-times composition channel as a SuperOp object.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if the input and output dimensions of the</span>
-<span class="sd">                         QuantumChannel are not equal, or the power is not</span>
-<span class="sd">                         an integer.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Can only power with integer powers.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Can only power with input_dim = output_dim.&quot;</span><span class="p">)</span>
-        <span class="c1"># Override base class power so we can implement more efficiently</span>
-        <span class="c1"># using Numpy.matrix_power</span>
-        <span class="k">return</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span>
-                       <span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span><span class="p">())</span></div>
-
-<div class="viewcode-block" id="SuperOp.tensor"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.SuperOp.html#qiskit.quantum_info.SuperOp.tensor">[τεκμηρίωση]</a>    <span class="k">def</span> <span class="nf">tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the tensor product channel self ⊗ other.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (QuantumChannel): a quantum channel.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            SuperOp: the tensor product channel self ⊗ other as a SuperOp</span>
-<span class="sd">            object.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if other cannot be converted to a channel.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Convert other to SuperOp</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SuperOp</span><span class="p">):</span>
-            <span class="n">other</span> <span class="o">=</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-
-        <span class="n">input_dims</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">input_dims</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span><span class="p">()</span>
-        <span class="n">output_dims</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">output_dims</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span><span class="p">()</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">_bipartite_tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span>
-                                 <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
-                                 <span class="n">shape1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_bipartite_shape</span><span class="p">,</span>
-                                 <span class="n">shape2</span><span class="o">=</span><span class="n">other</span><span class="o">.</span><span class="n">_bipartite_shape</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="SuperOp.expand"><a class="viewcode-back" href="../../../../../stubs/qiskit.quantum_info.SuperOp.html#qiskit.quantum_info.SuperOp.expand">[τεκμηρίωση]</a>    <span class="k">def</span> <span class="nf">expand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the tensor product channel other ⊗ self.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            other (QuantumChannel): a quantum channel.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            SuperOp: the tensor product channel other ⊗ self as a SuperOp</span>
-<span class="sd">            object.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: if other cannot be converted to a channel.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Convert other to SuperOp</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SuperOp</span><span class="p">):</span>
-            <span class="n">other</span> <span class="o">=</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-
-        <span class="n">input_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span><span class="p">()</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">input_dims</span><span class="p">()</span>
-        <span class="n">output_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span><span class="p">()</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">output_dims</span><span class="p">()</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">_bipartite_tensor</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
-                                 <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span>
-                                 <span class="n">shape1</span><span class="o">=</span><span class="n">other</span><span class="o">.</span><span class="n">_bipartite_shape</span><span class="p">,</span>
-                                 <span class="n">shape2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_bipartite_shape</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">SuperOp</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">input_dims</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">)</span></div>
+    <span class="c1"># ---------------------------------------------------------------------</span>
+    <span class="c1"># Additional methods</span>
+    <span class="c1"># ---------------------------------------------------------------------</span>
 
     <span class="k">def</span> <span class="nf">_evolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evolve a quantum state by the quantum channel.</span>
@@ -602,7 +551,7 @@
 
         <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Evolution on full matrix</span>
-            <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">_dim</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_dim</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
                 <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
                     <span class="s2">&quot;Operator input dimension is not equal to density matrix dimension.&quot;</span>
                 <span class="p">)</span>
@@ -620,8 +569,8 @@
                 <span class="s2">&quot;Operator input dimensions are not equal to statevector subsystem dimensions.&quot;</span>
             <span class="p">)</span>
         <span class="c1"># Reshape statevector and operator</span>
-        <span class="n">tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
-        <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
+        <span class="n">tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">_op_shape</span><span class="o">.</span><span class="n">tensor_shape</span><span class="p">)</span>
+        <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tensor_shape</span><span class="p">)</span>
         <span class="c1"># Construct list of tensor indices of statevector to be contracted</span>
         <span class="n">num_indices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">dims</span><span class="p">())</span>
         <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_indices</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">qubit</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">qargs</span>
@@ -629,8 +578,9 @@
         <span class="n">tensor</span> <span class="o">=</span> <span class="n">Operator</span><span class="o">.</span><span class="n">_einsum_matmul</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
         <span class="c1"># Replace evolved dimensions</span>
         <span class="n">new_dims</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">dims</span><span class="p">())</span>
+        <span class="n">output_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qargs</span><span class="p">):</span>
-            <span class="n">new_dims</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_dims</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">new_dims</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_dims</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
         <span class="n">new_dim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">new_dims</span><span class="p">)</span>
         <span class="c1"># reshape tensor to density matrix</span>
         <span class="n">tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="p">(</span><span class="n">new_dim</span><span class="p">,</span> <span class="n">new_dim</span><span class="p">))</span>
@@ -698,6 +648,7 @@
                 <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> instruction definition is </span><span class="si">{}</span><span class="s1">; &#39;</span>
                                   <span class="s1">&#39;expected QuantumCircuit&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                                       <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="p">)))</span>
+            <span class="n">qubit_indices</span> <span class="o">=</span> <span class="p">{</span><span class="n">bit</span><span class="p">:</span> <span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">bit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">qubits</span><span class="p">)}</span>
             <span class="k">for</span> <span class="n">instr</span><span class="p">,</span> <span class="n">qregs</span><span class="p">,</span> <span class="n">cregs</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">cregs</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
@@ -705,10 +656,14 @@
                         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">instr</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
                 <span class="c1"># Get the integer position of the flat register</span>
                 <span class="k">if</span> <span class="n">qargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">new_qargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">]</span>
+                    <span class="n">new_qargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qubit_indices</span><span class="p">[</span><span class="n">tup</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">new_qargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qargs</span><span class="p">[</span><span class="n">tup</span><span class="o">.</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">]</span>
+                    <span class="n">new_qargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qargs</span><span class="p">[</span><span class="n">qubit_indices</span><span class="p">[</span><span class="n">tup</span><span class="p">]]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">qregs</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_append_instruction</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">new_qargs</span><span class="p">)</span></div>
+
+
+<span class="c1"># Update docstrings for API docs</span>
+<span class="n">generate_apidocs</span><span class="p">(</span><span class="n">SuperOp</span><span class="p">)</span>
 </pre></div>
 
              </article>
@@ -841,20 +796,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

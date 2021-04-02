@@ -25,6 +25,7 @@
    
       ~OptimizationResult.fval
       ~OptimizationResult.raw_results
+      ~OptimizationResult.samples
       ~OptimizationResult.status
       ~OptimizationResult.variable_names
       ~OptimizationResult.variables

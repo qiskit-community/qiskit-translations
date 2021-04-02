@@ -27,6 +27,7 @@
       ~DCXGate.qasm
       ~DCXGate.repeat
       ~DCXGate.reverse_ops
+      ~DCXGate.soft_compare
       ~DCXGate.to_matrix
       ~DCXGate.validate_parameter
    

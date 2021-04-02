@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.pulse.builder &mdash; Qiskit 0.24.1 documentazione</title>
+  <title>qiskit.pulse.builder &mdash; Qiskit 0.25.0 documentazione</title>
   
 
   
@@ -226,6 +226,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/ignis.html">Qiskit Ignis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum Provider</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Risoluzione Dei Problemi</span></p>
 <ul>
@@ -497,6 +501,7 @@
 <span class="kn">import</span> <span class="nn">contextvars</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">Any</span><span class="p">,</span>
@@ -518,6 +523,7 @@
 
 <span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">circuit</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">standard_gates</span> <span class="k">as</span> <span class="n">gates</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.parameterexpression</span> <span class="kn">import</span> <span class="n">ParameterExpression</span><span class="p">,</span> <span class="n">ParameterValueType</span>
 <span class="kn">from</span> <span class="nn">qiskit.pulse</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">channels</span> <span class="k">as</span> <span class="n">chans</span><span class="p">,</span>
     <span class="n">configuration</span><span class="p">,</span>
@@ -576,7 +582,7 @@
         <span class="sd">&quot;&quot;&quot;Initialize the builder context.</span>
 
 <span class="sd">        .. note::</span>
-<span class="sd">            At some point we may consider incorpating the builder into</span>
+<span class="sd">            At some point we may consider incorporating the builder into</span>
 <span class="sd">            the :class:`~qiskit.pulse.Schedule` class. However, the risk of</span>
 <span class="sd">            this is tying the user interface to the intermediate</span>
 <span class="sd">            representation. For now we avoid this at the cost of some code</span>
@@ -717,25 +723,85 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">context_schedule</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instruction</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_compile_lazy_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call a QuantumCircuit and append the output pulse schedule</span>
-<span class="sd">        to the builder&#39;s context schedule.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lazy_circuit</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">qiskit.compiler</span> <span class="k">as</span> <span class="nn">compiler</span>  <span class="c1"># pylint: disable=cyclic-import</span>
+        <span class="sd">&quot;&quot;&quot;Call a context QuantumCircuit (lazy circuit) and append the output pulse schedule</span>
+<span class="sd">        to the builder&#39;s context schedule.</span>
 
+<span class="sd">        Note that the lazy circuit is not stored as a call instruction.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lazy_circuit</span><span class="p">:</span>
             <span class="n">lazy_circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lazy_circuit</span>
             <span class="c1"># reset lazy circuit</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_lazy_circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_circuit</span><span class="p">()</span>
-            <span class="n">transpiled_circuit</span> <span class="o">=</span> <span class="n">compiler</span><span class="o">.</span><span class="n">transpile</span><span class="p">(</span><span class="n">lazy_circuit</span><span class="p">,</span>
-                                                    <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
-                                                    <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">transpiler_settings</span><span class="p">)</span>
-            <span class="n">sched</span> <span class="o">=</span> <span class="n">compiler</span><span class="o">.</span><span class="n">schedule</span><span class="p">(</span><span class="n">transpiled_circuit</span><span class="p">,</span>
-                                      <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
-                                      <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit_scheduler_settings</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">call_schedule</span><span class="p">(</span><span class="n">sched</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">call_schedule</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compile_circuit</span><span class="p">(</span><span class="n">lazy_circuit</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_compile_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circ</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schedule</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Take a QuantumCircuit and output the pulse schedule associated with the circuit.&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">qiskit.compiler</span> <span class="k">as</span> <span class="nn">compiler</span>  <span class="c1"># pylint: disable=cyclic-import</span>
+
+        <span class="n">transpiled_circuit</span> <span class="o">=</span> <span class="n">compiler</span><span class="o">.</span><span class="n">transpile</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                                                <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">transpiler_settings</span><span class="p">)</span>
+        <span class="n">sched</span> <span class="o">=</span> <span class="n">compiler</span><span class="o">.</span><span class="n">schedule</span><span class="p">(</span><span class="n">transpiled_circuit</span><span class="p">,</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                                  <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit_scheduler_settings</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sched</span>
 
     <span class="k">def</span> <span class="nf">call_schedule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schedule</span><span class="p">:</span> <span class="n">Schedule</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call a schedule and append to the builder&#39;s context schedule.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Call a schedule and append to the builder&#39;s context schedule.</span>
+
+<span class="sd">        The schedule is just appended to the context schedule as-is.</span>
+<span class="sd">        Use :meth:`~call_subroutine` method to define the schedule as a subroutine.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">append_schedule</span><span class="p">(</span><span class="n">schedule</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">call_subroutine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                        <span class="n">subroutine</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">circuit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">],</span>
+                        <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="n">value_dict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">ParameterExpression</span><span class="p">,</span> <span class="n">ParameterValueType</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="o">**</span><span class="n">kw_params</span><span class="p">:</span> <span class="n">ParameterValueType</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Call a schedule or circuit defined outside of the current scope.</span>
+
+<span class="sd">        The ``subroutine`` is appended to the context schedule as a call instruction.</span>
+<span class="sd">        This logic just generates a convenient program representation in the compiler.</span>
+<span class="sd">        Thus this doesn&#39;t affect execution of inline subroutines.</span>
+<span class="sd">        See :class:`~pulse.instructions.Call` for more details.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            subroutine: Target schedule or circuit to append to the current context.</span>
+<span class="sd">            name: Name of subroutine if defined.</span>
+<span class="sd">            value_dict: Parameter object and assigned value mapping. This is more precise way to</span>
+<span class="sd">                identify a parameter since mapping is managed with unique object id rather than</span>
+<span class="sd">                name. Especially there is any name collision in a parameter table.</span>
+<span class="sd">            kw_params: Parameter values to bind to the target subroutine</span>
+<span class="sd">                with string parameter names. If there are parameter name overlapping,</span>
+<span class="sd">                these parameters are updated with the same assigned value.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            PulseError: If specified parameter is not contained in the subroutine.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">subroutine</span><span class="p">,</span> <span class="n">circuit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_compile_lazy_circuit</span><span class="p">()</span>
+            <span class="n">subroutine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compile_circuit</span><span class="p">(</span><span class="n">subroutine</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">subroutine</span><span class="o">.</span><span class="n">instructions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">value_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">value_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+            <span class="n">param_value_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">assigned_value</span> <span class="ow">in</span> <span class="n">kw_params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">param_objs</span> <span class="o">=</span> <span class="n">subroutine</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">(</span><span class="n">param_name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">param_objs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">param_obj</span> <span class="ow">in</span> <span class="n">param_objs</span><span class="p">:</span>
+                        <span class="n">param_value_map</span><span class="p">[</span><span class="n">param_obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">assigned_value</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">PulseError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;Parameter </span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s1"> is not defined in the target subroutine. &#39;</span>
+                        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">subroutine</span><span class="o">.</span><span class="n">parameters</span><span class="p">))</span><span class="si">}</span><span class="s1"> can be specified.&#39;</span><span class="p">)</span>
+
+            <span class="n">param_value_map</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">value_dict</span><span class="p">)</span>
+            <span class="n">call_def</span> <span class="o">=</span> <span class="n">instructions</span><span class="o">.</span><span class="n">Call</span><span class="p">(</span><span class="n">subroutine</span><span class="p">,</span> <span class="n">param_value_map</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_instruction</span><span class="p">(</span><span class="n">call_def</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">new_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a new circuit for lazy circuit scheduling.&quot;&quot;&quot;</span>
@@ -744,9 +810,10 @@
     <span class="nd">@_requires_backend</span>
     <span class="k">def</span> <span class="nf">call_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                      <span class="n">circ</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">,</span>
-                     <span class="n">lazy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call a circuit in the pulse program.</span>
+                     <span class="n">lazy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Deprecated.</span>
 
+<span class="sd">        Call a circuit in the pulse program.</span>
 <span class="sd">        The circuit is assumed to be defined on physical qubits.</span>
 
 <span class="sd">        If ``lazy == True`` this circuit will extend a lazily constructed</span>
@@ -761,6 +828,11 @@
 <span class="sd">                immediately. Otherwise, it will extend the active lazy circuit</span>
 <span class="sd">                as defined above.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Calling ``call_circuit`` is being deprecated. &#39;</span>
+                      <span class="s1">&#39;Use ``call_subroutine`` method instead. &#39;</span>
+                      <span class="s1">&#39;New method stores the circuit as a ``Call`` instruction &#39;</span>
+                      <span class="s1">&#39;after scheduling.&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">lazy</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_call_circuit</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -769,6 +841,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_compile_lazy_circuit</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_call_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circ</span><span class="p">):</span>
+        <span class="c1"># TODO deprecate this with call circuits</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lazy_circuit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_lazy_circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_circuit</span><span class="p">()</span>
 
@@ -806,9 +879,18 @@
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="n">qubits</span> <span class="o">=</span> <span class="p">(</span><span class="n">qubits</span><span class="p">,)</span>
 
-        <span class="n">qc</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
-        <span class="n">qc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gate</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qubits</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">call_circuit</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="n">lazy</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">lazy</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_call_gate</span><span class="p">(</span><span class="n">gate</span><span class="p">,</span> <span class="n">qubits</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_compile_lazy_circuit</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_call_gate</span><span class="p">(</span><span class="n">gate</span><span class="p">,</span> <span class="n">qubits</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_compile_lazy_circuit</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_call_gate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gate</span><span class="p">,</span> <span class="n">qargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lazy_circuit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_lazy_circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_circuit</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lazy_circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gate</span><span class="p">,</span> <span class="n">qargs</span><span class="o">=</span><span class="n">qargs</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="build"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.build.html#qiskit.pulse.builder.build">[documenti]</a><span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -858,7 +940,7 @@
 <span class="sd">            circuit to pulse scheduler.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A new builder context which has the active builder inititalized.</span>
+<span class="sd">        A new builder context which has the active builder initialized.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_PulseBuilder</span><span class="p">(</span>
         <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
@@ -882,11 +964,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">BUILDER_CONTEXTVAR</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-    <span class="k">except</span> <span class="ne">LookupError</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">LookupError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">NoActiveBuilder</span><span class="p">(</span>
             <span class="s1">&#39;A Pulse builder function was called outside of &#39;</span>
             <span class="s1">&#39;a builder context. Try calling within a builder &#39;</span>
-            <span class="s1">&#39;context, eg., &quot;with pulse.build() as schedule: ...&quot;.&#39;</span><span class="p">)</span>
+            <span class="s1">&#39;context, eg., &quot;with pulse.build() as schedule: ...&quot;.&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
 
 
 <div class="viewcode-block" id="active_backend"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.active_backend.html#qiskit.pulse.builder.active_backend">[documenti]</a><span class="k">def</span> <span class="nf">active_backend</span><span class="p">():</span>
@@ -1069,7 +1151,7 @@
 <span class="k">def</span> <span class="nf">_transform_context</span><span class="p">(</span><span class="n">transform</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Schedule</span><span class="p">],</span> <span class="n">Schedule</span><span class="p">],</span>
                        <span class="o">**</span><span class="n">transform_kwargs</span><span class="p">:</span> <span class="n">Any</span>
                        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ContextManager</span><span class="p">[</span><span class="kc">None</span><span class="p">]]:</span>
-    <span class="sd">&quot;&quot;&quot;A tranform context generator, decorator.</span>
+    <span class="sd">&quot;&quot;&quot;A transform context generator, decorator.</span>
 
 <span class="sd">    Decorator accepts a transformation function, and then decorates a new</span>
 <span class="sd">    ContextManager function.</span>
@@ -1091,7 +1173,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        A function that generates a new transformation ``ContextManager``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">function</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+    <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">function</span><span class="p">):</span>
         <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
         <span class="nd">@contextmanager</span>
         <span class="k">def</span> <span class="nf">wrapped_transform</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1247,7 +1329,7 @@
 
 <span class="sd">    Pulse instructions within this context are scheduled at the location specified by</span>
 <span class="sd">    arbitrary callback function `position` that takes integer index and returns</span>
-<span class="sd">    the associated fractional location witin [0, 1].</span>
+<span class="sd">    the associated fractional location within [0, 1].</span>
 <span class="sd">    Delay instruction is automatically inserted in between pulses.</span>
 
 <span class="sd">    This context may be convenient to write a schedule of arbitrary dynamical decoupling</span>
@@ -1364,7 +1446,7 @@
 
 <div class="viewcode-block" id="pad"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.pad.html#qiskit.pulse.builder.pad">[documenti]</a><span class="nd">@_transform_context</span><span class="p">(</span><span class="n">transforms</span><span class="o">.</span><span class="n">pad</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">pad</span><span class="p">(</span><span class="o">*</span><span class="n">chs</span><span class="p">:</span> <span class="n">chans</span><span class="o">.</span><span class="n">Channel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ContextManager</span><span class="p">[</span><span class="kc">None</span><span class="p">]:</span>  <span class="c1"># pylint: disable=unused-argument</span>
-    <span class="sd">&quot;&quot;&quot;Pad all availale timeslots with delays upon exiting context.</span>
+    <span class="sd">&quot;&quot;&quot;Pad all available timeslots with delays upon exiting context.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        chs: Channels to pad with delays. Defaults to all channels in context</span>
@@ -1511,7 +1593,7 @@
 
 <span class="sd">        with pulse.build(backend) as pulse_prog:</span>
 <span class="sd">            # Shift frequency by 1GHz.</span>
-<span class="sd">            # Undo accumulated phase in the shifted freqeuncy frame</span>
+<span class="sd">            # Undo accumulated phase in the shifted frequency frame</span>
 <span class="sd">            # when exiting the context.</span>
 <span class="sd">            with pulse.frequency_offset(1e9, d0, compensate_phase=True):</span>
 <span class="sd">                pulse.play(pulse.Constant(10, 1.0), d0)</span>
@@ -1520,9 +1602,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        frequency: Amount of frequency offset in Hz.</span>
-<span class="sd">        channels: Channels to offset phase of.</span>
-<span class="sd">        compensate_phase: Compensate for accumulated phase in accumulated with</span>
-<span class="sd">            respect to the channels frame at its initial frequency.</span>
+<span class="sd">        channels: Channels to offset frequency of.</span>
+<span class="sd">        compensate_phase: Compensate for accumulated phase accumulated with</span>
+<span class="sd">            respect to the channels&#39; frame at its initial frequency.</span>
 
 <span class="sd">    Yields:</span>
 <span class="sd">        None</span>
@@ -1639,7 +1721,7 @@
 
 <span class="c1"># Base Instructions</span>
 <div class="viewcode-block" id="delay"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.delay.html#qiskit.pulse.builder.delay">[documenti]</a><span class="k">def</span> <span class="nf">delay</span><span class="p">(</span><span class="n">duration</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-          <span class="n">channel</span><span class="p">:</span> <span class="n">chans</span><span class="o">.</span><span class="n">Channel</span><span class="p">):</span>
+          <span class="n">channel</span><span class="p">:</span> <span class="n">chans</span><span class="o">.</span><span class="n">Channel</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Delay on a ``channel`` for a ``duration``.</span>
 
 <span class="sd">    Examples:</span>
@@ -1656,12 +1738,13 @@
 <span class="sd">    Args:</span>
 <span class="sd">        duration: Number of cycles to delay for on ``channel``.</span>
 <span class="sd">        channel: Channel to delay on.</span>
+<span class="sd">        name: Name of the instruction.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">append_instruction</span><span class="p">(</span><span class="n">instructions</span><span class="o">.</span><span class="n">Delay</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">channel</span><span class="p">))</span></div>
+    <span class="n">append_instruction</span><span class="p">(</span><span class="n">instructions</span><span class="o">.</span><span class="n">Delay</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="play"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.play.html#qiskit.pulse.builder.play">[documenti]</a><span class="k">def</span> <span class="nf">play</span><span class="p">(</span><span class="n">pulse</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">library</span><span class="o">.</span><span class="n">Pulse</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-         <span class="n">channel</span><span class="p">:</span> <span class="n">chans</span><span class="o">.</span><span class="n">PulseChannel</span><span class="p">):</span>
+         <span class="n">channel</span><span class="p">:</span> <span class="n">chans</span><span class="o">.</span><span class="n">PulseChannel</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Play a ``pulse`` on a ``channel``.</span>
 
 <span class="sd">    Examples:</span>
@@ -1678,11 +1761,12 @@
 <span class="sd">    Args:</span>
 <span class="sd">        pulse: Pulse to play.</span>
 <span class="sd">        channel: Channel to play pulse on.</span>
+<span class="sd">        name: Name of the pulse.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pulse</span><span class="p">,</span> <span class="n">library</span><span class="o">.</span><span class="n">Pulse</span><span class="p">):</span>
         <span class="n">pulse</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">Waveform</span><span class="p">(</span><span class="n">pulse</span><span class="p">)</span>
 
-    <span class="n">append_instruction</span><span class="p">(</span><span class="n">instructions</span><span class="o">.</span><span class="n">Play</span><span class="p">(</span><span class="n">pulse</span><span class="p">,</span> <span class="n">channel</span><span class="p">))</span></div>
+    <span class="n">append_instruction</span><span class="p">(</span><span class="n">instructions</span><span class="o">.</span><span class="n">Play</span><span class="p">(</span><span class="n">pulse</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="acquire"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.acquire.html#qiskit.pulse.builder.acquire">[documenti]</a><span class="k">def</span> <span class="nf">acquire</span><span class="p">(</span><span class="n">duration</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -1738,7 +1822,7 @@
 
 
 <div class="viewcode-block" id="set_frequency"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.set_frequency.html#qiskit.pulse.builder.set_frequency">[documenti]</a><span class="k">def</span> <span class="nf">set_frequency</span><span class="p">(</span><span class="n">frequency</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-                  <span class="n">channel</span><span class="p">:</span> <span class="n">chans</span><span class="o">.</span><span class="n">PulseChannel</span><span class="p">):</span>
+                  <span class="n">channel</span><span class="p">:</span> <span class="n">chans</span><span class="o">.</span><span class="n">PulseChannel</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Set the ``frequency`` of a pulse ``channel``.</span>
 
 <span class="sd">    Examples:</span>
@@ -1755,12 +1839,13 @@
 <span class="sd">    Args:</span>
 <span class="sd">        frequency: Frequency in Hz to set channel to.</span>
 <span class="sd">        channel: Channel to set frequency of.</span>
+<span class="sd">        name: Name of the instruction.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">append_instruction</span><span class="p">(</span><span class="n">instructions</span><span class="o">.</span><span class="n">SetFrequency</span><span class="p">(</span><span class="n">frequency</span><span class="p">,</span> <span class="n">channel</span><span class="p">))</span></div>
+    <span class="n">append_instruction</span><span class="p">(</span><span class="n">instructions</span><span class="o">.</span><span class="n">SetFrequency</span><span class="p">(</span><span class="n">frequency</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="shift_frequency"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.shift_frequency.html#qiskit.pulse.builder.shift_frequency">[documenti]</a><span class="k">def</span> <span class="nf">shift_frequency</span><span class="p">(</span><span class="n">frequency</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-                    <span class="n">channel</span><span class="p">:</span> <span class="n">chans</span><span class="o">.</span><span class="n">PulseChannel</span><span class="p">):</span>
+                    <span class="n">channel</span><span class="p">:</span> <span class="n">chans</span><span class="o">.</span><span class="n">PulseChannel</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Shift the ``frequency`` of a pulse ``channel``.</span>
 
 <span class="sd">    Examples:</span>
@@ -1778,12 +1863,13 @@
 <span class="sd">    Args:</span>
 <span class="sd">        frequency: Frequency in Hz to shift channel frequency by.</span>
 <span class="sd">        channel: Channel to shift frequency of.</span>
+<span class="sd">        name: Name of the instruction.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">append_instruction</span><span class="p">(</span><span class="n">instructions</span><span class="o">.</span><span class="n">ShiftFrequency</span><span class="p">(</span><span class="n">frequency</span><span class="p">,</span> <span class="n">channel</span><span class="p">))</span></div>
+    <span class="n">append_instruction</span><span class="p">(</span><span class="n">instructions</span><span class="o">.</span><span class="n">ShiftFrequency</span><span class="p">(</span><span class="n">frequency</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="set_phase"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.set_phase.html#qiskit.pulse.builder.set_phase">[documenti]</a><span class="k">def</span> <span class="nf">set_phase</span><span class="p">(</span><span class="n">phase</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-              <span class="n">channel</span><span class="p">:</span> <span class="n">chans</span><span class="o">.</span><span class="n">PulseChannel</span><span class="p">):</span>
+              <span class="n">channel</span><span class="p">:</span> <span class="n">chans</span><span class="o">.</span><span class="n">PulseChannel</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Set the ``phase`` of a pulse ``channel``.</span>
 
 <span class="sd">    Examples:</span>
@@ -1803,12 +1889,13 @@
 <span class="sd">    Args:</span>
 <span class="sd">        phase: Phase in radians to set channel carrier signal to.</span>
 <span class="sd">        channel: Channel to set phase of.</span>
+<span class="sd">        name: Name of the instruction.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">append_instruction</span><span class="p">(</span><span class="n">instructions</span><span class="o">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">channel</span><span class="p">))</span></div>
+    <span class="n">append_instruction</span><span class="p">(</span><span class="n">instructions</span><span class="o">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="shift_phase"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.shift_phase.html#qiskit.pulse.builder.shift_phase">[documenti]</a><span class="k">def</span> <span class="nf">shift_phase</span><span class="p">(</span><span class="n">phase</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-                <span class="n">channel</span><span class="p">:</span> <span class="n">chans</span><span class="o">.</span><span class="n">PulseChannel</span><span class="p">):</span>
+                <span class="n">channel</span><span class="p">:</span> <span class="n">chans</span><span class="o">.</span><span class="n">PulseChannel</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Shift the ``phase`` of a pulse ``channel``.</span>
 
 <span class="sd">    Examples:</span>
@@ -1827,8 +1914,9 @@
 <span class="sd">    Args:</span>
 <span class="sd">        phase: Phase in radians to shift channel carrier signal by.</span>
 <span class="sd">        channel: Channel to shift phase of.</span>
+<span class="sd">        name: Name of the instruction.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">append_instruction</span><span class="p">(</span><span class="n">instructions</span><span class="o">.</span><span class="n">ShiftPhase</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">channel</span><span class="p">))</span></div>
+    <span class="n">append_instruction</span><span class="p">(</span><span class="n">instructions</span><span class="o">.</span><span class="n">ShiftPhase</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="snapshot"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.snapshot.html#qiskit.pulse.builder.snapshot">[documenti]</a><span class="k">def</span> <span class="nf">snapshot</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -1875,7 +1963,10 @@
 <span class="sd">    Args:</span>
 <span class="sd">        Schedule to call.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_active_builder</span><span class="p">()</span><span class="o">.</span><span class="n">call_schedule</span><span class="p">(</span><span class="n">schedule</span><span class="p">)</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;``call_schedule`` is being deprecated. &#39;</span>
+                  <span class="s1">&#39;``call`` function can take both a schedule and a circuit.&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+
+    <span class="n">call</span><span class="p">(</span><span class="n">schedule</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">call_circuit</span><span class="p">(</span><span class="n">circ</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">):</span>
@@ -1883,7 +1974,7 @@
 
 <span class="sd">    .. note::</span>
 <span class="sd">        Calling gates directly within the pulse builder namespace will be</span>
-<span class="sd">        deprecated in the future in favour of tight integration with a circuit</span>
+<span class="sd">        deprecated in the future in favor of tight integration with a circuit</span>
 <span class="sd">        builder interface which is under development.</span>
 
 <span class="sd">    Examples:</span>
@@ -1918,15 +2009,27 @@
 <span class="sd">    Args:</span>
 <span class="sd">        Circuit to call.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_active_builder</span><span class="p">()</span><span class="o">.</span><span class="n">call_circuit</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;``call_circuit`` is being deprecated. &#39;</span>
+                  <span class="s1">&#39;``call`` function can take both a schedule and a circuit.&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+
+    <span class="n">call</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="call"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.call.html#qiskit.pulse.builder.call">[documenti]</a><span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">circuit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">]):</span>
-    <span class="sd">&quot;&quot;&quot;Call the ``target`` within the currently active builder context.</span>
+<div class="viewcode-block" id="call"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.call.html#qiskit.pulse.builder.call">[documenti]</a><span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">circuit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">],</span>
+         <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+         <span class="n">value_dict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">ParameterValueType</span><span class="p">,</span> <span class="n">ParameterValueType</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+         <span class="o">**</span><span class="n">kw_params</span><span class="p">:</span> <span class="n">ParameterValueType</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Call the ``target`` within the currently active builder context with arbitrary</span>
+<span class="sd">    parameters which will be assigned to the target program.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        The ``target`` program is inserted as a ``Call`` instruction.</span>
+<span class="sd">        This instruction defines a subroutine. See :class:`~qiskit.pulse.instructions.Call`</span>
+<span class="sd">        for more details.</span>
 
 <span class="sd">    Examples:</span>
 
-<span class="sd">    .. jupyter-execute::</span>
+<span class="sd">    .. code-block:: python</span>
 
 <span class="sd">        from qiskit import circuit, pulse, schedule, transpile</span>
 <span class="sd">        from qiskit.test.mock import FakeOpenPulse2Q</span>
@@ -1942,23 +2045,61 @@
 <span class="sd">                pulse.call(sched)</span>
 <span class="sd">                pulse.call(qc)</span>
 
+<span class="sd">    This function can optionally take parameter dictionary with the parameterized target program.</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from qiskit import circuit, pulse</span>
+
+<span class="sd">        amp = circuit.Parameter(&#39;amp&#39;)</span>
+
+<span class="sd">        with pulse.build() as subroutine:</span>
+<span class="sd">            pulse.play(pulse.Gaussian(160, amp, 40), pulse.DriveChannel(0))</span>
+
+<span class="sd">        with pulse.build() as main_prog:</span>
+<span class="sd">            pulse.call(subroutine, amp=0.1)</span>
+<span class="sd">            pulse.call(subroutine, amp=0.3)</span>
+
+<span class="sd">    If there is any parameter name collision, you can distinguish them by specifying</span>
+<span class="sd">    each parameter object as a python dictionary. Otherwise ``amp1`` and ``amp2`` will be</span>
+<span class="sd">    updated with the same value.</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from qiskit import circuit, pulse</span>
+
+<span class="sd">        amp1 = circuit.Parameter(&#39;amp&#39;)</span>
+<span class="sd">        amp2 = circuit.Parameter(&#39;amp&#39;)</span>
+
+<span class="sd">        with pulse.build() as subroutine:</span>
+<span class="sd">            pulse.play(pulse.Gaussian(160, amp1, 40), pulse.DriveChannel(0))</span>
+<span class="sd">            pulse.play(pulse.Gaussian(160, amp2, 40), pulse.DriveChannel(1))</span>
+
+<span class="sd">        with pulse.build() as main_prog:</span>
+<span class="sd">            pulse.call(subroutine, value_dict={amp1: 0.1, amp2: 0.2})</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        target: Target circuit or pulse schedule to call.</span>
+<span class="sd">        name: Name of subroutine if defined.</span>
+<span class="sd">        value_dict: Parameter object and assigned value mapping. This is more precise way to</span>
+<span class="sd">            identify a parameter since mapping is managed with unique object id rather than</span>
+<span class="sd">            name. Especially there is any name collision in a parameter table.</span>
+<span class="sd">        kw_params: Parameter values to bind to the target subroutine</span>
+<span class="sd">            with string parameter names. If there are parameter name overlapping,</span>
+<span class="sd">            these parameters are updated with the same assigned value.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        exceptions.PulseError: If the input ``target`` type is not supported.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">circuit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">):</span>
-        <span class="n">call_circuit</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">):</span>
-        <span class="n">call_schedule</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">)):</span>
         <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">PulseError</span><span class="p">(</span>
-            <span class="s1">&#39;Target of type &quot;</span><span class="si">{}</span><span class="s1">&quot; is not supported.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">target</span><span class="p">)))</span></div>
+            <span class="s1">&#39;Target of type &quot;</span><span class="si">{}</span><span class="s1">&quot; is not supported.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">target</span><span class="p">)))</span>
+
+    <span class="n">_active_builder</span><span class="p">()</span><span class="o">.</span><span class="n">call_subroutine</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value_dict</span><span class="p">,</span> <span class="o">**</span><span class="n">kw_params</span><span class="p">)</span></div>
 
 
 <span class="c1"># Directives</span>
-<div class="viewcode-block" id="barrier"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.barrier.html#qiskit.pulse.builder.barrier">[documenti]</a><span class="k">def</span> <span class="nf">barrier</span><span class="p">(</span><span class="o">*</span><span class="n">channels_or_qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">chans</span><span class="o">.</span><span class="n">Channel</span><span class="p">,</span> <span class="nb">int</span><span class="p">]):</span>
+<div class="viewcode-block" id="barrier"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.barrier.html#qiskit.pulse.builder.barrier">[documenti]</a><span class="k">def</span> <span class="nf">barrier</span><span class="p">(</span><span class="o">*</span><span class="n">channels_or_qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">chans</span><span class="o">.</span><span class="n">Channel</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Barrier directive for a set of channels and qubits.</span>
 
 <span class="sd">    This directive prevents the compiler from moving instructions across</span>
@@ -1998,7 +2139,7 @@
 <span class="sd">        assert barrier_pulse_prog == aligned_pulse_prog</span>
 
 <span class="sd">    The barrier allows the pulse compiler to take care of more advanced</span>
-<span class="sd">    scheduling aligment operations across channels. For example</span>
+<span class="sd">    scheduling alignment operations across channels. For example</span>
 <span class="sd">    in the case where we are calling an outside circuit or schedule and</span>
 <span class="sd">    want to align a pulse at the end of one call:</span>
 
@@ -2024,13 +2165,69 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        channels_or_qubits: Channels or qubits to barrier.</span>
+<span class="sd">        name: Name for the barrier</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">channels</span> <span class="o">=</span> <span class="n">_qubits_to_channels</span><span class="p">(</span><span class="o">*</span><span class="n">channels_or_qubits</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">channels</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">append_instruction</span><span class="p">(</span><span class="n">directives</span><span class="o">.</span><span class="n">RelativeBarrier</span><span class="p">(</span><span class="o">*</span><span class="n">channels</span><span class="p">))</span></div>
+        <span class="n">append_instruction</span><span class="p">(</span><span class="n">directives</span><span class="o">.</span><span class="n">RelativeBarrier</span><span class="p">(</span><span class="o">*</span><span class="n">channels</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span></div>
 
 
 <span class="c1"># Macros</span>
+<span class="k">def</span> <span class="nf">macro</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrap a Python function and activate the parent builder context at calling time.</span>
+
+<span class="sd">    This enables embedding Python functions as builder macros. This generates a new</span>
+<span class="sd">    :class:`pulse.Schedule` that is embedded in the parent builder context with</span>
+<span class="sd">    every call of the decorated macro function. The decorated macro function will</span>
+<span class="sd">    behave as if the function code was embedded inline in the parent builder context</span>
+<span class="sd">    after parameter substitution.</span>
+
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">    .. jupyter-execute::</span>
+
+<span class="sd">        from qiskit import pulse</span>
+
+<span class="sd">        @pulse.macro</span>
+<span class="sd">        def measure(qubit: int):</span>
+<span class="sd">            pulse.play(pulse.GaussianSquare(16384, 256, 15872), pulse.measure_channel(qubit))</span>
+<span class="sd">            mem_slot = pulse.MemorySlot(qubit)</span>
+<span class="sd">            pulse.acquire(16384, pulse.acquire_channel(qubit), mem_slot)</span>
+
+<span class="sd">            return mem_slot</span>
+
+<span class="sd">        with pulse.build(backend=backend) as sched:</span>
+<span class="sd">            mem_slot = measure(0)</span>
+<span class="sd">            print(f&quot;Qubit measured into {mem_slot}&quot;)</span>
+
+<span class="sd">        sched.draw()</span>
+
+
+<span class="sd">    Args:</span>
+<span class="sd">        func: The Python function to enable as a builder macro. There are no</span>
+<span class="sd">            requirements on the signature of the function, any calls to pulse</span>
+<span class="sd">            builder methods will be added to builder context the wrapped function</span>
+<span class="sd">            is called from.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Callable: The wrapped ``func``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">func_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s1">&#39;__name__&#39;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">_builder</span> <span class="o">=</span> <span class="n">_active_builder</span><span class="p">()</span>
+        <span class="c1"># activate the pulse builder before calling the function</span>
+        <span class="k">with</span> <span class="n">build</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">_builder</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">func_name</span><span class="p">)</span> <span class="k">as</span> <span class="n">built</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">_builder</span><span class="o">.</span><span class="n">call_schedule</span><span class="p">(</span><span class="n">built</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output</span>
+
+    <span class="k">return</span> <span class="n">wrapper</span>
+
+
 <div class="viewcode-block" id="measure"><a class="viewcode-back" href="../../../stubs/qiskit.pulse.builder.measure.html#qiskit.pulse.builder.measure">[documenti]</a><span class="k">def</span> <span class="nf">measure</span><span class="p">(</span><span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">],</span>
             <span class="n">registers</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">StorageLocation</span><span class="p">],</span> <span class="n">StorageLocation</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">StorageLocation</span><span class="p">],</span> <span class="n">StorageLocation</span><span class="p">]:</span>
@@ -2083,7 +2280,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        qubits: Physical qubit to measure.</span>
 <span class="sd">        registers: Register to store result in. If not selected the current</span>
-<span class="sd">            behaviour is to return the :class:`MemorySlot` with the same</span>
+<span class="sd">            behavior is to return the :class:`MemorySlot` with the same</span>
 <span class="sd">            index as ``qubit``. This register will be returned.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        The ``register`` the qubit measurement result will be stored in.</span>
@@ -2108,7 +2305,10 @@
         <span class="n">inst_map</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">defaults</span><span class="p">()</span><span class="o">.</span><span class="n">instruction_schedule_map</span><span class="p">,</span>
         <span class="n">meas_map</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">meas_map</span><span class="p">,</span>
         <span class="n">qubit_mem_slots</span><span class="o">=</span><span class="p">{</span><span class="n">qubit</span><span class="p">:</span> <span class="n">register</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">qubit</span><span class="p">,</span> <span class="n">register</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qubits</span><span class="p">,</span> <span class="n">registers</span><span class="p">)})</span>
-    <span class="n">call_schedule</span><span class="p">(</span><span class="n">measure_sched</span><span class="p">)</span>
+
+    <span class="c1"># note this is not a subroutine.</span>
+    <span class="c1"># just a macro to automate combination of stimulus and acquisition.</span>
+    <span class="n">_active_builder</span><span class="p">()</span><span class="o">.</span><span class="n">call_schedule</span><span class="p">(</span><span class="n">measure_sched</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">registers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -2150,7 +2350,10 @@
         <span class="n">inst_map</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">defaults</span><span class="p">()</span><span class="o">.</span><span class="n">instruction_schedule_map</span><span class="p">,</span>
         <span class="n">meas_map</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">meas_map</span><span class="p">,</span>
         <span class="n">qubit_mem_slots</span><span class="o">=</span><span class="p">{</span><span class="n">qubit</span><span class="p">:</span> <span class="n">qubit</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">})</span>
-    <span class="n">call_schedule</span><span class="p">(</span><span class="n">measure_sched</span><span class="p">)</span>
+
+    <span class="c1"># note this is not a subroutine.</span>
+    <span class="c1"># just a macro to automate combination of stimulus and acquisition.</span>
+    <span class="n">_active_builder</span><span class="p">()</span><span class="o">.</span><span class="n">call_schedule</span><span class="p">(</span><span class="n">measure_sched</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">registers</span></div>
 
@@ -2194,7 +2397,7 @@
 
 <span class="sd">    .. note::</span>
 <span class="sd">        Calling gates directly within the pulse builder namespace will be</span>
-<span class="sd">        deprecated in the future in favour of tight integration with a circuit</span>
+<span class="sd">        deprecated in the future in favor of tight integration with a circuit</span>
 <span class="sd">        builder interface which is under development.</span>
 
 <span class="sd">    .. jupyter-kernel:: python3</span>
@@ -2250,7 +2453,7 @@
 
 <span class="sd">    .. note::</span>
 <span class="sd">        Calling gates directly within the pulse builder namespace will be</span>
-<span class="sd">        deprecated in the future in favour of tight integration with a circuit</span>
+<span class="sd">        deprecated in the future in favor of tight integration with a circuit</span>
 <span class="sd">        builder interface which is under development.</span>
 
 <span class="sd">    Examples:</span>
@@ -2275,7 +2478,7 @@
 
 <span class="sd">    .. note::</span>
 <span class="sd">        Calling gates directly within the pulse builder namespace will be</span>
-<span class="sd">        deprecated in the future in favour of tight integration with a circuit</span>
+<span class="sd">        deprecated in the future in favor of tight integration with a circuit</span>
 <span class="sd">        builder interface which is under development.</span>
 
 <span class="sd">    Examples:</span>
@@ -2302,7 +2505,7 @@
 
 <span class="sd">    .. note::</span>
 <span class="sd">        Calling gates directly within the pulse builder namespace will be</span>
-<span class="sd">        deprecated in the future in favour of tight integration with a circuit</span>
+<span class="sd">        deprecated in the future in favor of tight integration with a circuit</span>
 <span class="sd">        builder interface which is under development.</span>
 
 <span class="sd">    Examples:</span>
@@ -2329,7 +2532,7 @@
 
 <span class="sd">    .. note::</span>
 <span class="sd">        Calling gates directly within the pulse builder namespace will be</span>
-<span class="sd">        deprecated in the future in favour of tight integration with a circuit</span>
+<span class="sd">        deprecated in the future in favor of tight integration with a circuit</span>
 <span class="sd">        builder interface which is under development.</span>
 
 <span class="sd">    Examples:</span>
@@ -2356,7 +2559,7 @@
 
 <span class="sd">    .. note::</span>
 <span class="sd">        Calling gates directly within the pulse builder namespace will be</span>
-<span class="sd">        deprecated in the future in favour of tight integration with a circuit</span>
+<span class="sd">        deprecated in the future in favor of tight integration with a circuit</span>
 <span class="sd">        builder interface which is under development.</span>
 
 <span class="sd">    Examples:</span>
@@ -2505,20 +2708,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

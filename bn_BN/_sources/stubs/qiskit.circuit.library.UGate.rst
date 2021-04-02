@@ -27,6 +27,7 @@
       ~UGate.qasm
       ~UGate.repeat
       ~UGate.reverse_ops
+      ~UGate.soft_compare
       ~UGate.to_matrix
       ~UGate.validate_parameter
    

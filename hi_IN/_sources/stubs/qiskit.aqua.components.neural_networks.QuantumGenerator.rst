@@ -25,4 +25,13 @@
 
    
    
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~QuantumGenerator.discriminator
+      ~QuantumGenerator.optimizer
+      ~QuantumGenerator.parameter_values
+      ~QuantumGenerator.seed
+   
    

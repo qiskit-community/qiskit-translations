@@ -27,6 +27,7 @@
       ~HGate.qasm
       ~HGate.repeat
       ~HGate.reverse_ops
+      ~HGate.soft_compare
       ~HGate.to_matrix
       ~HGate.validate_parameter
    

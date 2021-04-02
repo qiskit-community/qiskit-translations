@@ -40,6 +40,7 @@
 
    .. autosummary::
    
+      ~OperatorBase.ENABLE_DEPRECATION
       ~OperatorBase.INDENTATION
       ~OperatorBase.num_qubits
       ~OperatorBase.parameters

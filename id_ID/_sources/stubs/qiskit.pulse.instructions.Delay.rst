@@ -22,6 +22,7 @@ qiskit.pulse.instructions.Delay
       ~Delay.draw
       ~Delay.flatten
       ~Delay.insert
+      ~Delay.is_parameterized
       ~Delay.shift
    
    
@@ -34,14 +35,13 @@ qiskit.pulse.instructions.Delay
    
       ~Delay.channel
       ~Delay.channels
-      ~Delay.command
       ~Delay.duration
       ~Delay.id
       ~Delay.instructions
       ~Delay.name
       ~Delay.operands
+      ~Delay.parameters
       ~Delay.start_time
       ~Delay.stop_time
-      ~Delay.timeslots
    
    

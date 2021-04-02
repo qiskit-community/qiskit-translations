@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~InnerProduct.__init__
+      ~InnerProduct.add_bits
       ~InnerProduct.add_calibration
       ~InnerProduct.add_register
       ~InnerProduct.append
@@ -48,9 +49,9 @@
       ~InnerProduct.decompose
       ~InnerProduct.delay
       ~InnerProduct.depth
-      ~InnerProduct.diag_gate
       ~InnerProduct.diagonal
       ~InnerProduct.draw
+      ~InnerProduct.ecr
       ~InnerProduct.extend
       ~InnerProduct.fredkin
       ~InnerProduct.from_qasm_file
@@ -65,7 +66,6 @@
       ~InnerProduct.iso
       ~InnerProduct.isometry
       ~InnerProduct.iswap
-      ~InnerProduct.mcmt
       ~InnerProduct.mcp
       ~InnerProduct.mcrx
       ~InnerProduct.mcry
@@ -76,13 +76,13 @@
       ~InnerProduct.measure
       ~InnerProduct.measure_active
       ~InnerProduct.measure_all
-      ~InnerProduct.mirror
       ~InnerProduct.ms
       ~InnerProduct.num_connected_components
       ~InnerProduct.num_nonlocal_gates
       ~InnerProduct.num_tensor_factors
       ~InnerProduct.num_unitary_factors
       ~InnerProduct.p
+      ~InnerProduct.pauli
       ~InnerProduct.power
       ~InnerProduct.qasm
       ~InnerProduct.qbit_argument_conversion
@@ -97,6 +97,7 @@
       ~InnerProduct.reset
       ~InnerProduct.reverse_bits
       ~InnerProduct.reverse_ops
+      ~InnerProduct.rv
       ~InnerProduct.rx
       ~InnerProduct.rxx
       ~InnerProduct.ry
@@ -105,7 +106,26 @@
       ~InnerProduct.rzx
       ~InnerProduct.rzz
       ~InnerProduct.s
+      ~InnerProduct.save_amplitudes
+      ~InnerProduct.save_amplitudes_squared
+      ~InnerProduct.save_density_matrix
+      ~InnerProduct.save_expectation_value
+      ~InnerProduct.save_expectation_value_variance
+      ~InnerProduct.save_matrix_product_state
+      ~InnerProduct.save_probabilities
+      ~InnerProduct.save_probabilities_dict
+      ~InnerProduct.save_stabilizer
+      ~InnerProduct.save_state
+      ~InnerProduct.save_statevector
+      ~InnerProduct.save_statevector_dict
+      ~InnerProduct.save_superop
+      ~InnerProduct.save_unitary
       ~InnerProduct.sdg
+      ~InnerProduct.set_density_matrix
+      ~InnerProduct.set_stabilizer
+      ~InnerProduct.set_statevector
+      ~InnerProduct.set_superop
+      ~InnerProduct.set_unitary
       ~InnerProduct.size
       ~InnerProduct.snapshot
       ~InnerProduct.snapshot_density_matrix
@@ -119,6 +139,7 @@
       ~InnerProduct.sxdg
       ~InnerProduct.t
       ~InnerProduct.tdg
+      ~InnerProduct.tensor
       ~InnerProduct.to_gate
       ~InnerProduct.to_instruction
       ~InnerProduct.toffoli
@@ -152,6 +173,7 @@
       ~InnerProduct.global_phase
       ~InnerProduct.header
       ~InnerProduct.instances
+      ~InnerProduct.metadata
       ~InnerProduct.num_ancillas
       ~InnerProduct.num_clbits
       ~InnerProduct.num_parameters

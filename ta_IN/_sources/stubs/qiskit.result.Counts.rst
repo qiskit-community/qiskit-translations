@@ -33,4 +33,10 @@
 
    
    
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Counts.bitstring_regex
+   
    

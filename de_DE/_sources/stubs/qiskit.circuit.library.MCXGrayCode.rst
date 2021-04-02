@@ -28,6 +28,7 @@
       ~MCXGrayCode.qasm
       ~MCXGrayCode.repeat
       ~MCXGrayCode.reverse_ops
+      ~MCXGrayCode.soft_compare
       ~MCXGrayCode.to_matrix
       ~MCXGrayCode.validate_parameter
    
@@ -44,6 +45,7 @@
       ~MCXGrayCode.definition
       ~MCXGrayCode.duration
       ~MCXGrayCode.label
+      ~MCXGrayCode.name
       ~MCXGrayCode.num_ancilla_qubits
       ~MCXGrayCode.num_ctrl_qubits
       ~MCXGrayCode.params

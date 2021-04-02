@@ -48,6 +48,7 @@
 
    .. autosummary::
    
+      ~TensoredOp.ENABLE_DEPRECATION
       ~TensoredOp.INDENTATION
       ~TensoredOp.abelian
       ~TensoredOp.coeff

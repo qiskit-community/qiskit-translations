@@ -26,6 +26,7 @@
    
       ~QuantumRegister.instances_counter
       ~QuantumRegister.name
+      ~QuantumRegister.name_format
       ~QuantumRegister.prefix
       ~QuantumRegister.size
    

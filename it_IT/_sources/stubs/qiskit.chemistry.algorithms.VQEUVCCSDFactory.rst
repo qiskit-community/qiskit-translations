@@ -26,6 +26,7 @@
    .. autosummary::
    
       ~VQEUVCCSDFactory.expectation
+      ~VQEUVCCSDFactory.gradient
       ~VQEUVCCSDFactory.include_custom
       ~VQEUVCCSDFactory.initial_point
       ~VQEUVCCSDFactory.optimizer

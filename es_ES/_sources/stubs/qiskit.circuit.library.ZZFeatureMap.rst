@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~ZZFeatureMap.__init__
+      ~ZZFeatureMap.add_bits
       ~ZZFeatureMap.add_calibration
       ~ZZFeatureMap.add_layer
       ~ZZFeatureMap.add_register
@@ -49,9 +50,9 @@
       ~ZZFeatureMap.decompose
       ~ZZFeatureMap.delay
       ~ZZFeatureMap.depth
-      ~ZZFeatureMap.diag_gate
       ~ZZFeatureMap.diagonal
       ~ZZFeatureMap.draw
+      ~ZZFeatureMap.ecr
       ~ZZFeatureMap.extend
       ~ZZFeatureMap.fredkin
       ~ZZFeatureMap.from_qasm_file
@@ -68,7 +69,6 @@
       ~ZZFeatureMap.iso
       ~ZZFeatureMap.isometry
       ~ZZFeatureMap.iswap
-      ~ZZFeatureMap.mcmt
       ~ZZFeatureMap.mcp
       ~ZZFeatureMap.mcrx
       ~ZZFeatureMap.mcry
@@ -79,13 +79,13 @@
       ~ZZFeatureMap.measure
       ~ZZFeatureMap.measure_active
       ~ZZFeatureMap.measure_all
-      ~ZZFeatureMap.mirror
       ~ZZFeatureMap.ms
       ~ZZFeatureMap.num_connected_components
       ~ZZFeatureMap.num_nonlocal_gates
       ~ZZFeatureMap.num_tensor_factors
       ~ZZFeatureMap.num_unitary_factors
       ~ZZFeatureMap.p
+      ~ZZFeatureMap.pauli
       ~ZZFeatureMap.pauli_block
       ~ZZFeatureMap.pauli_evolution
       ~ZZFeatureMap.power
@@ -103,6 +103,7 @@
       ~ZZFeatureMap.reset
       ~ZZFeatureMap.reverse_bits
       ~ZZFeatureMap.reverse_ops
+      ~ZZFeatureMap.rv
       ~ZZFeatureMap.rx
       ~ZZFeatureMap.rxx
       ~ZZFeatureMap.ry
@@ -111,7 +112,26 @@
       ~ZZFeatureMap.rzx
       ~ZZFeatureMap.rzz
       ~ZZFeatureMap.s
+      ~ZZFeatureMap.save_amplitudes
+      ~ZZFeatureMap.save_amplitudes_squared
+      ~ZZFeatureMap.save_density_matrix
+      ~ZZFeatureMap.save_expectation_value
+      ~ZZFeatureMap.save_expectation_value_variance
+      ~ZZFeatureMap.save_matrix_product_state
+      ~ZZFeatureMap.save_probabilities
+      ~ZZFeatureMap.save_probabilities_dict
+      ~ZZFeatureMap.save_stabilizer
+      ~ZZFeatureMap.save_state
+      ~ZZFeatureMap.save_statevector
+      ~ZZFeatureMap.save_statevector_dict
+      ~ZZFeatureMap.save_superop
+      ~ZZFeatureMap.save_unitary
       ~ZZFeatureMap.sdg
+      ~ZZFeatureMap.set_density_matrix
+      ~ZZFeatureMap.set_stabilizer
+      ~ZZFeatureMap.set_statevector
+      ~ZZFeatureMap.set_superop
+      ~ZZFeatureMap.set_unitary
       ~ZZFeatureMap.size
       ~ZZFeatureMap.snapshot
       ~ZZFeatureMap.snapshot_density_matrix
@@ -125,6 +145,7 @@
       ~ZZFeatureMap.sxdg
       ~ZZFeatureMap.t
       ~ZZFeatureMap.tdg
+      ~ZZFeatureMap.tensor
       ~ZZFeatureMap.to_gate
       ~ZZFeatureMap.to_instruction
       ~ZZFeatureMap.toffoli
@@ -150,6 +171,7 @@
 
    .. autosummary::
    
+      ~ZZFeatureMap.alpha
       ~ZZFeatureMap.ancillas
       ~ZZFeatureMap.calibrations
       ~ZZFeatureMap.clbits
@@ -163,6 +185,7 @@
       ~ZZFeatureMap.initial_state
       ~ZZFeatureMap.insert_barriers
       ~ZZFeatureMap.instances
+      ~ZZFeatureMap.metadata
       ~ZZFeatureMap.num_ancillas
       ~ZZFeatureMap.num_clbits
       ~ZZFeatureMap.num_layers

@@ -27,6 +27,7 @@
       ~iSwapGate.qasm
       ~iSwapGate.repeat
       ~iSwapGate.reverse_ops
+      ~iSwapGate.soft_compare
       ~iSwapGate.to_matrix
       ~iSwapGate.validate_parameter
    

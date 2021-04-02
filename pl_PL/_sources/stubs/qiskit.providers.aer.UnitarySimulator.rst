@@ -22,9 +22,9 @@
       ~UnitarySimulator.properties
       ~UnitarySimulator.provider
       ~UnitarySimulator.run
+      ~UnitarySimulator.set_option
       ~UnitarySimulator.set_options
       ~UnitarySimulator.status
-      ~UnitarySimulator.version
    
    
 
@@ -35,5 +35,6 @@
    .. autosummary::
    
       ~UnitarySimulator.options
+      ~UnitarySimulator.version
    
    

@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.chemistry.algorithms.ground_state_solvers.minimum_eigensolver_factories.vqe_uvccsd_factory &mdash; Qiskit 0.24.1 ドキュメント</title>
+  <title>qiskit.chemistry.algorithms.ground_state_solvers.minimum_eigensolver_factories.vqe_uvccsd_factory &mdash; Qiskit 0.25.0 ドキュメント</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../apidoc/ibmq-provider.html">Qiskit IBM Quantum プロバイダー</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">トラブルシューティング</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">IBM Quantum API エラー・コード</a></li>
@@ -313,12 +317,13 @@
 
 <span class="sd">&quot;&quot;&quot;The minimum eigensolver factory for ground state calculation algorithms.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">QuantumInstance</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">MinimumEigensolver</span><span class="p">,</span> <span class="n">VQE</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">ExpectationBase</span>
+<span class="kn">from</span> <span class="nn">qiskit.aqua.operators.gradients</span> <span class="kn">import</span> <span class="n">GradientBase</span>
 <span class="kn">from</span> <span class="nn">qiskit.aqua.components.optimizers</span> <span class="kn">import</span> <span class="n">Optimizer</span>
 <span class="kn">from</span> <span class="nn">qiskit.chemistry.components.initial_states</span> <span class="kn">import</span> <span class="n">VSCF</span>
 <span class="kn">from</span> <span class="nn">qiskit.chemistry.components.variational_forms</span> <span class="kn">import</span> <span class="n">UVCC</span>
@@ -334,6 +339,7 @@
                  <span class="n">quantum_instance</span><span class="p">:</span> <span class="n">QuantumInstance</span><span class="p">,</span>
                  <span class="n">optimizer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Optimizer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">initial_point</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">gradient</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">GradientBase</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">expectation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ExpectationBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">include_custom</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -343,6 +349,7 @@
 <span class="sd">            initial_point: An optional initial point (i.e. initial parameter values)</span>
 <span class="sd">                for the optimizer. If ``None`` then VQE will look to the variational form for a</span>
 <span class="sd">                preferred point and if not will simply compute a random one.</span>
+<span class="sd">            gradient: An optional gradient function or operator for optimizer.</span>
 <span class="sd">            expectation: The Expectation converter for taking the average value of the</span>
 <span class="sd">                Observable over the var_form state function. When ``None`` (the default) an</span>
 <span class="sd">                :class:`~qiskit.aqua.operators.expectations.ExpectationFactory` is used to select</span>
@@ -359,6 +366,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_quantum_instance</span> <span class="o">=</span> <span class="n">quantum_instance</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_initial_point</span> <span class="o">=</span> <span class="n">initial_point</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="n">gradient</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_expectation</span> <span class="o">=</span> <span class="n">expectation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_include_custom</span> <span class="o">=</span> <span class="n">include_custom</span></div>
 
@@ -391,6 +399,16 @@
     <span class="k">def</span> <span class="nf">initial_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_point</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Setter of the initial point.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_initial_point</span> <span class="o">=</span> <span class="n">initial_point</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">GradientBase</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;Getter of the gradient function&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span>
+
+    <span class="nd">@gradient</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">GradientBase</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Setter of the gradient function&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="n">gradient</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">expectation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExpectationBase</span><span class="p">:</span>
@@ -438,6 +456,7 @@
                   <span class="n">quantum_instance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_quantum_instance</span><span class="p">,</span>
                   <span class="n">optimizer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="p">,</span>
                   <span class="n">initial_point</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_initial_point</span><span class="p">,</span>
+                  <span class="n">gradient</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span><span class="p">,</span>
                   <span class="n">expectation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_expectation</span><span class="p">,</span>
                   <span class="n">include_custom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_include_custom</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">vqe</span></div>
@@ -576,20 +595,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

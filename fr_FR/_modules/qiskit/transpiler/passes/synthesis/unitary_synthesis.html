@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.passes.synthesis.unitary_synthesis &mdash; Documentation Qiskit 0.24.1</title>
+  <title>qiskit.transpiler.passes.synthesis.unitary_synthesis &mdash; Documentation Qiskit 0.25.0</title>
   
 
   
@@ -227,6 +227,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/aqua.html">Qiskit Aqua</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../apidoc/ibmq-provider.html">Fournisseur de plateforme IBM</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Qiskit Aqua Migration Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../aqua_migration.html">Qiskit Aqua Migration Guide</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Résolution de problème</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://quantum-computing.ibm.com/docs/cloud/errors">Code d'erreur de l'API IBM Quantum</a></li>
@@ -319,10 +323,11 @@
 <span class="kn">from</span> <span class="nn">qiskit.converters</span> <span class="kn">import</span> <span class="n">circuit_to_dag</span>
 <span class="kn">from</span> <span class="nn">qiskit.transpiler.basepasses</span> <span class="kn">import</span> <span class="n">TransformationPass</span>
 <span class="kn">from</span> <span class="nn">qiskit.dagcircuit.dagcircuit</span> <span class="kn">import</span> <span class="n">DAGCircuit</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates</span> <span class="kn">import</span> <span class="n">iSwapGate</span><span class="p">,</span> <span class="n">CXGate</span><span class="p">,</span> <span class="n">CZGate</span><span class="p">,</span> <span class="n">RXXGate</span>
 <span class="kn">from</span> <span class="nn">qiskit.extensions.quantum_initializer</span> <span class="kn">import</span> <span class="n">isometry</span>
-<span class="kn">from</span> <span class="nn">qiskit.quantum_info.synthesis.one_qubit_decompose</span> <span class="kn">import</span> <span class="n">OneQubitEulerDecomposer</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.synthesis</span> <span class="kn">import</span> <span class="n">one_qubit_decompose</span>
 <span class="kn">from</span> <span class="nn">qiskit.quantum_info.synthesis.two_qubit_decompose</span> <span class="kn">import</span> <span class="n">TwoQubitBasisDecomposer</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library.standard_gates</span> <span class="kn">import</span> <span class="p">(</span><span class="n">iSwapGate</span><span class="p">,</span> <span class="n">CXGate</span><span class="p">,</span> <span class="n">CZGate</span><span class="p">,</span>
+                                                   <span class="n">RXXGate</span><span class="p">,</span> <span class="n">ECRGate</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_choose_kak_gate</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">):</span>
@@ -333,6 +338,7 @@
         <span class="s1">&#39;cz&#39;</span><span class="p">:</span> <span class="n">CZGate</span><span class="p">(),</span>
         <span class="s1">&#39;iswap&#39;</span><span class="p">:</span> <span class="n">iSwapGate</span><span class="p">(),</span>
         <span class="s1">&#39;rxx&#39;</span><span class="p">:</span> <span class="n">RXXGate</span><span class="p">(</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="s1">&#39;ecr&#39;</span><span class="p">:</span> <span class="n">ECRGate</span><span class="p">()</span>
     <span class="p">}</span>
 
     <span class="n">kak_gate</span> <span class="o">=</span> <span class="kc">None</span>
@@ -345,22 +351,9 @@
 
 <span class="k">def</span> <span class="nf">_choose_euler_basis</span><span class="p">(</span><span class="n">basis_gates</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;&quot;Choose the first available 1q basis to use in the Euler decomposition.&quot;&quot;&quot;</span>
-
-    <span class="n">euler_basis_names</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;U3&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;u3&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;U&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;PSX&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="s1">&#39;sx&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;U1X&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;u1&#39;</span><span class="p">,</span> <span class="s1">&#39;rx&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;RR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;r&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;ZYZ&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;rz&#39;</span><span class="p">,</span> <span class="s1">&#39;ry&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;ZXZ&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;rz&#39;</span><span class="p">,</span> <span class="s1">&#39;rx&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;XYX&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;rx&#39;</span><span class="p">,</span> <span class="s1">&#39;ry&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;ZSX&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;rz&#39;</span><span class="p">,</span> <span class="s1">&#39;sx&#39;</span><span class="p">],</span>
-    <span class="p">}</span>
-
     <span class="n">basis_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">basis_gates</span> <span class="ow">or</span> <span class="p">[])</span>
 
-    <span class="k">for</span> <span class="n">basis</span><span class="p">,</span> <span class="n">gates</span> <span class="ow">in</span> <span class="n">euler_basis_names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">basis</span><span class="p">,</span> <span class="n">gates</span> <span class="ow">in</span> <span class="n">one_qubit_decompose</span><span class="o">.</span><span class="n">ONE_QUBIT_EULER_BASIS_GATES</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">gates</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">basis_set</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">basis</span>
 
@@ -370,14 +363,23 @@
 <div class="viewcode-block" id="UnitarySynthesis"><a class="viewcode-back" href="../../../../../stubs/qiskit.transpiler.passes.UnitarySynthesis.html#qiskit.transpiler.passes.UnitarySynthesis">[docs]</a><span class="k">class</span> <span class="nc">UnitarySynthesis</span><span class="p">(</span><span class="n">TransformationPass</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Synthesize gates according to their basis gates.&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="UnitarySynthesis.__init__"><a class="viewcode-back" href="../../../../../stubs/qiskit.transpiler.passes.UnitarySynthesis.html#qiskit.transpiler.passes.UnitarySynthesis.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">basis_gates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
-        <span class="sd">&quot;&quot;&quot;SynthesizeUnitaries initializer.</span>
+<div class="viewcode-block" id="UnitarySynthesis.__init__"><a class="viewcode-back" href="../../../../../stubs/qiskit.transpiler.passes.UnitarySynthesis.html#qiskit.transpiler.passes.UnitarySynthesis.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">basis_gates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                 <span class="n">approximation_degree</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Synthesize unitaries over some basis gates.</span>
+
+<span class="sd">        This pass can approximate 2-qubit unitaries given some approximation</span>
+<span class="sd">        closeness measure (expressed as approximation_degree). Other unitaries</span>
+<span class="sd">        are synthesized exactly.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            basis_gates: List of gate names to target.</span>
+<span class="sd">            approximation_degree: closeness of approximation (0: lowest, 1: highest).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_basis_gates</span> <span class="o">=</span> <span class="n">basis_gates</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_basis_gates</span> <span class="o">=</span> <span class="n">basis_gates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_approximation_degree</span> <span class="o">=</span> <span class="n">approximation_degree</span></div>
 
 <div class="viewcode-block" id="UnitarySynthesis.run"><a class="viewcode-back" href="../../../../../stubs/qiskit.transpiler.passes.UnitarySynthesis.html#qiskit.transpiler.passes.UnitarySynthesis.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dag</span><span class="p">:</span> <span class="n">DAGCircuit</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DAGCircuit</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Run the UnitarySynthesis pass on `dag`.</span>
@@ -393,7 +395,7 @@
 
         <span class="n">decomposer1q</span><span class="p">,</span> <span class="n">decomposer2q</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">euler_basis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">decomposer1q</span> <span class="o">=</span> <span class="n">OneQubitEulerDecomposer</span><span class="p">(</span><span class="n">euler_basis</span><span class="p">)</span>
+            <span class="n">decomposer1q</span> <span class="o">=</span> <span class="n">one_qubit_decompose</span><span class="o">.</span><span class="n">OneQubitEulerDecomposer</span><span class="p">(</span><span class="n">euler_basis</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">kak_gate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">decomposer2q</span> <span class="o">=</span> <span class="n">TwoQubitBasisDecomposer</span><span class="p">(</span><span class="n">kak_gate</span><span class="p">,</span> <span class="n">euler_basis</span><span class="o">=</span><span class="n">euler_basis</span><span class="p">)</span>
 
@@ -403,11 +405,12 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">decomposer1q</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">continue</span>
-                <span class="n">synth_dag</span> <span class="o">=</span> <span class="n">circuit_to_dag</span><span class="p">(</span><span class="n">decomposer1q</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()))</span>
+                <span class="n">synth_dag</span> <span class="o">=</span> <span class="n">circuit_to_dag</span><span class="p">(</span><span class="n">decomposer1q</span><span class="o">.</span><span class="n">_decompose</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()))</span>
             <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">qargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">decomposer2q</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">continue</span>
-                <span class="n">synth_dag</span> <span class="o">=</span> <span class="n">circuit_to_dag</span><span class="p">(</span><span class="n">decomposer2q</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()))</span>
+                <span class="n">synth_dag</span> <span class="o">=</span> <span class="n">circuit_to_dag</span><span class="p">(</span><span class="n">decomposer2q</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">(),</span>
+                                                        <span class="n">basis_fidelity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_approximation_degree</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">synth_dag</span> <span class="o">=</span> <span class="n">circuit_to_dag</span><span class="p">(</span>
                     <span class="n">isometry</span><span class="o">.</span><span class="n">Isometry</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">definition</span><span class="p">)</span>
@@ -547,20 +550,8 @@
             <li>
               <a href="https://qiskit.slack.com">Slack support</a>
             </li>
-
-            <li>
-              <a href="https://qiskit.org/textbook">Qiskit textbook</a>
-            </li>
-
-            <li>
-              <a href="https://qiskit.org/events">Qiskit events</a>
-            </li>
           </ul>
           <br>
-
-          <li>
-            <a href="https://github.com/Qiskit/">Github</a>
-          </li>
         </ul>
       </div>
     </div>

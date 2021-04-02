@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~GraphDecoder.__init__
+      ~GraphDecoder.get_error_probs
       ~GraphDecoder.get_logical_prob
       ~GraphDecoder.make_error_graph
       ~GraphDecoder.matching

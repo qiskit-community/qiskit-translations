@@ -14,6 +14,8 @@
    .. autosummary::
    
       ~RegisterSlot.__init__
+      ~RegisterSlot.assign
+      ~RegisterSlot.is_parameterized
    
    
 
@@ -25,6 +27,7 @@
    
       ~RegisterSlot.index
       ~RegisterSlot.name
+      ~RegisterSlot.parameters
       ~RegisterSlot.prefix
    
    
