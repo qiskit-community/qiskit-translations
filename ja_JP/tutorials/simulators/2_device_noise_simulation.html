@@ -569,9 +569,9 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">IBMQ</span><span class="p">,</span> <span class="n">execute</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">IBMQ</span><span class="p">,</span> <span class="n">transpile</span>
 <span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
-<span class="kn">from</span> <span class="nn">qiskit.providers.aer</span> <span class="kn">import</span> <span class="n">QasmSimulator</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers.aer</span> <span class="kn">import</span> <span class="n">AerSimulator</span>
 <span class="kn">from</span> <span class="nn">qiskit.tools.visualization</span> <span class="kn">import</span> <span class="n">plot_histogram</span>
 </pre></div>
 </div>
@@ -602,7 +602,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="section" id="デバイスとシミュレーション比較のためのテスト回路">
 <h3>デバイスとシミュレーション比較のためのテスト回路<a class="headerlink" href="#デバイスとシミュレーション比較のためのテスト回路" title="このヘッドラインへのパーマリンク">¶</a></h3>
-<p>それでは、実機の測定出力と Qiskit Aer <code class="docutils literal notranslate"><span class="pre">QasmSimulator</span></code> でシミュレートしたノイズがある場合の測定出力を比較する量子回路を作りましょう。量子ビット0,1,2に、3量子ビットのGHZ状態 <span class="math notranslate nohighlight">\(\frac{1}{2}(|0,0,0\rangle + |1,1,1\rangle)\)</span> を準備するとします。ノイズがある場合や実機上で実行する前に、ノイズのない理想的な場合の測定出力を示しておきます。</p>
+<p>Now we construct a test circuit to compare the output of the real device with the noisy output simulated on the Qiskit Aer <code class="docutils literal notranslate"><span class="pre">AerSimulator</span></code>. We will prepare a 3-qubit GHZ state <span class="math notranslate nohighlight">\(\frac{1}{2}(|0,0,0\rangle + |1,1,1\rangle)\)</span> on qubits 0, 1 and 2. Before running with noise or on the device we show the ideal expected output with no noise.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -615,11 +615,11 @@ div.rendered_html tbody tr:hover {
 <span class="n">circ</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 <span class="n">circ</span><span class="o">.</span><span class="n">measure</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 
-<span class="n">ideal_simulator</span> <span class="o">=</span> <span class="n">QasmSimulator</span><span class="p">()</span>
+<span class="n">sim_ideal</span> <span class="o">=</span> <span class="n">AerSimulator</span><span class="p">()</span>
 
 <span class="c1"># Execute and get counts</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">ideal_simulator</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-<span class="n">counts</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">sim_ideal</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">transpile</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">sim_ideal</span><span class="p">))</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span class="n">counts</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">plot_histogram</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Ideal counts for 3-qubit GHZ state&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -642,7 +642,7 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">vigo_simulator</span> <span class="o">=</span> <span class="n">QasmSimulator</span><span class="o">.</span><span class="n">from_backend</span><span class="p">(</span><span class="n">device_backend</span><span class="p">)</span>
+<span></span><span class="n">sim_vigo</span> <span class="o">=</span> <span class="n">AerSimulator</span><span class="o">.</span><span class="n">from_backend</span><span class="p">(</span><span class="n">device_backend</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -654,15 +654,21 @@ div.rendered_html tbody tr:hover {
 </ul>
 <p>ゲートエラーの場合、熱緩和エラーのエラーパラメータは、個々の量子ビット <span class="math notranslate nohighlight">\(T_1\)</span> と <span class="math notranslate nohighlight">\(T_2\)</span> パラメータ、およびデバイスバックエンドプロパティの <code class="docutils literal notranslate"><span class="pre">gate_time</span></code> パラメータとともに、<code class="docutils literal notranslate"><span class="pre">aer.noise.errors</span></code> モジュールの`thermal_relaxation_error`` 関数を使用して生成されます。 次に、脱分極誤差の確率が設定されます。脱分極エラーからの平均ゲート忠実度と、それに続く熱緩和が、バックエンドプロパティからの <code class="docutils literal notranslate"><span class="pre">gate_error</span></code> 値に等しくなります。</p>
 <p>読み出しエラーの場合、量子ビット <code class="docutils literal notranslate"><span class="pre">readout_errors</span></code> によって測定後に記録された古典ビット値が真の結果から反転される確率を返します。</p>
+<p>Once we have created a noisy simulator backend based on a real device we can use it to run noisy simulations.</p>
+<p><strong>Important:</strong> When running noisy simulations it is <em>critical</em> to <code class="docutils literal notranslate"><span class="pre">transpile</span></code> the circuit for the backend so that the circuit is transpiled to the correct noisy basis gate set for the backend.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Execute noisy simulation and get counts</span>
-<span class="n">result_noise</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">vigo_simulator</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-<span class="n">counts_noise</span> <span class="o">=</span> <span class="n">result_noise</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
-<span class="n">plot_histogram</span><span class="p">(</span><span class="n">counts_noise</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Counts for 3-qubit GHZ state with device noise model&quot;</span><span class="p">)</span>
+<span></span><span class="c1"># Transpile the circuit for the noisy basis gates</span>
+<span class="n">tcirc</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">sim_vigo</span><span class="p">)</span>
+
+<span class="c1"># Execute noisy simulation and get counts</span>
+<span class="n">result_noise</span> <span class="o">=</span> <span class="n">sim_vigo</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">tcirc</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span class="n">counts_noise</span> <span class="o">=</span> <span class="n">result_noise</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">plot_histogram</span><span class="p">(</span><span class="n">counts_noise</span><span class="p">,</span>
+               <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Counts for 3-qubit GHZ state with device noise model&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -671,9 +677,10 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_simulators_2_device_noise_simulation_10_0.png" src="../../_images/tutorials_simulators_2_device_noise_simulation_10_0.png" />
+<img alt="../../_images/tutorials_simulators_2_device_noise_simulation_11_0.png" src="../../_images/tutorials_simulators_2_device_noise_simulation_11_0.png" />
 </div>
 </div>
+<p>If transpilation is skipped noise from the device noise model will not be applied to gates in the circuit that are supported by the simulator, but not supported by the mimiced backend.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
@@ -689,14 +696,14 @@ div.rendered_html tbody tr:hover {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.23.0</td></tr><tr><td>Terra</td><td>0.16.0</td></tr><tr><td>Aer</td><td>0.7.0</td></tr><tr><td>Ignis</td><td>0.5.0</td></tr><tr><td>Aqua</td><td>0.8.0</td></tr><tr><td>IBM Q Provider</td><td>0.11.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.6.8 |Anaconda, Inc.| (default, Dec 30 2018, 01:22:34)
-[GCC 7.3.0]</td></tr><tr><td>OS</td><td>Linux</td></tr><tr><td>CPUs</td><td>8</td></tr><tr><td>Memory (Gb)</td><td>62.916805267333984</td></tr><tr><td colspan='2'>Wed Nov 11 15:03:29 2020 IST</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.25.0</td></tr><tr><td>Terra</td><td>0.17.0</td></tr><tr><td>Aer</td><td>0.8.0</td></tr><tr><td>Ignis</td><td>0.6.0</td></tr><tr><td>Aqua</td><td>0.9.0</td></tr><tr><td>IBM Q Provider</td><td>0.12.2</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.7 (default, May  6 2020, 04:59:01)
+[Clang 4.0.1 (tags/RELEASE_401/final)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>6</td></tr><tr><td>Memory (Gb)</td><td>32.0</td></tr><tr><td colspan='2'>Fri Apr 02 12:01:10 2021 EDT</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2020.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
+<div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2021.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:

@@ -561,7 +561,7 @@ div.rendered_html tbody tr:hover {
 <h1>Simulators<a class="headerlink" href="#Simulators" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="Introduction">
 <h2>Introduction<a class="headerlink" href="#Introduction" title="Permalink to this headline">¶</a></h2>
-<p>This notebook shows how to import <em>Qiskit Aer</em> simulator backends and use them to execute ideal (noise free) Qiskit Terra circuits.</p>
+<p>This notebook shows how to import the <em>Qiskit Aer</em> simulator backend and use it to run ideal (noise free) Qiskit Terra circuits.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -570,25 +570,23 @@ div.rendered_html tbody tr:hover {
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Import Qiskit</span>
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">QuantumRegister</span><span class="p">,</span> <span class="n">ClassicalRegister</span>
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">Aer</span><span class="p">,</span> <span class="n">execute</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">Aer</span><span class="p">,</span> <span class="n">transpile</span>
 <span class="kn">from</span> <span class="nn">qiskit.tools.visualization</span> <span class="kn">import</span> <span class="n">plot_histogram</span><span class="p">,</span> <span class="n">plot_state_city</span>
+<span class="kn">import</span> <span class="nn">qiskit.quantum_info</span> <span class="k">as</span> <span class="nn">qi</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="section" id="Qiskit-Aer-simulator-backends">
-<h2>Qiskit Aer simulator backends<a class="headerlink" href="#Qiskit-Aer-simulator-backends" title="Permalink to this headline">¶</a></h2>
-<p>Qiskit Aer currently includes three high performance simulator backends: * <code class="docutils literal notranslate"><span class="pre">QasmSimulator</span></code>: Allows ideal and noisy multi-shot execution of qiskit circuits and returns counts or memory * <code class="docutils literal notranslate"><span class="pre">StatevectorSimulator</span></code>: Allows ideal single-shot execution of qiskit circuits and returns the final statevector of the simulator after application * <code class="docutils literal notranslate"><span class="pre">UnitarySimulator</span></code>: Allows ideal single-shot execution of qiskit circuits and returns the final unitary matrix of the circuit itself. Note that the circuit
-cannot contain measure or reset operations for this backend</p>
-<p>These backends are found in the <code class="docutils literal notranslate"><span class="pre">Aer</span></code> provider with the names <code class="docutils literal notranslate"><span class="pre">qasm_simulator</span></code>, <code class="docutils literal notranslate"><span class="pre">statevector_simulator</span></code> and <code class="docutils literal notranslate"><span class="pre">unitary_simulator</span></code>, respectively.</p>
+<div class="section" id="The-Aer-Provider">
+<h2>The Aer Provider<a class="headerlink" href="#The-Aer-Provider" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Aer</span></code> provider contains a variety of high performance simulator backends for a variety of simulation methods. The available backends on the current system can be viwed using <code class="docutils literal notranslate"><span class="pre">Aer.backends</span></code></p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># List Aer backends</span>
-<span class="n">Aer</span><span class="o">.</span><span class="n">backends</span><span class="p">()</span>
+<span></span><span class="n">Aer</span><span class="o">.</span><span class="n">backends</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -598,46 +596,54 @@ cannot contain measure or reset operations for this backend</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[QasmSimulator(
- backend_name=&#39;qasm_simulator&#39;, provider=AerProvider()), StatevectorSimulator(
- backend_name=&#39;statevector_simulator&#39;, provider=AerProvider()), UnitarySimulator(
- backend_name=&#39;unitary_simulator&#39;, provider=AerProvider()), PulseSimulator(
- backend_name=&#39;pulse_simulator&#39;, provider=AerProvider())]
+[AerSimulator(&#39;aer_simulator&#39;),
+ AerSimulator(&#39;aer_simulator_statevector&#39;),
+ AerSimulator(&#39;aer_simulator_density_matrix&#39;),
+ AerSimulator(&#39;aer_simulator_stabilizer&#39;),
+ AerSimulator(&#39;aer_simulator_matrix_product_state&#39;),
+ AerSimulator(&#39;aer_simulator_extended_stabilizer&#39;),
+ AerSimulator(&#39;aer_simulator_unitary&#39;),
+ AerSimulator(&#39;aer_simulator_superop&#39;),
+ QasmSimulator(&#39;qasm_simulator&#39;),
+ StatevectorSimulator(&#39;statevector_simulator&#39;),
+ UnitarySimulator(&#39;unitary_simulator&#39;),
+ PulseSimulator(&#39;pulse_simulator&#39;)]
 </pre></div></div>
 </div>
-<p>The simulator backends can also be directly imported from <code class="docutils literal notranslate"><span class="pre">qiskit.providers.aer</span></code></p>
+</div>
+<div class="section" id="The-Aer-Simulator">
+<h2>The Aer Simulator<a class="headerlink" href="#The-Aer-Simulator" title="Permalink to this headline">¶</a></h2>
+<p>The main simulator backend of the Aer provider is the <code class="docutils literal notranslate"><span class="pre">AerSimulator</span></code> backend. A new simulator backend can be created using <code class="docutils literal notranslate"><span class="pre">Aer.get_backend('aer_simulator')</span></code>.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.providers.aer</span> <span class="kn">import</span> <span class="n">QasmSimulator</span><span class="p">,</span> <span class="n">StatevectorSimulator</span><span class="p">,</span> <span class="n">UnitarySimulator</span>
+<span></span><span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="QasmSimulator">
-<h2>QasmSimulator<a class="headerlink" href="#QasmSimulator" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">QasmSimulator</span></code> backend is designed to mimic an actual device. It executes a Qiskit <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> and returns a count dictionary containing the final values of any classical registers in the circuit. The circuit may contain <em>gates</em>, <em>measurements</em>, <em>resets</em>, <em>conditionals</em>, and other advanced simulator options that will be discussed in another notebook.</p>
+<p>The default behavior of teh <code class="docutils literal notranslate"><span class="pre">AerSimulator</span></code> backend is to mimic the execution of an actual device. If a <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> containing measurements is run it will return a count dictionary containing the final values of any classical registers in the circuit. The circuit may contain gates, measurements, resets, conditionals, and other custom simulator instructions that will be discussed in another notebook.</p>
 <div class="section" id="Simulating-a-quantum-circuit">
 <h3>Simulating a quantum circuit<a class="headerlink" href="#Simulating-a-quantum-circuit" title="Permalink to this headline">¶</a></h3>
-<p>The basic operation executes a quantum circuit and returns a counts dictionary of measurement outcomes. Here we execute a simple circuit that prepares a 2-qubit Bell-state <span class="math notranslate nohighlight">\(|\psi\rangle = \frac{1}{2}(|0,0\rangle + |1,1 \rangle)\)</span> and measures both qubits.</p>
+<p>The basic operation runs a quantum circuit and returns a counts dictionary of measurement outcomes. Here we run a simple circuit that prepares a 2-qubit Bell-state <span class="math notranslate nohighlight">\(\left|\psi\right\rangle = \frac{1}{2}\left(\left|0,0\right\rangle + \left|1,1 \right\rangle\right)\)</span> and measures both qubits.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Construct quantum circuit</span>
-<span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span></span><span class="c1"># Create circuit</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">circ</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">circ</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">measure</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
 
-<span class="c1"># Select the QasmSimulator from the Aer provider</span>
-<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">)</span>
+<span class="c1"># Transpile for simulator</span>
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">)</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span>
 
-<span class="c1"># Execute and get counts</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span class="c1"># Run and get counts</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
 <span class="n">counts</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
 <span class="n">plot_histogram</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Bell-State counts&#39;</span><span class="p">)</span>
 </pre></div>
@@ -648,29 +654,20 @@ cannot contain measure or reset operations for this backend</p>
 </pre></div>
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_simulators_1_aer_provider_8_0.png" src="../../_images/tutorials_simulators_1_aer_provider_8_0.png" />
+<img alt="../../_images/tutorials_simulators_1_aer_provider_9_0.png" src="../../_images/tutorials_simulators_1_aer_provider_9_0.png" />
 </div>
 </div>
 </div>
 <div class="section" id="Returning-measurement-outcomes-for-each-shot">
 <h3>Returning measurement outcomes for each shot<a class="headerlink" href="#Returning-measurement-outcomes-for-each-shot" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">QasmSimulator</span></code> also supports returning a list of measurement outcomes for each individual shot. This is enabled by setting the keyword argument <code class="docutils literal notranslate"><span class="pre">memory=True</span></code> in the <code class="docutils literal notranslate"><span class="pre">assemble</span></code> or <code class="docutils literal notranslate"><span class="pre">execute</span></code> function.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">QasmSimulator</span></code> also supports returning a list of measurement outcomes for each individual shot. This is enabled by setting the keyword argument <code class="docutils literal notranslate"><span class="pre">memory=True</span></code> in the <code class="docutils literal notranslate"><span class="pre">run</span></code>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Construct quantum circuit</span>
-<span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">measure</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
-
-<span class="c1"># Select the QasmSimulator from the Aer provider</span>
-<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">)</span>
-
-<span class="c1"># Execute and get memory</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span></span><span class="c1"># Run and get memory</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
 <span class="n">memory</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_memory</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
 </pre></div>
@@ -681,32 +678,50 @@ cannot contain measure or reset operations for this backend</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[&#39;11&#39;, &#39;00&#39;, &#39;11&#39;, &#39;11&#39;, &#39;00&#39;, &#39;00&#39;, &#39;00&#39;, &#39;11&#39;, &#39;00&#39;, &#39;11&#39;]
+[&#39;00&#39;, &#39;00&#39;, &#39;11&#39;, &#39;11&#39;, &#39;00&#39;, &#39;00&#39;, &#39;11&#39;, &#39;11&#39;, &#39;00&#39;, &#39;00&#39;]
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Starting-simulation-with-a-custom-initial-state">
-<h3>Starting simulation with a custom initial state<a class="headerlink" href="#Starting-simulation-with-a-custom-initial-state" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">QasmSimulator</span></code> allows setting a custom initial statevector for the simulation. This means that all experiments in a Qobj will be executed starting in a state <span class="math notranslate nohighlight">\(|\psi\rangle\)</span> rather than the all zero state <span class="math notranslate nohighlight">\(|0,0,..0\rangle\)</span>. The custom state may be set in the circuit using the <code class="docutils literal notranslate"><span class="pre">initialize</span></code> method.</p>
-<p><strong>Note:</strong> * The initial statevector must be a valid quantum state <span class="math notranslate nohighlight">\(|\langle\psi|\psi\rangle|=1\)</span>. If not, an exception will be raised. * The simulator supports this option directly for efficiency, but it can also be unrolled to standard gates for execution on actual devices.</p>
-<p>We now demonstrate this functionality by setting the simulator to be initialized in the final Bell-state of the previous example:</p>
+</div>
+<div class="section" id="Aer-Simulator-Options">
+<h2>Aer Simulator Options<a class="headerlink" href="#Aer-Simulator-Options" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">AerSimulator</span></code> backend supports a variety of configurable options which can be updated using the <code class="docutils literal notranslate"><span class="pre">set_options</span></code> method. See the <code class="docutils literal notranslate"><span class="pre">AerSimulator</span></code> API documentation for additional details.</p>
+<div class="section" id="Simulation-Method">
+<h3>Simulation Method<a class="headerlink" href="#Simulation-Method" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">AerSimulator</span></code> supports a variety of simulation methods, each of which supports a different set of instructions. The method can be set manually using <code class="docutils literal notranslate"><span class="pre">simulator.set_option(method=value)</span></code> option, or a simulator backend with a preconfigured method can be obtained directly from the <code class="docutils literal notranslate"><span class="pre">Aer</span></code> provider using <code class="docutils literal notranslate"><span class="pre">Aer.get_backend</span></code>.</p>
+<p>When simulating ideal circuits, changing the method between the exact simulation methods <code class="docutils literal notranslate"><span class="pre">stabilizer</span></code>, <code class="docutils literal notranslate"><span class="pre">statevector</span></code>, <code class="docutils literal notranslate"><span class="pre">density_matrix</span></code> and <code class="docutils literal notranslate"><span class="pre">matrix_product_state</span></code> should not change the simulation result (other than usual variations from sampling probabilities for measurement outcomes)</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Construct a quantum circuit that initialises qubits to a custom state</span>
-<span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">initialize</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">measure</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span></span><span class="c1"># Increase shots to reduce sampling variance</span>
+<span class="n">shots</span> <span class="o">=</span> <span class="mi">10000</span>
 
-<span class="c1"># Select the QasmSimulator from the Aer provider</span>
-<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">)</span>
+<span class="c1"># Stabilizer simulation method</span>
+<span class="n">sim_stabilizer</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator_stabilizer&#39;</span><span class="p">)</span>
+<span class="n">job_stabilizer</span> <span class="o">=</span> <span class="n">sim_stabilizer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="n">shots</span><span class="p">)</span>
+<span class="n">counts_stabilizer</span> <span class="o">=</span> <span class="n">job_stabilizer</span><span class="o">.</span><span class="n">result</span><span class="p">()</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
-<span class="c1"># Execute and get counts</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-<span class="n">counts</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
-<span class="n">plot_histogram</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Bell initial statevector&quot;</span><span class="p">)</span>
+<span class="c1"># Statevector simulation method</span>
+<span class="n">sim_statevector</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator_statevector&#39;</span><span class="p">)</span>
+<span class="n">job_statevector</span> <span class="o">=</span> <span class="n">sim_statevector</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="n">shots</span><span class="p">)</span>
+<span class="n">counts_statevector</span> <span class="o">=</span> <span class="n">job_statevector</span><span class="o">.</span><span class="n">result</span><span class="p">()</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Density Matrix simulation method</span>
+<span class="n">sim_density</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator_density_matrix&#39;</span><span class="p">)</span>
+<span class="n">job_density</span> <span class="o">=</span> <span class="n">sim_density</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="n">shots</span><span class="p">)</span>
+<span class="n">counts_density</span> <span class="o">=</span> <span class="n">job_density</span><span class="o">.</span><span class="n">result</span><span class="p">()</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Matrix Product State simulation method</span>
+<span class="n">sim_mps</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator_matrix_product_state&#39;</span><span class="p">)</span>
+<span class="n">job_mps</span> <span class="o">=</span> <span class="n">sim_mps</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="n">shots</span><span class="p">)</span>
+<span class="n">counts_mps</span> <span class="o">=</span> <span class="n">job_mps</span><span class="o">.</span><span class="n">result</span><span class="p">()</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">plot_histogram</span><span class="p">([</span><span class="n">counts_stabilizer</span><span class="p">,</span> <span class="n">counts_statevector</span><span class="p">,</span> <span class="n">counts_density</span><span class="p">,</span> <span class="n">counts_mps</span><span class="p">],</span>
+               <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Counts for different simulation methods&#39;</span><span class="p">,</span>
+               <span class="n">legend</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;stabilizer&#39;</span><span class="p">,</span> <span class="s1">&#39;statevector&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;density_matrix&#39;</span><span class="p">,</span> <span class="s1">&#39;matrix_product_state&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
@@ -715,19 +730,135 @@ cannot contain measure or reset operations for this backend</p>
 </pre></div>
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_simulators_1_aer_provider_12_0.png" src="../../_images/tutorials_simulators_1_aer_provider_12_0.png" />
+<img alt="../../_images/tutorials_simulators_1_aer_provider_14_0.png" src="../../_images/tutorials_simulators_1_aer_provider_14_0.png" />
 </div>
 </div>
+<div class="section" id="Automatic-Simulation-Method">
+<h4>Automatic Simulation Method<a class="headerlink" href="#Automatic-Simulation-Method" title="Permalink to this headline">¶</a></h4>
+<p>The default simulation method is <code class="docutils literal notranslate"><span class="pre">automatic</span></code> which will automatically select a one of the other simulation methods for each circuit based on the instructions in those circuits. A fixed simualtion method can be specified by by adding the method name when getting the backend, or by setting the <code class="docutils literal notranslate"><span class="pre">method</span></code> option on the backend.</p>
 </div>
 </div>
-<div class="section" id="StatevectorSimulator">
-<h2>StatevectorSimulator<a class="headerlink" href="#StatevectorSimulator" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">StatevectorSimulator</span></code> executes a single shot of a Qiskit <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> and returns the final quantum statevector of the simulation. The circuit may contain <em>gates</em>, and also <em>measurements</em>, <em>resets</em>, and <em>conditional</em> operations.</p>
-<div class="section" id="id2">
-<h3>Simulating a quantum circuit<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<p>The basic operation executes a quantum circuit and returns a counts dictionary of measurement outcomes. Here we execute a simple circuit that prepares a 2-qubit Bell-state <span class="math notranslate nohighlight">\(|\psi\rangle = \frac{1}{2}(|0,0\rangle + |1,1 \rangle)\)</span> and measures both qubits.</p>
+<div class="section" id="GPU-Simulation">
+<h3>GPU Simulation<a class="headerlink" href="#GPU-Simulation" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">statevector</span></code>, <code class="docutils literal notranslate"><span class="pre">density_matrix</span></code> and <code class="docutils literal notranslate"><span class="pre">unitary</span></code> simulators support running on a NVidia GPUs. For these methods the simulation device can also be manually set to CPU or GPU using <code class="docutils literal notranslate"><span class="pre">simulator.set_options(device='GPU')</span></code> backend option. If a GPU device is not available setting this option will raise an exception.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.providers.aer</span> <span class="kn">import</span> <span class="n">AerError</span>
+
+<span class="c1"># Initialize a GPU backend</span>
+<span class="c1"># Note that the cloud instance for tutorials does not have a GPU</span>
+<span class="c1"># so this will raise an exception.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">simulator_gpu</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">)</span>
+    <span class="n">simulator_gpu</span><span class="o">.</span><span class="n">set_options</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s1">&#39;GPU&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">AerError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#34;Invalid simulation device GPU. Available devices are: [&#39;CPU&#39;]&#34;
+</pre></div></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">Aer</span></code> provider will also contain preconfigured GPU simulator backends if Qiskit Aer was installed with GPU support on a complatible system:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">aer_simulator_statevector_gpu</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aer_simulator_density_matrix_gpu</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aer_simulator_unitary_gpu</span></code></p></li>
+</ul>
+<p><em>Note: The GPU version of Aer can be installed using ``pip install qiskit-aer-gpu``.</em></p>
+</div>
+<div class="section" id="Simulation-Precision">
+<h3>Simulation Precision<a class="headerlink" href="#Simulation-Precision" title="Permalink to this headline">¶</a></h3>
+<p>One of the available simulator options allows setting the float precision for the <code class="docutils literal notranslate"><span class="pre">statevector</span></code>, <code class="docutils literal notranslate"><span class="pre">density_matrix</span></code> <code class="docutils literal notranslate"><span class="pre">unitary</span></code> and <code class="docutils literal notranslate"><span class="pre">superop</span></code> methods. This is done using the <code class="docutils literal notranslate"><span class="pre">set_precision=&quot;single&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">precision=&quot;double&quot;</span></code> (default) option:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Configure a single-precision statevector simulator backend</span>
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator_statevector&#39;</span><span class="p">)</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">set_options</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="s1">&#39;single&#39;</span><span class="p">)</span>
+
+<span class="c1"># Run and get counts</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span class="n">counts</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_counts</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;11&#39;: 509, &#39;00&#39;: 515}
+</pre></div></div>
+</div>
+<p>Setting the simulation precesion applies to both CPU and GPU simulation devices. Single precision will halve the requried memeory and may provide performance improvements on certain systems.</p>
+</div>
+</div>
+<div class="section" id="Custom-Simulator-Instructions">
+<h2>Custom Simulator Instructions<a class="headerlink" href="#Custom-Simulator-Instructions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Saving-the-simulator-state">
+<h3>Saving the simulator state<a class="headerlink" href="#Saving-the-simulator-state" title="Permalink to this headline">¶</a></h3>
+<p>The state of the simulator can be saved in a variety of formats using custom simulator instructions.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 34%" />
+<col style="width: 28%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Circuit method</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Supported Methods</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">save_state</span></code></p></td>
+<td><p>Save the simulator state in the native format for the simulation method</p></td>
+<td><p>All</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">save_statevector</span></code></p></td>
+<td><p>Save the simulator state as a statevector</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;automatic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;statevector&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;matrix_product_state&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;extended_stabilizer&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">save_stabilizer</span></code></p></td>
+<td><p>Save the simulator state as a Clifford stabilizer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;automatic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;stabilizer&quot;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">save_density_matrix</span></code></p></td>
+<td><p>Save the simulator state as a density matrix</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;automatic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;statevector&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;matrix_product_state&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;density_matrix&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">save_matrix_product_state</span></code></p></td>
+<td><p>Save the simulator state as a a matrix product state tensor</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;automatic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;matrix_product_state&quot;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">save_unitary</span></code></p></td>
+<td><p>Save the simulator state as unitary matrix of the run circuit</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;automatic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;unitary&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">save_superop</span></code></p></td>
+<td><p>Save the simulator state as superoperator matrix of the run circuit</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;automatic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;superop&quot;</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>Note that these instructions are only supported by the Aer simulator and will result in an error if a circuit containing them is run on a non-simulator backend such as an IBM Quantum device.</p>
+<div class="section" id="Saving-the-final-statevector">
+<h4>Saving the final statevector<a class="headerlink" href="#Saving-the-final-statevector" title="Permalink to this headline">¶</a></h4>
+<p>To save the final statevector of the simulation we can append the circuit with the <code class="docutils literal notranslate"><span class="pre">save_statevector</span></code> instruction. Note that this instruction should be applied <em>before</em> any measurements if we do not want to save the collapsed post-measurement state</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -735,114 +866,50 @@ cannot contain measure or reset operations for this backend</p>
 <span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">circ</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">circ</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">save_statevector</span><span class="p">()</span>
 
-<span class="c1"># Select the StatevectorSimulator from the Aer provider</span>
-<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">)</span>
+<span class="c1"># Transpile for simulator</span>
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">)</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span>
 
-<span class="c1"># Execute and get counts</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span class="c1"># Run and get statevector</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
 <span class="n">statevector</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_statevector</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
 <span class="n">plot_state_city</span><span class="p">(</span><span class="n">statevector</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Bell state&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<img alt="../../_images/tutorials_simulators_1_aer_provider_14_0.png" src="../../_images/tutorials_simulators_1_aer_provider_14_0.png" />
-</div>
-</div>
-</div>
-<div class="section" id="Simulating-a-quantum-circuit-with-measurement">
-<h3>Simulating a quantum circuit with measurement<a class="headerlink" href="#Simulating-a-quantum-circuit-with-measurement" title="Permalink to this headline">¶</a></h3>
-<p>Note that if a circuit contains <em>measure</em> or <em>reset</em> the final statevector will be a conditional statevector <em>after</em> simulating wave-function collapse to the outcome of a measure or reset. For the Bell-state circuit this means the final statevector will be <em>either</em> <span class="math notranslate nohighlight">\(|0,0\rangle\)</span> <em>or</em> <span class="math notranslate nohighlight">\(|1, 1\rangle\)</span>.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Construct quantum circuit with measure</span>
-<span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">measure</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
-
-<span class="c1"># Select the StatevectorSimulator from the Aer provider</span>
-<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">)</span>
-
-<span class="c1"># Execute and get counts</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-<span class="n">statevector</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_statevector</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
-<span class="n">plot_state_city</span><span class="p">(</span><span class="n">statevector</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Bell state post-measurement&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<img alt="../../_images/tutorials_simulators_1_aer_provider_16_0.png" src="../../_images/tutorials_simulators_1_aer_provider_16_0.png" />
-</div>
-</div>
-</div>
-<div class="section" id="id3">
-<h3>Starting simulation with a custom initial state<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>Like the <code class="docutils literal notranslate"><span class="pre">QasmSimulator</span></code>, the <code class="docutils literal notranslate"><span class="pre">StatevectorSimulator</span></code> also allows setting a custom initial statevector for the simulation. Here we run the previous initial statevector example on the <code class="docutils literal notranslate"><span class="pre">StatevectorSimulator</span></code> and initialize it to the Bell state.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Construct a quantum circuit that initialises qubits to a custom state</span>
-<span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">initialize</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
-
-<span class="c1"># Select the StatevectorSimulator from the Aer provider</span>
-<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">)</span>
-
-<span class="c1"># Execute and get counts</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-<span class="n">statevector</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_statevector</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
-<span class="n">plot_state_city</span><span class="p">(</span><span class="n">statevector</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Bell initial statevector&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tutorials_simulators_1_aer_provider_18_0.png" src="../../_images/tutorials_simulators_1_aer_provider_18_0.png" />
+<img alt="../../_images/tutorials_simulators_1_aer_provider_25_0.png" src="../../_images/tutorials_simulators_1_aer_provider_25_0.png" />
 </div>
 </div>
 </div>
-</div>
-<div class="section" id="Unitary-Simulator">
-<h2>Unitary Simulator<a class="headerlink" href="#Unitary-Simulator" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">UnitarySimulator</span></code> constructs the unitary matrix for a Qiskit <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> by applying each gate matrix to an identity matrix. The circuit may only contain <em>gates</em>, if it contains <em>resets</em> or <em>measure</em> operations an exception will be raised.</p>
-<div class="section" id="Simulating-a-quantum-circuit-unitary">
-<h3>Simulating a quantum circuit unitary<a class="headerlink" href="#Simulating-a-quantum-circuit-unitary" title="Permalink to this headline">¶</a></h3>
-<p>For this example we will return the unitary matrix corresponding to the previous examples circuit which prepares a bell state.</p>
+<div class="section" id="Saving-the-circuit-unitary">
+<h4>Saving the circuit unitary<a class="headerlink" href="#Saving-the-circuit-unitary" title="Permalink to this headline">¶</a></h4>
+<p>To save the unitary matrix for a <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> we can append the circuit with the <code class="docutils literal notranslate"><span class="pre">save_unitary</span></code> instruction. Note that this circuit cannot contain any measurements or resets since these instructions are not suppored on for the <code class="docutils literal notranslate"><span class="pre">&quot;unitary&quot;</span></code> simulation method</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Construct an empty quantum circuit</span>
+<span></span><span class="c1"># Construct quantum circuit without measure</span>
 <span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">circ</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">circ</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">save_unitary</span><span class="p">()</span>
 
-<span class="c1"># Select the UnitarySimulator from the Aer provider</span>
-<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;unitary_simulator&#39;</span><span class="p">)</span>
+<span class="c1"># Transpile for simulator</span>
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">)</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span>
 
-<span class="c1"># Execute and get counts</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span class="c1"># Run and get unitary</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
 <span class="n">unitary</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_unitary</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Circuit unitary:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">unitary</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Circuit unitary:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">unitary</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -852,61 +919,291 @@ cannot contain measure or reset operations for this backend</p>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Circuit unitary:
- [[ 0.70710678+0.00000000e+00j  0.70710678-8.65956056e-17j
-   0.        +0.00000000e+00j  0.        +0.00000000e+00j]
- [ 0.        +0.00000000e+00j  0.        +0.00000000e+00j
-   0.70710678+0.00000000e+00j -0.70710678+8.65956056e-17j]
- [ 0.        +0.00000000e+00j  0.        +0.00000000e+00j
-   0.70710678+0.00000000e+00j  0.70710678-8.65956056e-17j]
- [ 0.70710678+0.00000000e+00j -0.70710678+8.65956056e-17j
-   0.        +0.00000000e+00j  0.        +0.00000000e+00j]]
+ [[ 0.70711+0.j  0.70711-0.j  0.     +0.j  0.     +0.j]
+ [ 0.     +0.j  0.     +0.j  0.70711+0.j -0.70711+0.j]
+ [ 0.     +0.j  0.     +0.j  0.70711+0.j  0.70711-0.j]
+ [ 0.70711+0.j -0.70711+0.j  0.     +0.j  0.     +0.j]]
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Setting-a-custom-initial-unitary">
-<h3>Setting a custom initial unitary<a class="headerlink" href="#Setting-a-custom-initial-unitary" title="Permalink to this headline">¶</a></h3>
-<p>We may also set an initial state for the <code class="docutils literal notranslate"><span class="pre">UnitarySimulator</span></code>, however this state is an initial <em>unitary matrix</em> <span class="math notranslate nohighlight">\(U_i\)</span>, not a statevector. In this case the returned unitary will be <span class="math notranslate nohighlight">\(U \cdot U_i\)</span> given by applying the circuit unitary to the initial unitary matrix.</p>
-<p><strong>Note:</strong> * The initial unitary must be a valid unitary matrix <span class="math notranslate nohighlight">\(U^\dagger \cdot U =\mathbb{1}\)</span>. If not, an exception will be raised. * If a <code class="docutils literal notranslate"><span class="pre">Qobj</span></code> contains multiple experiments, the initial unitary must be the correct size for <em>all</em> experiments in the <code class="docutils literal notranslate"><span class="pre">Qobj</span></code>, otherwise an exception will be raised.</p>
-<p>Let us consider preparing the output unitary of the previous circuit as the initial state for the simulator:</p>
+<div class="section" id="Saving-multiple-states">
+<h4>Saving multiple states<a class="headerlink" href="#Saving-multiple-states" title="Permalink to this headline">¶</a></h4>
+<p>We can also apply save instructions at multiple locations in a circuit. Note that when doing this we must provide a unique label for each instruction to retrieve them from the results</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Construct quantum circuit without measure</span>
+<span class="n">steps</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
+    <span class="n">circ</span><span class="o">.</span><span class="n">save_statevector</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;psi_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">circ</span><span class="o">.</span><span class="n">rx</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">steps</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">save_statevector</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;psi_</span><span class="si">{</span><span class="n">steps</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="c1"># Transpile for simulator</span>
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">)</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span>
+
+<span class="c1"># Run and get saved data</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">data</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;psi_3&#39;: array([0.58778525+0.j        , 0.        -0.80901699j]),
+ &#39;psi_2&#39;: array([0.95105652+0.j        , 0.        -0.30901699j]),
+ &#39;psi_5&#39;: array([-1.+0.00000000e+00j,  0.-2.77555756e-16j]),
+ &#39;psi_1&#39;: array([1.+0.j, 0.+0.j]),
+ &#39;psi_4&#39;: array([-0.30901699+0.j        ,  0.        -0.95105652j]),
+ &#39;psi_0&#39;: array([1.+0.j, 0.+0.j])}
+</pre></div></div>
+</div>
+</div>
+</div>
+<div class="section" id="Setting-the-simulator-to-a-custom-state">
+<h3>Setting the simulator to a custom state<a class="headerlink" href="#Setting-the-simulator-to-a-custom-state" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">AerSimulator</span></code> allows setting a custom simulator state for several of its simulation methods using custom simulator instructions</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 34%" />
+<col style="width: 28%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Circuit method</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Supported Methods</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">set_statevector</span></code></p></td>
+<td><p>Set the simulator state to the specified statevector</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;automatic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;statevector&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;density_matrix&quot;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">set_stabilizer</span></code></p></td>
+<td><p>Set the simulator state to the specified Clifford stabilizer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;automatic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;stabilizer&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">set_density_matrix</span></code></p></td>
+<td><p>Set the simulator state to the specified density matrix</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;automatic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;density_matrix&quot;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">set_unitary</span></code></p></td>
+<td><p>Set the simulator state to the specified unitary matrix</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;automatic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;unitary&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;superop&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">set_superop</span></code></p></td>
+<td><p>Set the simulator state to the specified superoperator matrix</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;automatic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;superop&quot;</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Notes:</strong> * These instructions must be applied to all qubits in a circuit, otherwise an exception will be raised. * The input state must also be a valid state (statevector, denisty matrix, unitary etc) otherwise an exception will be raised. * These instructions can be applied at any location in a circuit and will override the current state with the specified one. Any classical register values (eg from preceeding measurements) will be unaffected * Set state instructions are only supported by
+the Aer simulator and will result in an error if a circuit containing them is run on a non-simulator backend such as an IBM Quantum device.</p>
+<div class="section" id="Setting-a-custom-statevector">
+<h4>Setting a custom statevector<a class="headerlink" href="#Setting-a-custom-statevector" title="Permalink to this headline">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">set_statevector</span></code> instruction can be used to set a custom <code class="docutils literal notranslate"><span class="pre">Statevector</span></code> state. The input statevector must be valid (<span class="math notranslate nohighlight">\(|\langle\psi|\psi\rangle|=1\)</span>)</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Generate a random statevector</span>
+<span class="n">num_qubits</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">psi</span> <span class="o">=</span> <span class="n">qi</span><span class="o">.</span><span class="n">random_statevector</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">num_qubits</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Set initial state to generated statevector</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">set_statevector</span><span class="p">(</span><span class="n">psi</span><span class="p">)</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">save_state</span><span class="p">()</span>
+
+<span class="c1"># Transpile for simulator</span>
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">)</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span>
+
+<span class="c1"># Run and get saved data</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;statevector&#39;: array([ 0.18572453-0.03102771j, -0.26191269-0.18155865j,
+         0.12367038-0.47837907j,  0.66510011-0.4200986j ])}
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Using-the-initialize-instruction">
+<h4>Using the initialize instruction<a class="headerlink" href="#Using-the-initialize-instruction" title="Permalink to this headline">¶</a></h4>
+<p>It is also possible to initialize the simulator to a custom statevector using the <code class="docutils literal notranslate"><span class="pre">initialize</span></code> instruction. Unlike the <code class="docutils literal notranslate"><span class="pre">set_statevector</span></code> instruction this instruction is also supported on real device backends by unrolling to reset and standard gate instructions.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Use initilize instruction to set initial state</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">psi</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">))</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">save_state</span><span class="p">()</span>
+
+<span class="c1"># Transpile for simulator</span>
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">)</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span>
+
+<span class="c1"># Run and get result data</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;statevector&#39;: array([ 0.18572453-0.03102771j, -0.26191269-0.18155865j,
+         0.12367038-0.47837907j,  0.66510011-0.4200986j ])}
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Setting-a-custom-density-matrix">
+<h4>Setting a custom density matrix<a class="headerlink" href="#Setting-a-custom-density-matrix" title="Permalink to this headline">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">set_density_matrix</span></code> instruction can be used to set a custom <code class="docutils literal notranslate"><span class="pre">DensityMatrix</span></code> state. The input density matrix must be valid (<span class="math notranslate nohighlight">\(Tr[\rho]=1, \rho \ge 0\)</span>)</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">num_qubits</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">rho</span> <span class="o">=</span> <span class="n">qi</span><span class="o">.</span><span class="n">random_density_matrix</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">num_qubits</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">set_density_matrix</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">save_state</span><span class="p">()</span>
+
+<span class="c1"># Transpile for simulator</span>
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">)</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span>
+
+<span class="c1"># Run and get saved data</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;density_matrix&#39;: array([[ 0.2075308 -3.11427124e-18j,  0.13161422-1.76084787e-02j,
+          0.0442826 +7.74270413e-02j,  0.04852053-1.30317117e-02j],
+        [ 0.13161422+1.76084787e-02j,  0.20106116-2.89376869e-18j,
+          0.02568549-3.68981173e-02j,  0.0482903 -4.36791212e-02j],
+        [ 0.0442826 -7.74270413e-02j,  0.02568549+3.68981173e-02j,
+          0.39731492+6.09745953e-18j, -0.01114025-1.34264228e-01j],
+        [ 0.04852053+1.30317117e-02j,  0.0482903 +4.36791212e-02j,
+         -0.01114025+1.34264228e-01j,  0.19409312-8.94195941e-20j]])}
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Setting-a-custom-stabilizer-state">
+<h4>Setting a custom stabilizer state<a class="headerlink" href="#Setting-a-custom-stabilizer-state" title="Permalink to this headline">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">set_stabilizer</span></code> instruction can be used to set a custom <code class="docutils literal notranslate"><span class="pre">Clifford</span></code> stabilizer state. The input stabilizer must be a valid <code class="docutils literal notranslate"><span class="pre">Clifford</span></code>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Construct an empty quantum circuit</span>
-<span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">circ</span><span class="o">.</span><span class="n">id</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span></span><span class="c1"># Generate a random Clifford C</span>
+<span class="n">num_qubits</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">stab</span> <span class="o">=</span> <span class="n">qi</span><span class="o">.</span><span class="n">random_clifford</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 
-<span class="c1"># Set the initial unitary</span>
-<span class="n">unitary1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span> <span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">],</span>
-                    <span class="p">[</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-                    <span class="p">[</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">],</span>
-                    <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">]]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+<span class="c1"># Set initial state to stabilizer state C|0&gt;</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">set_stabilizer</span><span class="p">(</span><span class="n">stab</span><span class="p">)</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">save_state</span><span class="p">()</span>
 
-<span class="c1"># Select the UnitarySimulator from the Aer provider</span>
-<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;unitary_simulator&#39;</span><span class="p">)</span>
+<span class="c1"># Transpile for simulator</span>
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">)</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span>
 
-<span class="c1"># Execute and get counts</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">,</span> <span class="n">initial_unitary</span><span class="o">=</span><span class="n">unitary1</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-<span class="n">unitary2</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_unitary</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initial Unitary:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">unitary2</span><span class="p">)</span>
+<span class="c1"># Run and get saved data</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Initial Unitary:
- [[ 0.70710678+0.j  0.70710678+0.j  0.        +0.j  0.        +0.j]
- [ 0.        +0.j  0.        +0.j  0.70710678+0.j -0.70710678+0.j]
- [ 0.        +0.j  0.        +0.j  0.70710678+0.j  0.70710678+0.j]
- [ 0.70710678+0.j -0.70710678+0.j  0.        +0.j  0.        +0.j]]
+{&#39;stabilizer&#39;: {&#39;destabilizer&#39;: [&#39;-XZ&#39;, &#39;-YX&#39;], &#39;stabilizer&#39;: [&#39;+ZZ&#39;, &#39;-IZ&#39;]}}
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Setting-a-custom-unitary">
+<h4>Setting a custom unitary<a class="headerlink" href="#Setting-a-custom-unitary" title="Permalink to this headline">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">set_unitary</span></code> instruction can be used to set a custom unitary <code class="docutils literal notranslate"><span class="pre">Operator</span></code> state. The input unitary matrix must be valid (<span class="math notranslate nohighlight">\(U^\dagger U=\mathbb{1}\)</span>)</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Generate a random unitary</span>
+<span class="n">num_qubits</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">unitary</span> <span class="o">=</span> <span class="n">qi</span><span class="o">.</span><span class="n">random_unitary</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">num_qubits</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Set initial state to unitary</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">set_unitary</span><span class="p">(</span><span class="n">unitary</span><span class="p">)</span>
+<span class="n">circ</span><span class="o">.</span><span class="n">save_state</span><span class="p">()</span>
+
+<span class="c1"># Transpile for simulator</span>
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">)</span>
+<span class="n">circ</span> <span class="o">=</span> <span class="n">transpile</span><span class="p">(</span><span class="n">circ</span><span class="p">,</span> <span class="n">simulator</span><span class="p">)</span>
+
+<span class="c1"># Run and get saved data</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circ</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;unitary&#39;: array([[-0.44885724-0.26721573j,  0.10468034-0.00288681j,
+          0.4631425 +0.15474915j, -0.11151309-0.68210936j],
+        [-0.37279054-0.38484834j,  0.3820592 -0.49653433j,
+          0.14132327-0.17428515j,  0.19643043+0.48111423j],
+        [ 0.2889092 +0.58750499j,  0.39509694-0.22036424j,
+          0.49498355+0.2388685j ,  0.25404989-0.00995706j],
+        [ 0.01830684+0.10524311j,  0.62584001+0.01343146j,
+         -0.52174025-0.37003296j,  0.12232823-0.41548904j]])}
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -920,22 +1217,14 @@ Initial Unitary:
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.23.0</td></tr><tr><td>Terra</td><td>0.16.0</td></tr><tr><td>Aer</td><td>0.7.0</td></tr><tr><td>Ignis</td><td>0.5.0</td></tr><tr><td>Aqua</td><td>0.8.0</td></tr><tr><td>IBM Q Provider</td><td>0.11.0</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.6.8 |Anaconda, Inc.| (default, Dec 30 2018, 01:22:34)
-[GCC 7.3.0]</td></tr><tr><td>OS</td><td>Linux</td></tr><tr><td>CPUs</td><td>8</td></tr><tr><td>Memory (Gb)</td><td>62.916805267333984</td></tr><tr><td colspan='2'>Wed Nov 04 08:50:15 2020 IST</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.25.0</td></tr><tr><td>Terra</td><td>0.17.0</td></tr><tr><td>Aer</td><td>0.8.0</td></tr><tr><td>Ignis</td><td>0.6.0</td></tr><tr><td>Aqua</td><td>0.9.0</td></tr><tr><td>IBM Q Provider</td><td>0.12.2</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.7 (default, May  6 2020, 04:59:01)
+[Clang 4.0.1 (tags/RELEASE_401/final)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>6</td></tr><tr><td>Memory (Gb)</td><td>32.0</td></tr><tr><td colspan='2'>Fri Apr 02 11:48:23 2021 EDT</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2020.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>
-</pre></div>
+<div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2021.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
 </div>
 </div>
 </div>
@@ -979,22 +1268,36 @@ Initial Unitary:
               <ul>
 <li><a class="reference internal" href="#">Simulators</a><ul>
 <li><a class="reference internal" href="#Introduction">Introduction</a></li>
-<li><a class="reference internal" href="#Qiskit-Aer-simulator-backends">Qiskit Aer simulator backends</a></li>
-<li><a class="reference internal" href="#QasmSimulator">QasmSimulator</a><ul>
+<li><a class="reference internal" href="#The-Aer-Provider">The Aer Provider</a></li>
+<li><a class="reference internal" href="#The-Aer-Simulator">The Aer Simulator</a><ul>
 <li><a class="reference internal" href="#Simulating-a-quantum-circuit">Simulating a quantum circuit</a></li>
 <li><a class="reference internal" href="#Returning-measurement-outcomes-for-each-shot">Returning measurement outcomes for each shot</a></li>
-<li><a class="reference internal" href="#Starting-simulation-with-a-custom-initial-state">Starting simulation with a custom initial state</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#StatevectorSimulator">StatevectorSimulator</a><ul>
-<li><a class="reference internal" href="#id2">Simulating a quantum circuit</a></li>
-<li><a class="reference internal" href="#Simulating-a-quantum-circuit-with-measurement">Simulating a quantum circuit with measurement</a></li>
-<li><a class="reference internal" href="#id3">Starting simulation with a custom initial state</a></li>
+<li><a class="reference internal" href="#Aer-Simulator-Options">Aer Simulator Options</a><ul>
+<li><a class="reference internal" href="#Simulation-Method">Simulation Method</a><ul>
+<li><a class="reference internal" href="#Automatic-Simulation-Method">Automatic Simulation Method</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#Unitary-Simulator">Unitary Simulator</a><ul>
-<li><a class="reference internal" href="#Simulating-a-quantum-circuit-unitary">Simulating a quantum circuit unitary</a></li>
-<li><a class="reference internal" href="#Setting-a-custom-initial-unitary">Setting a custom initial unitary</a></li>
+<li><a class="reference internal" href="#GPU-Simulation">GPU Simulation</a></li>
+<li><a class="reference internal" href="#Simulation-Precision">Simulation Precision</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#Custom-Simulator-Instructions">Custom Simulator Instructions</a><ul>
+<li><a class="reference internal" href="#Saving-the-simulator-state">Saving the simulator state</a><ul>
+<li><a class="reference internal" href="#Saving-the-final-statevector">Saving the final statevector</a></li>
+<li><a class="reference internal" href="#Saving-the-circuit-unitary">Saving the circuit unitary</a></li>
+<li><a class="reference internal" href="#Saving-multiple-states">Saving multiple states</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#Setting-the-simulator-to-a-custom-state">Setting the simulator to a custom state</a><ul>
+<li><a class="reference internal" href="#Setting-a-custom-statevector">Setting a custom statevector</a></li>
+<li><a class="reference internal" href="#Using-the-initialize-instruction">Using the initialize instruction</a></li>
+<li><a class="reference internal" href="#Setting-a-custom-density-matrix">Setting a custom density matrix</a></li>
+<li><a class="reference internal" href="#Setting-a-custom-stabilizer-state">Setting a custom stabilizer state</a></li>
+<li><a class="reference internal" href="#Setting-a-custom-unitary">Setting a custom unitary</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
