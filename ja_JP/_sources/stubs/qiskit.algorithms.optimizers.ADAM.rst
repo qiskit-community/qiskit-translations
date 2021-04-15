@@ -1,4 +1,4 @@
-qiskit.algorithms.optimizers.ADAM
+﻿qiskit.algorithms.optimizers.ADAM
 =================================
 
 .. currentmodule:: qiskit.algorithms.optimizers

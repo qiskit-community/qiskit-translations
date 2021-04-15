@@ -122,6 +122,7 @@
       ~RawFeatureVector.save_unitary
       ~RawFeatureVector.sdg
       ~RawFeatureVector.set_density_matrix
+      ~RawFeatureVector.set_matrix_product_state
       ~RawFeatureVector.set_stabilizer
       ~RawFeatureVector.set_statevector
       ~RawFeatureVector.set_superop

@@ -1,4 +1,4 @@
-qiskit.algorithms.optimizers.NELDER\_MEAD
+﻿qiskit.algorithms.optimizers.NELDER\_MEAD
 =========================================
 
 .. currentmodule:: qiskit.algorithms.optimizers

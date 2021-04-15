@@ -122,6 +122,7 @@
       ~GRZ.save_unitary
       ~GRZ.sdg
       ~GRZ.set_density_matrix
+      ~GRZ.set_matrix_product_state
       ~GRZ.set_stabilizer
       ~GRZ.set_statevector
       ~GRZ.set_superop

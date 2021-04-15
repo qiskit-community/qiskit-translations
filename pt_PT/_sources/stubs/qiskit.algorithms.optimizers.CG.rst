@@ -1,4 +1,4 @@
-qiskit.algorithms.optimizers.CG
+﻿qiskit.algorithms.optimizers.CG
 ===============================
 
 .. currentmodule:: qiskit.algorithms.optimizers

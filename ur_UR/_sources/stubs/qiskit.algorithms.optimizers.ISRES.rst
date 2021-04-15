@@ -1,4 +1,4 @@
-qiskit.algorithms.optimizers.ISRES
+﻿qiskit.algorithms.optimizers.ISRES
 ==================================
 
 .. currentmodule:: qiskit.algorithms.optimizers

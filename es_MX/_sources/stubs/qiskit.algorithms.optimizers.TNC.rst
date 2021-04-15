@@ -1,4 +1,4 @@
-qiskit.algorithms.optimizers.TNC
+﻿qiskit.algorithms.optimizers.TNC
 ================================
 
 .. currentmodule:: qiskit.algorithms.optimizers

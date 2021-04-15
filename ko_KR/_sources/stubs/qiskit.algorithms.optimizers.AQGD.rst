@@ -1,4 +1,4 @@
-qiskit.algorithms.optimizers.AQGD
+﻿qiskit.algorithms.optimizers.AQGD
 =================================
 
 .. currentmodule:: qiskit.algorithms.optimizers

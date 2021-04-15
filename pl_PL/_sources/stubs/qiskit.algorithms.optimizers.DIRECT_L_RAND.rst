@@ -1,4 +1,4 @@
-qiskit.algorithms.optimizers.DIRECT\_L\_RAND
+﻿qiskit.algorithms.optimizers.DIRECT\_L\_RAND
 ============================================
 
 .. currentmodule:: qiskit.algorithms.optimizers

@@ -1,4 +1,4 @@
-qiskit.algorithms.optimizers.SPSA
+﻿qiskit.algorithms.optimizers.SPSA
 =================================
 
 .. currentmodule:: qiskit.algorithms.optimizers

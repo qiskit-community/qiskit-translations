@@ -1,4 +1,4 @@
-qiskit.algorithms.optimizers.ESCH
+﻿qiskit.algorithms.optimizers.ESCH
 =================================
 
 .. currentmodule:: qiskit.algorithms.optimizers

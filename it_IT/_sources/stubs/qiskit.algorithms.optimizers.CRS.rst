@@ -1,4 +1,4 @@
-qiskit.algorithms.optimizers.CRS
+﻿qiskit.algorithms.optimizers.CRS
 ================================
 
 .. currentmodule:: qiskit.algorithms.optimizers

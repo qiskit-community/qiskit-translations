@@ -1,4 +1,4 @@
-qiskit.algorithms.optimizers.GSLS
+﻿qiskit.algorithms.optimizers.GSLS
 =================================
 
 .. currentmodule:: qiskit.algorithms.optimizers

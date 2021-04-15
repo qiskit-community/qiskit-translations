@@ -1,4 +1,4 @@
-qiskit.algorithms.optimizers.Optimizer
+﻿qiskit.algorithms.optimizers.Optimizer
 ======================================
 
 .. currentmodule:: qiskit.algorithms.optimizers

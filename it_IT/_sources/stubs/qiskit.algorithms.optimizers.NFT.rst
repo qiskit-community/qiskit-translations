@@ -1,4 +1,4 @@
-qiskit.algorithms.optimizers.NFT
+﻿qiskit.algorithms.optimizers.NFT
 ================================
 
 .. currentmodule:: qiskit.algorithms.optimizers

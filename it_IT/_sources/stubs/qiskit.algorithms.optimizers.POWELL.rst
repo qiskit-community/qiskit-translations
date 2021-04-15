@@ -1,4 +1,4 @@
-qiskit.algorithms.optimizers.POWELL
+﻿qiskit.algorithms.optimizers.POWELL
 ===================================
 
 .. currentmodule:: qiskit.algorithms.optimizers
