@@ -122,6 +122,7 @@
       ~QAOAAnsatz.save_unitary
       ~QAOAAnsatz.sdg
       ~QAOAAnsatz.set_density_matrix
+      ~QAOAAnsatz.set_matrix_product_state
       ~QAOAAnsatz.set_stabilizer
       ~QAOAAnsatz.set_statevector
       ~QAOAAnsatz.set_superop

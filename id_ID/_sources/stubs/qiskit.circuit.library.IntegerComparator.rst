@@ -122,6 +122,7 @@
       ~IntegerComparator.save_unitary
       ~IntegerComparator.sdg
       ~IntegerComparator.set_density_matrix
+      ~IntegerComparator.set_matrix_product_state
       ~IntegerComparator.set_stabilizer
       ~IntegerComparator.set_statevector
       ~IntegerComparator.set_superop

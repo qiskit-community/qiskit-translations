@@ -122,6 +122,7 @@
       ~GraphState.save_unitary
       ~GraphState.sdg
       ~GraphState.set_density_matrix
+      ~GraphState.set_matrix_product_state
       ~GraphState.set_stabilizer
       ~GraphState.set_statevector
       ~GraphState.set_superop

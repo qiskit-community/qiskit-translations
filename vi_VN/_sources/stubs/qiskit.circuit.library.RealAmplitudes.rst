@@ -126,6 +126,7 @@
       ~RealAmplitudes.save_unitary
       ~RealAmplitudes.sdg
       ~RealAmplitudes.set_density_matrix
+      ~RealAmplitudes.set_matrix_product_state
       ~RealAmplitudes.set_stabilizer
       ~RealAmplitudes.set_statevector
       ~RealAmplitudes.set_superop

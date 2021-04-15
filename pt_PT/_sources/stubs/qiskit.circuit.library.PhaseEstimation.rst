@@ -122,6 +122,7 @@
       ~PhaseEstimation.save_unitary
       ~PhaseEstimation.sdg
       ~PhaseEstimation.set_density_matrix
+      ~PhaseEstimation.set_matrix_product_state
       ~PhaseEstimation.set_stabilizer
       ~PhaseEstimation.set_statevector
       ~PhaseEstimation.set_superop

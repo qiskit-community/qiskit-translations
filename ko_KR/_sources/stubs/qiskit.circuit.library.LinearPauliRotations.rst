@@ -122,6 +122,7 @@
       ~LinearPauliRotations.save_unitary
       ~LinearPauliRotations.sdg
       ~LinearPauliRotations.set_density_matrix
+      ~LinearPauliRotations.set_matrix_product_state
       ~LinearPauliRotations.set_stabilizer
       ~LinearPauliRotations.set_statevector
       ~LinearPauliRotations.set_superop

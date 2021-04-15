@@ -122,6 +122,7 @@
       ~QuantumVolume.save_unitary
       ~QuantumVolume.sdg
       ~QuantumVolume.set_density_matrix
+      ~QuantumVolume.set_matrix_product_state
       ~QuantumVolume.set_stabilizer
       ~QuantumVolume.set_statevector
       ~QuantumVolume.set_superop

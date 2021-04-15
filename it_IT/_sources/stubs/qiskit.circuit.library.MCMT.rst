@@ -122,6 +122,7 @@
       ~MCMT.save_unitary
       ~MCMT.sdg
       ~MCMT.set_density_matrix
+      ~MCMT.set_matrix_product_state
       ~MCMT.set_stabilizer
       ~MCMT.set_statevector
       ~MCMT.set_superop

@@ -122,6 +122,7 @@
       ~WeightedAdder.save_unitary
       ~WeightedAdder.sdg
       ~WeightedAdder.set_density_matrix
+      ~WeightedAdder.set_matrix_product_state
       ~WeightedAdder.set_stabilizer
       ~WeightedAdder.set_statevector
       ~WeightedAdder.set_superop

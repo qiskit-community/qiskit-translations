@@ -122,6 +122,7 @@
       ~Diagonal.save_unitary
       ~Diagonal.sdg
       ~Diagonal.set_density_matrix
+      ~Diagonal.set_matrix_product_state
       ~Diagonal.set_stabilizer
       ~Diagonal.set_statevector
       ~Diagonal.set_superop

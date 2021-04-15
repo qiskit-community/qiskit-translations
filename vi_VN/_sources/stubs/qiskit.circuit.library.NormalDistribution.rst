@@ -122,6 +122,7 @@
       ~NormalDistribution.save_unitary
       ~NormalDistribution.sdg
       ~NormalDistribution.set_density_matrix
+      ~NormalDistribution.set_matrix_product_state
       ~NormalDistribution.set_stabilizer
       ~NormalDistribution.set_statevector
       ~NormalDistribution.set_superop

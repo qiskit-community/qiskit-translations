@@ -122,6 +122,7 @@
       ~PiecewiseChebyshev.save_unitary
       ~PiecewiseChebyshev.sdg
       ~PiecewiseChebyshev.set_density_matrix
+      ~PiecewiseChebyshev.set_matrix_product_state
       ~PiecewiseChebyshev.set_stabilizer
       ~PiecewiseChebyshev.set_statevector
       ~PiecewiseChebyshev.set_superop

@@ -123,6 +123,7 @@
       ~PiecewiseLinearPauliRotations.save_unitary
       ~PiecewiseLinearPauliRotations.sdg
       ~PiecewiseLinearPauliRotations.set_density_matrix
+      ~PiecewiseLinearPauliRotations.set_matrix_product_state
       ~PiecewiseLinearPauliRotations.set_stabilizer
       ~PiecewiseLinearPauliRotations.set_statevector
       ~PiecewiseLinearPauliRotations.set_superop

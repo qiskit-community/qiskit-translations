@@ -122,6 +122,7 @@
       ~GRX.save_unitary
       ~GRX.sdg
       ~GRX.set_density_matrix
+      ~GRX.set_matrix_product_state
       ~GRX.set_stabilizer
       ~GRX.set_statevector
       ~GRX.set_superop

@@ -122,6 +122,7 @@
       ~OR.save_unitary
       ~OR.sdg
       ~OR.set_density_matrix
+      ~OR.set_matrix_product_state
       ~OR.set_stabilizer
       ~OR.set_statevector
       ~OR.set_superop

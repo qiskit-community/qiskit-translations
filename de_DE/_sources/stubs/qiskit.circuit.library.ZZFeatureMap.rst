@@ -128,6 +128,7 @@
       ~ZZFeatureMap.save_unitary
       ~ZZFeatureMap.sdg
       ~ZZFeatureMap.set_density_matrix
+      ~ZZFeatureMap.set_matrix_product_state
       ~ZZFeatureMap.set_stabilizer
       ~ZZFeatureMap.set_statevector
       ~ZZFeatureMap.set_superop

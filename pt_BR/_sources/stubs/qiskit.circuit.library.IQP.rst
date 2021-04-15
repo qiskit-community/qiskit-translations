@@ -122,6 +122,7 @@
       ~IQP.save_unitary
       ~IQP.sdg
       ~IQP.set_density_matrix
+      ~IQP.set_matrix_product_state
       ~IQP.set_stabilizer
       ~IQP.set_statevector
       ~IQP.set_superop

@@ -122,6 +122,7 @@
       ~QuantumCircuit.save_unitary
       ~QuantumCircuit.sdg
       ~QuantumCircuit.set_density_matrix
+      ~QuantumCircuit.set_matrix_product_state
       ~QuantumCircuit.set_stabilizer
       ~QuantumCircuit.set_statevector
       ~QuantumCircuit.set_superop

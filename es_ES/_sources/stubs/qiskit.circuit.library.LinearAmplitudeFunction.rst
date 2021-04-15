@@ -123,6 +123,7 @@
       ~LinearAmplitudeFunction.save_unitary
       ~LinearAmplitudeFunction.sdg
       ~LinearAmplitudeFunction.set_density_matrix
+      ~LinearAmplitudeFunction.set_matrix_product_state
       ~LinearAmplitudeFunction.set_stabilizer
       ~LinearAmplitudeFunction.set_statevector
       ~LinearAmplitudeFunction.set_superop

@@ -122,6 +122,7 @@
       ~FunctionalPauliRotations.save_unitary
       ~FunctionalPauliRotations.sdg
       ~FunctionalPauliRotations.set_density_matrix
+      ~FunctionalPauliRotations.set_matrix_product_state
       ~FunctionalPauliRotations.set_stabilizer
       ~FunctionalPauliRotations.set_statevector
       ~FunctionalPauliRotations.set_superop

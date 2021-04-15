@@ -122,6 +122,7 @@
       ~GR.save_unitary
       ~GR.sdg
       ~GR.set_density_matrix
+      ~GR.set_matrix_product_state
       ~GR.set_stabilizer
       ~GR.set_statevector
       ~GR.set_superop

@@ -122,6 +122,7 @@
       ~GroverOperator.save_unitary
       ~GroverOperator.sdg
       ~GroverOperator.set_density_matrix
+      ~GroverOperator.set_matrix_product_state
       ~GroverOperator.set_stabilizer
       ~GroverOperator.set_statevector
       ~GroverOperator.set_superop

@@ -122,6 +122,7 @@
       ~MCMTVChain.save_unitary
       ~MCMTVChain.sdg
       ~MCMTVChain.set_density_matrix
+      ~MCMTVChain.set_matrix_product_state
       ~MCMTVChain.set_stabilizer
       ~MCMTVChain.set_statevector
       ~MCMTVChain.set_superop

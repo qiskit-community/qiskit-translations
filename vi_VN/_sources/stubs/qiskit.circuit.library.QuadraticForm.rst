@@ -123,6 +123,7 @@
       ~QuadraticForm.save_unitary
       ~QuadraticForm.sdg
       ~QuadraticForm.set_density_matrix
+      ~QuadraticForm.set_matrix_product_state
       ~QuadraticForm.set_stabilizer
       ~QuadraticForm.set_statevector
       ~QuadraticForm.set_superop

@@ -122,6 +122,7 @@
       ~Permutation.save_unitary
       ~Permutation.sdg
       ~Permutation.set_density_matrix
+      ~Permutation.set_matrix_product_state
       ~Permutation.set_stabilizer
       ~Permutation.set_statevector
       ~Permutation.set_superop

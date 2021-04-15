@@ -126,6 +126,7 @@
       ~EfficientSU2.save_unitary
       ~EfficientSU2.sdg
       ~EfficientSU2.set_density_matrix
+      ~EfficientSU2.set_matrix_product_state
       ~EfficientSU2.set_stabilizer
       ~EfficientSU2.set_statevector
       ~EfficientSU2.set_superop

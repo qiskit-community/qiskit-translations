@@ -126,6 +126,7 @@
       ~TwoLocal.save_unitary
       ~TwoLocal.sdg
       ~TwoLocal.set_density_matrix
+      ~TwoLocal.set_matrix_product_state
       ~TwoLocal.set_stabilizer
       ~TwoLocal.set_statevector
       ~TwoLocal.set_superop

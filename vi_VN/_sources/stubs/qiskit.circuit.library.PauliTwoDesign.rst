@@ -126,6 +126,7 @@
       ~PauliTwoDesign.save_unitary
       ~PauliTwoDesign.sdg
       ~PauliTwoDesign.set_density_matrix
+      ~PauliTwoDesign.set_matrix_product_state
       ~PauliTwoDesign.set_stabilizer
       ~PauliTwoDesign.set_statevector
       ~PauliTwoDesign.set_superop

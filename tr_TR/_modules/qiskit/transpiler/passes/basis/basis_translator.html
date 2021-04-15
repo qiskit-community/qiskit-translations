@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.transpiler.passes.basis.basis_translator &mdash; Qiskit 0.25.0 belgelendirmesi</title>
+  <title>qiskit.transpiler.passes.basis.basis_translator &mdash; Qiskit 0.25.1 belgelendirmesi</title>
   
 
   
@@ -428,6 +428,11 @@
 
         <span class="c1"># Replace source instructions with target translations.</span>
 
+        <span class="c1"># As a bandaid for the performance regression introduced by #6072, cache</span>
+        <span class="c1"># bound target DAGs to avoid recurring cost of symbolic calculation on</span>
+        <span class="c1"># assign_parameters.</span>
+        <span class="n">target_dag_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
         <span class="n">replace_start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">op_nodes</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">target_basis</span><span class="p">:</span>
@@ -447,16 +452,21 @@
                             <span class="n">target_params</span><span class="p">,</span> <span class="n">target_dag</span><span class="p">))</span>
 
                 <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
-                    <span class="c1"># Convert target to circ and back to assign_parameters, since</span>
-                    <span class="c1"># DAGCircuits won&#39;t have a ParameterTable.</span>
-                    <span class="kn">from</span> <span class="nn">qiskit.converters</span> <span class="kn">import</span> <span class="n">dag_to_circuit</span><span class="p">,</span> <span class="n">circuit_to_dag</span>
-                    <span class="n">target_circuit</span> <span class="o">=</span> <span class="n">dag_to_circuit</span><span class="p">(</span><span class="n">target_dag</span><span class="p">)</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">params</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">target_dag_cache</span><span class="p">:</span>
+                        <span class="n">bound_target_dag</span> <span class="o">=</span> <span class="n">target_dag_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># Convert target to circ and back to assign_parameters, since</span>
+                        <span class="c1"># DAGCircuits won&#39;t have a ParameterTable.</span>
+                        <span class="kn">from</span> <span class="nn">qiskit.converters</span> <span class="kn">import</span> <span class="n">dag_to_circuit</span><span class="p">,</span> <span class="n">circuit_to_dag</span>
+                        <span class="n">target_circuit</span> <span class="o">=</span> <span class="n">dag_to_circuit</span><span class="p">(</span><span class="n">target_dag</span><span class="p">)</span>
 
-                    <span class="n">target_circuit</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span>
-                        <span class="nb">dict</span><span class="p">(</span><span class="n">zip_longest</span><span class="p">(</span><span class="n">target_params</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">params</span><span class="p">)),</span>
-                        <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                        <span class="n">target_circuit</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span>
+                            <span class="nb">dict</span><span class="p">(</span><span class="n">zip_longest</span><span class="p">(</span><span class="n">target_params</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">params</span><span class="p">)),</span>
+                            <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-                    <span class="n">bound_target_dag</span> <span class="o">=</span> <span class="n">circuit_to_dag</span><span class="p">(</span><span class="n">target_circuit</span><span class="p">)</span>
+                        <span class="n">bound_target_dag</span> <span class="o">=</span> <span class="n">circuit_to_dag</span><span class="p">(</span><span class="n">target_circuit</span><span class="p">)</span>
+                        <span class="n">target_dag_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">bound_target_dag</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">bound_target_dag</span> <span class="o">=</span> <span class="n">target_dag</span>
 

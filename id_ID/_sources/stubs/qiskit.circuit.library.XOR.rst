@@ -122,6 +122,7 @@
       ~XOR.save_unitary
       ~XOR.sdg
       ~XOR.set_density_matrix
+      ~XOR.set_matrix_product_state
       ~XOR.set_stabilizer
       ~XOR.set_statevector
       ~XOR.set_superop

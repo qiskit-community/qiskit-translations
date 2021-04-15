@@ -124,6 +124,7 @@
       ~PhaseOracle.save_unitary
       ~PhaseOracle.sdg
       ~PhaseOracle.set_density_matrix
+      ~PhaseOracle.set_matrix_product_state
       ~PhaseOracle.set_stabilizer
       ~PhaseOracle.set_statevector
       ~PhaseOracle.set_superop

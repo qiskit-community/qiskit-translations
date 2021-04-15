@@ -122,6 +122,7 @@
       ~InnerProduct.save_unitary
       ~InnerProduct.sdg
       ~InnerProduct.set_density_matrix
+      ~InnerProduct.set_matrix_product_state
       ~InnerProduct.set_stabilizer
       ~InnerProduct.set_statevector
       ~InnerProduct.set_superop

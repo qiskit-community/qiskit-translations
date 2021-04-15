@@ -122,6 +122,7 @@
       ~GRY.save_unitary
       ~GRY.sdg
       ~GRY.set_density_matrix
+      ~GRY.set_matrix_product_state
       ~GRY.set_stabilizer
       ~GRY.set_statevector
       ~GRY.set_superop

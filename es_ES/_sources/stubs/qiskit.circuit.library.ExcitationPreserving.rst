@@ -126,6 +126,7 @@
       ~ExcitationPreserving.save_unitary
       ~ExcitationPreserving.sdg
       ~ExcitationPreserving.set_density_matrix
+      ~ExcitationPreserving.set_matrix_product_state
       ~ExcitationPreserving.set_stabilizer
       ~ExcitationPreserving.set_statevector
       ~ExcitationPreserving.set_superop

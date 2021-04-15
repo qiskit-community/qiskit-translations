@@ -122,6 +122,7 @@
       ~HiddenLinearFunction.save_unitary
       ~HiddenLinearFunction.sdg
       ~HiddenLinearFunction.set_density_matrix
+      ~HiddenLinearFunction.set_matrix_product_state
       ~HiddenLinearFunction.set_stabilizer
       ~HiddenLinearFunction.set_statevector
       ~HiddenLinearFunction.set_superop

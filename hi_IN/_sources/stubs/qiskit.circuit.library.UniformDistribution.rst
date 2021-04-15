@@ -122,6 +122,7 @@
       ~UniformDistribution.save_unitary
       ~UniformDistribution.sdg
       ~UniformDistribution.set_density_matrix
+      ~UniformDistribution.set_matrix_product_state
       ~UniformDistribution.set_stabilizer
       ~UniformDistribution.set_statevector
       ~UniformDistribution.set_superop

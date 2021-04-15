@@ -122,6 +122,7 @@
       ~LogNormalDistribution.save_unitary
       ~LogNormalDistribution.sdg
       ~LogNormalDistribution.set_density_matrix
+      ~LogNormalDistribution.set_matrix_product_state
       ~LogNormalDistribution.set_stabilizer
       ~LogNormalDistribution.set_statevector
       ~LogNormalDistribution.set_superop

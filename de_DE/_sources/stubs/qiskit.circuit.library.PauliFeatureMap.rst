@@ -128,6 +128,7 @@
       ~PauliFeatureMap.save_unitary
       ~PauliFeatureMap.sdg
       ~PauliFeatureMap.set_density_matrix
+      ~PauliFeatureMap.set_matrix_product_state
       ~PauliFeatureMap.set_stabilizer
       ~PauliFeatureMap.set_statevector
       ~PauliFeatureMap.set_superop

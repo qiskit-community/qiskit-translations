@@ -122,6 +122,7 @@
       ~FourierChecking.save_unitary
       ~FourierChecking.sdg
       ~FourierChecking.set_density_matrix
+      ~FourierChecking.set_matrix_product_state
       ~FourierChecking.set_stabilizer
       ~FourierChecking.set_statevector
       ~FourierChecking.set_superop

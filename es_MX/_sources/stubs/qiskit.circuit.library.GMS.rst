@@ -122,6 +122,7 @@
       ~GMS.save_unitary
       ~GMS.sdg
       ~GMS.set_density_matrix
+      ~GMS.set_matrix_product_state
       ~GMS.set_stabilizer
       ~GMS.set_statevector
       ~GMS.set_superop

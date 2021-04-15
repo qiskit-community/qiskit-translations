@@ -126,6 +126,7 @@
       ~NLocal.save_unitary
       ~NLocal.sdg
       ~NLocal.set_density_matrix
+      ~NLocal.set_matrix_product_state
       ~NLocal.set_stabilizer
       ~NLocal.set_statevector
       ~NLocal.set_superop

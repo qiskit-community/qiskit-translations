@@ -123,6 +123,7 @@
       ~QFT.save_unitary
       ~QFT.sdg
       ~QFT.set_density_matrix
+      ~QFT.set_matrix_product_state
       ~QFT.set_stabilizer
       ~QFT.set_statevector
       ~QFT.set_superop
