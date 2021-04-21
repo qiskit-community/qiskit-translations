@@ -26,7 +26,6 @@
    .. autosummary::
    
       ~AnalysisResult.creation_datetime
-      ~AnalysisResult.fit
       ~AnalysisResult.quality
       ~AnalysisResult.updated_datetime
       ~AnalysisResult.uuid

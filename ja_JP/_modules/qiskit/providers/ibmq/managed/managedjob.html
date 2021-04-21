@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.providers.ibmq.managed.managedjob &mdash; Qiskit 0.25.1 ドキュメント</title>
+  <title>qiskit.providers.ibmq.managed.managedjob &mdash; Qiskit 0.25.2 ドキュメント</title>
   
 
   
@@ -324,12 +324,14 @@
 
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span>
 <span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
 <span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Lock</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.providers.ibmq</span> <span class="kn">import</span> <span class="n">IBMQBackend</span>
 <span class="kn">from</span> <span class="nn">qiskit.qobj</span> <span class="kn">import</span> <span class="n">QasmQobj</span><span class="p">,</span> <span class="n">PulseQobj</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span> <span class="nn">qiskit.pulse</span> <span class="kn">import</span> <span class="n">Schedule</span>
 <span class="kn">from</span> <span class="nn">qiskit.result</span> <span class="kn">import</span> <span class="n">Result</span>
 <span class="kn">from</span> <span class="nn">qiskit.providers.jobstatus</span> <span class="kn">import</span> <span class="n">JobStatus</span>
 <span class="kn">from</span> <span class="nn">qiskit.providers.exceptions</span> <span class="kn">import</span> <span class="n">JobError</span>
@@ -368,51 +370,56 @@
 
 <div class="viewcode-block" id="ManagedJob.submit"><a class="viewcode-back" href="../../../../../stubs/qiskit.providers.ibmq.managed.ManagedJob.html#qiskit.providers.ibmq.managed.ManagedJob.submit">[ドキュメント]</a>    <span class="k">def</span> <span class="nf">submit</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="n">qobj</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QasmQobj</span><span class="p">,</span> <span class="n">PulseQobj</span><span class="p">],</span>
+            <span class="n">circuits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">]]],</span>
             <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
             <span class="n">backend</span><span class="p">:</span> <span class="n">IBMQBackend</span><span class="p">,</span>
             <span class="n">executor</span><span class="p">:</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span>
             <span class="n">submit_lock</span><span class="p">:</span> <span class="n">Lock</span><span class="p">,</span>
             <span class="n">job_share_level</span><span class="p">:</span> <span class="n">ApiJobShareLevel</span><span class="p">,</span>
-            <span class="n">job_tags</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">job_tags</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">run_config</span><span class="p">:</span> <span class="n">Dict</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Submit the job.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            qobj: Qobj to run.</span>
+<span class="sd">            circuits: Circuits to run.</span>
 <span class="sd">            job_name: Name of the job.</span>
 <span class="sd">            backend: Backend to execute the experiments on.</span>
 <span class="sd">            executor: The thread pool used to submit the job.</span>
 <span class="sd">            submit_lock: Lock used to synchronize job submission.</span>
 <span class="sd">            job_share_level: Job share level.</span>
 <span class="sd">            job_tags: Tags to be assigned to the job.</span>
+<span class="sd">            **run_config: Extra arguments used to configure the run.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Submit the job in its own future.</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Submitting job </span><span class="si">%s</span><span class="s2"> in future&quot;</span><span class="p">,</span> <span class="n">job_name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">future</span> <span class="o">=</span> <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_async_submit</span><span class="p">,</span> <span class="n">qobj</span><span class="o">=</span><span class="n">qobj</span><span class="p">,</span> <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
-            <span class="n">submit_lock</span><span class="o">=</span><span class="n">submit_lock</span><span class="p">,</span> <span class="n">job_share_level</span><span class="o">=</span><span class="n">job_share_level</span><span class="p">,</span> <span class="n">job_tags</span><span class="o">=</span><span class="n">job_tags</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_async_submit</span><span class="p">,</span> <span class="n">circuits</span><span class="o">=</span><span class="n">circuits</span><span class="p">,</span> <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+            <span class="n">submit_lock</span><span class="o">=</span><span class="n">submit_lock</span><span class="p">,</span> <span class="n">job_share_level</span><span class="o">=</span><span class="n">job_share_level</span><span class="p">,</span> <span class="n">job_tags</span><span class="o">=</span><span class="n">job_tags</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">run_config</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Job </span><span class="si">%s</span><span class="s2"> future obtained&quot;</span><span class="p">,</span> <span class="n">job_name</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_async_submit</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="n">qobj</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QasmQobj</span><span class="p">,</span> <span class="n">PulseQobj</span><span class="p">],</span>
+            <span class="n">circuits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">]]],</span>
             <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
             <span class="n">backend</span><span class="p">:</span> <span class="n">IBMQBackend</span><span class="p">,</span>
             <span class="n">submit_lock</span><span class="p">:</span> <span class="n">Lock</span><span class="p">,</span>
             <span class="n">job_share_level</span><span class="p">:</span> <span class="n">ApiJobShareLevel</span><span class="p">,</span>
-            <span class="n">job_tags</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">job_tags</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">run_config</span><span class="p">:</span> <span class="n">Dict</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Run a Qobj asynchronously and populate instance attributes.</span>
+        <span class="sd">&quot;&quot;&quot;Run circuits asynchronously and populate instance attributes.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            qobj: Qobj to run.</span>
+<span class="sd">            circuits: Circuits to run.</span>
 <span class="sd">            job_name: Name of the job.</span>
 <span class="sd">            backend: Backend to execute the experiments on.</span>
 <span class="sd">            submit_lock: Lock used to synchronize job submission.</span>
 <span class="sd">            job_share_level: Job share level.</span>
 <span class="sd">            job_tags: Tags to be assigned to the job.</span>
+<span class="sd">            **run_config: Extra arguments used to configure the run.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># pylint: disable=missing-raises-doc</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Job </span><span class="si">%s</span><span class="s2"> waiting for submit lock.&quot;</span><span class="p">,</span> <span class="n">job_name</span><span class="p">)</span>
@@ -422,10 +429,11 @@
             <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">job</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">job</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-                        <span class="n">qobj</span><span class="o">=</span><span class="n">qobj</span><span class="p">,</span>
+                        <span class="n">circuits</span><span class="p">,</span>
                         <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span><span class="p">,</span>
                         <span class="n">job_share_level</span><span class="o">=</span><span class="n">job_share_level</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
-                        <span class="n">job_tags</span><span class="o">=</span><span class="n">job_tags</span><span class="p">)</span>
+                        <span class="n">job_tags</span><span class="o">=</span><span class="n">job_tags</span><span class="p">,</span>
+                        <span class="o">**</span><span class="n">run_config</span><span class="p">)</span>
                 <span class="k">except</span> <span class="n">IBMQBackendJobLimitError</span><span class="p">:</span>
                     <span class="n">final_states</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">API_JOB_FINAL_STATES</span><span class="p">]</span>
                     <span class="n">oldest_running</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">jobs</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">descending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
