@@ -559,14 +559,14 @@ div.rendered_html tbody tr:hover {
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>இந்த பக்கம் <a class="reference external" href="https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/simulators/5_noise_transformation.ipynb">tutorials/simulators/5_noise_transformation.ipynb</a> இலிருந்து உருவாக்கப்பட்டது.</p>
-<p><cite>IBM குவாண்டம் ஆய்வகத்தில் &lt;https://quantum-computing.ibm.com/jupyter/tutorial/simulators/5_noise_transformation.ipynb&gt;</cite> _ இல் ஊடாடும் வகையில் இயக்கவும்.</p>
+<p><cite>IBM Quantum lab &lt;https://quantum-computing.ibm.com/jupyter/tutorial/simulators/5_noise_transformation.ipynb&gt;</cite> _ இல் ஊடாடும் வகையில் இயக்கவும்.</p>
 </div>
 <section id="சத்தம்-மாற்றம்">
 <h1>சத்தம் மாற்றம்<a class="headerlink" href="#சத்தம்-மாற்றம்" title="Permalink to this headline">¶</a></h1>
 <section id="முன்னுரை">
 <h2>முன்னுரை<a class="headerlink" href="#முன்னுரை" title="Permalink to this headline">¶</a></h2>
 <p>This notebook shows how to use the Qiskit Aer utility functions <code class="docutils literal notranslate"><span class="pre">approximate_quantum_error</span></code> and <code class="docutils literal notranslate"><span class="pre">approximate_noise_model</span></code> to transform quantum noise channels into a different, more suitable, noise channel.</p>
-<p>எங்கள் வழிகாட்டும் உதாரணம் கிளிஃபோர்ட் உருவகப்படுத்துதல். ஒரு கிளிஃபோர்ட் சிமுலேட்டர் குவாண்டம் கணக்கீடுகளை திறமையாக உருவகப்படுத்த முடியும், இதில் ஒரு வரையறுக்கப்பட்ட, உலகளாவிய அல்லாத வாயில்களின் (கிளிஃபோர்ட் வாயில்கள்) இருந்து மட்டுமே வாயில்கள் அடங்கும். அத்தகைய உருவகப்படுத்துதல்களில் அனைத்து குவாண்டம் சத்தங்களையும் சேர்க்க முடியாது; எனவே, கிளிஃபோர்டு சிமுலேட்டரில் உருவகப்படுத்தக்கூடிய &quot;நெருக்கமான&quot; இரைச்சல் சேனலைக் கண்டுபிடிப்பதை நோக்கமாகக் கொண்டுள்ளோம்.</p>
+<p>Our guiding example is Clifford simulation. A Clifford simulator can efficiently simulate quantum computations which include gates only from a limited, non-universal set of gates (the Clifford gates). Not all quantum noises can be added to such simulations; hence, we aim to find a “close” noise channel which can be simulated in a Clifford simulator.</p>
 <p>மாற்றும் செயல்பாடுகளை ஏர் வழங்குநர் பயன்பாடுகளிலிருந்து இறக்குமதி செய்வதன் மூலம் தொடங்குவோம்</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -598,7 +598,7 @@ div.rendered_html tbody tr:hover {
 <section id="கண்ணோட்டம்">
 <h2>கண்ணோட்டம்<a class="headerlink" href="#கண்ணோட்டம்" title="Permalink to this headline">¶</a></h2>
 <p>A 1-qubit quantum channel is a function <span class="math notranslate nohighlight">\(\mathcal{C}:\mathbb{C}^{2\times2}\to\mathbb{C}^{2\times2}\)</span> mapping density operators to density operators (to ensure the image is a density operator <span class="math notranslate nohighlight">\(\mathcal{C}\)</span> is required to be completely positive and trace preserving, <strong>CPTP</strong>).</p>
-<p>கொடுக்கப்பட்ட குவாண்டம் சேனல்கள்:math: <cite>mathcal {E} _ {1}, புள்ளிகள், mathcal {E} _ {r}</cite>, மற்றும் நிகழ்தகவுகள்:math: <cite>p_1, p_2, புள்ளிகள், p_r</cite> போன்றவை:math: <cite>0 le p_i le 1</cite> மற்றும்:math:` p_1 + புள்ளிகள் + p_r = 1`, ஒரு புதிய குவாண்டம் சேனல்:math: <cite>mathcal {C} _ mathcal {E}</cite> போன்றவற்றை உருவாக்கலாம்:math: <cite>mathcal {C} _ mathcal {E} (rho)</cite> சேனலைத் தேர்ந்தெடுப்பதன் விளைவைக் கொண்டுள்ளது:math: <cite>mathcal {E} _i</cite> நிகழ்தகவுடன்:math:` p_i` மற்றும் இதைப் பயன்படுத்துதல்:math: <cite>rho</cite>.</p>
+<p>Given quantum channels <span class="math notranslate nohighlight">\(\mathcal{E}_{1},\dots,\mathcal{E}_{r}\)</span>, and probabilities <span class="math notranslate nohighlight">\(p_1, p_2, \dots, p_r\)</span> such that <span class="math notranslate nohighlight">\(0\le p_i \le 1\)</span> and <span class="math notranslate nohighlight">\(p_1+\dots +p_r = 1\)</span>, a new quantum channel <span class="math notranslate nohighlight">\(\mathcal{C}_\mathcal{E}\)</span> can be constructed such that <span class="math notranslate nohighlight">\(\mathcal{C}_\mathcal{E}(\rho)\)</span> has the effect of choosing the channel <span class="math notranslate nohighlight">\(\mathcal{E}_i\)</span> with probability <span class="math notranslate nohighlight">\(p_i\)</span> and applying it to <span class="math notranslate nohighlight">\(\rho\)</span>.</p>
 <p>இரைச்சல் உருமாற்றம் செயல்பாடு பின்வரும் தேர்வுமுறை சிக்கலை தீர்க்கிறது: ஒரு சேனல் கொடுக்கப்பட்டுள்ளது:math: <cite>mathcal {C}</cite> (“இலக்கு”) மற்றும் சேனல்களின் பட்டியல்:math: <cite>mathcal {E} _ {1}, புள்ளிகள், mathcal {E}_{r} `, நிகழ்தகவுகளைக் கண்டறியவும்:math:</cite> p_1, p_2, ots புள்ளிகள், p_r` குறைத்தல்:math: <cite>D (th mathcal {C}, mathcal {C} _ mathcal {E}) `சில தூர மெட்ரிக் படி:math:`D</cite> (ஹில்பர்ட்-ஷ்மிட் மெட்ரிக் தற்போது பயன்படுத்தப்படுகிறது).</p>
 <p>தோராயமானது நேர்மையானது என்பதை உறுதிப்படுத்த, தோராயமான பிழை சேனல் உண்மையான பிழை சேனலுக்கான “upper bound” செயல்படுகிறது என்ற பொருளில், கூடுதல் நேர்மைக் கட்டுப்பாட்டை நாங்கள் சேர்க்கிறோம்:</p>
 <div class="math notranslate nohighlight">
