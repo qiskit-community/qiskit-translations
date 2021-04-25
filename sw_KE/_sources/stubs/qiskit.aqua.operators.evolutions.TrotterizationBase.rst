@@ -1,0 +1,29 @@
+﻿qiskit.aqua.operators.evolutions.TrotterizationBase
+===================================================
+
+.. currentmodule:: qiskit.aqua.operators.evolutions
+
+.. autoclass:: TrotterizationBase
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~TrotterizationBase.__init__
+      ~TrotterizationBase.convert
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~TrotterizationBase.reps
+   
+   
