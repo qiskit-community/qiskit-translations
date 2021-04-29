@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.providers.aer.backends.aer_simulator &mdash; Qiskit 0.25.2 दिग्दर्शिका</title>
+  <title>qiskit.providers.aer.backends.aer_simulator &mdash; Qiskit 0.25.3 दिग्दर्शिका</title>
   
 
   
@@ -708,8 +708,7 @@
             <span class="s1">&#39;set_stabilizer&#39;</span>
         <span class="p">]),</span>
         <span class="s1">&#39;extended_stabilizer&#39;</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">([</span>
-            <span class="s1">&#39;roerror&#39;</span><span class="p">,</span> <span class="s1">&#39;snapshot&#39;</span><span class="p">,</span> <span class="s1">&#39;save_statevector&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;save_expval&#39;</span><span class="p">,</span> <span class="s1">&#39;save_expval_var&#39;</span>
+            <span class="s1">&#39;roerror&#39;</span><span class="p">,</span> <span class="s1">&#39;snapshot&#39;</span><span class="p">,</span> <span class="s1">&#39;save_statevector&#39;</span>
         <span class="p">]),</span>
         <span class="s1">&#39;unitary&#39;</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">([</span>
             <span class="s1">&#39;snapshot&#39;</span><span class="p">,</span> <span class="s1">&#39;save_state&#39;</span><span class="p">,</span> <span class="s1">&#39;save_unitary&#39;</span><span class="p">,</span> <span class="s1">&#39;set_unitary&#39;</span>
@@ -778,6 +777,10 @@
         <span class="k">if</span> <span class="n">configuration</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">configuration</span> <span class="o">=</span> <span class="n">QasmBackendConfiguration</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
                 <span class="n">AerSimulator</span><span class="o">.</span><span class="n">_DEFAULT_CONFIGURATION</span><span class="p">)</span>
+
+        <span class="c1"># Cache basis gates since computing the intersection</span>
+        <span class="c1"># of noise model, method, and config gates is expensive.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_basis_gates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BASIS_GATES</span><span class="p">[</span><span class="s1">&#39;automatic&#39;</span><span class="p">]</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">configuration</span><span class="p">,</span>
                          <span class="n">properties</span><span class="o">=</span><span class="n">properties</span><span class="p">,</span>
@@ -889,14 +892,14 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            BackendConfiguration: the configuration for the backend.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_configuration</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options_configuration</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
         <span class="c1"># Update basis gates based on custom options, config, method,</span>
         <span class="c1"># and noise model</span>
-        <span class="n">basis_gates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_basis_gates</span><span class="p">()</span>
-        <span class="n">method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">,</span> <span class="s1">&#39;method&#39;</span><span class="p">,</span> <span class="s1">&#39;automatic&#39;</span><span class="p">)</span>
-        <span class="n">custom_inst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CUSTOM_INSTR</span><span class="p">[</span><span class="n">method</span><span class="p">]</span>
-        <span class="n">config</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span>
-        <span class="n">config</span><span class="o">.</span><span class="n">custom_instructions</span> <span class="o">=</span> <span class="n">custom_inst</span>
-        <span class="n">config</span><span class="o">.</span><span class="n">basis_gates</span> <span class="o">=</span> <span class="n">basis_gates</span> <span class="o">+</span> <span class="n">custom_inst</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">custom_instructions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CUSTOM_INSTR</span><span class="p">[</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">,</span> <span class="s1">&#39;method&#39;</span><span class="p">,</span> <span class="s1">&#39;automatic&#39;</span><span class="p">)]</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">basis_gates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_basis_gates</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">custom_instructions</span>
         <span class="c1"># Update simulator name</span>
         <span class="n">config</span><span class="o">.</span><span class="n">backend_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">config</span></div>
@@ -914,9 +917,14 @@
 
 <div class="viewcode-block" id="AerSimulator.set_options"><a class="viewcode-back" href="../../../../../stubs/qiskit.providers.aer.AerSimulator.html#qiskit.providers.aer.AerSimulator.set_options">[docs]</a>    <span class="k">def</span> <span class="nf">set_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">fields</span><span class="p">):</span>
         <span class="n">out_options</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">update_basis_gates</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;method&#39;</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_set_method_config</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="n">update_basis_gates</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">out_options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;noise_model&#39;</span><span class="p">,</span> <span class="s1">&#39;basis_gates&#39;</span><span class="p">]:</span>
+                <span class="n">update_basis_gates</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="n">out_options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
             <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;device&#39;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_AVAILABLE_DEVICES</span><span class="p">:</span>
@@ -928,7 +936,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_set_configuration_option</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">out_options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_options</span><span class="p">(</span><span class="o">**</span><span class="n">out_options</span><span class="p">)</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_options</span><span class="p">(</span><span class="o">**</span><span class="n">out_options</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">update_basis_gates</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_basis_gates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_basis_gates</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qobj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Semantic validations of the qobj which cannot be done via schemas.</span>
@@ -960,15 +970,15 @@
         <span class="k">if</span> <span class="s1">&#39;basis_gates&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options_configuration</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options_configuration</span><span class="p">[</span><span class="s1">&#39;basis_gates&#39;</span><span class="p">]</span>
 
-        <span class="c1"># Set basis gates to be the intersection of config, method, and noise model</span>
-        <span class="c1"># basis gates</span>
-        <span class="n">config_gates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configuration</span><span class="o">.</span><span class="n">basis_gates</span>
-        <span class="n">basis_gates</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">config_gates</span><span class="p">)</span>
-
         <span class="c1"># Compute intersection with method basis gates</span>
         <span class="n">method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">,</span> <span class="s1">&#39;method&#39;</span><span class="p">,</span> <span class="s1">&#39;automatic&#39;</span><span class="p">)</span>
         <span class="n">method_gates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BASIS_GATES</span><span class="p">[</span><span class="n">method</span><span class="p">]</span>
-        <span class="n">basis_gates</span> <span class="o">=</span> <span class="n">basis_gates</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">method_gates</span><span class="p">)</span>
+        <span class="n">config_gates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configuration</span><span class="o">.</span><span class="n">basis_gates</span>
+        <span class="k">if</span> <span class="n">config_gates</span><span class="p">:</span>
+            <span class="n">basis_gates</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">config_gates</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span>
+                <span class="n">method_gates</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">basis_gates</span> <span class="o">=</span> <span class="n">method_gates</span>
 
         <span class="c1"># Compute intersection with noise model basis gates</span>
         <span class="n">noise_model</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">,</span> <span class="s1">&#39;noise_model&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
