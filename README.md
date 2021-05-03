@@ -33,7 +33,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Soolu Thomas | @Soolu |
 
 
-### Translation Leads (as of Mar, 2021)
+### Translation Leads (as of Apr, 2021)
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
@@ -51,6 +51,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Portuguese, Brazilian | Luiz Henrique Galeoti de Lima | @Luiz Galeoti |
 | Spanish | Arturo Acuaviva Huertos, Carmen Recio Valcarce | @Arturo Acuaviva @carmenrv |
 | Spanish-Mexico | Carlos Gonzalez | @Carlos Esteban Gonzalez |
+| Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
 | Turkish | Ayşin Taşdelen | @Ayshine |
 | Urdu | Zia Mohammad, Muhammad Ali | @Zia Mohammad @Muhammad.Ali |
