@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.algorithms.optimizers.spsa &mdash; Qiskit 0.25.3 documentation</title>
+  <title>qiskit.algorithms.optimizers.spsa &mdash; Qiskit 0.25.4 documentation</title>
   
 
   
@@ -332,8 +332,8 @@
 
 <span class="kn">from</span> <span class="nn">.optimizer</span> <span class="kn">import</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">OptimizerSupportLevel</span>
 
-<span class="c1"># parameters, loss, stepsize, number of function evaluations, accepted</span>
-<span class="n">CALLBACK</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+<span class="c1"># number of function evaluations, parameters, loss, stepsize, accepted</span>
+<span class="n">CALLBACK</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -416,8 +416,8 @@
 <span class="sd">                are perturbed, but a smaller, fixed number can be perturbed. If set, the perturbed</span>
 <span class="sd">                dimensions are chosen uniformly at random.</span>
 <span class="sd">            callback: A callback function passed information in each iteration step. The</span>
-<span class="sd">                information is, in this order: the parameters, the function value, the number</span>
-<span class="sd">                of function evaluations, the stepsize, whether the step was accepted.</span>
+<span class="sd">                information is, in this order: the number of function evaluations, the parameters,</span>
+<span class="sd">                the function value, the stepsize, whether the step was accepted.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
@@ -616,9 +616,9 @@
 
             <span class="c1"># blocking</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocking</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_nfev</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">fx_next</span> <span class="o">=</span> <span class="n">loss</span><span class="p">(</span><span class="n">x_next</span><span class="p">)</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">_nfev</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">if</span> <span class="n">fx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_increase</span> <span class="o">&lt;=</span> <span class="n">fx_next</span><span class="p">:</span>  <span class="c1"># accept only if loss improved</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nfev</span><span class="p">,</span>  <span class="c1"># number of function evals</span>
@@ -636,6 +636,11 @@
                         <span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxiter</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">iteration_start</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># if we didn&#39;t evaluate the function yet, do it now</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocking</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_nfev</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">fx_next</span> <span class="o">=</span> <span class="n">loss</span><span class="p">(</span><span class="n">x_next</span><span class="p">)</span>
+
                 <span class="bp">self</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nfev</span><span class="p">,</span>  <span class="c1"># number of function evals</span>
                               <span class="n">x_next</span><span class="p">,</span>  <span class="c1"># next parameters</span>
                               <span class="n">fx_next</span><span class="p">,</span>  <span class="c1"># loss at next parameters</span>
@@ -717,7 +722,7 @@
   <div role="contentinfo">
     <p>
         &copy; Copyright 2021, Qiskit Development Team.
-      2021/05/04 সর্বশেষ পরিবর্তন করা হয়েছে।
+      2021/05/05 সর্বশেষ পরিবর্তন করা হয়েছে।
 
     </p>
   </div>
