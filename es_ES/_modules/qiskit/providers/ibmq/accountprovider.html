@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.providers.ibmq.accountprovider &mdash; documentación de Qiskit - 0.25.4</title>
+  <title>qiskit.providers.ibmq.accountprovider &mdash; documentación de Qiskit - 0.26.0</title>
   
 
   
@@ -323,13 +323,18 @@
 <span class="sd">&quot;&quot;&quot;Provider for a single IBM Quantum Experience account.&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.providers</span> <span class="kn">import</span> <span class="n">ProviderV1</span> <span class="k">as</span> <span class="n">Provider</span>  <span class="c1"># type: ignore[attr-defined]</span>
 <span class="kn">from</span> <span class="nn">qiskit.providers.models</span> <span class="kn">import</span> <span class="p">(</span><span class="n">QasmBackendConfiguration</span><span class="p">,</span>
                                      <span class="n">PulseBackendConfiguration</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers.backend</span> <span class="kn">import</span> <span class="n">BackendV1</span> <span class="k">as</span> <span class="n">Backend</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers.basebackend</span> <span class="kn">import</span> <span class="n">BaseBackend</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler</span> <span class="kn">import</span> <span class="n">Layout</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers.ibmq.runtime</span> <span class="kn">import</span> <span class="n">runtime_job</span>  <span class="c1"># pylint: disable=unused-import</span>
 
 <span class="kn">from</span> <span class="nn">.api.clients</span> <span class="kn">import</span> <span class="n">AccountClient</span>
 <span class="kn">from</span> <span class="nn">.ibmqbackend</span> <span class="kn">import</span> <span class="n">IBMQBackend</span><span class="p">,</span> <span class="n">IBMQSimulator</span>
@@ -338,7 +343,9 @@
 <span class="kn">from</span> <span class="nn">.utils.json_decoder</span> <span class="kn">import</span> <span class="n">decode_backend_configuration</span>
 <span class="kn">from</span> <span class="nn">.random.ibmqrandomservice</span> <span class="kn">import</span> <span class="n">IBMQRandomService</span>
 <span class="kn">from</span> <span class="nn">.experiment.experimentservice</span> <span class="kn">import</span> <span class="n">ExperimentService</span>
+<span class="kn">from</span> <span class="nn">.runtime.ibm_runtime_service</span> <span class="kn">import</span> <span class="n">IBMRuntimeService</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="kn">import</span> <span class="n">IBMQNotAuthorizedError</span><span class="p">,</span> <span class="n">IBMQInputValueError</span>
+<span class="kn">from</span> <span class="nn">.runner_result</span> <span class="kn">import</span> <span class="n">RunnerResult</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -399,18 +406,16 @@
 <span class="sd">        in Jupyter Notebook and the Python interpreter.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="AccountProvider.__init__"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.AccountProvider.html#qiskit.providers.ibmq.AccountProvider.__init__">[documentos]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">credentials</span><span class="p">:</span> <span class="n">Credentials</span><span class="p">,</span> <span class="n">access_token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="AccountProvider.__init__"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.AccountProvider.html#qiskit.providers.ibmq.AccountProvider.__init__">[documentos]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">credentials</span><span class="p">:</span> <span class="n">Credentials</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;AccountProvider constructor.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            credentials: IBM Quantum Experience credentials.</span>
-<span class="sd">            access_token: IBM Quantum Experience access token.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span> <span class="o">=</span> <span class="n">credentials</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span> <span class="o">=</span> <span class="n">AccountClient</span><span class="p">(</span><span class="n">access_token</span><span class="p">,</span>
-                                         <span class="n">credentials</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span> <span class="o">=</span> <span class="n">AccountClient</span><span class="p">(</span><span class="n">credentials</span><span class="p">,</span>
                                          <span class="o">**</span><span class="n">credentials</span><span class="o">.</span><span class="n">connection_parameters</span><span class="p">())</span>
 
         <span class="c1"># Initialize the internal list of backends.</span>
@@ -419,14 +424,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">backends</span> <span class="o">=</span> <span class="n">IBMQDeprecatedBackendService</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">)</span>  <span class="c1"># type: ignore[assignment]</span>
 
         <span class="c1"># Initialize other services.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_random</span> <span class="o">=</span> <span class="n">IBMQRandomService</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">access_token</span><span class="p">)</span> \
-            <span class="k">if</span> <span class="n">credentials</span><span class="o">.</span><span class="n">extractor_url</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_experiment</span> <span class="o">=</span> <span class="n">ExperimentService</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">access_token</span><span class="p">)</span> \
-            <span class="k">if</span> <span class="n">credentials</span><span class="o">.</span><span class="n">experiment_url</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_random</span> <span class="o">=</span> <span class="n">IBMQRandomService</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">if</span> <span class="n">credentials</span><span class="o">.</span><span class="n">extractor_url</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_experiment</span> <span class="o">=</span> <span class="n">ExperimentService</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">if</span> <span class="n">credentials</span><span class="o">.</span><span class="n">experiment_url</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_runtime</span> <span class="o">=</span> <span class="n">IBMRuntimeService</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> \
+            <span class="k">if</span> <span class="n">credentials</span><span class="o">.</span><span class="n">runtime_url</span> <span class="k">else</span> <span class="kc">None</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_services</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;backend&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">,</span>
                           <span class="s1">&#39;random&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random</span><span class="p">,</span>
-                          <span class="s1">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_experiment</span><span class="p">}</span></div>
+                          <span class="s1">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_experiment</span><span class="p">,</span>
+                          <span class="s1">&#39;runtime&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_runtime</span><span class="p">}</span></div>
 
 <div class="viewcode-block" id="AccountProvider.backends"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.AccountProvider.html#qiskit.providers.ibmq.AccountProvider.backends">[documentos]</a>    <span class="k">def</span> <span class="nf">backends</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -498,6 +504,92 @@
 
         <span class="k">return</span> <span class="n">ret</span>
 
+<div class="viewcode-block" id="AccountProvider.run_circuits"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.AccountProvider.html#qiskit.providers.ibmq.AccountProvider.run_circuits">[documentos]</a>    <span class="k">def</span> <span class="nf">run_circuits</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">circuits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]],</span>
+            <span class="n">backend</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Backend</span><span class="p">,</span> <span class="n">BaseBackend</span><span class="p">],</span>
+            <span class="n">shots</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">initial_layout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Layout</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">layout_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">routing_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">translation_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">seed_transpiler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">optimization_level</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">init_qubits</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">rep_delay</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">transpiler_options</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">measurement_error_mitigation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">run_config</span><span class="p">:</span> <span class="n">Dict</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;runtime_job.RuntimeJob&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Execute the input circuit(s) on a backend using the runtime service.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            This method uses the IBM Quantum runtime service which is not</span>
+<span class="sd">            available to all accounts.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            circuits: Circuit(s) to execute.</span>
+
+<span class="sd">            backend: Backend to execute circuits on.</span>
+<span class="sd">                Transpiler options are automatically grabbed from backend configuration</span>
+<span class="sd">                and properties unless otherwise specified.</span>
+
+<span class="sd">            initial_layout: Initial position of virtual qubits on physical qubits.</span>
+
+<span class="sd">            layout_method: Name of layout selection pass (&#39;trivial&#39;, &#39;dense&#39;,</span>
+<span class="sd">                &#39;noise_adaptive&#39;, &#39;sabre&#39;).</span>
+<span class="sd">                Sometimes a perfect layout can be available in which case the layout_method</span>
+<span class="sd">                may not run.</span>
+
+<span class="sd">            routing_method: Name of routing pass (&#39;basic&#39;, &#39;lookahead&#39;, &#39;stochastic&#39;, &#39;sabre&#39;)</span>
+
+<span class="sd">            translation_method: Name of translation pass (&#39;unroller&#39;, &#39;translator&#39;, &#39;synthesis&#39;)</span>
+
+<span class="sd">            seed_transpiler: Sets random seed for the stochastic parts of the transpiler.</span>
+
+<span class="sd">            optimization_level: How much optimization to perform on the circuits.</span>
+<span class="sd">                Higher levels generate more optimized circuits, at the expense of longer</span>
+<span class="sd">                transpilation time.</span>
+<span class="sd">                If None, level 1 will be chosen as default.</span>
+
+<span class="sd">            shots: Number of repetitions of each circuit, for sampling. Default: 1024.</span>
+
+<span class="sd">            rep_delay: Delay between programs in seconds. Only supported on certain</span>
+<span class="sd">                backends (``backend.configuration().dynamic_reprate_enabled`` ). If supported,</span>
+<span class="sd">                ``rep_delay`` will be used instead of ``rep_time`` and must be from the</span>
+<span class="sd">                range supplied by the backend (``backend.configuration().rep_delay_range``).</span>
+<span class="sd">                Default is given by ``backend.configuration().default_rep_delay``.</span>
+
+<span class="sd">            init_qubits: Whether to reset the qubits to the ground state for each shot.</span>
+
+<span class="sd">            transpiler_options: Additional transpiler options.</span>
+
+<span class="sd">            measurement_error_mitigation: Whether to apply measurement error mitigation.</span>
+
+<span class="sd">            **run_config: Extra arguments used to configure the circuit execution.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Runtime job.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;circuits&#39;</span><span class="p">:</span> <span class="n">circuits</span><span class="p">,</span>
+            <span class="s1">&#39;initial_layout&#39;</span><span class="p">:</span> <span class="n">initial_layout</span><span class="p">,</span>
+            <span class="s1">&#39;seed_transpiler&#39;</span><span class="p">:</span> <span class="n">seed_transpiler</span><span class="p">,</span>
+            <span class="s1">&#39;optimization_level&#39;</span><span class="p">:</span> <span class="n">optimization_level</span><span class="p">,</span>
+            <span class="s1">&#39;layout_method&#39;</span><span class="p">:</span> <span class="n">layout_method</span><span class="p">,</span>
+            <span class="s1">&#39;shots&#39;</span><span class="p">:</span> <span class="n">shots</span><span class="p">,</span>
+            <span class="s1">&#39;routing_method&#39;</span><span class="p">:</span> <span class="n">routing_method</span><span class="p">,</span>
+            <span class="s1">&#39;translation_method&#39;</span><span class="p">:</span> <span class="n">translation_method</span><span class="p">,</span>
+            <span class="s1">&#39;rep_delay&#39;</span><span class="p">:</span> <span class="n">rep_delay</span><span class="p">,</span>
+            <span class="s1">&#39;init_qubits&#39;</span><span class="p">:</span> <span class="n">init_qubits</span><span class="p">,</span>
+            <span class="s1">&#39;transpiler_options&#39;</span><span class="p">:</span> <span class="n">transpiler_options</span><span class="p">,</span>
+            <span class="s1">&#39;measurement_error_mitigation&#39;</span><span class="p">:</span> <span class="n">measurement_error_mitigation</span>
+        <span class="p">}</span>
+        <span class="n">inputs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">run_config</span><span class="p">)</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;backend_name&#39;</span><span class="p">:</span> <span class="n">backend</span><span class="o">.</span><span class="n">name</span><span class="p">()}</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;circuit-runner&#39;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+                                <span class="n">result_decoder</span><span class="o">=</span><span class="n">RunnerResult</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="AccountProvider.service"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.AccountProvider.html#qiskit.providers.ibmq.AccountProvider.service">[documentos]</a>    <span class="k">def</span> <span class="nf">service</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the specified service.</span>
 
@@ -527,6 +619,26 @@
 <span class="sd">            All services available to this provider.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_services</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="AccountProvider.has_service"><a class="viewcode-back" href="../../../../stubs/qiskit.providers.ibmq.AccountProvider.html#qiskit.providers.ibmq.AccountProvider.has_service">[documentos]</a>    <span class="k">def</span> <span class="nf">has_service</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Check if this provider has access to the service.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Name of the service.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Whether the provider has access to the service.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            IBMQInputValueError: If an unknown service name is specified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_services</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">IBMQInputValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown service </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> specified.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_services</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">backend</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IBMQBackendService</span><span class="p">:</span>
@@ -567,7 +679,22 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">IBMQNotAuthorizedError</span><span class="p">(</span><span class="s2">&quot;You are not authorized to use the random number service.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">IBMQNotAuthorizedError</span><span class="p">(</span><span class="s2">&quot;You are not authorized to use the service.&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">runtime</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IBMRuntimeService</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the runtime service.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The runtime service instance.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            IBMQNotAuthorizedError: If the account is not authorized to use the service.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_runtime</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_runtime</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">IBMQNotAuthorizedError</span><span class="p">(</span><span class="s2">&quot;You are not authorized to use the runtime service.&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -600,7 +727,7 @@
   <div role="contentinfo">
     <p>
         &copy; Copyright 2021, Qiskit Development Team.
-      Actualizado por última vez en 2021/05/08.
+      Actualizado por última vez en 2021/05/12.
 
     </p>
   </div>
