@@ -45,7 +45,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
 | Japanese | Takehiko Amano | @Takehiko Amano |
-| Korean | Soyoung Shin Saesun Kim | @Sophy @Saesun Kim |
+| Korean | Soyoung Shin, Saesun Kim | @Sophy @Saesun Kim |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese | Omar Costa Hamido | @OCH |
 | Portuguese, Brazilian | Luiz Henrique Galeoti de Lima | @Luiz Galeoti |
