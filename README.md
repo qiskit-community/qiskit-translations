@@ -40,7 +40,6 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Bengali | Omar Shehab, Abhijit Mitra |  @Shehab @amitracal   |
 | Chinese Simplified | Helena Zhang, Junye Huang |  @Helena Zhang @Junye   |
 | Chinese Traditional | Helena Zhang, Junye Huang |  @Helena Zhang @Junye   |
-| Bengali | Omar Shehab, Abhijit Mitra |  @Shehab @amitracal   |
 | French | Olivier Hess | @Olivier Hess |
 | German | Joachim Schaefer | @Joachim Schwarm |
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
@@ -89,4 +88,3 @@ If you want to add a new language and become a translation lead, you can open a 
 3. Among the group of contributors, a **translation lead must be identified** to serve as a liaison with the administrators of the localization project. The lead must contact Samanvay Sharma (samanvay.sharma1@ibm.com) and Yuri Kobayashi (yurik@jp.ibm.com) by email for the language to be officially listed under this project. <br/><br/>
 
 These are general guidelines for joining translation efforts and adding new languages. If you have further questions, please feel free to contact [Samanvay Sharma](mailto:samanvay.sharma1@ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation) and [Yuri Kobayashi](mailto:yurik@jp.ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation). Thank you.
-
