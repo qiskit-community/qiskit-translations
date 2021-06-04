@@ -33,10 +33,13 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Soolu Thomas | @Soolu |
 
 
-### Translation Leads (as of May, 2021)
+### Translation Leads (as of June, 2021)
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
+| Bengali | Omar Shehab, Abhijit Mitra |  @Shehab @amitracal   |
+| Chinese Simplified | Helena Zhang, Junye Huang |  @Helena Zhang @Junye   |
+| Chinese Traditional | Helena Zhang, Junye Huang |  @Helena Zhang @Junye   |
 | Bengali | Omar Shehab, Abhijit Mitra |  @Shehab @amitracal   |
 | French | Olivier Hess | @Olivier Hess |
 | German | Joachim Schaefer | @Joachim Schwarm |
@@ -70,7 +73,7 @@ Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.c
 
 ### How to add a new language to translate?
 
-The Qiskit Localization Project currently supports: Bengali, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Brazilian Portuguese, Spanish, Spanish-Mexico, Tamil, Turkish, Urdu and Vietnamese. These translations can be viewed from our [staging site](https://qiskit-community.github.io/qiskit-translations/).
+The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Brazilian Portuguese, Spanish, Spanish-Mexico, Tamil, Turkish, Urdu and Vietnamese. These translations can be viewed from our [staging site](https://qiskit-community.github.io/qiskit-translations/).
 
 [Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html), [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html), [Portuguese, Brazilian](https://qiskit.org/documentation/locale/pt_BR/index.html) and [French](https://qiskit.org/documentation/locale/fr_FR/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
 
