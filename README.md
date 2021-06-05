@@ -51,8 +51,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese | Omar Costa Hamido | @OCH |
 | Portuguese, Brazilian | Luiz Henrique Galeoti de Lima | @Luiz Galeoti |
-| Spanish | Arturo Acuaviva Huertos, Carmen Recio Valcarce | @Arturo Acuaviva @carmenrv |
-| Spanish-Mexico | Carlos Gonzalez | @Carlos Esteban Gonzalez |
+| Spanish (United) | Carmen Recio Valcarce, Carlos Gonzalez | @carmenrv @Carlos Esteban Gonzalez |
 | Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
 | Turkish | Ayşin Taşdelen | @Ayshine |
@@ -72,7 +71,7 @@ Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.c
 
 ### How to add a new language to translate?
 
-The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Brazilian Portuguese, Spanish, Spanish-Mexico, Tamil, Turkish, Urdu and Vietnamese. These translations can be viewed from our [staging site](https://qiskit-community.github.io/qiskit-translations/).
+The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Brazilian Portuguese, Spanish (United), Tamil, Turkish, Urdu and Vietnamese. These translations can be viewed from our [staging site](https://qiskit-community.github.io/qiskit-translations/).
 
 [Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html), [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html), [Portuguese, Brazilian](https://qiskit.org/documentation/locale/pt_BR/index.html) and [French](https://qiskit.org/documentation/locale/fr_FR/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
 
