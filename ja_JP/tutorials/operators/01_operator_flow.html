@@ -585,7 +585,7 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">I</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.opflow</span> <span class="kn">import</span> <span class="n">I</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -633,10 +633,8 @@ I X Y Z
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-SummedOp([
-  X,
-  2.0 * Y
-])
+1.0 * X
++ 2.0 * Y
 </pre></div></div>
 </div>
 <p>テンソル積は、次のようにキャレット(脱字記号) で表されます。</p>
@@ -672,7 +670,7 @@ XYZ
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-1j * I
+iI
 </pre></div></div>
 </div>
 <p>前述の2つの例では、テンソル積とパウリ演算子の合成は即時に(おそらく複数量子ビットの) 等価なパウリ演算子に減らされました。 テンソルまたはより複雑なオブジェクトを構成する場合、結果は評価されていない演算を表すオブジェクトになります。つまり、代数式です。</p>
@@ -691,16 +689,10 @@ XYZ
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-ComposedOp([
-  SummedOp([
-    X,
-    Y
-  ]),
-  SummedOp([
-    Y,
-    Z
-  ])
-])
+1j * Z
++ -1j * Y
++ 1.0 * I
++ 1j * X
 </pre></div></div>
 </div>
 <p>また、2つの和のテンソル積を取ると：</p>
@@ -718,16 +710,10 @@ ComposedOp([
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-TensoredOp([
-  SummedOp([
-    X,
-    Y
-  ]),
-  SummedOp([
-    Y,
-    Z
-  ])
-])
+1.0 * XY
++ 1.0 * XZ
++ 1.0 * YY
++ 1.0 * YZ
 </pre></div></div>
 </div>
 <p>上記の種類を詳しく見てみましょう。まずはパウリ演算子です。</p>
@@ -746,8 +732,7 @@ TensoredOp([
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(PauliOp(Pauli(z=[False], x=[False]), coeff=1.0),
- PauliOp(Pauli(z=[False], x=[True]), coeff=1.0))
+(PauliOp(Pauli(&#39;I&#39;), coeff=1.0), PauliOp(Pauli(&#39;X&#39;), coeff=1.0))
 </pre></div></div>
 </div>
 <p>各パウリ演算子は <code class="docutils literal notranslate"><span class="pre">PauliOp</span></code> のインスタンスで、<code class="docutils literal notranslate"><span class="pre">qiskit.quantum_info.Pauli</span></code> のインスタンスをラップし、係数``coeff`` を追加します。一般的に, <code class="docutils literal notranslate"><span class="pre">PauliOp</span></code> はパウリ演算子の加重テンソル積を表します.</p>
@@ -766,7 +751,7 @@ TensoredOp([
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-PauliOp(Pauli(z=[True, True, False], x=[False, True, True]), coeff=2.0)
+PauliOp(Pauli(&#39;XYZ&#39;), coeff=2.0)
 </pre></div></div>
 </div>
 <p>パウリ演算子をブール値のペアとしてエンコーディングするには、<code class="docutils literal notranslate"><span class="pre">qiskit.quantum_info.Pauli</span></code> のドキュメントを参照してください。</p>
@@ -785,13 +770,10 @@ PauliOp(Pauli(z=[True, True, False], x=[False, True, True]), coeff=2.0)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-1.1 * TensoredOp([
-  1.2 * X,
-  SummedOp([
-    Y,
-    1.3 * Z
-  ])
-])
+1.2 * (
+  1.1 * XY
+  + 1.4300000000000002 * XZ
+)
 </pre></div></div>
 </div>
 <p>以下では、Qiskitの演算子、状態、および量子アルゴリズムの構成要素をより幅広く詳しく見ていきます。</p>
@@ -806,8 +788,8 @@ PauliOp(Pauli(z=[True, True, False], x=[False, True, True]), coeff=2.0)
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="p">(</span><span class="n">StateFn</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">One</span><span class="p">,</span> <span class="n">Plus</span><span class="p">,</span> <span class="n">Minus</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span>
-                                   <span class="n">DictStateFn</span><span class="p">,</span> <span class="n">VectorStateFn</span><span class="p">,</span> <span class="n">CircuitStateFn</span><span class="p">,</span> <span class="n">OperatorStateFn</span><span class="p">)</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.opflow</span> <span class="kn">import</span> <span class="p">(</span><span class="n">StateFn</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">One</span><span class="p">,</span> <span class="n">Plus</span><span class="p">,</span> <span class="n">Minus</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span>
+                           <span class="n">DictStateFn</span><span class="p">,</span> <span class="n">VectorStateFn</span><span class="p">,</span> <span class="n">CircuitStateFn</span><span class="p">,</span> <span class="n">OperatorStateFn</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -877,8 +859,8 @@ q_0: ┤ X ├┤ H ├
 1.0
 0.0
 1.0
-(0.7071067811865476+0j)
-(-0.7071067811865476+8.7e-17j)
+(0.7071067811865475+0j)
+(-0.7071067811865475+8.7e-17j)
 </pre></div></div>
 </div>
 <p>量子状態の双対ベクトル( <em>ket</em> に対応する <em>bra</em> ) は、<code class="docutils literal notranslate"><span class="pre">adjoint</span></code> メソッドによって得られます。 <code class="docutils literal notranslate"><span class="pre">StateFn</span></code> は <code class="docutils literal notranslate"><span class="pre">is_measurement</span></code> フラグを持ちます。オブジェクトが ket の場合は <code class="docutils literal notranslate"><span class="pre">False</span></code> で、ブラの場合は <code class="docutils literal notranslate"><span class="pre">True</span></code> です。</p>
@@ -1087,7 +1069,7 @@ ComposedOp([
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(-0.7071067811865476-8.7e-17j)
+(-0.7071067811865475-8.7e-17j)
 </pre></div></div>
 </div>
 <p>合成演算子 <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> は、<code class="docutils literal notranslate"><span class="pre">compose</span></code> メソッドを呼び出すのと同等です。</p>
@@ -1234,7 +1216,7 @@ q_2: ┤ X ├
 q_3: ┤ H ├
      └───┘
 )
-{&#39;1101&#39;: 0.2626953125, &#39;0111&#39;: 0.251953125, &#39;1111&#39;: 0.2470703125, &#39;0101&#39;: 0.23828125}
+{&#39;0101&#39;: 0.2685546875, &#39;0111&#39;: 0.2607421875, &#39;1101&#39;: 0.236328125, &#39;1111&#39;: 0.234375}
 </pre></div></div>
 </div>
 <p>StateFnを構築するのは簡単です。 <code class="docutils literal notranslate"><span class="pre">StateFn</span></code> クラスはファクトリーとしても機能し、該当するプリミティブをコンストラクターに取り込み、正しい StateFn サブクラスを返すことができます。 現在、以下のプリミティブをコンストラクタに渡すことができ、生成される <code class="docutils literal notranslate"><span class="pre">StateFn</span></code> サブクラスと一緒にリストしています。</p>
@@ -1301,7 +1283,7 @@ q_1: ┤ RY(θ[1]) ├┤ X ├┤ RY(θ[3]) ├┤ X ├┤ RY(θ[5]) ├┤ X 
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">CX</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">PrimitiveOp</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.opflow</span> <span class="kn">import</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">CX</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">PrimitiveOp</span>
 </pre></div>
 </div>
 </div>
@@ -1323,7 +1305,7 @@ q_1: ┤ RY(θ[1]) ├┤ X ├┤ RY(θ[3]) ├┤ X ├┤ RY(θ[5]) ├┤ X 
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-PauliOp(Pauli(z=[False], x=[True]), coeff=1.0)
+PauliOp(Pauli(&#39;X&#39;), coeff=1.0)
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -1467,7 +1449,7 @@ ComposedOp([
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-DictStateFn({&#39;0&#39;: (1+0j)}, coeff=1.0, is_measurement=False)
+DictStateFn({&#39;0&#39;: (1+0j)}, coeff=(1+0j), is_measurement=False)
 </pre></div></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">eval</span></code> を直接使用することで、中間の <code class="docutils literal notranslate"><span class="pre">ComposedOp</span></code> ステップを回避することができます。</p>
@@ -1486,7 +1468,7 @@ DictStateFn({&#39;0&#39;: (1+0j)}, coeff=1.0, is_measurement=False)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-DictStateFn({&#39;0&#39;: (1+0j)}, coeff=1.0, is_measurement=False)
+DictStateFn({&#39;0&#39;: (1+0j)}, coeff=(1+0j), is_measurement=False)
 </pre></div></div>
 </div>
 <p>演算子の合成とテンソル積は <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> と <code class="docutils literal notranslate"><span class="pre">^</span></code> で表現されます。以下にいくつかの例を示します。</p>
@@ -1580,7 +1562,7 @@ ComposedOp([
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">ListOp</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.opflow</span> <span class="kn">import</span> <span class="n">ListOp</span>
 
 <span class="nb">print</span><span class="p">((</span><span class="o">~</span><span class="n">ListOp</span><span class="p">([</span><span class="n">One</span><span class="p">,</span> <span class="n">Zero</span><span class="p">])</span> <span class="o">@</span> <span class="n">ListOp</span><span class="p">([</span><span class="n">One</span><span class="p">,</span> <span class="n">Zero</span><span class="p">])))</span>
 </pre></div>
@@ -1678,7 +1660,7 @@ OperatorMeasurement(Z)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-OperatorStateFn(PauliOp(Pauli(z=[True], x=[False]), coeff=1.0), coeff=1.0, is_measurement=True)
+OperatorStateFn(PauliOp(Pauli(&#39;Z&#39;), coeff=1.0), coeff=1.0, is_measurement=True)
 </pre></div></div>
 </div>
 <p>ここでは、<span class="math notranslate nohighlight">\(\langle 0 | Z | 0 \rangle\)</span>langle 1 | Z | 1 rangle`、<span class="math notranslate nohighlight">\(\langle + | Z | + \rangle\)</span> を計算します。ここで、<span class="math notranslate nohighlight">\(|+\rangle = (|0\rangle + |1\rangle)/\sqrt{2}\)</span> です。</p>
@@ -1714,9 +1696,9 @@ OperatorStateFn(PauliOp(Pauli(z=[True], x=[False]), coeff=1.0), coeff=1.0, is_me
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">I</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">CX</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">ListOp</span><span class="p">,</span> <span class="n">PauliExpectation</span><span class="p">,</span> <span class="n">PauliTrotterEvolution</span><span class="p">,</span> <span class="n">CircuitSampler</span><span class="p">,</span> <span class="n">MatrixEvolution</span><span class="p">,</span> <span class="n">Suzuki</span>
+<span class="kn">from</span> <span class="nn">qiskit.opflow</span> <span class="kn">import</span> <span class="n">I</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">CX</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">ListOp</span><span class="p">,</span> <span class="n">PauliExpectation</span><span class="p">,</span> <span class="n">PauliTrotterEvolution</span><span class="p">,</span> <span class="n">CircuitSampler</span><span class="p">,</span> <span class="n">MatrixEvolution</span><span class="p">,</span> <span class="n">Suzuki</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">Parameter</span>
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">BasicAer</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">Aer</span>
 </pre></div>
 </div>
 </div>
@@ -1755,13 +1737,11 @@ OperatorStateFn(PauliOp(Pauli(z=[True], x=[False]), coeff=1.0), coeff=1.0, is_me
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-SummedOp([
-  -1.0523732 * II,
-  0.39793742 * IZ,
-  -0.3979374 * ZI,
-  -0.0112801 * ZZ,
-  0.18093119 * XX
-])
+-1.0523732 * II
++ 0.39793742 * IZ
+- 0.3979374 * ZI
+- 0.0112801 * ZZ
++ 0.18093119 * XX
 </pre></div></div>
 </div>
 <p>次に、ハミルトニアンに``Parameter`` を掛けます。この <code class="docutils literal notranslate"><span class="pre">Parameter</span></code> は <code class="docutils literal notranslate"><span class="pre">SummedOp</span></code> の <code class="docutils literal notranslate"><span class="pre">coeff</span></code> プロパティに保存されています。 結果に対し <code class="docutils literal notranslate"><span class="pre">exp_i()</span></code> を呼び出すと、指数化を表す <code class="docutils literal notranslate"><span class="pre">EvolvedOp</span></code> でラップされます。</p>
@@ -1782,14 +1762,20 @@ SummedOp([
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-e^(-i*1.0*θ * SummedOp([
-  -1.0523732 * II,
-  0.39793742 * IZ,
-  -0.3979374 * ZI,
-  -0.0112801 * ZZ,
-  0.18093119 * XX
-]))
-EvolvedOp(SummedOp([PauliOp(Pauli(z=[False, False], x=[False, False]), coeff=-1.0523732), PauliOp(Pauli(z=[True, False], x=[False, False]), coeff=0.39793742), PauliOp(Pauli(z=[False, True], x=[False, False]), coeff=-0.3979374), PauliOp(Pauli(z=[True, True], x=[False, False]), coeff=-0.0112801), PauliOp(Pauli(z=[False, False], x=[True, True]), coeff=0.18093119)], coeff=1.0*θ, abelian=False), coeff=1.0)
+e^(-i*1.0*θ * (
+  -1.0523732 * II
+  + 0.39793742 * IZ
+  - 0.3979374 * ZI
+  - 0.0112801 * ZZ
+  + 0.18093119 * XX
+))
+EvolvedOp(PauliSumOp(SparsePauliOp([[False, False, False, False],
+               [False, False,  True, False],
+               [False, False, False,  True],
+               [False, False,  True,  True],
+               [ True,  True, False, False]],
+              coeffs=[-1.0523732 +0.j,  0.39793742+0.j, -0.3979374 +0.j, -0.0112801 +0.j,
+  0.18093119+0.j]), coeff=1.0*θ), coeff=1.0)
 </pre></div></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">two_qubit_H2</span></code> の観測量として、<code class="docutils literal notranslate"><span class="pre">h2_measurement</span></code> を構築しましょう。</p>
@@ -1808,13 +1794,11 @@ EvolvedOp(SummedOp([PauliOp(Pauli(z=[False, False], x=[False, False]), coeff=-1.
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-OperatorMeasurement(SummedOp([
-  -1.0523732 * II,
-  0.39793742 * IZ,
-  -0.3979374 * ZI,
-  -0.0112801 * ZZ,
-  0.18093119 * XX
-]))
+OperatorMeasurement(-1.0523732 * II
++ 0.39793742 * IZ
+- 0.3979374 * ZI
+- 0.0112801 * ZZ
++ 0.18093119 * XX)
 </pre></div></div>
 </div>
 <p><span class="math notranslate nohighlight">\(\text{CX} (H\otimes I) |00\rangle\)</span> を用いて、ベル状態 <span class="math notranslate nohighlight">\(|\Phi_+\rangle\)</span> を構築します。</p>
@@ -1859,20 +1843,18 @@ q_1: ─────┤ X ├
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ComposedOp([
-  OperatorMeasurement(SummedOp([
-    -1.0523732 * II,
-    0.39793742 * IZ,
-    -0.3979374 * ZI,
-    -0.0112801 * ZZ,
-    0.18093119 * XX
-  ])),
-  e^(-i*1.0*θ * SummedOp([
-    -1.0523732 * II,
-    0.39793742 * IZ,
-    -0.3979374 * ZI,
-    -0.0112801 * ZZ,
-    0.18093119 * XX
-  ])),
+  OperatorMeasurement(-1.0523732 * II
+  + 0.39793742 * IZ
+  - 0.3979374 * ZI
+  - 0.0112801 * ZZ
+  + 0.18093119 * XX),
+  e^(-i*1.0*θ * (
+    -1.0523732 * II
+    + 0.39793742 * IZ
+    - 0.3979374 * ZI
+    - 0.0112801 * ZZ
+    + 0.18093119 * XX
+  )),
   CircuitStateFn(
        ┌───┐
   q_0: ┤ H ├──■──
@@ -1901,15 +1883,13 @@ ComposedOp([
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ComposedOp([
-  OperatorMeasurement(SummedOp([
-    -1.0523732 * II,
-    0.39793742 * IZ,
-    -0.3979374 * ZI,
-    -0.0112801 * ZZ,
-    0.18093119 * XX
-  ])),
+  OperatorMeasurement(-1.0523732 * II
+  + 0.39793742 * IZ
+  - 0.3979374 * ZI
+  - 0.0112801 * ZZ
+  + 0.18093119 * XX),
   CircuitStateFn(
-  global phase: 1.0524
+  global phase: 1.0523732*θ
        ┌───┐     ┌───┐┌───┐┌──────────────────┐┌───┐┌───┐┌───┐»
   q_0: ┤ H ├──■──┤ H ├┤ X ├┤ RZ(0.18093119*θ) ├┤ X ├┤ H ├┤ X ├»
        └───┘┌─┴─┐├───┤└─┬─┘└──────────────────┘└─┬─┘├───┤└─┬─┘»
@@ -1954,7 +1934,7 @@ ComposedOp([
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="word-wrap: normal;white-space: pre;background: #fff0;line-height: 1.1;font-family: &quot;Courier New&quot;,Courier,monospace">global phase: 1.0524
+<pre style="word-wrap: normal;white-space: pre;background: #fff0;line-height: 1.1;font-family: &quot;Courier New&quot;,Courier,monospace">global phase: 0.52619
      ┌───┐     ┌───┐┌───┐┌────────────────────────┐┌───┐┌───┐┌───┐»
 q_0: ┤ H ├──■──┤ H ├┤ X ├┤ RZ(0.0904655950000000) ├┤ X ├┤ H ├┤ X ├»
      └───┘┌─┴─┐├───┤└─┬─┘└────────────────────────┘└─┬─┘├───┤└─┬─┘»
@@ -2042,23 +2022,19 @@ SummedOp([
 <div class="highlight"><pre>
 SummedOp([
   ComposedOp([
-    OperatorMeasurement(AbelianSummedOp([
-      -1.0523732 * II,
-      0.18093119 * ZZ
-    ])),
+    OperatorMeasurement(-0.3979374 * ZI
+    - 0.0112801 * ZZ
+    + 0.39793742 * IZ),
+    II
+  ]),
+  ComposedOp([
+    OperatorMeasurement(-1.0523732 * II
+    + 0.18093119 * ZZ),
          ┌───┐
     q_0: ┤ H ├
          ├───┤
     q_1: ┤ H ├
          └───┘
-  ]),
-  ComposedOp([
-    OperatorMeasurement(AbelianSummedOp([
-      0.39793742 * IZ,
-      -0.3979374 * ZI,
-      -0.0112801 * ZZ
-    ])),
-    II
   ])
 ])
 </pre></div></div>
@@ -2081,12 +2057,10 @@ SummedOp([
 <div class="highlight"><pre>
 SummedOp([
   ComposedOp([
-    OperatorMeasurement(AbelianSummedOp([
-      -1.0523732 * II,
-      0.18093119 * ZZ
-    ])),
+    OperatorMeasurement(-1.0523732 * II
+    + 0.18093119 * ZZ),
     CircuitStateFn(
-    global phase: 1.0524
+    global phase: 1.0523732*θ
          ┌───┐     ┌───┐┌───┐┌──────────────────┐┌───┐┌───┐┌───┐»
     q_0: ┤ H ├──■──┤ H ├┤ X ├┤ RZ(0.18093119*θ) ├┤ X ├┤ H ├┤ X ├»
          └───┘┌─┴─┐├───┤└─┬─┘└──────────────────┘└─┬─┘├───┤└─┬─┘»
@@ -2105,13 +2079,11 @@ SummedOp([
     )
   ]),
   ComposedOp([
-    OperatorMeasurement(AbelianSummedOp([
-      0.39793742 * IZ,
-      -0.3979374 * ZI,
-      -0.0112801 * ZZ
-    ])),
+    OperatorMeasurement(-0.0112801 * ZZ
+    - 0.3979374 * ZI
+    + 0.39793742 * IZ),
     CircuitStateFn(
-    global phase: 1.0524
+    global phase: 1.0523732*θ
          ┌───┐     ┌───┐┌───┐┌──────────────────┐┌───┐┌───┐┌───┐»
     q_0: ┤ H ├──■──┤ H ├┤ X ├┤ RZ(0.18093119*θ) ├┤ X ├┤ H ├┤ X ├»
          └───┘┌─┴─┐├───┤└─┬─┘└──────────────────┘└─┬─┘├───┤└─┬─┘»
@@ -2159,10 +2131,9 @@ SummedOp([
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-array([-0.88272211-1.111e-15j, -0.88272211-1.165e-15j,
-       -0.88272211-1.065e-15j, -0.88272211-1.178e-15j,
-       -0.88272211-1.113e-15j, -0.88272211-9.250e-16j,
-       -0.88272211-1.054e-15j, -0.88272211-1.156e-15j])
+array([-0.88272211+0.0e+00j, -0.88272211+0.0e+00j, -0.88272211+0.0e+00j,
+       -0.88272211+0.0e+00j, -0.88272211+0.0e+00j, -0.88272211+0.0e+00j,
+       -0.88272211+5.6e-17j, -0.88272211+0.0e+00j])
 </pre></div></div>
 </div>
 </section>
@@ -2174,7 +2145,7 @@ array([-0.88272211-1.111e-15j, -0.88272211-1.165e-15j,
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">sampler</span> <span class="o">=</span> <span class="n">CircuitSampler</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">BasicAer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">))</span>
+<span></span><span class="n">sampler</span> <span class="o">=</span> <span class="n">CircuitSampler</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">))</span>
 <span class="c1"># sampler.quantum_instance.run_config.shots = 1000</span>
 <span class="n">sampled_trotter_exp_op</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">h2_trotter_expectations</span><span class="p">)</span>
 <span class="n">sampled_trotter_energies</span> <span class="o">=</span> <span class="n">sampled_trotter_exp_op</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
@@ -2213,12 +2184,9 @@ Sampled Trotterized energies:
 Before:
 
 ComposedOp([
-  OperatorMeasurement(AbelianSummedOp([
-    -1.0523732 * II,
-    0.18093119 * ZZ
-  ])),
+  OperatorMeasurement(-1.0523732 * II
+  + 0.18093119 * ZZ),
   CircuitStateFn(
-  global phase: 1.0524
        ┌───┐     ┌───┐┌───┐┌───────┐┌───┐┌───┐┌───┐┌───────┐┌───┐┌───────┐»
   q_0: ┤ H ├──■──┤ H ├┤ X ├┤ RZ(0) ├┤ X ├┤ H ├┤ X ├┤ RZ(0) ├┤ X ├┤ RZ(0) ├»
        └───┘┌─┴─┐├───┤└─┬─┘└───────┘└─┬─┘├───┤└─┬─┘└───────┘└─┬─┘├───────┤»
@@ -2235,11 +2203,9 @@ ComposedOp([
 After:
 
 ComposedOp([
-  OperatorMeasurement(AbelianSummedOp([
-    -1.0523732 * II,
-    0.18093119 * ZZ
-  ])),
-  DictStateFn({&#39;00&#39;: 0.7207851621669248, &#39;11&#39;: 0.6931585316505886})
+  OperatorMeasurement(-1.0523732 * II
+  + 0.18093119 * ZZ),
+  DictStateFn({&#39;00&#39;: 0.7228145941387736, &#39;11&#39;: 0.6910420121092494})
 ])
 </pre></div></div>
 </div>
@@ -2258,14 +2224,14 @@ ComposedOp([
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.17.0.dev0+8c40b02</td></tr><tr><td>Aer</td><td>0.5.2</td></tr><tr><td>Ignis</td><td>0.4.0.dev0+15b7177</td></tr><tr><td>Aqua</td><td>0.9.0.dev0+2734384</td></tr><tr><td>IBM Q Provider</td><td>0.7.2</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.8.3 (default, May 17 2020, 18:15:42)
-[GCC 10.1.0]</td></tr><tr><td>OS</td><td>Linux</td></tr><tr><td>CPUs</td><td>12</td></tr><tr><td>Memory (Gb)</td><td>62.77165603637695</td></tr><tr><td colspan='2'>Wed Nov 04 13:35:52 2020 EST</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.18.0.dev0+5920b66</td></tr><tr><td>Aer</td><td>0.9.0</td></tr><tr><td>Ignis</td><td>0.7.0.dev0+8195559</td></tr><tr><td>Aqua</td><td>None</td></tr><tr><td>IBM Q Provider</td><td>None</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.8.8 (default, Apr 13 2021, 12:59:45)
+[Clang 10.0.0 ]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>2</td></tr><tr><td>Memory (Gb)</td><td>12.0</td></tr><tr><td colspan='2'>Thu May 27 11:06:21 2021 EDT</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2020.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
+<div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2021.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
 </div>
 </section>
 </section>

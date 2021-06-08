@@ -585,7 +585,7 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">I</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.opflow</span> <span class="kn">import</span> <span class="n">I</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -633,10 +633,8 @@ I X Y Z
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-SummedOp([
-  X,
-  2.0 * Y
-])
+1.0 * X
++ 2.0 * Y
 </pre></div></div>
 </div>
 <p>Os produtos de tensor são denotados com um identificador, como este.</p>
@@ -672,10 +670,10 @@ XYZ
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-1j * I
+iI
 </pre></div></div>
 </div>
-<p>In the preceding two examples, the tensor product and composition of Pauli operators were immediately reduced to the equivalent (possibly multi-qubit) Pauli operator. If we tensor or compose more complicated objects, the result is objects representing the unevaluated operations. That is, algebraic expressions.</p>
+<p>Nos dois exemplos anteriores, o produto de tensor e a composição dos operadores Pauli foram imediatamente reduzidos ao equivalente (possivelmente multi-qubit) operador Pauli. Se usar o tensor ou se compormos objetos mais complicados, o resultado são objetos que representam as operações não avaliadas, ou seja, expressões algébricas.</p>
 <p>Por exemplo, compondo duas somas temos</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
@@ -691,16 +689,10 @@ XYZ
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-ComposedOp([
-  SummedOp([
-    X,
-    Y
-  ]),
-  SummedOp([
-    Y,
-    Z
-  ])
-])
+1j * Z
++ -1j * Y
++ 1.0 * I
++ 1j * X
 </pre></div></div>
 </div>
 <p>E usando o tensor, duas somas retornam</p>
@@ -718,16 +710,10 @@ ComposedOp([
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-TensoredOp([
-  SummedOp([
-    X,
-    Y
-  ]),
-  SummedOp([
-    Y,
-    Z
-  ])
-])
+1.0 * XY
++ 1.0 * XZ
++ 1.0 * YY
++ 1.0 * YZ
 </pre></div></div>
 </div>
 <p>Vamos dar uma olhada nos tipos introduzidos acima. Primeiro nos operadores Pauli.</p>
@@ -746,8 +732,7 @@ TensoredOp([
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(PauliOp(Pauli(z=[False], x=[False]), coeff=1.0),
- PauliOp(Pauli(z=[False], x=[True]), coeff=1.0))
+(PauliOp(Pauli(&#39;I&#39;), coeff=1.0), PauliOp(Pauli(&#39;X&#39;), coeff=1.0))
 </pre></div></div>
 </div>
 <p>Cada operador Pauli é uma instância de <code class="docutils literal notranslate"><span class="pre">PauliOp</span></code>, que envolve uma instância de <code class="docutils literal notranslate"><span class="pre">qiskit.quantum_info.Pauli</span></code> e adiciona um coeficiente <code class="docutils literal notranslate"><span class="pre">coeff</span></code>. Em geral, um <code class="docutils literal notranslate"><span class="pre">PauliOp</span></code> representa um produto de tensor ponderado dos operadores Pauli.</p>
@@ -766,7 +751,7 @@ TensoredOp([
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-PauliOp(Pauli(z=[True, True, False], x=[False, True, True]), coeff=2.0)
+PauliOp(Pauli(&#39;XYZ&#39;), coeff=2.0)
 </pre></div></div>
 </div>
 <p>Para a codificação dos operadores Pauli como pares de valores booleanos, consulte a documentação <code class="docutils literal notranslate"><span class="pre">qiskit.quantum_info.Pauli</span></code>.</p>
@@ -785,13 +770,10 @@ PauliOp(Pauli(z=[True, True, False], x=[False, True, True]), coeff=2.0)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-1.1 * TensoredOp([
-  1.2 * X,
-  SummedOp([
-    Y,
-    1.3 * Z
-  ])
-])
+1.2 * (
+  1.1 * XY
+  + 1.4300000000000002 * XZ
+)
 </pre></div></div>
 </div>
 <p>No que se segue, analisamos mais ampla e profundamente os operadores do Qiskit, os estados e os blocos de construção de algoritmos quânticos.</p>
@@ -799,16 +781,15 @@ PauliOp(Pauli(z=[True, True, False], x=[False, True, True]), coeff=2.0)
 </section>
 <section id="Parte-I:-Funções-e-Medidas-do-Estado">
 <h2>Parte I: Funções e Medidas do Estado<a class="headerlink" href="#Parte-I:-Funções-e-Medidas-do-Estado" title="Link permanente para este título">¶</a></h2>
-<p>Quantum states are represented by subclasses of the class <code class="docutils literal notranslate"><span class="pre">StateFn</span></code>. There are four representations of quantum states: <code class="docutils literal notranslate"><span class="pre">DictStateFn</span></code> is a sparse representation in the computational basis, backed by a <code class="docutils literal notranslate"><span class="pre">dict</span></code>. <code class="docutils literal notranslate"><span class="pre">VectorStateFn</span></code> is a dense representation in the computational basis backed by a numpy array. <code class="docutils literal notranslate"><span class="pre">CircuitStateFn</span></code> is backed by a circuit and represents the state obtained by executing the circuit on the all-zero computational-basis state. <code class="docutils literal notranslate"><span class="pre">OperatorStateFn</span></code> represents mixed states
-via a density matrix. (As we will see later, <code class="docutils literal notranslate"><span class="pre">OperatorStateFn</span></code> is also used to represent observables.)</p>
+<p>Os estados quânticos são representados por subclasses da classe <code class="docutils literal notranslate"><span class="pre">StateFn</span></code>. Existem quatro representações de estados quânticos: <code class="docutils literal notranslate"><span class="pre">DictStateFn</span></code> é uma representação esparsa na base computacional, apoiada por um <code class="docutils literal notranslate"><span class="pre">dict</span></code>. <code class="docutils literal notranslate"><span class="pre">VectorStateFn</span></code> é uma representação densa na base computacional apoiada por um array numpy. <code class="docutils literal notranslate"><span class="pre">CircuitStateFn</span></code> é apoiado por um circuito e representa o estado obtido executando o circuito sobre o estado de base computacional all-zero. <code class="docutils literal notranslate"><span class="pre">OperatorStateFn</span></code> representa estados mistos através de uma matriz de densidade. (Como veremos mais adiante, <code class="docutils literal notranslate"><span class="pre">OperatorStateFn</span></code> também é usado para representar observáveis.)</p>
 <p>Várias instâncias <code class="docutils literal notranslate"><span class="pre">StateFn</span></code> são fornecidas por conveniência. Por exemplo <code class="docutils literal notranslate"><span class="pre">Zero,</span> <span class="pre">One,</span> <span class="pre">Plus,</span> <span class="pre">Minus</span></code>.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="p">(</span><span class="n">StateFn</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">One</span><span class="p">,</span> <span class="n">Plus</span><span class="p">,</span> <span class="n">Minus</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span>
-                                   <span class="n">DictStateFn</span><span class="p">,</span> <span class="n">VectorStateFn</span><span class="p">,</span> <span class="n">CircuitStateFn</span><span class="p">,</span> <span class="n">OperatorStateFn</span><span class="p">)</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.opflow</span> <span class="kn">import</span> <span class="p">(</span><span class="n">StateFn</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">One</span><span class="p">,</span> <span class="n">Plus</span><span class="p">,</span> <span class="n">Minus</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span>
+                           <span class="n">DictStateFn</span><span class="p">,</span> <span class="n">VectorStateFn</span><span class="p">,</span> <span class="n">CircuitStateFn</span><span class="p">,</span> <span class="n">OperatorStateFn</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -878,8 +859,8 @@ q_0: ┤ X ├┤ H ├
 1.0
 0.0
 1.0
-(0.7071067811865476+0j)
-(-0.7071067811865476+8.7e-17j)
+(0.7071067811865475+0j)
+(-0.7071067811865475+8.7e-17j)
 </pre></div></div>
 </div>
 <p>O vetor duplo de um estado quântico, que é o <em>bra</em> correspondente a um <em>ket</em> é obtido através do método <code class="docutils literal notranslate"><span class="pre">adjoint</span></code>. O <code class="docutils literal notranslate"><span class="pre">StateFn</span></code> transporta uma medição <code class="docutils literal notranslate"><span class="pre">is_measurement</span></code> que é <code class="docutils literal notranslate"><span class="pre">False</span></code> se o objeto é um ket e <code class="docutils literal notranslate"><span class="pre">True</span></code> se é um bra.</p>
@@ -924,7 +905,7 @@ DictStateFn({&#39;1&#39;: 1}, coeff=1.0, is_measurement=True)
 <section id="Operações-algébricas-e-predicados">
 <h3>Operações algébricas e predicados<a class="headerlink" href="#Operações-algébricas-e-predicados" title="Link permanente para este título">¶</a></h3>
 <p>Muitas operações algébricas e predicados entre <code class="docutils literal notranslate"><span class="pre">StateFn</span></code>s são suportadas, incluindo: * <code class="docutils literal notranslate"><span class="pre">+</span></code> - adição * <code class="docutils literal notranslate"><span class="pre">-</span></code> -subtração, negação (multiplicação escalar por -1) * <code class="docutils literal notranslate"><span class="pre">*</span></code> - multiplicação escalar * <code class="docutils literal notranslate"><span class="pre">/</span></code> - divisão escalar * <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> - composição * <code class="docutils literal notranslate"><span class="pre">^</span></code> - produto do tensor ou potência do tensor (tensor com n repetições de si) * <code class="docutils literal notranslate"><span class="pre">**</span></code> - potência de composição (compor consigo mesma n vezes) * <code class="docutils literal notranslate"><span class="pre">==</span></code> - igualdade * <code class="docutils literal notranslate"><span class="pre">~</span></code> - adjunção, alternando entre a Função de Estado e Medição</p>
-<p>Be aware that parentheses are often necessary to override <strong>operator precedence</strong>.</p>
+<p>Esteja ciente de que os parênteses são geralmente necessários para substituir a <strong>precedência do operador</strong>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">StateFn</span></code>s carregam um coeficiente. Isso nos permite multiplicar estados por uma grandeza escalar e então construir somas.</p>
 <p>Aqui, construímos <span class="math notranslate nohighlight">\((2 + 3i)|0\rangle\)</span>.</p>
 <div class="nbinput docutils container">
@@ -1013,7 +994,7 @@ SummedOp([
 ])
 </pre></div></div>
 </div>
-<p>The composition operator is used to perform an inner product, which by default is held in an unevaluated form. Here is a representation of <span class="math notranslate nohighlight">\(\langle 1 | 1 \rangle\)</span>.</p>
+<p>O operador composição é usado para realizar um produto interno, que por padrão é mantido em uma forma não calculada. Aqui está uma representação de <span class="math notranslate nohighlight">\(\langle 1 | 1 \rangle\)</span>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
@@ -1088,7 +1069,7 @@ ComposedOp([
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(-0.7071067811865476-8.7e-17j)
+(-0.7071067811865475-8.7e-17j)
 </pre></div></div>
 </div>
 <p>O operador composição <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> é equivalente a chamar o método <code class="docutils literal notranslate"><span class="pre">compose</span></code>.</p>
@@ -1235,7 +1216,7 @@ q_2: ┤ X ├
 q_3: ┤ H ├
      └───┘
 )
-{&#39;1101&#39;: 0.2626953125, &#39;0111&#39;: 0.251953125, &#39;1111&#39;: 0.2470703125, &#39;0101&#39;: 0.23828125}
+{&#39;0101&#39;: 0.2685546875, &#39;0111&#39;: 0.2607421875, &#39;1101&#39;: 0.236328125, &#39;1111&#39;: 0.234375}
 </pre></div></div>
 </div>
 <p>Construir um StateFn é fácil. A classe <code class="docutils literal notranslate"><span class="pre">StateFn</span></code> também serve como uma fábrica e pode receber qualquer primitivo aplicável em seu construtor e retornar a subclasse StateFn correta. Atualmente, os seguintes primitivos podem ser passados para o construtor, listados junto com a subclasse <code class="docutils literal notranslate"><span class="pre">StateFn</span></code> que eles produzem:</p>
@@ -1302,13 +1283,13 @@ q_1: ┤ RY(θ[1]) ├┤ X ├┤ RY(θ[3]) ├┤ X ├┤ RY(θ[5]) ├┤ X 
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">CX</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">PrimitiveOp</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.opflow</span> <span class="kn">import</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">CX</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">PrimitiveOp</span>
 </pre></div>
 </div>
 </div>
 <section id="Elementos-da-Matriz">
 <h3>Elementos da Matriz<a class="headerlink" href="#Elementos-da-Matriz" title="Link permanente para este título">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">eval</span></code> method returns a column from an operator. For example, the Pauli <span class="math notranslate nohighlight">\(X\)</span> operator is represented by a <code class="docutils literal notranslate"><span class="pre">PauliOp</span></code>. Asking for a column returns an instance of the sparse representation, a <code class="docutils literal notranslate"><span class="pre">DictStateFn</span></code>.</p>
+<p>O método <code class="docutils literal notranslate"><span class="pre">eval</span></code> retorna uma coluna de um operador. Por exemplo, o operador Pauli <span class="math notranslate nohighlight">\(X\)</span> é representado por um <code class="docutils literal notranslate"><span class="pre">PauliOp</span></code>. Pedir uma coluna retorna uma instância da representação esparsa, uma <code class="docutils literal notranslate"><span class="pre">DictStateFn</span></code>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
 </pre></div>
@@ -1324,7 +1305,7 @@ q_1: ┤ RY(θ[1]) ├┤ X ├┤ RY(θ[3]) ├┤ X ├┤ RY(θ[5]) ├┤ X 
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-PauliOp(Pauli(z=[False], x=[True]), coeff=1.0)
+PauliOp(Pauli(&#39;X&#39;), coeff=1.0)
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -1468,7 +1449,7 @@ ComposedOp([
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-DictStateFn({&#39;0&#39;: (1+0j)}, coeff=1.0, is_measurement=False)
+DictStateFn({&#39;0&#39;: (1+0j)}, coeff=(1+0j), is_measurement=False)
 </pre></div></div>
 </div>
 <p>A etapa intermediária <code class="docutils literal notranslate"><span class="pre">ComposedOp</span></code> pode ser evitada com o uso <code class="docutils literal notranslate"><span class="pre">eval</span></code> diretamente.</p>
@@ -1487,7 +1468,7 @@ DictStateFn({&#39;0&#39;: (1+0j)}, coeff=1.0, is_measurement=False)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-DictStateFn({&#39;0&#39;: (1+0j)}, coeff=1.0, is_measurement=False)
+DictStateFn({&#39;0&#39;: (1+0j)}, coeff=(1+0j), is_measurement=False)
 </pre></div></div>
 </div>
 <p>Composições e produtos de tensor de operadores são feitos com <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> e <code class="docutils literal notranslate"><span class="pre">^</span></code>. Aqui estão alguns exemplos.</p>
@@ -1581,7 +1562,7 @@ ComposedOp([
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">ListOp</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.opflow</span> <span class="kn">import</span> <span class="n">ListOp</span>
 
 <span class="nb">print</span><span class="p">((</span><span class="o">~</span><span class="n">ListOp</span><span class="p">([</span><span class="n">One</span><span class="p">,</span> <span class="n">Zero</span><span class="p">])</span> <span class="o">@</span> <span class="n">ListOp</span><span class="p">([</span><span class="n">One</span><span class="p">,</span> <span class="n">Zero</span><span class="p">])))</span>
 </pre></div>
@@ -1679,7 +1660,7 @@ OperatorMeasurement(Z)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-OperatorStateFn(PauliOp(Pauli(z=[True], x=[False]), coeff=1.0), coeff=1.0, is_measurement=True)
+OperatorStateFn(PauliOp(Pauli(&#39;Z&#39;), coeff=1.0), coeff=1.0, is_measurement=True)
 </pre></div></div>
 </div>
 <p>Aqui, calculamos <span class="math notranslate nohighlight">\(\langle 0 | Z | 0 \rangle\)</span>, <span class="math notranslate nohighlight">\(\langle 1 | Z | 1 \rangle\)</span>, e <span class="math notranslate nohighlight">\(\langle + | Z | + \rangle\)</span>, onde <span class="math notranslate nohighlight">\(|+\rangle = (|0\rangle + |1\rangle)/\sqrt{2}\)</span>.</p>
@@ -1715,9 +1696,9 @@ OperatorStateFn(PauliOp(Pauli(z=[True], x=[False]), coeff=1.0), coeff=1.0, is_me
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">I</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">CX</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">ListOp</span><span class="p">,</span> <span class="n">PauliExpectation</span><span class="p">,</span> <span class="n">PauliTrotterEvolution</span><span class="p">,</span> <span class="n">CircuitSampler</span><span class="p">,</span> <span class="n">MatrixEvolution</span><span class="p">,</span> <span class="n">Suzuki</span>
+<span class="kn">from</span> <span class="nn">qiskit.opflow</span> <span class="kn">import</span> <span class="n">I</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">CX</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">ListOp</span><span class="p">,</span> <span class="n">PauliExpectation</span><span class="p">,</span> <span class="n">PauliTrotterEvolution</span><span class="p">,</span> <span class="n">CircuitSampler</span><span class="p">,</span> <span class="n">MatrixEvolution</span><span class="p">,</span> <span class="n">Suzuki</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">Parameter</span>
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">BasicAer</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">Aer</span>
 </pre></div>
 </div>
 </div>
@@ -1756,13 +1737,11 @@ OperatorStateFn(PauliOp(Pauli(z=[True], x=[False]), coeff=1.0), coeff=1.0, is_me
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-SummedOp([
-  -1.0523732 * II,
-  0.39793742 * IZ,
-  -0.3979374 * ZI,
-  -0.0112801 * ZZ,
-  0.18093119 * XX
-])
+-1.0523732 * II
++ 0.39793742 * IZ
+- 0.3979374 * ZI
+- 0.0112801 * ZZ
++ 0.18093119 * XX
 </pre></div></div>
 </div>
 <p>Em seguida, multiplicamos o Hamiltoniano por um <code class="docutils literal notranslate"><span class="pre">Parameter</span></code>. Este <code class="docutils literal notranslate"><span class="pre">Parameter</span></code> é armazenado na propriedade <code class="docutils literal notranslate"><span class="pre">coeff</span></code> do <code class="docutils literal notranslate"><span class="pre">SummedOp</span></code>. Chamando <code class="docutils literal notranslate"><span class="pre">exp_i()</span></code> no resultado, envolve-o em <code class="docutils literal notranslate"><span class="pre">EvolvedOp</span></code>, representando uma exponenciação.</p>
@@ -1783,14 +1762,20 @@ SummedOp([
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-e^(-i*1.0*θ * SummedOp([
-  -1.0523732 * II,
-  0.39793742 * IZ,
-  -0.3979374 * ZI,
-  -0.0112801 * ZZ,
-  0.18093119 * XX
-]))
-EvolvedOp(SummedOp([PauliOp(Pauli(z=[False, False], x=[False, False]), coeff=-1.0523732), PauliOp(Pauli(z=[True, False], x=[False, False]), coeff=0.39793742), PauliOp(Pauli(z=[False, True], x=[False, False]), coeff=-0.3979374), PauliOp(Pauli(z=[True, True], x=[False, False]), coeff=-0.0112801), PauliOp(Pauli(z=[False, False], x=[True, True]), coeff=0.18093119)], coeff=1.0*θ, abelian=False), coeff=1.0)
+e^(-i*1.0*θ * (
+  -1.0523732 * II
+  + 0.39793742 * IZ
+  - 0.3979374 * ZI
+  - 0.0112801 * ZZ
+  + 0.18093119 * XX
+))
+EvolvedOp(PauliSumOp(SparsePauliOp([[False, False, False, False],
+               [False, False,  True, False],
+               [False, False, False,  True],
+               [False, False,  True,  True],
+               [ True,  True, False, False]],
+              coeffs=[-1.0523732 +0.j,  0.39793742+0.j, -0.3979374 +0.j, -0.0112801 +0.j,
+  0.18093119+0.j]), coeff=1.0*θ), coeff=1.0)
 </pre></div></div>
 </div>
 <p>Nós construímos <code class="docutils literal notranslate"><span class="pre">h2_measurement</span></code>, que representa <code class="docutils literal notranslate"><span class="pre">two_qubit_H2</span></code> como um observável.</p>
@@ -1809,13 +1794,11 @@ EvolvedOp(SummedOp([PauliOp(Pauli(z=[False, False], x=[False, False]), coeff=-1.
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-OperatorMeasurement(SummedOp([
-  -1.0523732 * II,
-  0.39793742 * IZ,
-  -0.3979374 * ZI,
-  -0.0112801 * ZZ,
-  0.18093119 * XX
-]))
+OperatorMeasurement(-1.0523732 * II
++ 0.39793742 * IZ
+- 0.3979374 * ZI
+- 0.0112801 * ZZ
++ 0.18093119 * XX)
 </pre></div></div>
 </div>
 <p>Nós construímos o estado de Bell <span class="math notranslate nohighlight">\(|\Phi_+\rangle\)</span> através de <span class="math notranslate nohighlight">\(\text{CX} (H\otimes I) |00\rangle\)</span>.</p>
@@ -1860,20 +1843,18 @@ q_1: ─────┤ X ├
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ComposedOp([
-  OperatorMeasurement(SummedOp([
-    -1.0523732 * II,
-    0.39793742 * IZ,
-    -0.3979374 * ZI,
-    -0.0112801 * ZZ,
-    0.18093119 * XX
-  ])),
-  e^(-i*1.0*θ * SummedOp([
-    -1.0523732 * II,
-    0.39793742 * IZ,
-    -0.3979374 * ZI,
-    -0.0112801 * ZZ,
-    0.18093119 * XX
-  ])),
+  OperatorMeasurement(-1.0523732 * II
+  + 0.39793742 * IZ
+  - 0.3979374 * ZI
+  - 0.0112801 * ZZ
+  + 0.18093119 * XX),
+  e^(-i*1.0*θ * (
+    -1.0523732 * II
+    + 0.39793742 * IZ
+    - 0.3979374 * ZI
+    - 0.0112801 * ZZ
+    + 0.18093119 * XX
+  )),
   CircuitStateFn(
        ┌───┐
   q_0: ┤ H ├──■──
@@ -1902,15 +1883,13 @@ ComposedOp([
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ComposedOp([
-  OperatorMeasurement(SummedOp([
-    -1.0523732 * II,
-    0.39793742 * IZ,
-    -0.3979374 * ZI,
-    -0.0112801 * ZZ,
-    0.18093119 * XX
-  ])),
+  OperatorMeasurement(-1.0523732 * II
+  + 0.39793742 * IZ
+  - 0.3979374 * ZI
+  - 0.0112801 * ZZ
+  + 0.18093119 * XX),
   CircuitStateFn(
-  global phase: 1.0524
+  global phase: 1.0523732*θ
        ┌───┐     ┌───┐┌───┐┌──────────────────┐┌───┐┌───┐┌───┐»
   q_0: ┤ H ├──■──┤ H ├┤ X ├┤ RZ(0.18093119*θ) ├┤ X ├┤ H ├┤ X ├»
        └───┘┌─┴─┐├───┤└─┬─┘└──────────────────┘└─┬─┘├───┤└─┬─┘»
@@ -1955,7 +1934,7 @@ ComposedOp([
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="word-wrap: normal;white-space: pre;background: #fff0;line-height: 1.1;font-family: &quot;Courier New&quot;,Courier,monospace">global phase: 1.0524
+<pre style="word-wrap: normal;white-space: pre;background: #fff0;line-height: 1.1;font-family: &quot;Courier New&quot;,Courier,monospace">global phase: 0.52619
      ┌───┐     ┌───┐┌───┐┌────────────────────────┐┌───┐┌───┐┌───┐»
 q_0: ┤ H ├──■──┤ H ├┤ X ├┤ RZ(0.0904655950000000) ├┤ X ├┤ H ├┤ X ├»
      └───┘┌─┴─┐├───┤└─┬─┘└────────────────────────┘└─┬─┘├───┤└─┬─┘»
@@ -2043,23 +2022,19 @@ SummedOp([
 <div class="highlight"><pre>
 SummedOp([
   ComposedOp([
-    OperatorMeasurement(AbelianSummedOp([
-      -1.0523732 * II,
-      0.18093119 * ZZ
-    ])),
+    OperatorMeasurement(-0.3979374 * ZI
+    - 0.0112801 * ZZ
+    + 0.39793742 * IZ),
+    II
+  ]),
+  ComposedOp([
+    OperatorMeasurement(-1.0523732 * II
+    + 0.18093119 * ZZ),
          ┌───┐
     q_0: ┤ H ├
          ├───┤
     q_1: ┤ H ├
          └───┘
-  ]),
-  ComposedOp([
-    OperatorMeasurement(AbelianSummedOp([
-      0.39793742 * IZ,
-      -0.3979374 * ZI,
-      -0.0112801 * ZZ
-    ])),
-    II
   ])
 ])
 </pre></div></div>
@@ -2082,12 +2057,10 @@ SummedOp([
 <div class="highlight"><pre>
 SummedOp([
   ComposedOp([
-    OperatorMeasurement(AbelianSummedOp([
-      -1.0523732 * II,
-      0.18093119 * ZZ
-    ])),
+    OperatorMeasurement(-1.0523732 * II
+    + 0.18093119 * ZZ),
     CircuitStateFn(
-    global phase: 1.0524
+    global phase: 1.0523732*θ
          ┌───┐     ┌───┐┌───┐┌──────────────────┐┌───┐┌───┐┌───┐»
     q_0: ┤ H ├──■──┤ H ├┤ X ├┤ RZ(0.18093119*θ) ├┤ X ├┤ H ├┤ X ├»
          └───┘┌─┴─┐├───┤└─┬─┘└──────────────────┘└─┬─┘├───┤└─┬─┘»
@@ -2106,13 +2079,11 @@ SummedOp([
     )
   ]),
   ComposedOp([
-    OperatorMeasurement(AbelianSummedOp([
-      0.39793742 * IZ,
-      -0.3979374 * ZI,
-      -0.0112801 * ZZ
-    ])),
+    OperatorMeasurement(-0.0112801 * ZZ
+    - 0.3979374 * ZI
+    + 0.39793742 * IZ),
     CircuitStateFn(
-    global phase: 1.0524
+    global phase: 1.0523732*θ
          ┌───┐     ┌───┐┌───┐┌──────────────────┐┌───┐┌───┐┌───┐»
     q_0: ┤ H ├──■──┤ H ├┤ X ├┤ RZ(0.18093119*θ) ├┤ X ├┤ H ├┤ X ├»
          └───┘┌─┴─┐├───┤└─┬─┘└──────────────────┘└─┬─┘├───┤└─┬─┘»
@@ -2160,10 +2131,9 @@ SummedOp([
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-array([-0.88272211-1.111e-15j, -0.88272211-1.165e-15j,
-       -0.88272211-1.065e-15j, -0.88272211-1.178e-15j,
-       -0.88272211-1.113e-15j, -0.88272211-9.250e-16j,
-       -0.88272211-1.054e-15j, -0.88272211-1.156e-15j])
+array([-0.88272211+0.0e+00j, -0.88272211+0.0e+00j, -0.88272211+0.0e+00j,
+       -0.88272211+0.0e+00j, -0.88272211+0.0e+00j, -0.88272211+0.0e+00j,
+       -0.88272211+5.6e-17j, -0.88272211+0.0e+00j])
 </pre></div></div>
 </div>
 </section>
@@ -2175,7 +2145,7 @@ array([-0.88272211-1.111e-15j, -0.88272211-1.165e-15j,
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">sampler</span> <span class="o">=</span> <span class="n">CircuitSampler</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">BasicAer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">))</span>
+<span></span><span class="n">sampler</span> <span class="o">=</span> <span class="n">CircuitSampler</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">))</span>
 <span class="c1"># sampler.quantum_instance.run_config.shots = 1000</span>
 <span class="n">sampled_trotter_exp_op</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">h2_trotter_expectations</span><span class="p">)</span>
 <span class="n">sampled_trotter_energies</span> <span class="o">=</span> <span class="n">sampled_trotter_exp_op</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
@@ -2214,12 +2184,9 @@ Sampled Trotterized energies:
 Before:
 
 ComposedOp([
-  OperatorMeasurement(AbelianSummedOp([
-    -1.0523732 * II,
-    0.18093119 * ZZ
-  ])),
+  OperatorMeasurement(-1.0523732 * II
+  + 0.18093119 * ZZ),
   CircuitStateFn(
-  global phase: 1.0524
        ┌───┐     ┌───┐┌───┐┌───────┐┌───┐┌───┐┌───┐┌───────┐┌───┐┌───────┐»
   q_0: ┤ H ├──■──┤ H ├┤ X ├┤ RZ(0) ├┤ X ├┤ H ├┤ X ├┤ RZ(0) ├┤ X ├┤ RZ(0) ├»
        └───┘┌─┴─┐├───┤└─┬─┘└───────┘└─┬─┘├───┤└─┬─┘└───────┘└─┬─┘├───────┤»
@@ -2236,11 +2203,9 @@ ComposedOp([
 After:
 
 ComposedOp([
-  OperatorMeasurement(AbelianSummedOp([
-    -1.0523732 * II,
-    0.18093119 * ZZ
-  ])),
-  DictStateFn({&#39;00&#39;: 0.7207851621669248, &#39;11&#39;: 0.6931585316505886})
+  OperatorMeasurement(-1.0523732 * II
+  + 0.18093119 * ZZ),
+  DictStateFn({&#39;00&#39;: 0.7228145941387736, &#39;11&#39;: 0.6910420121092494})
 ])
 </pre></div></div>
 </div>
@@ -2259,14 +2224,14 @@ ComposedOp([
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.17.0.dev0+8c40b02</td></tr><tr><td>Aer</td><td>0.5.2</td></tr><tr><td>Ignis</td><td>0.4.0.dev0+15b7177</td></tr><tr><td>Aqua</td><td>0.9.0.dev0+2734384</td></tr><tr><td>IBM Q Provider</td><td>0.7.2</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.8.3 (default, May 17 2020, 18:15:42)
-[GCC 10.1.0]</td></tr><tr><td>OS</td><td>Linux</td></tr><tr><td>CPUs</td><td>12</td></tr><tr><td>Memory (Gb)</td><td>62.77165603637695</td></tr><tr><td colspan='2'>Wed Nov 04 13:35:52 2020 EST</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.18.0.dev0+5920b66</td></tr><tr><td>Aer</td><td>0.9.0</td></tr><tr><td>Ignis</td><td>0.7.0.dev0+8195559</td></tr><tr><td>Aqua</td><td>None</td></tr><tr><td>IBM Q Provider</td><td>None</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.8.8 (default, Apr 13 2021, 12:59:45)
+[Clang 10.0.0 ]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>2</td></tr><tr><td>Memory (Gb)</td><td>12.0</td></tr><tr><td colspan='2'>Thu May 27 11:06:21 2021 EDT</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2020.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
+<div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2021.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
 </div>
 </section>
 </section>

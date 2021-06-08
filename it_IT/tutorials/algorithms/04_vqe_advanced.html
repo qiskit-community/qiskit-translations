@@ -573,18 +573,18 @@ div.rendered_html tbody tr:hover {
 </div>
 <section id="Advanced-VQE-usage">
 <h1>Advanced VQE usage<a class="headerlink" href="#Advanced-VQE-usage" title="Link a questa intestazione">¶</a></h1>
-<p>There exist several parameters for configuring and using more advanced <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.aqua.algorithms.VQE.html">VQE</a> capabilities. This tutorial will cover the parameters such as <code class="docutils literal notranslate"><span class="pre">initial_point</span></code>, <code class="docutils literal notranslate"><span class="pre">expectation</span></code> and <code class="docutils literal notranslate"><span class="pre">gradient</span></code>.</p>
+<p>There exist several parameters for configuring and using more advanced <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.algorithms.VQE.html">VQE</a> capabilities. This tutorial will cover the parameters such as <code class="docutils literal notranslate"><span class="pre">initial</span> <span class="pre">point</span></code>, <code class="docutils literal notranslate"><span class="pre">expectation</span></code> and <code class="docutils literal notranslate"><span class="pre">gradient</span></code>.</p>
 <p>It will also cover advanced simulator use such as using Aer with the Matrix Product State method.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">BasicAer</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">X</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">I</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">QuantumInstance</span><span class="p">,</span> <span class="n">aqua_globals</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">VQE</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.optimizers</span> <span class="kn">import</span> <span class="n">SLSQP</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">Aer</span>
+<span class="kn">from</span> <span class="nn">qiskit.opflow</span> <span class="kn">import</span> <span class="n">X</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">I</span>
+<span class="kn">from</span> <span class="nn">qiskit.utils</span> <span class="kn">import</span> <span class="n">QuantumInstance</span><span class="p">,</span> <span class="n">algorithm_globals</span>
+<span class="kn">from</span> <span class="nn">qiskit.algorithms</span> <span class="kn">import</span> <span class="n">VQE</span>
+<span class="kn">from</span> <span class="nn">qiskit.algorithms.optimizers</span> <span class="kn">import</span> <span class="n">SLSQP</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">TwoLocal</span>
 </pre></div>
 </div>
@@ -605,8 +605,8 @@ div.rendered_html tbody tr:hover {
 </div>
 <section id="Initial-point">
 <h2>Initial point<a class="headerlink" href="#Initial-point" title="Link a questa intestazione">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">initial_point</span></code> parameter allows the optimization to begin at the given point, where the point is a list of parameters that will configure the variational form. By default the initial point is <code class="docutils literal notranslate"><span class="pre">None</span></code> which means that VQE will choose one. The choice in in this case is if the supplied variational form has a preferred point, based on the initial state provided to it, then this will be chosen, otherwise a random initial point that fits with any bounds the variational has will be chosen. If
-an initial point is supplied it will take priority though and be used - note though it must match in length to the number of parameters in the variational form circuit.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">initial_point</span></code> parameter allows the optimization to begin at the given point, where the point is a list of parameters that will configure the ansatz. By default the initial point is <code class="docutils literal notranslate"><span class="pre">None</span></code> which means that VQE will choose one. The choice in in this case is if the supplied ansatz has a preferred point, based on the initial state provided to it, then this will be chosen, otherwise a random initial point that fits with any bounds the ansatz has will be chosen. If an initial point is
+supplied it will take priority though and be used - note though it must match in length to the number of parameters in the ansatz circuit.</p>
 <p>Why to use a initial point? One reason would be if you have guess a reasonable starting point for the problem or perhaps know have information from a prior experiment.</p>
 <p>To demonstrate the use let’s first simply repeat the first working example from the <a class="reference internal" href="01_algorithms_introduction.html#A-complete-working-example"><span class="std std-ref">algorithms introduction</span></a> tutorial to get a solution’s optimal point.</p>
 <div class="nbinput docutils container">
@@ -614,19 +614,16 @@ an initial point is supplied it will take priority though and be used - note tho
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">aqua_globals</span>
-<span class="n">seed</span> <span class="o">=</span> <span class="mi">50</span>
-<span class="n">aqua_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
-<span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">BasicAer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">),</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+<span></span><span class="n">seed</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">algorithm_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
+<span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">),</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
 
 <span class="n">ansatz</span> <span class="o">=</span> <span class="n">TwoLocal</span><span class="p">(</span><span class="n">rotation_blocks</span><span class="o">=</span><span class="s1">&#39;ry&#39;</span><span class="p">,</span> <span class="n">entanglement_blocks</span><span class="o">=</span><span class="s1">&#39;cz&#39;</span><span class="p">)</span>
 <span class="n">slsqp</span> <span class="o">=</span> <span class="n">SLSQP</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
-<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">,</span> <span class="n">var_form</span><span class="o">=</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-
-<span class="kn">import</span> <span class="nn">pprint</span>
-<span class="n">pp</span> <span class="o">=</span> <span class="n">pprint</span><span class="o">.</span><span class="n">PrettyPrinter</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">compute_minimum_eigenvalue</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="n">optimizer_evals</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">optimizer_evals</span>
 </pre></div>
 </div>
 </div>
@@ -635,23 +632,24 @@ an initial point is supplied it will take priority though and be used - note tho
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{   &#39;cost_function_evals&#39;: 72,
-    &#39;eigenstate&#39;: array([-9.55448660e-05+2.12037105e-17j,  9.93766273e-01+2.25293943e-16j,
-       -1.11483565e-01+1.52657541e-16j, -1.77521351e-05+3.71607315e-17j]),
-    &#39;eigenvalue&#39;: (-1.857275017559769+0j),
-    &#39;optimal_parameters&#39;: {   Parameter(θ[0]): 4.296520551468743,
-                              Parameter(θ[1]): 4.426962086704216,
-                              Parameter(θ[2]): 0.5470753710293924,
-                              Parameter(θ[3]): 6.09294789784282,
-                              Parameter(θ[4]): -2.598325857134344,
-                              Parameter(θ[5]): 1.5683261371389359,
-                              Parameter(θ[6]): -4.717618235040379,
-                              Parameter(θ[7]): 0.3602072316165878},
-    &#39;optimal_point&#39;: array([ 4.29652055,  4.42696209,  0.54707537,  6.0929479 , -2.59832586,
-        1.56832614, -4.71761824,  0.36020723]),
-    &#39;optimal_value&#39;: -1.857275017559769,
-    &#39;optimizer_evals&#39;: 72,
-    &#39;optimizer_time&#39;: 1.2399418354034424}
+{   &#39;aux_operator_eigenvalues&#39;: None,
+    &#39;cost_function_evals&#39;: 65,
+    &#39;eigenstate&#39;: array([ 9.54859564e-05+0.j, -9.93766269e-01+0.j,  1.11483597e-01+0.j,
+        1.76972625e-05+0.j]),
+    &#39;eigenvalue&#39;: -1.8572750175780233,
+    &#39;optimal_parameters&#39;: {   ParameterVectorElement(θ[3]): 6.092947703759512,
+                              ParameterVectorElement(θ[2]): 0.5470754201428533,
+                              ParameterVectorElement(θ[1]): 4.426962028746158,
+                              ParameterVectorElement(θ[4]): -2.5983257006415026,
+                              ParameterVectorElement(θ[5]): 1.5683259438037993,
+                              ParameterVectorElement(θ[6]): -4.717618238771348,
+                              ParameterVectorElement(θ[7]): 0.3602072544539939,
+                              ParameterVectorElement(θ[0]): 4.2965202693703635},
+    &#39;optimal_point&#39;: array([ 4.29652027,  4.42696203,  0.54707542,  6.0929477 , -2.5983257 ,
+        1.56832594, -4.71761824,  0.36020725]),
+    &#39;optimal_value&#39;: -1.8572750175780233,
+    &#39;optimizer_evals&#39;: 65,
+    &#39;optimizer_time&#39;: 0.08263611793518066}
 </pre></div></div>
 </div>
 <p>Now we can take the <code class="docutils literal notranslate"><span class="pre">optimal_point</span></code> from the above result and use it as the <code class="docutils literal notranslate"><span class="pre">initial_point</span></code> here.</p>
@@ -662,15 +660,17 @@ an initial point is supplied it will take priority though and be used - note tho
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">initial_pt</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">optimal_point</span>
 
-<span class="n">aqua_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
-<span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">BasicAer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">),</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+<span class="n">algorithm_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
+<span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">),</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
 
 <span class="n">ansatz</span> <span class="o">=</span> <span class="n">TwoLocal</span><span class="p">(</span><span class="n">rotation_blocks</span><span class="o">=</span><span class="s1">&#39;ry&#39;</span><span class="p">,</span> <span class="n">entanglement_blocks</span><span class="o">=</span><span class="s1">&#39;cz&#39;</span><span class="p">)</span>
 <span class="n">slsqp</span> <span class="o">=</span> <span class="n">SLSQP</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
-<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">,</span> <span class="n">var_form</span><span class="o">=</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">initial_point</span><span class="o">=</span><span class="n">initial_pt</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">)</span>
-<span class="n">result1</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-
-<span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">result1</span><span class="p">)</span>
+<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">initial_point</span><span class="o">=</span><span class="n">initial_pt</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">)</span>
+<span class="n">result1</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">compute_minimum_eigenvalue</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result1</span><span class="p">)</span>
+<span class="n">optimizer_evals1</span> <span class="o">=</span> <span class="n">result1</span><span class="o">.</span><span class="n">optimizer_evals</span>
+<span class="nb">print</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;optimizer_evals is </span><span class="si">{</span><span class="n">optimizer_evals1</span><span class="si">}</span><span class="s1"> with initial point versus </span><span class="si">{</span><span class="n">optimizer_evals</span><span class="si">}</span><span class="s1"> without it.&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -679,34 +679,37 @@ an initial point is supplied it will take priority though and be used - note tho
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{   &#39;cost_function_evals&#39;: 10,
-    &#39;eigenstate&#39;: array([-9.55448660e-05+2.12037105e-17j,  9.93766273e-01+2.25293943e-16j,
-       -1.11483565e-01+1.52657541e-16j, -1.77521351e-05+3.71607315e-17j]),
-    &#39;eigenvalue&#39;: (-1.857275017559769+0j),
-    &#39;optimal_parameters&#39;: {   Parameter(θ[1]): 4.426962086704216,
-                              Parameter(θ[0]): 4.296520551468743,
-                              Parameter(θ[4]): -2.598325857134344,
-                              Parameter(θ[6]): -4.717618235040379,
-                              Parameter(θ[3]): 6.09294789784282,
-                              Parameter(θ[2]): 0.5470753710293924,
-                              Parameter(θ[5]): 1.5683261371389359,
-                              Parameter(θ[7]): 0.3602072316165878},
-    &#39;optimal_point&#39;: array([ 4.29652055,  4.42696209,  0.54707537,  6.0929479 , -2.59832586,
-        1.56832614, -4.71761824,  0.36020723]),
-    &#39;optimal_value&#39;: -1.857275017559769,
-    &#39;optimizer_evals&#39;: 10,
-    &#39;optimizer_time&#39;: 0.27449989318847656}
+{   &#39;aux_operator_eigenvalues&#39;: None,
+    &#39;cost_function_evals&#39;: 9,
+    &#39;eigenstate&#39;: array([ 9.54859564e-05+0.j, -9.93766269e-01+0.j,  1.11483597e-01+0.j,
+        1.76972625e-05+0.j]),
+    &#39;eigenvalue&#39;: -1.8572750175780233,
+    &#39;optimal_parameters&#39;: {   ParameterVectorElement(θ[3]): 6.092947703759512,
+                              ParameterVectorElement(θ[6]): -4.717618238771348,
+                              ParameterVectorElement(θ[5]): 1.5683259438037993,
+                              ParameterVectorElement(θ[1]): 4.426962028746158,
+                              ParameterVectorElement(θ[2]): 0.5470754201428533,
+                              ParameterVectorElement(θ[7]): 0.3602072544539939,
+                              ParameterVectorElement(θ[4]): -2.5983257006415026,
+                              ParameterVectorElement(θ[0]): 4.2965202693703635},
+    &#39;optimal_point&#39;: array([ 4.29652027,  4.42696203,  0.54707542,  6.0929477 , -2.5983257 ,
+        1.56832594, -4.71761824,  0.36020725]),
+    &#39;optimal_value&#39;: -1.8572750175780233,
+    &#39;optimizer_evals&#39;: 9,
+    &#39;optimizer_time&#39;: 0.027410030364990234}
+
+optimizer_evals is 9 with initial point versus 65 without it.
 </pre></div></div>
 </div>
-<p>Here we see that result was arrived at much more quickly where <code class="docutils literal notranslate"><span class="pre">optimizer_evals</span></code> is 10 versus 72 when it started from a random value when the initial point was not supplied (default of None).</p>
+<p>Here we see that result was arrived at much more quickly with <code class="docutils literal notranslate"><span class="pre">optimizer_evals</span></code> when it started from a random value when the initial point was not supplied (default of None).</p>
 <p>Where this becomes useful for examples where we the solution to one problem can be used to for a guess for the solution to a very close similar problem. Chemistry is very good example where we change the inter-atomic distance(s) of molecule to plot a dissociation profile. When the distance changes are small we expect the solution to still be nearby the prior one. One technique is to simply use the optimal point from one solution as the starting point for the next step. Now more complex
-techniques are possible that do some extrapolation to compute an initial position based on prior solution(s) rather than directly use the prior solution. The Qiskit Chemistry <a class="reference internal" href="../chemistry/05_Sampling_potential_energy_surfaces.html#Extrapolation"><span class="std std-ref">sampling_potential_energy_surfaces</span></a> tutorial shows such bootstrapping and extrapolation.</p>
+techniques are possible that do some extrapolation to compute an initial position based on prior solution(s) rather than directly use the prior solution.</p>
 </section>
 <section id="Expectation">
 <h2>Expectation<a class="headerlink" href="#Expectation" title="Link a questa intestazione">¶</a></h2>
-<p>The energy of the Hamiltonian operator that VQE is working on is the expectation value when evaluated with the parameterized variational form. To compute the expectation value VQE uses an instance of an <a class="reference external" href="https://qiskit.org/documentation/apidoc/qiskit.aqua.operators.expectations.html">expectation</a> object. Such an instance may be supplied via the <code class="docutils literal notranslate"><span class="pre">expectation</span></code> parameter, or in the default case, where it has a value of <code class="docutils literal notranslate"><span class="pre">None</span></code>, VQE will use the
-<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.aqua.operators.expectations.ExpectationFactory.html">ExpectationFactory</a> to create itself a suitable instance based on the supplied backend.</p>
-<p>For most cases letting VQE create a suitable instance is sufficient. However the Qiskit Aer qasm_simulator supports a snapshot instruction that can be used in conjunction with the operator expectation computation. If used then the outcome is ideal, i.e. like the statevector simulator, and has no shot noise. Since people normally choose the qasm_simulator to have shot noise (sampling noise), and be more like a real-device outcome, VQE has an <code class="docutils literal notranslate"><span class="pre">include_custom</span></code> flag that is passed on to the
+<p>The energy of the Hamiltonian operator that VQE is working on is the expectation value when evaluated with the parameterized ansatz. To compute the expectation value VQE uses an instance of an <a class="reference external" href="https://qiskit.org/documentation/apidoc/qiskit.opflow.expectations.html">expectation</a> object. Such an instance may be supplied via the <code class="docutils literal notranslate"><span class="pre">expectation</span></code> parameter, or in the default case, where it has a value of <code class="docutils literal notranslate"><span class="pre">None</span></code>, VQE will use the
+<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.opflow.expectations.ExpectationFactory.html">ExpectationFactory</a> to create itself a suitable instance based on the supplied backend.</p>
+<p>For most cases letting VQE create a suitable instance is sufficient. However the Qiskit Aer aer_simulator supports a snapshot instruction that can be used in conjunction with the operator expectation computation. If used then the outcome is ideal, i.e. like the statevector simulator, and has no shot noise. Since people normally choose the aer_simulator to have shot noise (sampling noise), and be more like a real-device outcome, VQE has an <code class="docutils literal notranslate"><span class="pre">include_custom</span></code> flag that is passed on to the
 ExpectationFactory. When using Aer qasm simulator, and this is set <code class="docutils literal notranslate"><span class="pre">True</span></code>, the factory will return <code class="docutils literal notranslate"><span class="pre">AerPauliExpectation</span></code> which uses the snapshot instruction, when <code class="docutils literal notranslate"><span class="pre">False</span></code>, default, then the regular <code class="docutils literal notranslate"><span class="pre">PauliExpectation</span></code> is returned.</p>
 <p>The following example shows <code class="docutils literal notranslate"><span class="pre">include_custom=True</span></code> where the outcome matches the statevector simulator. In fact it can be better/faster to do this than use the statevector_simulator directly. This is because in the latter case when the Hamiltonian is a sum of Paulis it must be converted to matrix form, and this is avoided when using the snapshot instruction done when include_custom is True.</p>
 <div class="nbinput docutils container">
@@ -716,15 +719,15 @@ ExpectationFactory. When using Aer qasm simulator, and this is set <code class="
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">Aer</span>
 
-<span class="n">aqua_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
-<span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">),</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+<span class="n">algorithm_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
+<span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">),</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
 
 <span class="n">ansatz</span> <span class="o">=</span> <span class="n">TwoLocal</span><span class="p">(</span><span class="n">rotation_blocks</span><span class="o">=</span><span class="s1">&#39;ry&#39;</span><span class="p">,</span> <span class="n">entanglement_blocks</span><span class="o">=</span><span class="s1">&#39;cz&#39;</span><span class="p">)</span>
 <span class="n">slsqp</span> <span class="o">=</span> <span class="n">SLSQP</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
-<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">,</span> <span class="n">var_form</span><span class="o">=</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">,</span> <span class="n">include_custom</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-
-<span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">,</span> <span class="n">include_custom</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">compute_minimum_eigenvalue</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">)</span>
+<span class="n">optimal_value1</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">optimal_value</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -733,39 +736,43 @@ ExpectationFactory. When using Aer qasm simulator, and this is set <code class="
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{   &#39;cost_function_evals&#39;: 72,
-    &#39;eigenstate&#39;: {&#39;01&#39;: 1008, &#39;10&#39;: 16},
-    &#39;eigenvalue&#39;: (-1.8572750175597519+0j),
-    &#39;optimal_parameters&#39;: {   Parameter(θ[0]): 4.296520463599476,
-                              Parameter(θ[1]): 4.426962139199476,
-                              Parameter(θ[2]): 0.5470754235069875,
-                              Parameter(θ[3]): 6.092947836794945,
-                              Parameter(θ[4]): -2.5983258956331645,
-                              Parameter(θ[5]): 1.568326000491598,
-                              Parameter(θ[6]): -4.717618128585369,
-                              Parameter(θ[7]): 0.3602072910298268},
-    &#39;optimal_point&#39;: array([ 4.29652046,  4.42696214,  0.54707542,  6.09294784, -2.5983259 ,
-        1.568326  , -4.71761813,  0.36020729]),
-    &#39;optimal_value&#39;: -1.8572750175597519,
-    &#39;optimizer_evals&#39;: 72,
-    &#39;optimizer_time&#39;: 1.2052154541015625}
+{   &#39;aux_operator_eigenvalues&#39;: None,
+    &#39;cost_function_evals&#39;: 65,
+    &#39;eigenstate&#39;: {&#39;01&#39;: 0.9921567416492215, &#39;10&#39;: 0.125},
+    &#39;eigenvalue&#39;: -1.8572750175807682,
+    &#39;optimal_parameters&#39;: {   ParameterVectorElement(θ[0]): 4.296520300933687,
+                              ParameterVectorElement(θ[4]): -2.598325866938012,
+                              ParameterVectorElement(θ[3]): 6.092947713510392,
+                              ParameterVectorElement(θ[1]): 4.426962159645716,
+                              ParameterVectorElement(θ[2]): 0.5470752986013949,
+                              ParameterVectorElement(θ[6]): -4.717618259450455,
+                              ParameterVectorElement(θ[5]): 1.5683258132970883,
+                              ParameterVectorElement(θ[7]): 0.3602071559531031},
+    &#39;optimal_point&#39;: array([ 4.2965203 ,  4.42696216,  0.5470753 ,  6.09294771, -2.59832587,
+        1.56832581, -4.71761826,  0.36020716]),
+    &#39;optimal_value&#39;: -1.8572750175807682,
+    &#39;optimizer_evals&#39;: 65,
+    &#39;optimizer_time&#39;: 0.17621898651123047}
 </pre></div></div>
 </div>
-<p>In case you have doubts here is the qasm_simulator again but include_custom has been left to default to False. The optimization ended abruptly, presumably due to the shot noise confusing the SLSQP optimizer. The optimal value can be seen to be wrong too, i.e. -1.098 versus the correct -1.857.</p>
+<p>In case you have doubts here is the aer_simulator again but include_custom has been left to default to False. The optimization ended abruptly, presumably due to the shot noise confusing the SLSQP optimizer.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">aqua_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
-<span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">),</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+<span></span><span class="n">algorithm_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
+<span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">),</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
 
 <span class="n">ansatz</span> <span class="o">=</span> <span class="n">TwoLocal</span><span class="p">(</span><span class="n">rotation_blocks</span><span class="o">=</span><span class="s1">&#39;ry&#39;</span><span class="p">,</span> <span class="n">entanglement_blocks</span><span class="o">=</span><span class="s1">&#39;cz&#39;</span><span class="p">)</span>
 <span class="n">slsqp</span> <span class="o">=</span> <span class="n">SLSQP</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
-<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">,</span> <span class="n">var_form</span><span class="o">=</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-
-<span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">compute_minimum_eigenvalue</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">)</span>
+<span class="n">optimal_value</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">optimal_value</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;The optimal value can be seen to be wrong too, i.e. &#39;</span>
+      <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">optimal_value</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> versus the correct </span><span class="si">{</span><span class="n">optimal_value1</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -774,22 +781,28 @@ ExpectationFactory. When using Aer qasm simulator, and this is set <code class="
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{   &#39;cost_function_evals&#39;: 10,
-    &#39;eigenstate&#39;: {&#39;00&#39;: 620, &#39;01&#39;: 244, &#39;10&#39;: 159, &#39;11&#39;: 1},
-    &#39;eigenvalue&#39;: (-1.0987888676631705+0j),
-    &#39;optimal_parameters&#39;: {   Parameter(θ[5]): 1.8462931831829383,
-                              Parameter(θ[6]): -5.466043598406607,
-                              Parameter(θ[7]): 0.6984088030463615,
-                              Parameter(θ[2]): 0.6019852007557844,
-                              Parameter(θ[1]): 4.19301252102391,
-                              Parameter(θ[0]): 3.611860069224077,
-                              Parameter(θ[4]): -3.3070470445355764,
-                              Parameter(θ[3]): 5.949536809130025},
+The optimal value can be seen to be wrong too, i.e. -1.074 versus the correct -1.857.
+
+{   &#39;aux_operator_eigenvalues&#39;: None,
+    &#39;cost_function_evals&#39;: 9,
+    &#39;eigenstate&#39;: {   &#39;00&#39;: 0.7781187248742958,
+                      &#39;01&#39;: 0.4881406047441659,
+                      &#39;10&#39;: 0.39404750665370286,
+                      &#39;11&#39;: 0.03125},
+    &#39;eigenvalue&#39;: -1.0741921795698932,
+    &#39;optimal_parameters&#39;: {   ParameterVectorElement(θ[0]): 3.611860069224077,
+                              ParameterVectorElement(θ[7]): 0.6984088030463615,
+                              ParameterVectorElement(θ[3]): 5.949536809130025,
+                              ParameterVectorElement(θ[2]): 0.6019852007557844,
+                              ParameterVectorElement(θ[6]): -5.466043598406607,
+                              ParameterVectorElement(θ[1]): 4.19301252102391,
+                              ParameterVectorElement(θ[4]): -3.3070470445355764,
+                              ParameterVectorElement(θ[5]): 1.8462931831829383},
     &#39;optimal_point&#39;: array([ 3.61186007,  4.19301252,  0.6019852 ,  5.94953681, -3.30704704,
         1.84629318, -5.4660436 ,  0.6984088 ]),
-    &#39;optimal_value&#39;: -1.0987888676631705,
-    &#39;optimizer_evals&#39;: 10,
-    &#39;optimizer_time&#39;: 0.5309410095214844}
+    &#39;optimal_value&#39;: -1.0741921795698932,
+    &#39;optimizer_evals&#39;: 9,
+    &#39;optimizer_time&#39;: 0.07421207427978516}
 </pre></div></div>
 </div>
 <p>Changing the optimizer to SPSA, which is designed to work in noisy environments, gets us a better result. Though the noise has affected the outcome so it’s not as accurate.</p>
@@ -798,17 +811,16 @@ ExpectationFactory. When using Aer qasm simulator, and this is set <code class="
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.aqua.components.optimizers</span> <span class="kn">import</span> <span class="n">SPSA</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.algorithms.optimizers</span> <span class="kn">import</span> <span class="n">SPSA</span>
 
-<span class="n">aqua_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
-<span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">),</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+<span class="n">algorithm_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
+<span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">),</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
 
 <span class="n">ansatz</span> <span class="o">=</span> <span class="n">TwoLocal</span><span class="p">(</span><span class="n">rotation_blocks</span><span class="o">=</span><span class="s1">&#39;ry&#39;</span><span class="p">,</span> <span class="n">entanglement_blocks</span><span class="o">=</span><span class="s1">&#39;cz&#39;</span><span class="p">)</span>
 <span class="n">slsqp</span> <span class="o">=</span> <span class="n">SPSA</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
-<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">,</span> <span class="n">var_form</span><span class="o">=</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-
-<span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">compute_minimum_eigenvalue</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -817,21 +829,23 @@ ExpectationFactory. When using Aer qasm simulator, and this is set <code class="
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{   &#39;cost_function_evals&#39;: 241,
-    &#39;eigenstate&#39;: {&#39;01&#39;: 1007, &#39;10&#39;: 17},
-    &#39;eigenvalue&#39;: (-1.8623464125433034+0j),
-    &#39;optimal_parameters&#39;: {   Parameter(θ[3]): 7.149874669811867,
-                              Parameter(θ[7]): -1.8648388048829714,
-                              Parameter(θ[2]): 2.146860065695897,
-                              Parameter(θ[1]): 2.0047037904408738,
-                              Parameter(θ[5]): 0.026059065222908795,
-                              Parameter(θ[6]): -4.4426207121597745,
-                              Parameter(θ[4]): -4.6685058886658455,
-                              Parameter(θ[0]): 4.731406884288576},
-    &#39;optimal_point&#39;: array([ 4.73140688,  2.00470379,  2.14686007,  7.14987467, -4.66850589,
-        0.02605907, -4.44262071, -1.8648388 ]),
-    &#39;optimal_value&#39;: -1.8623464125433034,
-    &#39;optimizer_time&#39;: 11.047632932662964}
+{   &#39;aux_operator_eigenvalues&#39;: None,
+    &#39;cost_function_evals&#39;: 200,
+    &#39;eigenstate&#39;: {&#39;01&#39;: 0.993140536379419, &#39;10&#39;: 0.11692679333668567},
+    &#39;eigenvalue&#39;: -1.8618521132262453,
+    &#39;optimal_parameters&#39;: {   ParameterVectorElement(θ[4]): -2.3482177711024588,
+                              ParameterVectorElement(θ[2]): -0.23941337071033308,
+                              ParameterVectorElement(θ[7]): 0.22755580746001913,
+                              ParameterVectorElement(θ[3]): 6.6402821272229335,
+                              ParameterVectorElement(θ[6]): -4.707529314643045,
+                              ParameterVectorElement(θ[1]): 3.325806567734803,
+                              ParameterVectorElement(θ[5]): 3.0118347096051314,
+                              ParameterVectorElement(θ[0]): 3.676715527111659},
+    &#39;optimal_point&#39;: array([ 3.67671553,  3.32580657, -0.23941337,  6.64028213, -2.34821777,
+        3.01183471, -4.70752931,  0.22755581]),
+    &#39;optimal_value&#39;: -1.8618521132262453,
+    &#39;optimizer_evals&#39;: 200,
+    &#39;optimizer_time&#39;: 1.2898402214050293}
 </pre></div></div>
 </div>
 <p>As mentioned above, an expectation object can be explicitly given (so the internal <code class="docutils literal notranslate"><span class="pre">ExpectationFactory</span></code> and include_custom are never used/needed. Below we create an <code class="docutils literal notranslate"><span class="pre">AerPauliExpectation</span></code> and pass this to VQE. We can see the result matches that above where we set include_custom to True and let VQE create its own expectation object.</p>
@@ -840,18 +854,17 @@ ExpectationFactory. When using Aer qasm simulator, and this is set <code class="
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">AerPauliExpectation</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.opflow</span> <span class="kn">import</span> <span class="n">AerPauliExpectation</span>
 
-<span class="n">aqua_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
-<span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">),</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+<span class="n">algorithm_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
+<span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">),</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
 
 <span class="n">ansatz</span> <span class="o">=</span> <span class="n">TwoLocal</span><span class="p">(</span><span class="n">rotation_blocks</span><span class="o">=</span><span class="s1">&#39;ry&#39;</span><span class="p">,</span> <span class="n">entanglement_blocks</span><span class="o">=</span><span class="s1">&#39;cz&#39;</span><span class="p">)</span>
 <span class="n">slsqp</span> <span class="o">=</span> <span class="n">SLSQP</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
-<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">,</span> <span class="n">var_form</span><span class="o">=</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">,</span>
+<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">,</span>
           <span class="n">expectation</span><span class="o">=</span><span class="n">AerPauliExpectation</span><span class="p">())</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-
-<span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">compute_minimum_eigenvalue</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -860,43 +873,43 @@ ExpectationFactory. When using Aer qasm simulator, and this is set <code class="
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{   &#39;cost_function_evals&#39;: 72,
-    &#39;eigenstate&#39;: {&#39;01&#39;: 1008, &#39;10&#39;: 16},
-    &#39;eigenvalue&#39;: (-1.8572750175597519+0j),
-    &#39;optimal_parameters&#39;: {   Parameter(θ[5]): 1.568326000491598,
-                              Parameter(θ[6]): -4.717618128585369,
-                              Parameter(θ[4]): -2.5983258956331645,
-                              Parameter(θ[2]): 0.5470754235069875,
-                              Parameter(θ[3]): 6.092947836794945,
-                              Parameter(θ[7]): 0.3602072910298268,
-                              Parameter(θ[0]): 4.296520463599476,
-                              Parameter(θ[1]): 4.426962139199476},
-    &#39;optimal_point&#39;: array([ 4.29652046,  4.42696214,  0.54707542,  6.09294784, -2.5983259 ,
-        1.568326  , -4.71761813,  0.36020729]),
-    &#39;optimal_value&#39;: -1.8572750175597519,
-    &#39;optimizer_evals&#39;: 72,
-    &#39;optimizer_time&#39;: 1.3454556465148926}
+{   &#39;aux_operator_eigenvalues&#39;: None,
+    &#39;cost_function_evals&#39;: 65,
+    &#39;eigenstate&#39;: {&#39;01&#39;: 0.9921567416492215, &#39;10&#39;: 0.125},
+    &#39;eigenvalue&#39;: -1.8572750175807682,
+    &#39;optimal_parameters&#39;: {   ParameterVectorElement(θ[3]): 6.092947713510392,
+                              ParameterVectorElement(θ[7]): 0.3602071559531031,
+                              ParameterVectorElement(θ[6]): -4.717618259450455,
+                              ParameterVectorElement(θ[4]): -2.598325866938012,
+                              ParameterVectorElement(θ[5]): 1.5683258132970883,
+                              ParameterVectorElement(θ[0]): 4.296520300933687,
+                              ParameterVectorElement(θ[1]): 4.426962159645716,
+                              ParameterVectorElement(θ[2]): 0.5470752986013949},
+    &#39;optimal_point&#39;: array([ 4.2965203 ,  4.42696216,  0.5470753 ,  6.09294771, -2.59832587,
+        1.56832581, -4.71761826,  0.36020716]),
+    &#39;optimal_value&#39;: -1.8572750175807682,
+    &#39;optimizer_evals&#39;: 65,
+    &#39;optimizer_time&#39;: 0.20196986198425293}
 </pre></div></div>
 </div>
-<p>By default, the <code class="docutils literal notranslate"><span class="pre">PauliExpectation</span></code> object, that would have be chosen when include_custom is False (or when using BasicAer qasm_simulator, or a real device) groups Paulis into commuting sets. This is efficient as it runs less circuits to compute the expectation. However, if for some reason you wanted to run a circuit for each Pauli then then grouping can be turned off when constructing the PauliExpectation. You need to explicitly pass in such an expectation instance to VQE to have it work this
-way though as shown below.</p>
+<p>By default, the <code class="docutils literal notranslate"><span class="pre">PauliExpectation</span></code> object, that would have be chosen when include_custom is False (or when using Aer aer_simulator, or a real device) groups Paulis into commuting sets. This is efficient as it runs less circuits to compute the expectation. However, if for some reason you wanted to run a circuit for each Pauli then then grouping can be turned off when constructing the PauliExpectation. You need to explicitly pass in such an expectation instance to VQE to have it work this way
+though as shown below.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">PauliExpectation</span>
+<span></span><span class="kn">from</span> <span class="nn">qiskit.opflow</span> <span class="kn">import</span> <span class="n">PauliExpectation</span>
 
-<span class="n">aqua_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
-<span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">),</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+<span class="n">algorithm_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
+<span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">),</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
 
 <span class="n">ansatz</span> <span class="o">=</span> <span class="n">TwoLocal</span><span class="p">(</span><span class="n">rotation_blocks</span><span class="o">=</span><span class="s1">&#39;ry&#39;</span><span class="p">,</span> <span class="n">entanglement_blocks</span><span class="o">=</span><span class="s1">&#39;cz&#39;</span><span class="p">)</span>
 <span class="n">slsqp</span> <span class="o">=</span> <span class="n">SPSA</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
-<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">,</span> <span class="n">var_form</span><span class="o">=</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">,</span>
+<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">,</span>
           <span class="n">expectation</span><span class="o">=</span><span class="n">PauliExpectation</span><span class="p">(</span><span class="n">group_paulis</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-
-<span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">compute_minimum_eigenvalue</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -905,21 +918,23 @@ way though as shown below.</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{   &#39;cost_function_evals&#39;: 241,
-    &#39;eigenstate&#39;: {&#39;01&#39;: 1007, &#39;10&#39;: 17},
-    &#39;eigenvalue&#39;: (-1.8667499370593512+0j),
-    &#39;optimal_parameters&#39;: {   Parameter(θ[1]): 2.1216349904032947,
-                              Parameter(θ[7]): -1.9698662442728732,
-                              Parameter(θ[5]): 0.2634941452871489,
-                              Parameter(θ[6]): -4.360567678129973,
-                              Parameter(θ[0]): 4.718047005792739,
-                              Parameter(θ[4]): -4.733789920734712,
-                              Parameter(θ[2]): 2.1876557567510497,
-                              Parameter(θ[3]): 7.317481602611872},
-    &#39;optimal_point&#39;: array([ 4.71804701,  2.12163499,  2.18765576,  7.3174816 , -4.73378992,
-        0.26349415, -4.36056768, -1.96986624]),
-    &#39;optimal_value&#39;: -1.8667499370593512,
-    &#39;optimizer_time&#39;: 20.964618682861328}
+{   &#39;aux_operator_eigenvalues&#39;: None,
+    &#39;cost_function_evals&#39;: 200,
+    &#39;eigenstate&#39;: {&#39;01&#39;: 0.9916644782889019, &#39;10&#39;: 0.1288470508005519},
+    &#39;eigenvalue&#39;: -1.8649830308114583,
+    &#39;optimal_parameters&#39;: {   ParameterVectorElement(θ[5]): 2.9887235542230144,
+                              ParameterVectorElement(θ[0]): 3.6833958480452034,
+                              ParameterVectorElement(θ[1]): 3.3827104248942383,
+                              ParameterVectorElement(θ[7]): 0.18495131387681946,
+                              ParameterVectorElement(θ[6]): -4.76651492079903,
+                              ParameterVectorElement(θ[2]): -0.2651696479429452,
+                              ParameterVectorElement(θ[3]): 6.699789960055848,
+                              ParameterVectorElement(θ[4]): -2.282559635034206},
+    &#39;optimal_point&#39;: array([ 3.68339585,  3.38271042, -0.26516965,  6.69978996, -2.28255964,
+        2.98872355, -4.76651492,  0.18495131]),
+    &#39;optimal_value&#39;: -1.8649830308114583,
+    &#39;optimizer_evals&#39;: 200,
+    &#39;optimizer_time&#39;: 2.700853109359741}
 </pre></div></div>
 </div>
 </section>
@@ -930,23 +945,22 @@ way though as shown below.</p>
 </section>
 <section id="Quantum-Instance-and-advanced-simulation">
 <h2>Quantum Instance and advanced simulation<a class="headerlink" href="#Quantum-Instance-and-advanced-simulation" title="Link a questa intestazione">¶</a></h2>
-<p>While you may be familiar with passing a QuantumInstancen created from a <code class="docutils literal notranslate"><span class="pre">statevector_simulator</span></code> a <code class="docutils literal notranslate"><span class="pre">qasm_simulator</span></code> or real device backend, it is possible to use the advanced simulation modes of Aer too when applicable. For instance we can easily use the Aer <a class="reference internal" href="../simulators/7_matrix_product_state_method.html"><span class="doc">Matrix Product State</span></a> method, that has the potential to scale to larger numbers of qubits.</p>
+<p>While you may be familiar with passing a QuantumInstancen created from a <code class="docutils literal notranslate"><span class="pre">aer_simulator_statevector</span></code> a <code class="docutils literal notranslate"><span class="pre">aer_simulator</span></code> or real device backend, it is possible to use the advanced simulation modes of Aer too when applicable. For instance we can easily use the Aer <a class="reference internal" href="../simulators/7_matrix_product_state_method.html"><span class="doc">Matrix Product State</span></a> method, that has the potential to scale to larger numbers of qubits.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">aqua_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
+<span></span><span class="n">algorithm_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
 
 <span class="kn">from</span> <span class="nn">qiskit.providers.aer</span> <span class="kn">import</span> <span class="n">QasmSimulator</span>
 <span class="n">quantum_instance</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">QasmSimulator</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;matrix_product_state&#39;</span><span class="p">),</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="n">ansatz</span> <span class="o">=</span> <span class="n">TwoLocal</span><span class="p">(</span><span class="n">rotation_blocks</span><span class="o">=</span><span class="s1">&#39;ry&#39;</span><span class="p">,</span> <span class="n">entanglement_blocks</span><span class="o">=</span><span class="s1">&#39;cz&#39;</span><span class="p">)</span>
 <span class="n">slsqp</span> <span class="o">=</span> <span class="n">SLSQP</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
-<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">,</span> <span class="n">var_form</span><span class="o">=</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">,</span> <span class="n">include_custom</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-
-<span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">slsqp</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">,</span> <span class="n">include_custom</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">compute_minimum_eigenvalue</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -955,22 +969,23 @@ way though as shown below.</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{   &#39;cost_function_evals&#39;: 72,
-    &#39;eigenstate&#39;: {&#39;01&#39;: 1008, &#39;10&#39;: 16},
-    &#39;eigenvalue&#39;: (-1.8572750175597519+0j),
-    &#39;optimal_parameters&#39;: {   Parameter(θ[0]): 4.296520463599476,
-                              Parameter(θ[6]): -4.717618128585369,
-                              Parameter(θ[7]): 0.3602072910298268,
-                              Parameter(θ[4]): -2.5983258956331645,
-                              Parameter(θ[5]): 1.568326000491598,
-                              Parameter(θ[3]): 6.092947836794945,
-                              Parameter(θ[2]): 0.5470754235069875,
-                              Parameter(θ[1]): 4.426962139199476},
-    &#39;optimal_point&#39;: array([ 4.29652046,  4.42696214,  0.54707542,  6.09294784, -2.5983259 ,
-        1.568326  , -4.71761813,  0.36020729]),
-    &#39;optimal_value&#39;: -1.8572750175597519,
-    &#39;optimizer_evals&#39;: 72,
-    &#39;optimizer_time&#39;: 1.2383882999420166}
+{   &#39;aux_operator_eigenvalues&#39;: None,
+    &#39;cost_function_evals&#39;: 65,
+    &#39;eigenstate&#39;: {&#39;01&#39;: 0.9921567416492215, &#39;10&#39;: 0.125},
+    &#39;eigenvalue&#39;: -1.8572750175807682,
+    &#39;optimal_parameters&#39;: {   ParameterVectorElement(θ[2]): 0.5470752986013949,
+                              ParameterVectorElement(θ[3]): 6.092947713510392,
+                              ParameterVectorElement(θ[5]): 1.5683258132970883,
+                              ParameterVectorElement(θ[7]): 0.3602071559531031,
+                              ParameterVectorElement(θ[4]): -2.598325866938012,
+                              ParameterVectorElement(θ[1]): 4.426962159645716,
+                              ParameterVectorElement(θ[6]): -4.717618259450455,
+                              ParameterVectorElement(θ[0]): 4.296520300933687},
+    &#39;optimal_point&#39;: array([ 4.2965203 ,  4.42696216,  0.5470753 ,  6.09294771, -2.59832587,
+        1.56832581, -4.71761826,  0.36020716]),
+    &#39;optimal_value&#39;: -1.8572750175807682,
+    &#39;optimizer_evals&#39;: 65,
+    &#39;optimizer_time&#39;: 0.2019951343536377}
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -988,14 +1003,14 @@ way though as shown below.</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>0.23.1</td></tr><tr><td>Terra</td><td>0.16.1</td></tr><tr><td>Aer</td><td>0.7.1</td></tr><tr><td>Ignis</td><td>0.5.1</td></tr><tr><td>Aqua</td><td>0.8.1</td></tr><tr><td>IBM Q Provider</td><td>0.11.1</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.6.1 |Continuum Analytics, Inc.| (default, May 11 2017, 13:09:58)
-[GCC 4.4.7 20120313 (Red Hat 4.4.7-1)]</td></tr><tr><td>OS</td><td>Linux</td></tr><tr><td>CPUs</td><td>1</td></tr><tr><td>Memory (Gb)</td><td>5.827335357666016</td></tr><tr><td colspan='2'>Tue Nov 17 15:48:57 2020 EST</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.18.0.dev0+5920b66</td></tr><tr><td>Aer</td><td>0.9.0</td></tr><tr><td>Ignis</td><td>0.7.0.dev0+8195559</td></tr><tr><td>Aqua</td><td>None</td></tr><tr><td>IBM Q Provider</td><td>None</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.8.8 (default, Apr 13 2021, 12:59:45)
+[Clang 10.0.0 ]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>2</td></tr><tr><td>Memory (Gb)</td><td>12.0</td></tr><tr><td colspan='2'>Thu May 27 11:03:27 2021 EDT</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2020.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
+<div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2021.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:

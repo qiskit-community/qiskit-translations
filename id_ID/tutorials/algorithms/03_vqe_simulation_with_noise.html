@@ -573,8 +573,9 @@ div.rendered_html tbody tr:hover {
 </div>
 <section id="VQE-di-simulator-Aer-dengan-derau">
 <h1>VQE di simulator Aer dengan derau<a class="headerlink" href="#VQE-di-simulator-Aer-dengan-derau" title="Link permanen untuk headline ini">¶</a></h1>
-<p>Notebook ini mendemonstrasikan penggunaan ` Qiskit Aer &lt;<a class="reference external" href="https://qiskit.org/documentation/the_elements.html#aer">https://qiskit.org/documentation/the_elements.html#aer</a>&gt;` __ ` ` qasm_simulator ` ` untuk menjalankan simulasi dengan noise, berdasarkan model noise yang diberikan. Ini berguna untuk menyelidiki perilaku di bawah kondisi noise yang berbeda. Aer tidak hanya memungkinkan Anda untuk mendefinisikan model noise kustom, tetapi juga memungkinkan model noise dibuat berdasarkan perangkat kuantum nyata. Yang terakhir adalah tujuan demonstrasi notebook untuk demonstrasi VQE dengan model noise dan bukan hal lebih rumit bagaimana membuat model noise kustom.</p>
-<p>` Qiskit Ignis &lt;<a class="reference external" href="https://qiskit.org/documentation/the_elements.html#ignis">https://qiskit.org/documentation/the_elements.html#ignis</a>&gt;` __ menyediakan solusi untuk mitigasi error pengukuran ketika eksekusi dengan simulasi noise atau perangkat kuantum nyata. Solusi ini dimanfaatkan oleh modul ` ` QuantumInstance ` ` yang memungkinkan setiap algoritma secara otomatis memiliki mitigasi error pengukuran.</p>
+<p>This notebook demonstrates using the <a class="reference external" href="https://qiskit.org/documentation/the_elements.html#aer">Qiskit Aer</a> <code class="docutils literal notranslate"><span class="pre">aer_simulator</span></code> to run a simulation with noise, based on a given noise model. This can be useful to investigate behavior under different noise conditions. Aer not only allows you to define your own custom noise model, but also allows a noise model to be easily created based on the properties of a real quantum device. The latter is what this notebook will demonstrate since the goal is to
+show VQE with noise and not the more complex task of how to build custom noise models.</p>
+<p><a class="reference external" href="https://qiskit.org/documentation/apidoc/ignis.html">Qiskit Ignis</a> provides a solution to mitigate the measurement error when running on a noisy simulation or a real quantum device. This solution is leveraged by the <code class="docutils literal notranslate"><span class="pre">QuantumInstance</span></code> module which allows any algorithm using it to automatically have measurement noise mitigation applied.</p>
 <p>Informasi lebih lanjut tentang model noise Qiskit Aer dapat ditemukan online di ` dokumentasi Qiskit Aer &lt;<a class="reference external" href="https://qiskit.org/documentation/apidoc/aer_noise.html">https://qiskit.org/documentation/apidoc/aer_noise.html</a>&gt;` __, juga ada tutorial untuk ` pembuatan model noise &lt;../simulators/3_building_noise_models.ipynb&gt; ` __.</p>
 <p>Informasi lebih lanjut tentang mitigasi error pengukuran di Qiskit Ignis dapat ditemukan di tutorial ` mitigasi pengukuran error &lt;<a class="reference external" href="https://qiskit.org/documentation/tutorials/noise/3_measurement_error_mitigation.html">https://qiskit.org/documentation/tutorials/noise/3_measurement_error_mitigation.html</a>&gt;` __.</p>
 <div class="nbinput nblast docutils container">
@@ -586,16 +587,16 @@ div.rendered_html tbody tr:hover {
 <span class="kn">import</span> <span class="nn">pylab</span>
 
 <span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">Aer</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua</span> <span class="kn">import</span> <span class="n">QuantumInstance</span><span class="p">,</span> <span class="n">aqua_globals</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.algorithms</span> <span class="kn">import</span> <span class="n">VQE</span><span class="p">,</span> <span class="n">NumPyMinimumEigensolver</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.components.optimizers</span> <span class="kn">import</span> <span class="n">SPSA</span>
+<span class="kn">from</span> <span class="nn">qiskit.utils</span> <span class="kn">import</span> <span class="n">QuantumInstance</span><span class="p">,</span> <span class="n">algorithm_globals</span>
+<span class="kn">from</span> <span class="nn">qiskit.algorithms</span> <span class="kn">import</span> <span class="n">VQE</span><span class="p">,</span> <span class="n">NumPyMinimumEigensolver</span>
+<span class="kn">from</span> <span class="nn">qiskit.algorithms.optimizers</span> <span class="kn">import</span> <span class="n">SPSA</span>
 <span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">TwoLocal</span>
-<span class="kn">from</span> <span class="nn">qiskit.aqua.operators</span> <span class="kn">import</span> <span class="n">I</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Z</span>
+<span class="kn">from</span> <span class="nn">qiskit.opflow</span> <span class="kn">import</span> <span class="n">I</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Z</span>
 </pre></div>
 </div>
 </div>
-<p>Simulasi noise akan ditunjukkan di sini dengan VQE, menemukan energi minimum (ground state) dari Hamiltonian, tetapi teknik ini berlaku untuk setiap algoritma kuantum dari Qiskit Aqua.</p>
-<p>Jadi untuk VQE kita butuh operator qubit sebagai input. Di sini, sekali lagi, kita akan mengambil satu set paulis yang awalnya dihitung dengan Qiskit Kimia, untuk molekul H2, sehingga kita dapat dengan cepat membuat sebuah Operator.</p>
+<p>Noisy simulation will be demonstrated here with VQE, finding the minimum (ground state) energy of an Hamiltonian, but the technique applies to any quantum algorithm from Qiskit.</p>
+<p>So for VQE we need a qubit operator as input. Here, once again, we will take a set of paulis that were originally computed by Qiskit Nature, for an H2 molecule, so we can quickly create an Operator.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -650,8 +651,8 @@ Reference value: -1.85728
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">seed</span> <span class="o">=</span> <span class="mi">170</span>
 <span class="n">iterations</span> <span class="o">=</span> <span class="mi">125</span>
-<span class="n">aqua_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
-<span class="n">backend</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">)</span>
+<span class="n">algorithm_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
+<span class="n">backend</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">)</span>
 <span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
 
 <span class="n">counts</span> <span class="o">=</span> <span class="p">[]</span>
@@ -660,9 +661,9 @@ Reference value: -1.85728
     <span class="n">counts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">eval_count</span><span class="p">)</span>
     <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span>
 
-<span class="n">var_form</span> <span class="o">=</span> <span class="n">TwoLocal</span><span class="p">(</span><span class="n">rotation_blocks</span><span class="o">=</span><span class="s1">&#39;ry&#39;</span><span class="p">,</span> <span class="n">entanglement_blocks</span><span class="o">=</span><span class="s1">&#39;cz&#39;</span><span class="p">)</span>
+<span class="n">ansatz</span> <span class="o">=</span> <span class="n">TwoLocal</span><span class="p">(</span><span class="n">rotation_blocks</span><span class="o">=</span><span class="s1">&#39;ry&#39;</span><span class="p">,</span> <span class="n">entanglement_blocks</span><span class="o">=</span><span class="s1">&#39;cz&#39;</span><span class="p">)</span>
 <span class="n">spsa</span> <span class="o">=</span> <span class="n">SPSA</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="n">iterations</span><span class="p">)</span>
-<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">var_form</span><span class="o">=</span><span class="n">var_form</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">spsa</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">store_intermediate_result</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">)</span>
+<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">spsa</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">store_intermediate_result</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">)</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">compute_minimum_eigenvalue</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;VQE on Aer qasm simulator (no noise): </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">eigenvalue</span><span class="o">.</span><span class="n">real</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Delta from reference energy value is </span><span class="si">{</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">eigenvalue</span><span class="o">.</span><span class="n">real</span> <span class="o">-</span> <span class="n">ref_value</span><span class="p">)</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -674,8 +675,8 @@ Reference value: -1.85728
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-VQE on Aer qasm simulator (no noise): -1.85464
-Delta from reference energy value is 0.00264
+VQE on Aer qasm simulator (no noise): -1.85332
+Delta from reference energy value is 0.00395
 </pre></div></div>
 </div>
 <p>Kami mendapat nilai energi seperti di atas ketika konvergensi sehingga kita dapat melihat apa yang terjadi di grafik di bawah ini.</p>
@@ -727,11 +728,10 @@ Text(0.5, 1.0, &#39;Convergence with no noise&#39;)
 <span class="kn">from</span> <span class="nn">qiskit.test.mock</span> <span class="kn">import</span> <span class="n">FakeVigo</span>
 <span class="n">device_backend</span> <span class="o">=</span> <span class="n">FakeVigo</span><span class="p">()</span>
 
-<span class="n">backend</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">)</span>
+<span class="n">backend</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;aer_simulator&#39;</span><span class="p">)</span>
 <span class="n">counts1</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">values1</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">noise_model</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;QISKIT_IN_PARALLEL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;TRUE&#39;</span>
 <span class="n">device</span> <span class="o">=</span> <span class="n">QasmSimulator</span><span class="o">.</span><span class="n">from_backend</span><span class="p">(</span><span class="n">device_backend</span><span class="p">)</span>
 <span class="n">coupling_map</span> <span class="o">=</span> <span class="n">device</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">coupling_map</span>
 <span class="n">noise_model</span> <span class="o">=</span> <span class="n">NoiseModel</span><span class="o">.</span><span class="n">from_backend</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
@@ -740,7 +740,7 @@ Text(0.5, 1.0, &#39;Convergence with no noise&#39;)
 <span class="nb">print</span><span class="p">(</span><span class="n">noise_model</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">()</span>
 
-<span class="n">aqua_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
+<span class="n">algorithm_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
 <span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
                      <span class="n">coupling_map</span><span class="o">=</span><span class="n">coupling_map</span><span class="p">,</span> <span class="n">noise_model</span><span class="o">=</span><span class="n">noise_model</span><span class="p">,)</span>
 
@@ -750,7 +750,7 @@ Text(0.5, 1.0, &#39;Convergence with no noise&#39;)
 
 <span class="n">var_form</span> <span class="o">=</span> <span class="n">TwoLocal</span><span class="p">(</span><span class="n">rotation_blocks</span><span class="o">=</span><span class="s1">&#39;ry&#39;</span><span class="p">,</span> <span class="n">entanglement_blocks</span><span class="o">=</span><span class="s1">&#39;cz&#39;</span><span class="p">)</span>
 <span class="n">spsa</span> <span class="o">=</span> <span class="n">SPSA</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="n">iterations</span><span class="p">)</span>
-<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">var_form</span><span class="o">=</span><span class="n">var_form</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">spsa</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">store_intermediate_result1</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">)</span>
+<span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">spsa</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">store_intermediate_result1</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">)</span>
 <span class="n">result1</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">compute_minimum_eigenvalue</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;VQE on Aer qasm simulator (with noise): </span><span class="si">{</span><span class="n">result1</span><span class="o">.</span><span class="n">eigenvalue</span><span class="o">.</span><span class="n">real</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Delta from reference energy value is </span><span class="si">{</span><span class="p">(</span><span class="n">result1</span><span class="o">.</span><span class="n">eigenvalue</span><span class="o">.</span><span class="n">real</span> <span class="o">-</span> <span class="n">ref_value</span><span class="p">)</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -763,13 +763,13 @@ Text(0.5, 1.0, &#39;Convergence with no noise&#39;)
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 NoiseModel:
-  Basis gates: [&#39;cx&#39;, &#39;id&#39;, &#39;u2&#39;, &#39;u3&#39;]
-  Instructions with noise: [&#39;u2&#39;, &#39;cx&#39;, &#39;id&#39;, &#39;u3&#39;, &#39;measure&#39;]
+  Basis gates: [&#39;cx&#39;, &#39;id&#39;, &#39;kraus&#39;, &#39;roerror&#39;, &#39;rz&#39;, &#39;save_amplitudes&#39;, &#39;save_amplitudes_sq&#39;, &#39;save_density_matrix&#39;, &#39;save_expval&#39;, &#39;save_expval_var&#39;, &#39;save_probabilities&#39;, &#39;save_probabilities_dict&#39;, &#39;save_stabilizer&#39;, &#39;save_state&#39;, &#39;save_statevector&#39;, &#39;save_statevector_dict&#39;, &#39;set_density_matrix&#39;, &#39;set_stabilizer&#39;, &#39;set_statevector&#39;, &#39;snapshot&#39;, &#39;sx&#39;, &#39;x&#39;]
+  Instructions with noise: [&#39;measure&#39;, &#39;id&#39;, &#39;cx&#39;, &#39;x&#39;, &#39;sx&#39;]
   Qubits with noise: [0, 1, 2, 3, 4]
-  Specific qubit errors: [(&#39;id&#39;, [0]), (&#39;id&#39;, [1]), (&#39;id&#39;, [2]), (&#39;id&#39;, [3]), (&#39;id&#39;, [4]), (&#39;u2&#39;, [0]), (&#39;u2&#39;, [1]), (&#39;u2&#39;, [2]), (&#39;u2&#39;, [3]), (&#39;u2&#39;, [4]), (&#39;u3&#39;, [0]), (&#39;u3&#39;, [1]), (&#39;u3&#39;, [2]), (&#39;u3&#39;, [3]), (&#39;u3&#39;, [4]), (&#39;cx&#39;, [0, 1]), (&#39;cx&#39;, [1, 0]), (&#39;cx&#39;, [1, 2]), (&#39;cx&#39;, [1, 3]), (&#39;cx&#39;, [2, 1]), (&#39;cx&#39;, [3, 1]), (&#39;cx&#39;, [3, 4]), (&#39;cx&#39;, [4, 3]), (&#39;measure&#39;, [0]), (&#39;measure&#39;, [1]), (&#39;measure&#39;, [2]), (&#39;measure&#39;, [3]), (&#39;measure&#39;, [4])]
+  Specific qubit errors: [(&#39;id&#39;, [0]), (&#39;id&#39;, [1]), (&#39;id&#39;, [2]), (&#39;id&#39;, [3]), (&#39;id&#39;, [4]), (&#39;sx&#39;, [0]), (&#39;sx&#39;, [1]), (&#39;sx&#39;, [2]), (&#39;sx&#39;, [3]), (&#39;sx&#39;, [4]), (&#39;x&#39;, [0]), (&#39;x&#39;, [1]), (&#39;x&#39;, [2]), (&#39;x&#39;, [3]), (&#39;x&#39;, [4]), (&#39;cx&#39;, [3, 4]), (&#39;cx&#39;, [4, 3]), (&#39;cx&#39;, [3, 1]), (&#39;cx&#39;, [1, 3]), (&#39;cx&#39;, [1, 2]), (&#39;cx&#39;, [2, 1]), (&#39;cx&#39;, [0, 1]), (&#39;cx&#39;, [1, 0]), (&#39;measure&#39;, [0]), (&#39;measure&#39;, [1]), (&#39;measure&#39;, [2]), (&#39;measure&#39;, [3]), (&#39;measure&#39;, [4])]
 
-VQE on Aer qasm simulator (with noise): -1.83519
-Delta from reference energy value is 0.02208
+VQE on Aer qasm simulator (with noise): -1.78243
+Delta from reference energy value is 0.07484
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -808,7 +808,7 @@ Delta from reference energy value is 0.02208
 <span class="n">counts2</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">values2</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">if</span> <span class="n">noise_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">aqua_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
+    <span class="n">algorithm_globals</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">seed</span>
     <span class="n">qi</span> <span class="o">=</span> <span class="n">QuantumInstance</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">seed_simulator</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed_transpiler</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
                          <span class="n">coupling_map</span><span class="o">=</span><span class="n">coupling_map</span><span class="p">,</span> <span class="n">noise_model</span><span class="o">=</span><span class="n">noise_model</span><span class="p">,</span>
                          <span class="n">measurement_error_mitigation_cls</span><span class="o">=</span><span class="n">CompleteMeasFitter</span><span class="p">,</span>
@@ -818,9 +818,9 @@ Delta from reference energy value is 0.02208
         <span class="n">counts2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">eval_count</span><span class="p">)</span>
         <span class="n">values2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span>
 
-    <span class="n">var_form</span> <span class="o">=</span> <span class="n">TwoLocal</span><span class="p">(</span><span class="n">rotation_blocks</span><span class="o">=</span><span class="s1">&#39;ry&#39;</span><span class="p">,</span> <span class="n">entanglement_blocks</span><span class="o">=</span><span class="s1">&#39;cz&#39;</span><span class="p">)</span>
+    <span class="n">ansatz</span> <span class="o">=</span> <span class="n">TwoLocal</span><span class="p">(</span><span class="n">rotation_blocks</span><span class="o">=</span><span class="s1">&#39;ry&#39;</span><span class="p">,</span> <span class="n">entanglement_blocks</span><span class="o">=</span><span class="s1">&#39;cz&#39;</span><span class="p">)</span>
     <span class="n">spsa</span> <span class="o">=</span> <span class="n">SPSA</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="n">iterations</span><span class="p">)</span>
-    <span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">var_form</span><span class="o">=</span><span class="n">var_form</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">spsa</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">store_intermediate_result2</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">)</span>
+    <span class="n">vqe</span> <span class="o">=</span> <span class="n">VQE</span><span class="p">(</span><span class="n">ansatz</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">spsa</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">store_intermediate_result2</span><span class="p">,</span> <span class="n">quantum_instance</span><span class="o">=</span><span class="n">qi</span><span class="p">)</span>
     <span class="n">result2</span> <span class="o">=</span> <span class="n">vqe</span><span class="o">.</span><span class="n">compute_minimum_eigenvalue</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="n">H2_op</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;VQE on Aer qasm simulator (with noise and measurement error mitigation): </span><span class="si">{</span><span class="n">result2</span><span class="o">.</span><span class="n">eigenvalue</span><span class="o">.</span><span class="n">real</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Delta from reference energy value is </span><span class="si">{</span><span class="p">(</span><span class="n">result2</span><span class="o">.</span><span class="n">eigenvalue</span><span class="o">.</span><span class="n">real</span> <span class="o">-</span> <span class="n">ref_value</span><span class="p">)</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -832,8 +832,8 @@ Delta from reference energy value is 0.02208
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-VQE on Aer qasm simulator (with noise and measurement error mitigation): -1.85490
-Delta from reference energy value is 0.00237
+VQE on Aer qasm simulator (with noise and measurement error mitigation): -1.83430
+Delta from reference energy value is 0.02298
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -878,9 +878,9 @@ Delta from reference energy value is 0.00237
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Reference value: -1.85728
-VQE on Aer qasm simulator (no noise): -1.85464
-VQE on Aer qasm simulator (with noise): -1.83519
-VQE on Aer qasm simulator (with noise and measurement error mitigation): -1.85490
+VQE on Aer qasm simulator (no noise): -1.85332
+VQE on Aer qasm simulator (with noise): -1.78243
+VQE on Aer qasm simulator (with noise and measurement error mitigation): -1.83430
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -898,14 +898,14 @@ VQE on Aer qasm simulator (with noise and measurement error mitigation): -1.8549
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.16.1</td></tr><tr><td>Aer</td><td>0.7.1</td></tr><tr><td>Ignis</td><td>0.5.1</td></tr><tr><td>Aqua</td><td>0.8.1</td></tr><tr><td>IBM Q Provider</td><td>0.11.1</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.7.4 (default, Aug 13 2019, 15:17:50)
-[Clang 4.0.1 (tags/RELEASE_401/final)]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>2</td></tr><tr><td>Memory (Gb)</td><td>12.0</td></tr><tr><td colspan='2'>Tue Nov 17 17:49:42 2020 EST</td></tr></table></div>
+<h3>Version Information</h3><table><tr><th>Qiskit Software</th><th>Version</th></tr><tr><td>Qiskit</td><td>None</td></tr><tr><td>Terra</td><td>0.17.4</td></tr><tr><td>Aer</td><td>0.8.2</td></tr><tr><td>Ignis</td><td>0.6.0</td></tr><tr><td>Aqua</td><td>None</td></tr><tr><td>IBM Q Provider</td><td>None</td></tr><tr><th>System information</th></tr><tr><td>Python</td><td>3.8.8 (default, Apr 13 2021, 12:59:45)
+[Clang 10.0.0 ]</td></tr><tr><td>OS</td><td>Darwin</td></tr><tr><td>CPUs</td><td>2</td></tr><tr><td>Memory (Gb)</td><td>12.0</td></tr><tr><td colspan='2'>Thu Jun 03 11:20:37 2021 EDT</td></tr></table></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2020.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
+<div style='width: 100%; background-color:#d5d9e0;padding-left: 10px; padding-bottom: 10px; padding-right: 10px; padding-top: 5px'><h3>This code is a part of Qiskit</h3><p>&copy; Copyright IBM 2017, 2021.</p><p>This code is licensed under the Apache License, Version 2.0. You may<br>obtain a copy of this license in the LICENSE.txt file in the root directory<br> of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.<p>Any modifications or derivative works of this code must retain this<br>copyright notice, and modified files need to carry a notice indicating<br>that they have been altered from the originals.</p></div></div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
