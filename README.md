@@ -33,11 +33,13 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Soolu Thomas | @Soolu |
 
 
-### Translation Leads (as of Apr, 2021)
+### Translation Leads (as of June, 2021)
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
 | Bengali | Omar Shehab, Abhijit Mitra |  @Shehab @amitracal   |
+| Chinese Simplified | Helena Zhang, Junye Huang |  @Helena Zhang @Junye   |
+| Chinese Traditional | Helena Zhang, Junye Huang |  @Helena Zhang @Junye   |
 | French | Olivier Hess | @Olivier Hess |
 | German | Joachim Schaefer | @Joachim Schwarm |
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
@@ -45,16 +47,15 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
 | Japanese | Takehiko Amano | @Takehiko Amano |
-| Korean | Jinho Hwang | @Jinho Hwang |
+| Korean | Soyoung Shin, Saesun Kim | @Sophy @Saesun Kim |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese | Omar Costa Hamido | @OCH |
 | Portuguese, Brazilian | Luiz Henrique Galeoti de Lima | @Luiz Galeoti |
-| Spanish | Arturo Acuaviva Huertos, Carmen Recio Valcarce | @Arturo Acuaviva @carmenrv |
-| Spanish-Mexico | Carlos Gonzalez | @Carlos Esteban Gonzalez |
+| Spanish (United) | Carmen Recio Valcarce, Carlos Gonzalez | @carmenrv @Carlos Esteban Gonzalez |
 | Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
 | Turkish | Ayşin Taşdelen | @Ayshine |
-| Urdu | Zia Mohammad, Muhammad Ali | @Zia Mohammad @Muhammad.Ali |
+| Urdu | Zia Mohammad | @Zia Mohammad |
 | Vietnamese | Rossy Nhung Nguyen | @Rossy Ng |
 
 
@@ -70,7 +71,7 @@ Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.c
 
 ### How to add a new language to translate?
 
-The Qiskit Localization Project currently supports: Bengali, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Brazilian Portuguese, Spanish, Spanish-Mexico, Tamil, Turkish, Urdu and Vietnamese. These translations can be viewed from our [staging site](https://qiskit-community.github.io/qiskit-translations/).
+The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Brazilian Portuguese, Spanish (United), Tamil, Turkish, Urdu and Vietnamese. These translations can be viewed from our [staging site](https://qiskit-community.github.io/qiskit-translations/).
 
 [Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html), [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html), [Portuguese, Brazilian](https://qiskit.org/documentation/locale/pt_BR/index.html) and [French](https://qiskit.org/documentation/locale/fr_FR/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
 
@@ -86,4 +87,3 @@ If you want to add a new language and become a translation lead, you can open a 
 3. Among the group of contributors, a **translation lead must be identified** to serve as a liaison with the administrators of the localization project. The lead must contact Samanvay Sharma (samanvay.sharma1@ibm.com) and Yuri Kobayashi (yurik@jp.ibm.com) by email for the language to be officially listed under this project. <br/><br/>
 
 These are general guidelines for joining translation efforts and adding new languages. If you have further questions, please feel free to contact [Samanvay Sharma](mailto:samanvay.sharma1@ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation) and [Yuri Kobayashi](mailto:yurik@jp.ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation). Thank you.
-
