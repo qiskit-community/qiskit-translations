@@ -21,10 +21,12 @@ This is the staging site to view the translation progress. **Only the approved (
 | [Portuguese](https://qiskit-community.github.io/qiskit-translations/pt_PT/) |
 | [Portuguese, Brazilian](https://qiskit-community.github.io/qiskit-translations/pt_BR/) |
 | [Spanish](https://qiskit-community.github.io/qiskit-translations/es_ES/) |
-| [Spanish, Mexico](https://qiskit-community.github.io/qiskit-translations/es_MX/) |
+| [Spanish (United)](https://qiskit-community.github.io/qiskit-translations/es_MX/) |
 | [Tamil](https://qiskit-community.github.io/qiskit-translations/ta_IN/) |
 | [Turkish](https://qiskit-community.github.io/qiskit-translations/tr_TR/) |
 | [Urdu](https://qiskit-community.github.io/qiskit-translations/ur_UR/) |
 | [Vietnamese](https://qiskit-community.github.io/qiskit-translations/vi_VN/) |
+| [Chinese (Simplified)](https://qiskit-community.github.io/qiskit-translations/zh_CN/) |
+| [Chinese (Traditional)](https://qiskit-community.github.io/qiskit-translations/zh_TW/) |
 
 For more information on how to contribute to the documentation, check [here](https://github.com/qiskit-community/qiskit-translations/blob/master/README.md).
