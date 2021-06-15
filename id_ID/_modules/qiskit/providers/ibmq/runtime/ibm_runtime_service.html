@@ -337,6 +337,7 @@
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 
+<span class="kn">from</span> <span class="nn">qiskit.providers.exceptions</span> <span class="kn">import</span> <span class="n">QiskitBackendNotFoundError</span>
 <span class="kn">from</span> <span class="nn">qiskit.providers.ibmq</span> <span class="kn">import</span> <span class="n">accountprovider</span>  <span class="c1"># pylint: disable=unused-import</span>
 
 <span class="kn">from</span> <span class="nn">.runtime_job</span> <span class="kn">import</span> <span class="n">RuntimeJob</span>
@@ -346,9 +347,11 @@
                          <span class="n">RuntimeJobNotFound</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.program.result_decoder</span> <span class="kn">import</span> <span class="n">ResultDecoder</span>
 <span class="kn">from</span> <span class="nn">..api.clients.runtime</span> <span class="kn">import</span> <span class="n">RuntimeClient</span>
-<span class="kn">from</span> <span class="nn">..api.clients.runtime_ws</span> <span class="kn">import</span> <span class="n">RuntimeWebsocketClient</span>
+
 <span class="kn">from</span> <span class="nn">..api.exceptions</span> <span class="kn">import</span> <span class="n">RequestsApiError</span>
-<span class="kn">from</span> <span class="nn">..exceptions</span> <span class="kn">import</span> <span class="n">IBMQNotAuthorizedError</span><span class="p">,</span> <span class="n">IBMQInputValueError</span>
+<span class="kn">from</span> <span class="nn">..exceptions</span> <span class="kn">import</span> <span class="n">IBMQNotAuthorizedError</span><span class="p">,</span> <span class="n">IBMQInputValueError</span><span class="p">,</span> <span class="n">IBMQProviderError</span>
+<span class="kn">from</span> <span class="nn">..ibmqbackend</span> <span class="kn">import</span> <span class="n">IBMQRetiredBackend</span>
+<span class="kn">from</span> <span class="nn">..credentials</span> <span class="kn">import</span> <span class="n">Credentials</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -548,7 +551,7 @@
         <span class="n">backend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="n">backend_name</span><span class="p">)</span>
         <span class="n">job</span> <span class="o">=</span> <span class="n">RuntimeJob</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
                          <span class="n">api_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="p">,</span>
-                         <span class="n">ws_client</span><span class="o">=</span><span class="n">RuntimeWebsocketClient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ws_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_access_token</span><span class="p">),</span>
+                         <span class="n">credentials</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">credentials</span><span class="p">,</span>
                          <span class="n">job_id</span><span class="o">=</span><span class="n">response</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">program_id</span><span class="o">=</span><span class="n">program_id</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
                          <span class="n">user_callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span>
                          <span class="n">result_decoder</span><span class="o">=</span><span class="n">result_decoder</span><span class="p">)</span>
@@ -784,7 +787,24 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            Decoded job data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">backend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="n">raw_data</span><span class="p">[</span><span class="s1">&#39;backend&#39;</span><span class="p">])</span>
+        <span class="n">hub</span> <span class="o">=</span> <span class="n">raw_data</span><span class="p">[</span><span class="s1">&#39;hub&#39;</span><span class="p">]</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="n">raw_data</span><span class="p">[</span><span class="s1">&#39;group&#39;</span><span class="p">]</span>
+        <span class="n">project</span> <span class="o">=</span> <span class="n">raw_data</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">unique_id</span><span class="p">()</span><span class="o">.</span><span class="n">to_tuple</span><span class="p">()</span> <span class="o">!=</span> <span class="p">(</span><span class="n">hub</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span>
+            <span class="c1"># Try to find the right backend</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">original_provider</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">_factory</span><span class="o">.</span><span class="n">get_provider</span><span class="p">(</span><span class="n">hub</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">project</span><span class="p">)</span>
+                <span class="n">backend</span> <span class="o">=</span> <span class="n">original_provider</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="n">raw_data</span><span class="p">[</span><span class="s1">&#39;backend&#39;</span><span class="p">])</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">IBMQProviderError</span><span class="p">,</span> <span class="n">QiskitBackendNotFoundError</span><span class="p">):</span>
+                <span class="n">backend</span> <span class="o">=</span> <span class="n">IBMQRetiredBackend</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span>
+                    <span class="n">backend_name</span><span class="o">=</span><span class="n">raw_data</span><span class="p">[</span><span class="s1">&#39;backend&#39;</span><span class="p">],</span>
+                    <span class="n">provider</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">credentials</span><span class="o">=</span><span class="n">Credentials</span><span class="p">(</span><span class="n">token</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                                            <span class="n">hub</span><span class="o">=</span><span class="n">hub</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="n">group</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">),</span>
+                    <span class="n">api</span><span class="o">=</span><span class="kc">None</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">backend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="n">raw_data</span><span class="p">[</span><span class="s1">&#39;backend&#39;</span><span class="p">])</span>
 
         <span class="n">params</span> <span class="o">=</span> <span class="n">raw_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;params&#39;</span><span class="p">,</span> <span class="p">{})</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -798,7 +818,7 @@
         <span class="n">decoded</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">RuntimeDecoder</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">RuntimeJob</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
                           <span class="n">api_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_api_client</span><span class="p">,</span>
-                          <span class="n">ws_client</span><span class="o">=</span><span class="n">RuntimeWebsocketClient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ws_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_access_token</span><span class="p">),</span>
+                          <span class="n">credentials</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">credentials</span><span class="p">,</span>
                           <span class="n">job_id</span><span class="o">=</span><span class="n">raw_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span>
                           <span class="n">program_id</span><span class="o">=</span><span class="n">raw_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;program&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
                           <span class="n">params</span><span class="o">=</span><span class="n">decoded</span><span class="p">,</span>

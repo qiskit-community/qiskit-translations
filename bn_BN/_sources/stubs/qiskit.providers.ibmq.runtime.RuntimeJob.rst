@@ -18,6 +18,7 @@
       ~RuntimeJob.cancel
       ~RuntimeJob.cancel_result_streaming
       ~RuntimeJob.job_id
+      ~RuntimeJob.logs
       ~RuntimeJob.result
       ~RuntimeJob.status
       ~RuntimeJob.stream_results
