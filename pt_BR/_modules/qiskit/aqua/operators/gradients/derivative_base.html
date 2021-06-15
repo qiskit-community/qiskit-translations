@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>qiskit.aqua.operators.gradients.derivative_base &mdash; documentação Qiskit 0.26.2</title>
+  <title>qiskit.aqua.operators.gradients.derivative_base &mdash; documentação Qiskit 0.27.0</title>
   
 
   
@@ -318,7 +318,7 @@
   <h1>Código fonte para qiskit.aqua.operators.gradients.derivative_base</h1><div class="highlight"><pre>
 <span></span><span class="c1"># This code is part of Qiskit.</span>
 <span class="c1">#</span>
-<span class="c1"># (C) Copyright IBM 2020.</span>
+<span class="c1"># (C) Copyright IBM 2020, 2021.</span>
 <span class="c1">#</span>
 <span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
 <span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
@@ -349,6 +349,13 @@
 <span class="kn">from</span> <span class="nn">..state_fns</span> <span class="kn">import</span> <span class="n">StateFn</span><span class="p">,</span> <span class="n">OperatorStateFn</span>
 
 <span class="n">OperatorType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">StateFn</span><span class="p">,</span> <span class="n">PrimitiveOp</span><span class="p">,</span> <span class="n">ListOp</span><span class="p">]</span>
+
+<span class="c1"># pylint: disable=ungrouped-imports</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">symengine</span>
+    <span class="kn">from</span> <span class="nn">qiskit.circuit.parameterexpression</span> <span class="kn">import</span> <span class="n">HAS_SYMENGINE</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">HAS_SYMENGINE</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -455,8 +462,14 @@
         <span class="n">expr_grad</span> <span class="o">=</span> <span class="n">sy</span><span class="o">.</span><span class="n">N</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">IterableAbc</span><span class="p">):</span>
             <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">keys</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
-            <span class="n">expr_grad</span> <span class="o">+=</span> <span class="n">sy</span><span class="o">.</span><span class="n">Derivative</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">doit</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">HAS_SYMENGINE</span><span class="p">:</span>
+            <span class="n">expr_grad</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+                <span class="n">expr_grad</span> <span class="o">+=</span> <span class="n">symengine</span><span class="o">.</span><span class="n">Derivative</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">expr_grad</span> <span class="o">=</span> <span class="n">sy</span><span class="o">.</span><span class="n">N</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+                <span class="n">expr_grad</span> <span class="o">+=</span> <span class="n">sy</span><span class="o">.</span><span class="n">Derivative</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">doit</span><span class="p">()</span>
 
         <span class="c1"># generate the new dictionary of symbols</span>
         <span class="c1"># this needs to be done since in the derivative some symbols might disappear (e.g.</span>
