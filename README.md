@@ -43,14 +43,17 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | French | Olivier Hess | @Olivier Hess |
 | German | Joachim Schaefer | @Joachim Schwarm |
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
-| Hindi | Anupama Ray | @anupamar |
+| Hindi | Samanvay Sharma | @sam |
+| Hungarian | Andras Di Giovanni | @Andras Di Giovanni |
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
 | Japanese | Takehiko Amano | @Takehiko Amano |
 | Korean | Soyoung Shin, Saesun Kim | @Sophy @Saesun Kim |
+| Malayalam | Ansah Mohammad Kuriyodath, Kiran Johns | @Ansah, @kiran |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese | Omar Costa Hamido | @OCH |
 | Portuguese, Brazilian | Luiz Henrique Galeoti de Lima | @Luiz Galeoti |
+| Russian | Artem Zasypalov, Vasily Shcherbinin | @artem.z @Vasily Shcherbinin |
 | Spanish (United) | Carmen Recio Valcarce, Carlos Gonzalez | @carmenrv @Carlos Esteban Gonzalez |
 | Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
