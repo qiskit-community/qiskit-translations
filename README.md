@@ -43,14 +43,17 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | French | Olivier Hess | @Olivier Hess |
 | German | Joachim Schaefer | @Joachim Schwarm |
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
-| Hindi | Anupama Ray | @anupamar |
+| Hindi | Samanvay Sharma | @sam |
+| Hungarian | Andras Di Giovanni | @Andras Di Giovanni |
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
 | Japanese | Takehiko Amano | @Takehiko Amano |
 | Korean | Soyoung Shin, Saesun Kim | @Sophy @Saesun Kim |
+| Malayalam | Ansah Mohammad Kuriyodath, Kiran Johns | @Ansah, @kiran |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese | Omar Costa Hamido | @OCH |
 | Portuguese, Brazilian | Luiz Henrique Galeoti de Lima | @Luiz Galeoti |
+| Russian | Artem Zasypalov, Vasily Shcherbinin | @artem.z @Vasily Shcherbinin |
 | Spanish (United) | Carmen Recio Valcarce, Carlos Gonzalez | @carmenrv @Carlos Esteban Gonzalez |
 | Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
@@ -71,7 +74,7 @@ Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.c
 
 ### How to add a new language to translate?
 
-The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Brazilian Portuguese, Spanish (United), Tamil, Turkish, Urdu and Vietnamese. These translations can be viewed from our [staging site](https://qiskit-community.github.io/qiskit-translations/).
+The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malayalam, Polish, Portuguese, Russian, Spanish, Swahili, Tamil, Turkish, Urdu, and Vietnamese. These translations can be viewed from our [staging site](https://qiskit-community.github.io/qiskit-translations/).
 
 [Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html), [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html), [Portuguese, Brazilian](https://qiskit.org/documentation/locale/pt_BR/index.html) and [French](https://qiskit.org/documentation/locale/fr_FR/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
 
