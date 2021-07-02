@@ -26,9 +26,9 @@ RCLONE_CONFIG_PATH=$(rclone config file | tail -1)
 
 set -e
 
-# Clone the sources files and po files to docs_source/
-git clone --depth=1 $ML_SOURCE_REPOSITORY docs_source
-rclone sync -v --exclude='locale/**' docs_source/docs machine-learning/docs
+# Clone the sources files and po files to ml_docs_source/
+git clone --depth=1 $ML_SOURCE_REPOSITORY ml_docs_source
+rclone sync -v --exclude='locale/**' ml_docs_source/docs machine-learning/docs
 
 pushd $SOURCE_DIR/machine-learning/docs
 
