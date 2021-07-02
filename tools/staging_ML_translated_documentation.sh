@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-# Script for publishing production the translated documentation.
+# Script for publishing translated ML documentation to staging site.
 
 # Non-travis variables used by this script.
 ML_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-machine-learning.git"
