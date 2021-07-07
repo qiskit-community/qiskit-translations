@@ -45,9 +45,9 @@ rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
     $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/LC_MESSAGES/_sources/
 
 echo "ls from current dir"
-pwd
 ls -R
 
+pwd
 echo $SOURCE_DIR
 
 echo "move html files from _build/ to build/"
