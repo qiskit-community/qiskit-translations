@@ -53,5 +53,5 @@ ls _build/html/
 
 echo "move html files from _build/ to build/"
 mkdir $SOURCE_DIR/build/
-ls $SOURCE_DIR
+ls $SOURCE_DIR/$SOURCE_DOC_DIR/
 mv $SOURCE_DIR/$SOURCE_DOC_DIR/ $SOURCE_DIR/build/
