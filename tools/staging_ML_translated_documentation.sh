@@ -32,6 +32,9 @@ git clone $ML_SOURCE_REPOSITORY ml_docs_source
 cd ml_docs_source/docs/
 make html SPHINXOPTS=-W
 
+cd ../..
+ls
+
 cp ../../machine-learning/docs/locale ml_docs_source/docs/_build/locale
 
 # Make translated document
