@@ -28,8 +28,7 @@ set -e
 
 # Clone the sources files and po files to ml_docs_source/
 git clone --depth=1 $ML_SOURCE_REPOSITORY ml_docs_source
-rclone sync -v --exclude='locale/**' ml_docs_source/docs machine-learning/docs
-rclone sync -v ml_docs_source/releasenotes machine-learning/releasenotes
+rclone sync -v --exclude='docs/locale/**' ml_docs_source/ machine-learning/
 
 pushd $SOURCE_DIR/machine-learning/docs
 pushd $SOURCE_DIR/machine-learning/releasenotes
