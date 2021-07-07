@@ -32,15 +32,12 @@ git clone $ML_SOURCE_REPOSITORY ml_docs_source
 cd ml_docs_source/docs/
 make html SPHINXOPTS=-W
 
-cd ../..
-ls
-
-cp ../../machine-learning/docs/locale ml_docs_source/docs/_build/locale
+cp ../../docs/locale ml_docs_source/docs/_build/locale
 
 # Make translated document
 # FIXME: to install only from the stable branch
-pip install qiskit
-pip install git+https://github.com/Qiskit/qiskit-machine-learning@stable/0.1
+# pip install qiskit
+# pip install git+https://github.com/Qiskit/qiskit-machine-learning@stable/0.1
 
 sphinx-build -b html -D content_prefix=documentation/machine-learning -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
