@@ -51,4 +51,5 @@ pwd
 echo $SOURCE_DIR
 
 echo "move html files from _build/ to build/"
+mkdir build
 mv $SOURCE_DIR/$SOURCE_DOC_DIR/* $SOURCE_DIR/build/
