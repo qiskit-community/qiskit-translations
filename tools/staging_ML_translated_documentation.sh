@@ -33,9 +33,9 @@ rclone sync -v --exclude='locale/**' ml_docs_source/docs machine-learning/docs
 pushd $SOURCE_DIR/machine-learning/docs
 
 # Make translated document
-# FIXME: to install only from the stable branches
-pip install qiskit
-pip install git+https://github.com/Qiskit/qiskit-machine-learning@stable/0.1
+# FIXME: to install only from the stable branch
+pip install git+https://github.com/Qiskit/qiskit-terra
+pip install git+https://github.com/Qiskit/qiskit-machine-learning
 
 sphinx-build -b html -D content_prefix=documentation/machine-learning -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
