@@ -48,7 +48,7 @@ echo "ls from current dir"
 pwd
 ls -R
 
+echo $SOURCE_DIR
+
 echo "move html files from _build/ to build/"
 mv ./_build/html/ $SOURCE_DIR/build/
-
-popd
