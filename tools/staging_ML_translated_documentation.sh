@@ -48,10 +48,7 @@ echo "ls from current dir"
 pwd
 ls -R
 
-echo "****************************************"
-ls ./_build/html/
-
 echo "move html files from _build/ to build/"
-mv $SOURCE_DIR/machine-learning/ml_docs_source/$SOURCE_DOC_DIR/* $SOURCE_DIR/build/
+mv ./_build/html/ $SOURCE_DIR/build/
 
 popd
