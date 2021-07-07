@@ -27,7 +27,7 @@ RCLONE_CONFIG_PATH=$(rclone config file | tail -1)
 set -e
 
 # Clone the sources files and po files to ml_docs_source/
-git clone --depth=1 $ML_SOURCE_REPOSITORY ml_docs_source
+git clone $ML_SOURCE_REPOSITORY ml_docs_source
 
 cd ml_docs_source/docs/
 make html SPHINXOPTS=-W
