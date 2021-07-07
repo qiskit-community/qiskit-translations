@@ -49,7 +49,7 @@ ls -R
 
 pwd
 echo $SOURCE_DIR
-ls _build/
+ls _build/html/
 
 echo "move html files from _build/ to build/"
 mkdir build
