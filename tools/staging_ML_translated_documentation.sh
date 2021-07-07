@@ -32,7 +32,7 @@ git clone $ML_SOURCE_REPOSITORY ml_docs_source
 cd ml_docs_source/docs/
 make html SPHINXOPTS=-W
 
-cp -r ../../docs/locale ml_docs_source/docs/_build/locale
+mkdir -p ml_docs_source/docs/_build/locale  && cp -r ../../docs/locale ml_docs_source/docs/_build/locale/
 
 # Make translated document
 # FIXME: to install only from the stable branch
