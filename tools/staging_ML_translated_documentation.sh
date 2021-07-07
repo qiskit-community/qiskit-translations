@@ -28,10 +28,11 @@ set -e
 
 # Clone the sources files and po files to ml_docs_source/
 git clone --depth=1 $ML_SOURCE_REPOSITORY ml_docs_source
-rclone sync -v --exclude='locale/**' ml_docs_source/docs machine-learning/docs
 
-pushd $SOURCE_DIR/machine-learning/docs
-pushd $SOURCE_DIR/machine-learning/releasenotes
+cd ml_docs_source/docs/
+make html SPHINXOPTS=-W
+
+cp ../../machine-learning/docs/locale ml_docs_source/docs/_build/locale
 
 # Make translated document
 # FIXME: to install only from the stable branch
