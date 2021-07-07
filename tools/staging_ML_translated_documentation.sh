@@ -36,7 +36,7 @@ pushd $SOURCE_DIR/machine-learning/docs
 pip install git+https://github.com/Qiskit/qiskit-terra
 pip install git+https://github.com/Qiskit/qiskit-machine-learning
 
-sphinx-build -b html -j auto -D content_prefix=documentation/machine-learning -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
+sphinx-build -b html -D content_prefix=documentation/machine-learning -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
 rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
     $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/LC_MESSAGES/_sources/
