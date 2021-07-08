@@ -6,7 +6,7 @@
 
 This is the staging site to view the translation progress. **Only the approved (proof-read) translations will show up in the staging site.** Following are the links to view the translated docs.
 
-| Qiskit | Qiskit Machine Learning | Qiskit Nature | Qiskit Finance | Qiskit Optimization |
+| Qiskit | Qiskit Machine Learning | ❌ Qiskit Nature (Unavailable) | ❌ Qiskit Finance (Unavailable) | ❌ Qiskit Optimization (Unavailable) |
 |-----------|-------------|-------------|-------------|-------------|
 | [Bengali](https://qiskit-community.github.io/qiskit-translations/bn_BN/) | [Bengali](https://qiskit-community.github.io/qiskit-translations/machine-learning/bn_BN/) | [Bengali](https://qiskit-community.github.io/qiskit-translations/nature/bn_BN/) | [Bengali](https://qiskit-community.github.io/qiskit-translations/finance/bn_BN/) | [Bengali](https://qiskit-community.github.io/qiskit-translations/optimization/bn_BN/) |
 | [Chinese (Simplified)](https://qiskit-community.github.io/qiskit-translations/zh_CN/) | [Chinese (Simplified)](https://qiskit-community.github.io/qiskit-translations/machine-learning/zh_CN/) | [Chinese (Simplified)](https://qiskit-community.github.io/qiskit-translations/nature/zh_CN/) | [Chinese (Simplified)](https://qiskit-community.github.io/qiskit-translations/finance/zh_CN/) | [Chinese (Simplified)](https://qiskit-community.github.io/qiskit-translations/optimization/zh_CN/) | 
