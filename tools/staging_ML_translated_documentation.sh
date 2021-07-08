@@ -35,10 +35,6 @@ make html SPHINXOPTS=-W
 mkdir -p ml_docs_source/docs/_build/locale/  && cp -r ../../docs/locale/ ml_docs_source/docs/_build/
 
 # Make translated document
-# FIXME: to install only from the stable branch
-# pip install qiskit
-# pip install git+https://github.com/Qiskit/qiskit-machine-learning@stable/0.1
-
 sphinx-build -b html -D content_prefix=documentation/machine-learning -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
 rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
@@ -51,4 +47,4 @@ echo "list $SOURCE_DIR/ml_docs_source/docs/_build/html/"
 ls $SOURCE_DIR/ml_docs_source/$SOURCE_DOC_DIR/
 
 echo "move html files from _build/ to build/"
-mv $SOURCE_DIR/ml_docs_source/$SOURCE_DOC_DIR/locale $SOURCE_DIR/build/
+mv $SOURCE_DIR/ml_docs_source/$SOURCE_DOC_DIR/locale/* $SOURCE_DIR/build/
