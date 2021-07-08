@@ -12,10 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-# Script for publishing translated ML documentation to staging site.
+# Script for publishing translated nature documentation to staging site.
 
 # Non-travis variables used by this script.
-ML_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-machine-learning.git"
+NATURE_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-nature.git"
 SOURCE_DOC_DIR="docs/_build/html"
 SOURCE_DIR=`pwd`
 
@@ -26,13 +26,13 @@ RCLONE_CONFIG_PATH=$(rclone config file | tail -1)
 
 set -e
 
-# Clone the sources files and po files to ml_docs_source/
-git clone $ML_SOURCE_REPOSITORY ml_docs_source
+# Clone the sources files and po files to nature_docs_source/
+git clone $NATURE_SOURCE_REPOSITORY nature_docs_source
 
-cd ml_docs_source/docs/
+cd nature_docs_source/docs/
 make html SPHINXOPTS=-W
 
-mkdir -p ml_docs_source/docs/_build/locale/  && cp -r ../../docs/locale/ ml_docs_source/docs/_build/
+mkdir -p nature_docs_source/docs/_build/locale/  && cp -r ../../docs/locale/ nature_docs_source/docs/_build/
 
 # Make translated document
 sphinx-build -b html -D content_prefix=documentation/machine-learning -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
@@ -44,4 +44,4 @@ echo "make build dir "
 mkdir -p $SOURCE_DIR/build/
 
 echo "move html files from _build/ to build/"
-mv $SOURCE_DIR/ml_docs_source/$SOURCE_DOC_DIR/locale/* $SOURCE_DIR/build/
+mv $SOURCE_DIR/nature_docs_source/$SOURCE_DOC_DIR/locale/* $SOURCE_DIR/build/
