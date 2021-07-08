@@ -44,18 +44,11 @@ sphinx-build -b html -D content_prefix=documentation/machine-learning -D languag
 rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
     $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/LC_MESSAGES/_sources/
 
-echo "ls from current dir"
-ls -R
-
-pwd
-echo $SOURCE_DIR
-ls _build/html/
-
 echo "make build dir "
 mkdir -p $SOURCE_DIR/build/
 
-echo "list $SOURCE_DIR/$SOURCE_DOC_DIR/"
-ls $SOURCE_DIR/$SOURCE_DOC_DIR/
+echo "list $SOURCE_DIR/ml_docs_source/docs/_build/html/"
+ls $SOURCE_DIR/ml_docs_source/$SOURCE_DOC_DIR/
 
 echo "move html files from _build/ to build/"
-mv $SOURCE_DIR/$SOURCE_DOC_DIR/ $SOURCE_DIR/build/
+mv $SOURCE_DIR/ml_docs_source/$SOURCE_DOC_DIR/ $SOURCE_DIR/build/
