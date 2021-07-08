@@ -19,23 +19,16 @@ FINANCE_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-financ.git"
 SOURCE_DOC_DIR="docs/_build/html"
 SOURCE_DIR=`pwd`
 
-curl https://downloads.rclone.org/rclone-current-linux-amd64.deb -o rclone.deb
-sudo apt-get install -y ./rclone.deb
-
-RCLONE_CONFIG_PATH=$(rclone config file | tail -1)
-
 set -e
 
 # Clone the sources files and po files to finance_docs_source/
 git clone $FINANCE_SOURCE_REPOSITORY finance_docs_source
 
 cd finance_docs_source/docs/
-make html SPHINXOPTS=-W
-
-mkdir -p finance_docs_source/docs/_build/locale/  && cp -r ../../docs/locale/ finance_docs_source/docs/_build/
+mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 
 # Make translated document
-sphinx-build -b html -D content_prefix=documentation/machine-learning -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
+sphinx-build -b html -D content_prefix=documentation/finance -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
 rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
     $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/LC_MESSAGES/_sources/
