@@ -51,4 +51,4 @@ echo "list $SOURCE_DIR/ml_docs_source/docs/_build/html/"
 ls $SOURCE_DIR/ml_docs_source/$SOURCE_DOC_DIR/
 
 echo "move html files from _build/ to build/"
-mv $SOURCE_DIR/ml_docs_source/$SOURCE_DOC_DIR/ $SOURCE_DIR/build/
+mv $SOURCE_DIR/ml_docs_source/$SOURCE_DOC_DIR/locale $SOURCE_DIR/build/
