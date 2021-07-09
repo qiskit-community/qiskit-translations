@@ -17,7 +17,7 @@ If you are interested in contributing to translations, please follow the instruc
       - Each contributor has to create their own PR and sign the CLA (see #3 below).
       - If you have an open issue for a language request, **add the issue link to the PR**.
    
-   _(Not sure how to open a PR? Checkout [this section]())_
+   _(Not sure how to open a PR? Checkout [this section](#how-to-add-my-name-to-localization_contributors-list-and-open-a-pr-in-github))_
 
 3. If you have not contributed to Qiskit before, you will be prompted to sign the Qiskit Contributors License Agreement (CLA) in your PR.<br/>
 4. In the [Qiskit-Docs Crowdin project](https://crowdin.com/project/qiskit-docs), choose the language that you want to contribute to.<br/>
