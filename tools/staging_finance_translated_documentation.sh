@@ -15,7 +15,7 @@
 # Script for publishing translated finance documentation to staging site.
 
 # Non-travis variables used by this script.
-FINANCE_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-financ.git"
+FINANCE_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-finance.git"
 SOURCE_DOC_DIR="docs/_build/html"
 SOURCE_DIR=`pwd`
 
