@@ -57,7 +57,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Spanish (United) | Carmen Recio Valcarce, Carlos Gonzalez | @carmenrv @Carlos Esteban Gonzalez |
 | Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
-| Turkish | Ayşin Taşdelen | @Ayshine |
+| Turkish | Ayşin Sancı | @Ayshine |
 | Urdu | Zia Mohammad | @Zia Mohammad |
 | Vietnamese | Rossy Nhung Nguyen | @Rossy Ng |
 
