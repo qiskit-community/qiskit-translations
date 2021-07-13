@@ -18,11 +18,14 @@
 OPTIMIZATION_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-optimization.git"
 SOURCE_DOC_DIR="docs/_build/html"
 SOURCE_DIR=`pwd`
+STABLE_VERSION=`cat ./qiskit_optimization/VERSION.txt`
+FORMATED_VERSION=`echo $STABLE_VERSION | cut -d "." -f -2`
 
 set -e
 
 # Clone the sources files and po files to optimization_docs_source/
 git clone $OPTIMIZATION_SOURCE_REPOSITORY optimization_docs_source
+git checkout stable/$FORMATED_VERSION
 
 cd optimization_docs_source/docs/
 mkdir -p locale/  && cp -r ../../docs/locale/* locale/
