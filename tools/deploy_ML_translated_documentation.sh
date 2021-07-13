@@ -19,6 +19,9 @@ ML_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-machine-learning.git"
 SOURCE_DOC_DIR="docs/_build/html"
 SOURCE_DIR=`pwd`
 
+STABLE_VERSION=`cat ./qiskit_machine_learning/VERSION.txt`
+FORMATED_VERSION=`echo $STABLE_VERSION | cut -d "." -f -2`
+
 curl https://downloads.rclone.org/rclone-current-linux-amd64.deb -o rclone.deb
 sudo apt-get install -y ./rclone.deb
 
@@ -28,7 +31,7 @@ set -e
 
 # Clone the sources files and po files to ml_docs_source/
 git clone $ML_SOURCE_REPOSITORY ml_docs_source
-git checkout stable/0.2
+git checkout stable/$FORMATED_VERSION
 
 rclone sync -v --exclude='locale/**' ml_docs_source/docs docs
 
@@ -37,7 +40,9 @@ pushd $SOURCE_DIR/docs
 # Make translated document
 sphinx-build -b html -D content_prefix=documentation/machine-learning -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
+popd
+
 openssl aes-256-cbc -K $encrypted_rclone_key -iv $encrypted_rclone_iv -in ../tools/rclone.conf.enc -out $RCLONE_CONFIG_PATH -d
 
-echo "Pushing built docs to website"
+echo "Pushing built ML docs to website"
 rclone sync --progress ./docs/_build/html/locale/$TRANSLATION_LANG IBMCOS:qiskit-org-web-resources/documentation/machine-learning/locale/$TRANSLATION_LANG
