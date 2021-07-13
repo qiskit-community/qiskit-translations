@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        language: [de_DE, ja_JP, ko_KR, pt_BR, fr_FR, ta_IN]
+        language: [it_IT, ja_JP, ko_KR, ml_IN, ru_RU, es_UN, ta_IN, tr_TR, vi_VN]
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     steps:
     - uses: actions/checkout@v2
@@ -18,16 +18,20 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.8'
-    - name: Install Qiskit-meta dependencies
+    - name: Install Qiskit machine-learning dependencies
       run: |
+        cd machine-learning
         python -m pip install --upgrade pip
         pip install -U virtualenv setuptools wheel
-        pip install -U -r requirements-dev.txt sphinx-intl qiskit
-        sudo apt-get install graphviz pandoc
-    - name: Build and publish Qiskit Docs
+        pip install jupyter sphinx_rtd_theme 'matplotlib<3.3.0' qiskit-terra[visualization] 'torchvision<0.10.0'
+        sudo apt-get install -y pandoc graphviz
+        pip install -U -r requirements-dev.txt -r requirements.txt sphinx-intl
+        pip install -e .
+    - name: Build translated Qiskit ML Docs
       env:
         encrypted_rclone_key: ${{ secrets.encrypted_rclone_key }}
         encrypted_rclone_iv: ${{ secrets.encrypted_rclone_iv }}
         TRANSLATION_LANG: ${{ matrix.language }}
       run: |
-        tools/deploy_translated_documentation.sh
+        cd machine-learning
+        ../tools/deploy_ML_translated_documentation.sh
