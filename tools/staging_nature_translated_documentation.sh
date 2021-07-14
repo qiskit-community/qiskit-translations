@@ -18,11 +18,14 @@
 NATURE_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-nature.git"
 SOURCE_DOC_DIR="docs/_build/html"
 SOURCE_DIR=`pwd`
+STABLE_VERSION=`cat ./qiskit_nature/VERSION.txt`
+FORMATED_VERSION=`echo $STABLE_VERSION | cut -d "." -f -2`
 
 set -e
 
 # Clone the sources files and po files to nature_docs_source/
 git clone $NATURE_SOURCE_REPOSITORY nature_docs_source
+git checkout stable/$FORMATED_VERSION
 
 cd nature_docs_source/docs/
 mkdir -p locale/  && cp -r ../../docs/locale/* locale/
