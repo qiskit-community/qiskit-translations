@@ -25,9 +25,11 @@ set -e
 
 # Clone the sources files and po files to nature_docs_source/
 git clone $NATURE_SOURCE_REPOSITORY nature_docs_source
+cd nature_docs_source/
+git fetch
 git checkout stable/$FORMATED_VERSION
 
-cd nature_docs_source/docs/
+cd docs/
 mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 
 # Make translated document
