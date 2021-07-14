@@ -18,13 +18,17 @@
 FINANCE_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-finance.git"
 SOURCE_DOC_DIR="docs/_build/html"
 SOURCE_DIR=`pwd`
+STABLE_VERSION=`cat ./qiskit_finance/VERSION.txt`
+FORMATED_VERSION=`echo $STABLE_VERSION | cut -d "." -f -2`
 
 set -e
 
 # Clone the sources files and po files to finance_docs_source/
 git clone $FINANCE_SOURCE_REPOSITORY finance_docs_source
+cd finance_docs_source/
+git checkout stable/$FORMATED_VERSION
 
-cd finance_docs_source/docs/
+cd docs/
 mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 
 # Make translated document
