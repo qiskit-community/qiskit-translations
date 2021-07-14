@@ -31,6 +31,8 @@ set -e
 
 # Clone the sources files and po files to ml_docs_source/
 git clone $ML_SOURCE_REPOSITORY ml_docs_source
+cd ml_docs_source
+git fetch
 git checkout stable/$FORMATED_VERSION
 
 rclone sync -v --exclude='locale/**' ml_docs_source/docs docs
