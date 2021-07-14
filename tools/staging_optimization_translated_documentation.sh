@@ -27,10 +27,7 @@ set -e
 git clone $OPTIMIZATION_SOURCE_REPOSITORY optimization_docs_source
 git checkout stable/$FORMATED_VERSION
 
-cd optimization_docs_source/
-pip install -e .
-
-cd docs/
+cd optimization_docs_source/docs/
 mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 
 # Make translated document
