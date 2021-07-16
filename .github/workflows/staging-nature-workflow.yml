@@ -1,20 +1,19 @@
-name: Staging translated Qiskit docs
+name: Staging translated Qiskit Nature docs
 
 on:
   pull_request:
     branches: [ master ]
   label:
-     types: [ gh-pages ]
+     types: [ gh-pages-Nature ]
 
 jobs:
   build_docs:
     runs-on: ubuntu-latest
-    if: contains( github.event.pull_request.labels.*.name, 'gh-pages' )
+    if: contains( github.event.pull_request.labels.*.name, 'gh-pages-Nature' )
     steps:
     - uses: actions/checkout@v2
       with:
         persist-credentials: false
-        fetch-depth: 0
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
@@ -22,20 +21,23 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
+        cd nature
         pip install -U virtualenv setuptools wheel
-        pip install -U -r requirements-dev.txt sphinx-intl qiskit
-        sudo apt-get install graphviz pandoc
+        pip install -e .
+        pip install jupyter sphinx_rtd_theme 'matplotlib<3.3.0' qiskit-terra[visualization] 'torchvision<0.10.0'
+        sudo apt-get install -y pandoc graphviz
+        pip install -U -r requirements-dev.txt -r requirements.txt sphinx-intl
 
     - name: Build translated Qiskit Docs
       env:
         TRANSLATION_LANG: ${{ matrix.language }}
       run: |
-        tools/staging_translated_documentation.sh
+        cd nature
+        ../tools/staging_nature_translated_documentation.sh
     - name: Compress artifact
       run: |
         mkdir artifacts
-        tar -zcvf translated_docs_${{matrix.language}}.tar.gz build
+        tar -zcvf translated_docs_${{matrix.language}}.tar.gz nature/build
         mv translated_docs_${{matrix.language}}.tar.gz artifacts/.
     - name: Upload artifact
       uses: actions/upload-artifact@master
@@ -46,27 +48,27 @@ jobs:
       matrix:
         language:
           - bn_BN
-          # - de_DE
-          # - el_GR
-          # - es_UN
-          # - fr_FR
-          # - hi_IN
-          # - hu_HU
-          # - id_ID
-          # - it_IT
-          # - ja_JP
-          # - ko_KR
-          # - ml_IN
-          # - pl_PL
-          # - pt_BR
-          # - ru_RU
-          # - sw_KE
-          # - ta_IN
-          # - tr_TR
-          # - ur_UR
-          # - vi_VN
-          # - zh_CN
-          # - zh_TW
+          - de_DE
+          - el_GR
+          - es_UN
+          - fr_FR
+          - hi_IN
+          - hu_HU
+          - id_ID
+          - it_IT
+          - ja_JP
+          - ko_KR
+          - ml_IN
+          - pl_PL
+          - pt_BR
+          - ru_RU
+          - sw_KE
+          - ta_IN
+          - tr_TR
+          - ur_UR
+          - vi_VN
+          - zh_CN
+          - zh_TW
 
   deploy_docs:
     runs-on: ubuntu-latest
@@ -84,5 +86,6 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3.7.3
       with:
         deploy_key: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
-        publish_dir: ./build
+        publish_dir: ./nature/build
+        destination_dir: nature
         keep_files: true
