@@ -16,6 +16,8 @@ If you are interested in contributing to translations, please follow the instruc
 2. Create a pull request (PR) to add your name to the list. Make sure to follow the template to open a Pull Request.<br/>
       - Each contributor has to create their own PR and sign the CLA (see #3 below).
       - If you have an open issue for a language request, **add the issue link to the PR**.
+   
+   _(Not sure how to open a PR? Checkout [this section](#how-to-add-my-name-to-localization_contributors-list-and-open-a-pr-in-github))_
 
 3. If you have not contributed to Qiskit before, you will be prompted to sign the Qiskit Contributors License Agreement (CLA) in your PR.<br/>
 4. In the [Qiskit-Docs Crowdin project](https://crowdin.com/project/qiskit-docs), choose the language that you want to contribute to.<br/>
@@ -57,7 +59,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Spanish (United) | Carmen Recio Valcarce, Carlos Gonzalez | @carmenrv @Carlos Esteban Gonzalez |
 | Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
-| Turkish | Ayşin Taşdelen | @Ayshine |
+| Turkish | Ayşin Sancı | @Ayshine |
 | Urdu | Zia Mohammad | @Zia Mohammad |
 | Vietnamese | Rossy Nhung Nguyen | @Rossy Ng |
 
@@ -90,3 +92,21 @@ If you want to add a new language and become a translation lead, you can open a 
 3. Among the group of contributors, a **translation lead must be identified** to serve as a liaison with the administrators of the localization project. The lead must contact Samanvay Sharma (samanvay.sharma1@ibm.com) and Yuri Kobayashi (yurik@jp.ibm.com) by email for the language to be officially listed under this project. <br/><br/>
 
 These are general guidelines for joining translation efforts and adding new languages. If you have further questions, please feel free to contact [Samanvay Sharma](mailto:samanvay.sharma1@ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation) and [Yuri Kobayashi](mailto:yurik@jp.ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation). Thank you.
+
+
+### How to add my name to LOCALIZATION_CONTRIBUTORS list and open a PR in GitHub?
+
+**Option 1: In Github (Recommended)**
+1. Click on the pen-like button which says "Edit this file" in the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) file.
+2. Add your name under the language you'd like to contribute to.
+3. Once your name is added, scroll down and find a green button which says "Propose changes".
+4. The page now reloads automatically and find and click on another green button - "Create pull request".
+5. This should create the pull request and once that's done, follow the [instructions](https://github.com/qiskit-community/qiskit-translations/blob/master/README.md#to-sign-up-to-participate-in-translations) (step 3, 4, 5).
+
+**Option 2: Creating a local clone of the repository and pushing from local**
+1. Clone this repository by following [this guide](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository-from-github/cloning-a-repository).
+2. Make sure your local git configuration by following the instructions here -- [Setting username](https://docs.github.com/en/get-started/getting-started-with-git/setting-your-username-in-git) and [Setting email](https://docs.github.com/en/github/setting-up-and-managing-your-github-user-account/managing-email-preferences/setting-your-commit-email-address#setting-your-commit-email-address-in-git)
+3. Create a branch by running `git checkout -b BRANCH_NAME` in your terminal.
+4. Find LOCALIZATION_CONTRIBUTORS file in your local copy of qiskit-translations (created after cloning this repository) and add your name under the language you'd like to contribute to.
+5. Now, in the terminal run `git add LOCALIZATION_CONTRIBUTORS`, `git commit -m "Added name under LANGUAGE-NAME"`, `git push origin BRANCH-NAME`. 
+6. Follow the link in the terminal to open a pull request.
