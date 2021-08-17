@@ -53,8 +53,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Korean | Soyoung Shin, Saesun Kim | @Sophy @Saesun Kim |
 | Malayalam | Ansah Mohammad Kuriyodath, Kiran Johns | @Ansah, @kiran |
 | Polish | Piotr Biskupski | @pb.worker |
-| Portuguese | Omar Costa Hamido | @OCH |
-| Portuguese, Brazilian | Luiz Henrique Galeoti de Lima | @Luiz Galeoti |
+| Portuguese (United) | Luiz Henrique Galeoti de Lima, Omar Costa Hamido | @Luiz Galeoti @OCH |
 | Russian | Artem Zasypalov, Vasily Shcherbinin | @artem.z @Vasily Shcherbinin |
 | Spanish (United) | Carmen Recio Valcarce, Carlos Gonzalez | @carmenrv @Carlos Esteban Gonzalez |
 | Swahili | Karoki Mugambi | @Karoki Mugambi |
