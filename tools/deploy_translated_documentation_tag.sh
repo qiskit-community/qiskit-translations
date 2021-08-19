@@ -30,7 +30,7 @@ set -e
 CURRENT_TAG=`git describe --abbrev=0`
 IFS='.'
 read -ra VERSION <<< "$CURRENT_TAG"
-STABLE_VERSION="${VERSION[0]}\.${VERSION[1]}"
+STABLE_VERSION=`echo $VERSION | cut -d "." -f -2`
 
 # Clone the sources files and po files to $SOURCE_DIR/docs_source
 git clone --depth=1 $SOURCE_REPOSITORY docs_source
@@ -40,11 +40,11 @@ pushd $SOURCE_DIR/docs
 
 # Make translated document
 
-sphinx-build -b html -j auto -D content_prefix=documentation/stable/$STABLE_VERSION -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
+sphinx-build -b html -j auto -D content_prefix=documentation/stable/"$STABLE_VERSION" -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
 popd
 
 openssl aes-256-cbc -K $encrypted_rclone_key -iv $encrypted_rclone_iv -in tools/rclone.conf.enc -out $RCLONE_CONFIG_PATH -d
 
 echo "Pushing built docs to website"
-rclone sync --progress ./docs/_build/html/stable/$STABLE_VERSION/locale/$TRANSLATION_LANG IBMCOS:qiskit-org-web-resources/documentation/stable/$STABLE_VERSION/locale/$TRANSLATION_LANG
+rclone sync --progress ./docs/_build/html/stable/"$STABLE_VERSION"/locale/$TRANSLATION_LANG IBMCOS:qiskit-org-web-resources/documentation/stable/"$STABLE_VERSION"/locale/$TRANSLATION_LANG
