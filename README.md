@@ -12,7 +12,7 @@ If you are interested in contributing to translations, please follow the instruc
 
 ### To sign up to participate in translations:
 
-1. Open the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) file. Look for the language header that you'd like to contribute to and sign up under there. If you do not find the language that you'd like to contribute to, please read [this section](#to-add-a-new-language-to-translate).<br/>
+1. Open the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) file. Look for the language header that you'd like to contribute to and sign up under there. If you do not find the language that you'd like to contribute to, please read [this section](#how-to-add-a-new-language-to-translate).<br/>
 2. Create a pull request (PR) to add your name to the list. Make sure to follow the template to open a Pull Request.<br/>
       - Each contributor has to create their own PR and sign the CLA (see #3 below).
       - If you have an open issue for a language request, **add the issue link to the PR**.
@@ -53,8 +53,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Korean | Soyoung Shin, Saesun Kim | @Sophy @Saesun Kim |
 | Malayalam | Ansah Mohammad Kuriyodath, Kiran Johns | @Ansah, @kiran |
 | Polish | Piotr Biskupski | @pb.worker |
-| Portuguese | Omar Costa Hamido | @OCH |
-| Portuguese, Brazilian | Luiz Henrique Galeoti de Lima | @Luiz Galeoti |
+| Portuguese (United) | Luiz Henrique Galeoti de Lima, Omar Costa Hamido | @Luiz Galeoti @OCH |
 | Russian | Artem Zasypalov, Vasily Shcherbinin | @artem.z @Vasily Shcherbinin |
 | Spanish (United) | Carmen Recio Valcarce, Carlos Gonzalez | @carmenrv @Carlos Esteban Gonzalez |
 | Swahili | Karoki Mugambi | @Karoki Mugambi |
