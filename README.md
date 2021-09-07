@@ -55,7 +55,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese (United) | Luiz Henrique Galeoti de Lima, Omar Costa Hamido | @Luiz Galeoti @OCH |
 | Russian | Artem Zasypalov, Vasily Shcherbinin | @artem.z @Vasily Shcherbinin |
-| Spanish (United) | Carmen Recio Valcarce, Carlos Gonzalez | @carmenrv @Carlos Esteban Gonzalez |
+| Spanish (United) | Carmen Recio Valcarce | @carmenrv |
 | Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
 | Turkish | Ayşin Sancı | @Ayshine |
