@@ -1,0 +1,168 @@
+name: Staging translated Qiskit Applications docs
+
+on:
+  pull_request:
+    branches: [ master ]
+  label:
+     types: [ gh-pages-apps ]
+
+jobs:
+  build_docs:
+    runs-on: ubuntu-latest
+    if: contains( github.event.pull_request.labels.*.name, 'gh-pages-apps' )
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    ######################### OPTIMIZATION #########################
+    - name: Install Optimization dependencies
+      run: |
+        cd optimization
+        pip install -U virtualenv setuptools wheel
+        pip install -e .
+        pip install jupyter sphinx_rtd_theme 'matplotlib<3.3.0' qiskit-terra[visualization] 'torchvision<0.10.0'
+        sudo apt-get install -y pandoc graphviz
+        pip install -U -r requirements-dev.txt -r requirements.txt sphinx-intl
+    - name: Build translated Qiskit Optimization Docs
+      env:
+        TRANSLATION_LANG: ${{ matrix.language }}
+      run: |
+        pwd
+        cd optimization
+        ../tools/staging_optimization_translated_documentation.sh
+    - name: Compress artifact (Optimization)
+      run: |
+        mkdir artifacts
+        tar -zcvf optimization_docs_${{matrix.language}}.tar.gz optimization/build
+        mv optimization_docs_${{matrix.language}}.tar.gz artifacts/.
+    ####################################################################
+
+    ######################### MACHINE LEARNING #########################
+    - name: Install ML dependencies
+      run: |
+        cd ../machine-learning
+        pip install -U virtualenv setuptools wheel
+        pip install -e .
+        pip install jupyter sphinx_rtd_theme 'matplotlib<3.3.0' qiskit-terra[visualization] 'torchvision<0.10.0'
+        sudo apt-get install -y pandoc graphviz
+        pip install -U -r requirements-dev.txt -r requirements.txt sphinx-intl
+    - name: Build translated Qiskit ML Docs
+      env:
+        TRANSLATION_LANG: ${{ matrix.language }}
+      run: |
+        pwd
+        cd machine-learning
+        ../tools/staging_ML_translated_documentation.sh
+    - name: Compress artifact (ML)
+      run: |
+        tar -zcvf ml_docs_${{matrix.language}}.tar.gz machine-learning/build
+        mv ml_docs_${{matrix.language}}.tar.gz artifacts/.
+    ####################################################################
+
+    ######################### FINANCE #########################
+    - name: Install Finance dependencies
+      run: |
+        cd ../finance
+        pip install -U virtualenv setuptools wheel
+        pip install -e .
+        pip install jupyter sphinx_rtd_theme 'matplotlib<3.3.0' qiskit-terra[visualization] 'torchvision<0.10.0'
+        sudo apt-get install -y pandoc graphviz
+        pip install -U -r requirements-dev.txt -r requirements.txt sphinx-intl
+    - name: Build translated Qiskit Finance Docs
+      env:
+        TRANSLATION_LANG: ${{ matrix.language }}
+      run: |
+        pwd
+        cd finance
+        ../tools/staging_finance_translated_documentation.sh
+    - name: Compress artifact
+      run: |
+        tar -zcvf finance_docs_${{matrix.language}}.tar.gz finance/build
+        mv finance_docs_${{matrix.language}}.tar.gz artifacts/.
+    ####################################################################
+
+    ######################### NATURE #########################
+    # - name: Install dependencies
+    #   run: |
+    #     cd ../nature
+    #     pip install -U virtualenv setuptools wheel
+    #     pip install -e .
+    #     pip install jupyter sphinx_rtd_theme 'matplotlib<3.3.0' qiskit-terra[visualization] 'torchvision<0.10.0'
+    #     sudo apt-get install -y pandoc graphviz
+    #     pip install -U -r requirements-dev.txt -r requirements.txt sphinx-intl
+
+    # - name: Build translated Qiskit Docs
+    #   env:
+    #     TRANSLATION_LANG: ${{ matrix.language }}
+    #   run: |
+    #   pwd
+    #     cd nature
+    #     ../tools/staging_nature_translated_documentation.sh
+    # - name: Compress artifact
+    #   run: |
+    #     tar -zcvf nature_docs_${{matrix.language}}.tar.gz nature/build
+    #     mv nature_docs_${{matrix.language}}.tar.gz artifacts/.
+
+    ####################################################################
+    - name: Upload all artifacts
+      uses: actions/upload-artifact@master
+      with:
+        name: qiskit-translated-docs
+        path: artifacts
+    strategy:
+      matrix:
+        language:
+          - bn_BN
+          - de_DE
+          - el_GR
+          - es_UN
+          - fr_FR
+          - hi_IN
+          - hu_HU
+          - id_ID
+          - it_IT
+          - ja_JP
+          - ko_KR
+          - ml_IN
+          - pl_PL
+          - pt_UN
+          - ru_RU
+          - sw_KE
+          - ta_IN
+          - tr_TR
+          - ur_UR
+          - vi_VN
+          - zh_CN
+          - zh_TW
+
+  deploy_docs:
+    runs-on: ubuntu-latest
+    needs: build_docs
+    steps:
+    - uses: actions/checkout@master
+    - name: Download artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: qiskit-translated-docs
+    - name: Decompress artifact
+      run: |
+        for f in /*/*.tar.gz; do tar -xvf "$f"; done
+    - name: Deploy to gh-pages
+      uses: peaceiris/actions-gh-pages@v3.7.3
+      with:
+        deploy_key: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
+        publish_dir: ./${{matrix.apps}}/build
+        destination_dir: ${{matrix.apps}}
+        keep_files: true
+    strategy:
+      matrix:
+        apps:
+          - machine-learning
+          - optimization
+          - nature
+          - finance
