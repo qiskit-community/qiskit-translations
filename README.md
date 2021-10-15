@@ -43,7 +43,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Chinese Simplified | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)    |
 | Chinese Traditional | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)    |
 | French | Jean-Michel Torres | @torresjm |
-| German | Joachim Schaefer | @Joachim Schwarm |
+| German | Thorsten Muehge | @Thorsten Mühge |
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
 | Hindi | Samanvay Sharma | @sam |
 | Hungarian | Andras Di Giovanni | @Andras Di Giovanni |
