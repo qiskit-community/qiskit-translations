@@ -40,9 +40,9 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
 | Bengali | Omar Shehab, Abhijit Mitra |  @Shehab @amitracal   |
-| Chinese Simplified | Helena Zhang, Junye Huang |  @Helena Zhang @Junye   |
-| Chinese Traditional | Helena Zhang, Junye Huang |  @Helena Zhang @Junye   |
-| French | Olivier Hess | @Olivier Hess |
+| Chinese Simplified | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)    |
+| Chinese Traditional | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)    |
+| French | Jean-Michel Torres | @torresjm |
 | German | Joachim Schaefer | @Joachim Schwarm |
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
 | Hindi | Samanvay Sharma | @sam |
@@ -54,8 +54,8 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 | Malayalam | Ansah Mohammad Kuriyodath, Kiran Johns | @Ansah, @kiran |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese (United) | Luiz Henrique Galeoti de Lima, Omar Costa Hamido | @Luiz Galeoti @OCH |
-| Russian | Artem Zasypalov, Vasily Shcherbinin | @artem.z @Vasily Shcherbinin |
-| Spanish (United) | Carmen Recio Valcarce | @carmenrv |
+| Russian | Artem Zasypalov, Vasily Shcherbinin, Farida Shagieva | @artem.z @Vasily Shcherbinin @Farida|
+| Spanish (United) | Claudia Zendejas-Morales, Rodrigo Rosado Rivial  | @clausia @rodrigo rosado |
 | Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
 | Turkish | Ayşin Sancı | @Ayshine |
