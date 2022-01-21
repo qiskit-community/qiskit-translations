@@ -28,38 +28,39 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 
 ### Project Leads
 
-| Name | Slack ([Qiskit-Docs Workspace](http://bit.ly/qiskitdoc)) |
+| Name | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
 | ---    | --- |
 | Yuri Kobayashi | @Yuri Kobayashi |
-| Samanvay Sharma | @Samanvay Sharma |
+| Samanvay Sharma | @sam |
 | Soolu Thomas | @Soolu |
 
 
-### Translation Leads (as of November, 2021)
+### Translation Leads (as of January 2022)
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
-| Bengali | Omar Shehab, Abhijit Mitra |  @Shehab @amitracal   |
-| Chinese Simplified | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)    |
-| Chinese Traditional | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)    |
+| Bengali | Abhijit Mitra, Sristy Sangskriti, Omar Shehab |  @amitracal @Sristy Sangskriti @Shehab  |
+| Chinese Simplified | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)  |
+| Chinese Traditional | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)  |
 | French | Jean-Michel Torres | @torresjm |
 | German | Thorsten Muehge | @Thorsten Mühge |
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
-| Hindi | Samanvay Sharma | @sam |
+| Hindi | Samanvay Sharma, Guncha Malik | @sam @Guncha Malik |
 | Hungarian | Andras Di Giovanni | @Andras Di Giovanni |
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
 | Japanese | Takehiko Amano | @Takehiko Amano |
 | Korean | Soyoung Shin, Saesun Kim | @Sophy @Saesun Kim |
-| Malayalam | Ansah Mohammad Kuriyodath, Kiran Johns | @Ansah, @kiran |
+| Malayalam | Ansah Mohammad Kuriyodath | @Ansah |
+| Marathi | Amol Deshmukh | @Amol Deshmukh |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese (United) | Luiz Henrique Galeoti de Lima, Omar Costa Hamido | @Luiz Galeoti @OCH |
-| Russian | Artem Zasypalov, Vasily Shcherbinin, Farida Shagieva | @artem.z @Vasily Shcherbinin @Farida|
+| Russian | Artem Zasypalov, Vasily Shcherbinin, Farida Shagieva | @artem.z @Vasily Shcherbinin @Farida |
 | Spanish (United) | Claudia Zendejas-Morales, Rodrigo Rosado Rivial  | @clausia @rodrigo rosado |
 | Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
-| Thai | Tanapat Deesuwan, Ruchipas Bavontaweepanya, Natchapol Patamawisut | @BankNatchapol|
-| Turkish | Ayşin Sancı | @Ayshine |
+| Thai | Tanapat Deesuwan, Ruchipas Bavontaweepanya, Natchapol Patamawisut | @Tanapat @Ruchipas Bavontaweepanya @Bank Patamawisut |
+| Turkish | Ayşin Sancı | @ayshine |
 | Urdu | Zia Mohammad | @Zia Mohammad |
 | Vietnamese | Rossy Nhung Nguyen | @Rossy Ng |
 
