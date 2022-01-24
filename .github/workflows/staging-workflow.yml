@@ -9,7 +9,7 @@ on:
 jobs:
   build_docs:
     runs-on: ubuntu-latest
-    if: contains( github.event.pull_request.labels.*.name, 'gh-pages' )
+    if: contains( github.event.pull_request.labels.*.name, 'gh-pages-main' )
     steps:
     - uses: actions/checkout@v2
       with:
@@ -25,6 +25,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -U virtualenv setuptools wheel
         pip install -U -r requirements-dev.txt sphinx-intl qiskit
+        pip install -c constraints.txt -U jupyter sphinx nbsphinx networkx sphinx_rtd_theme qiskit-terra[visualization] cvxpy 'pyscf<1.7.4'
+        pip install -c constraints.txt -U .
         sudo apt-get install graphviz pandoc
 
     - name: Build translated Qiskit Docs
@@ -35,7 +37,9 @@ jobs:
     - name: Compress artifact
       run: |
         mkdir artifacts
-        tar -zcvf translated_docs_${{matrix.language}}.tar.gz build
+        cp -R build/locale/* build/
+        rm -r build/locale
+        tar -zcvf translated_docs_${{matrix.language}}.tar.gz build/
         mv translated_docs_${{matrix.language}}.tar.gz artifacts/.
     - name: Upload artifact
       uses: actions/upload-artifact@master
@@ -46,27 +50,28 @@ jobs:
       matrix:
         language:
           - bn_BN
-          # - de_DE
-          # - el_GR
-          # - es_UN
-          # - fr_FR
-          # - hi_IN
-          # - hu_HU
-          # - id_ID
-          # - it_IT
-          # - ja_JP
-          # - ko_KR
-          # - ml_IN
-          # - pl_PL
-          # - pt_BR
-          # - ru_RU
-          # - sw_KE
-          # - ta_IN
-          # - tr_TR
-          # - ur_UR
-          # - vi_VN
-          # - zh_CN
-          # - zh_TW
+          - de_DE
+          - el_GR
+          - es_UN
+          - fr_FR
+          - hi_IN
+          - hu_HU
+          - id_ID
+          - it_IT
+          - ja_JP
+          - ko_KR
+          - ml_IN
+          - pl_PL
+          - pt_UN
+          - ru_RU
+          - sw_KE
+          - ta_IN
+          - th_TH
+          - tr_TR
+          - ur_UR
+          - vi_VN
+          - zh_CN
+          - zh_TW
 
   deploy_docs:
     runs-on: ubuntu-latest
@@ -80,9 +85,16 @@ jobs:
     - name: Decompress artifact
       run: |
         for f in *.tar.gz; do tar -xvf "$f"; done
-    - name: Deploy to gh-pages
-      uses: peaceiris/actions-gh-pages@v3.7.3
+        ls
+    - name: Push directory to another repository
+      uses: cpina/github-action-push-to-another-repository@main
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.STAGING_REPO }}
       with:
-        deploy_key: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
-        publish_dir: ./build
-        keep_files: true
+        source-directory: 'build'
+        destination-github-username: 'qiskit-community'
+        destination-repository-name: 'qiskit-translations-staging'
+        user-name: SooluThomas
+        user-email: soolu.elto@gmail.com
+        target-branch: main
+        commit-message: Qiskit Autodeploy ORIGIN_COMMIT from $GITHUB_REF

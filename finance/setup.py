@@ -14,9 +14,7 @@ import setuptools
 import inspect
 import sys
 import os
-
-long_description = """Qiskit Finance is a open-source library of quantum computing finance experiments.
- """
+import re
 
 with open('requirements.txt') as f:
     REQUIREMENTS = f.read().splitlines()
@@ -30,17 +28,27 @@ VERSION_PATH = os.path.join(os.path.dirname(__file__), "qiskit_finance", "VERSIO
 with open(VERSION_PATH, "r") as version_file:
     VERSION = version_file.read().strip()
 
+# Read long description from README.
+README_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "README.md")
+with open(README_PATH) as readme_file:
+    README = re.sub(
+        "<!--- long-description-skip-begin -->.*<!--- long-description-skip-end -->",
+        "",
+        readme_file.read(),
+        flags=re.S | re.M,
+    )
+
 setuptools.setup(
     name='qiskit-finance',
     version=VERSION,
     description='Qiskit Finance: A library of quantum computing finance experiments',
-    long_description=long_description,
+    long_description=README,
     long_description_content_type="text/markdown",
     url='https://github.com/Qiskit/qiskit-finance',
     author='Qiskit Finance Development Team',
     author_email='hello@qiskit.org',
     license='Apache-2.0',
-    classifiers=(
+    classifiers=[
         "Environment :: Console",
         "License :: OSI Approved :: Apache Software License",
         "Intended Audience :: Developers",
@@ -54,7 +62,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Topic :: Scientific/Engineering"
-    ),
+    ],
     keywords='qiskit sdk quantum finance',
     packages=setuptools.find_packages(include=['qiskit_finance', 'qiskit_finance.*']),
     install_requires=REQUIREMENTS,
