@@ -14,9 +14,7 @@ import setuptools
 import inspect
 import sys
 import os
-
-long_description = """Qiskit Optimization is a open-source library of quantum computing optimizations.
- """
+import re
 
 with open('requirements.txt') as f:
     REQUIREMENTS = f.read().splitlines()
@@ -30,17 +28,27 @@ VERSION_PATH = os.path.join(os.path.dirname(__file__), "qiskit_optimization", "V
 with open(VERSION_PATH, "r") as version_file:
     VERSION = version_file.read().strip()
 
+# Read long description from README.
+README_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "README.md")
+with open(README_PATH) as readme_file:
+    README = re.sub(
+        "<!--- long-description-skip-begin -->.*<!--- long-description-skip-end -->",
+        "",
+        readme_file.read(),
+        flags=re.S | re.M,
+    )
+
 setuptools.setup(
     name='qiskit-optimization',
     version=VERSION,
     description='Qiskit Optimization: A library of quantum computing optimizations',
-    long_description=long_description,
+    long_description=README,
     long_description_content_type="text/markdown",
     url='https://github.com/Qiskit/qiskit-optimization',
     author='Qiskit Optimization Development Team',
     author_email='hello@qiskit.org',
     license='Apache-2.0',
-    classifiers=(
+    classifiers=[
         "Environment :: Console",
         "License :: OSI Approved :: Apache Software License",
         "Intended Audience :: Developers",
@@ -54,7 +62,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Topic :: Scientific/Engineering"
-    ),
+    ],
     keywords='qiskit sdk quantum optimization',
     packages=setuptools.find_packages(include=['qiskit_optimization', 'qiskit_optimization.*']),
     install_requires=REQUIREMENTS,
