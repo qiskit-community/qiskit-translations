@@ -28,37 +28,39 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 
 ### Project Leads
 
-| Name | Slack ([Qiskit-Docs Workspace](http://bit.ly/qiskitdoc)) |
+| Name | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
 | ---    | --- |
 | Yuri Kobayashi | @Yuri Kobayashi |
-| Samanvay Sharma | @Samanvay Sharma |
+| Samanvay Sharma | @sam |
 | Soolu Thomas | @Soolu |
 
 
-### Translation Leads (as of June, 2021)
+### Translation Leads (as of January 2022)
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
-| Bengali | Omar Shehab, Abhijit Mitra |  @Shehab @amitracal   |
-| Chinese Simplified | Helena Zhang, Junye Huang |  @Helena Zhang @Junye   |
-| Chinese Traditional | Helena Zhang, Junye Huang |  @Helena Zhang @Junye   |
-| French | Olivier Hess | @Olivier Hess |
-| German | Joachim Schaefer | @Joachim Schwarm |
+| Bengali | Abhijit Mitra, Sristy Sangskriti, Omar Shehab |  @amitracal @Sristy Sangskriti @Shehab  |
+| Chinese Simplified | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)  |
+| Chinese Traditional | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)  |
+| French | Jean-Michel Torres | @torresjm |
+| German | Thorsten Muehge | @Thorsten Mühge |
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
-| Hindi | Samanvay Sharma | @sam |
+| Hindi | Samanvay Sharma, Guncha Malik | @sam @Guncha Malik |
 | Hungarian | Andras Di Giovanni | @Andras Di Giovanni |
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
 | Japanese | Takehiko Amano | @Takehiko Amano |
 | Korean | Soyoung Shin, Saesun Kim | @Sophy @Saesun Kim |
-| Malayalam | Ansah Mohammad Kuriyodath, Kiran Johns | @Ansah, @kiran |
+| Malayalam | Ansah Mohammad Kuriyodath | @Ansah |
+| Marathi | Amol Deshmukh | @Amol Deshmukh |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese (United) | Luiz Henrique Galeoti de Lima, Omar Costa Hamido | @Luiz Galeoti @OCH |
-| Russian | Artem Zasypalov, Vasily Shcherbinin | @artem.z @Vasily Shcherbinin |
-| Spanish (United) | Carmen Recio Valcarce | @carmenrv |
+| Russian | Artem Zasypalov, Vasily Shcherbinin, Farida Shagieva | @artem.z @Vasily Shcherbinin @Farida |
+| Spanish (United) | Claudia Zendejas-Morales, Rodrigo Rosado Rivial  | @clausia @rodrigo rosado |
 | Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
-| Turkish | Ayşin Sancı | @Ayshine |
+| Thai | Tanapat Deesuwan, Ruchipas Bavontaweepanya, Natchapol Patamawisut | @Tanapat @Ruchipas Bavontaweepanya @Bank Patamawisut |
+| Turkish | Ayşin Sancı | @ayshine |
 | Urdu | Zia Mohammad | @Zia Mohammad |
 | Vietnamese | Rossy Nhung Nguyen | @Rossy Ng |
 
@@ -75,9 +77,11 @@ Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.c
 
 ### How to add a new language to translate?
 
-The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malayalam, Polish, Portuguese, Russian, Spanish, Swahili, Tamil, Turkish, Urdu, and Vietnamese. These translations can be viewed from our [staging site](https://qiskit-community.github.io/qiskit-translations/).
+The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malayalam, Marathi, Polish, Portuguese, Russian, Spanish, Swahili, Tamil, Thai, Turkish, Urdu, and Vietnamese. These translations can be viewed from our [staging site](https://ibm.biz/qiskit-docs-staging).
 
-[Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html), [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html), [Portuguese, Brazilian](https://qiskit.org/documentation/locale/pt_BR/index.html) and [French](https://qiskit.org/documentation/locale/fr_FR/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
+[Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html), [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html), [Portuguese](https://qiskit.org/documentation/locale/pt_BR/index.html), [French](https://qiskit.org/documentation/locale/fr_FR/index.html) and [Tamil](https://qiskit.org/documentation/locale/ta_IN/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
+
+The Machine Learning application tutorials are available in [Bengali](https://qiskit.org/documentation/machine-learning/locale/bn_BN/index.html), [French](https://qiskit.org/documentation/machine-learning/locale/fr_FR/index.html), [Hindi](https://qiskit.org/documentation/machine-learning/locale/hi_IN/index.html), [Italian](https://qiskit.org/documentation/machine-learning/locale/it_IT/index.html), [Japanese](https://qiskit.org/documentation/machine-learning/locale/jp_JP/index.html), [Korean](https://qiskit.org/documentation/machine-learning/locale/ko_KR/index.html), [Malayalam](https://qiskit.org/documentation/machine-learning/locale/ml_IN/index.html), [Russian](https://qiskit.org/documentation/machine-learning/locale/ru_RU/index.html), [Spanish](https://qiskit.org/documentation/machine-learning/locale/es_UN/index.html), [Tamil](https://qiskit.org/documentation/machine-learning/locale/ta_IN/index.html), [Turkish](https://qiskit.org/documentation/machine-learning/locale/tr_TR/index.html), [Vietnamese](https://qiskit.org/documentation/machine-learning/locale/vi_VN/index.html)
 
 As mentioned in the blog post [Qiskit in my language is Qiskit](https://medium.com/qiskit/qiskit-in-my-language-is-qiskit-73d4626a99d3), we want to make sure that translated languages have enough community support to ensure quality and consistency. <br/>
 
