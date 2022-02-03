@@ -94,7 +94,7 @@ If you want to add a new language and become a translation lead, you can open a 
 2. In addition to translators, we will need **dedicated proof-readers** to review the translations and approve accuracy of content in that language, to ensure the translations can be released in that language.<br/>
 3. Among the group of contributors, a **translation lead must be identified** to serve as a liaison with the administrators of the localization project. The lead must contact Samanvay Sharma (samanvay.sharma1@ibm.com) and Yuri Kobayashi (yurik@jp.ibm.com) by email for the language to be officially listed under this project. <br/><br/>
 
-These are general guidelines for joining translation efforts and adding new languages. If you have further questions, please feel free to contact [Samanvay Sharma](mailto:samanvay.sharma1@ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation) and [Yuri Kobayashi](mailto:yurik@jp.ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation). Thank you.
+These are general guidelines for joining translation efforts and adding new languages. If you have further questions, please feel free to contact [Soolu Thomas](mailto:soolu.thomas@ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation) and [Yuri Kobayashi](mailto:yurik@jp.ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation). Thank you.
 
 
 ### How to add my name to LOCALIZATION_CONTRIBUTORS list and open a PR in GitHub?
