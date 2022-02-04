@@ -43,14 +43,14 @@ To do this follow the instructions in the
   the `CplexOptimizer`, wrapper for ``cplex.Cplex``. Currently there is no python 3.9 version of CPLEX. In this case, the CPLEX install
   command will have no effect.
 
-* **CVXPY** may be installed using command `pip install 'qiskit-optimization[cvx]'` to install the
-  package. CVXPY being installed will enable the usage of the Goemans-Williamson algorithm as an optimizer `GoemansWilliamsonOptimizer`.
+* **CVXPY** may be installed using the command `pip install 'qiskit-optimization[cvx]'`.
+  CVXPY being installed will enable the usage of the Goemans-Williamson algorithm as an optimizer `GoemansWilliamsonOptimizer`.
 
-* **Matplotlib** may be installed using command `pip install 'qiskit-optimization[matplotlib]'` to install the
-  package. Matplotlib being installed will enable the usage of the `draw` method in the graph optimization application classes.
+* **Matplotlib** may be installed using the command `pip install 'qiskit-optimization[matplotlib]'`.
+  Matplotlib being installed will enable the usage of the `draw` method in the graph optimization application classes.
 
-* **Gurobipy** may be installed using command `pip install 'qiskit-optimization[gurobi]'` to install the
-  package. Gurobipy being installed will enable the usage of the GurobiOptimizer.
+* **Gurobipy** may be installed using the command `pip install 'qiskit-optimization[gurobi]'`.
+  Gurobipy being installed will enable the usage of the GurobiOptimizer.
 
 ### Creating Your First Optimization Programming Experiment in Qiskit
 
@@ -85,7 +85,7 @@ w = nx.adjacency_matrix(graph)
 
 # Formulate the problem as quadratic program
 problem = QuadraticProgram()
-_ = [problem.binary_var('x{}'.format(i)) for i in range(n)]  # create n binary variables
+_ = [problem.binary_var(f"x{i}") for i in range(n)]  # create n binary variables
 linear = w.dot(np.ones(n))
 quadratic = -w
 problem.maximize(linear=linear, quadratic=quadratic)
