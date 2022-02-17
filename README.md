@@ -114,5 +114,3 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Turkish | Ayşin Sancı, Furkan Semih Dündar | @ayshine @Furkan Semih Dündar |
 | Urdu | Zia Mohammad | @Zia Mohammad |
 | Vietnamese | Rossy Nhung Nguyen | @Rossy Ng |
-
-
