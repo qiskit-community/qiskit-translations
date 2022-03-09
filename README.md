@@ -5,7 +5,7 @@
 
 # Qiskit Documentation Localization [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs)
 
-First of all, **thank you** for showing your interest in translating (localizing) Qiskit Documentation! This helps make the documentation more accessible and available to our global community.
+First of all, **thank you** for showing interest in translating (localizing) Qiskit Documentation! This helps make the documentation more accessible and available to our global community.
 
 If you are interested in contributing to translations, please follow the instructions below.
 
