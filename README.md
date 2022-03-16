@@ -101,7 +101,7 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
 | Japanese | Takehiko Amano | @Takehiko Amano |
-| Korean | Soyoung Shin, Saesun Kim | @Sophy @Saesun Kim |
+| Korean | Soyoung Shin, Mingi Ryu | @Sophy @Mingi|
 | Malayalam | Ansah Mohammad Kuriyodath | @Ansah |
 | Marathi | Amol Deshmukh | @Amol Deshmukh |
 | Polish | Piotr Biskupski | @pb.worker |
