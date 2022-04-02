@@ -1,7 +1,7 @@
 # Qiskit Localization Digital Badges
 
 ### The Qiskit Localization project is an IBM Digital Badge eligible program
-![Image](images/qiskit_localization_contributor_gold.png?raw=true)
+![Image](images/qiskit_localization_contributor_gold.png?raw=true) <br>
 At Qiskit, we feel that it is important to recognize the contributions that were made by its members to make our documentation more accessible to the global community.
 
 Starting in 2020, localization contributors who drove efforts in translating, proof-reading and managing progress can earn a Qiskit Localization Contributor Badge. After you complete the requirements to earn a badge, you may submit a request to apply for a digital badge so that the project owners can begin assessment and badge processing. Note: Your name must be listed in the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) list as proof that you have acknowledged Qiskti Code of Conduct, Localization guidelines, and accepted the Contributors License Agreement (CLA) upon joining the project. 
@@ -16,20 +16,20 @@ Each badge earner has demonstrated a level of skill and understanding with the o
 
 For further details regarding the different level of badges, please refer to he earning criteria below.
 
-[**Qiskit Localization Contributor - Bronze Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-bronze-level-translator-2021)
-Earning Criteria
+[**Qiskit Localization Contributor - Bronze Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-bronze-level-translator-2021) <br>
+Earning Criteria <br>
 Translate at least 5,000 words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
 
-[**Qiskit Localization Contributor - Silver Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-silver-level-translator-2021)
-Earning Criteria
+[**Qiskit Localization Contributor - Silver Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-silver-level-translator-2021) <br>
+Earning Criteria <br>
 Translate at least 8,000 words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
 
-[**Qiskit Localization Contributor - Gold Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-gold-level-translator-2021)
-Earning Criteria
+[**Qiskit Localization Contributor - Gold Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-gold-level-translator-2021) <br>
+Earning Criteria <br>
 Translate at least 15,000 words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
 
-[**Qiskit Localization Contributor - Platinum Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-platinum-level-translator-2021)
-Earning Criteria
+[**Qiskit Localization Contributor - Platinum Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-platinum-level-translator-2021) <br>
+Earning Criteria <br>
 Translate at least 25,000 words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
 
 Note: Your name must be listed under the following LOCALIZATION_CONTRIBUTORS file as proof that you have signed the CLA (Contributor License Agreement) necessary to join the Qiskit Localization Project.
