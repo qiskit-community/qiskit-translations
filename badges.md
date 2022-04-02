@@ -6,8 +6,7 @@ At Qiskit, we feel that it is important to recognize the contributions that were
 
 Starting in 2020, localization contributors who drove efforts in translating, proof-reading and managing progress can earn a Qiskit Localization Contributor Badge. After you complete the requirements to earn a badge, you may submit a request to apply for a digital badge so that the project owners can begin assessment and badge processing. Note: Your name must be listed in the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) list as proof that you have acknowledged Qiskti Code of Conduct, Localization guidelines, and accepted the Contributors License Agreement (CLA) upon joining the project. 
 
-    
-NOTICE: IBM leverages the services of Credly, a 3rd party data processor authorized by IBM and located in the United States, to assist in the administration of the IBM Digital Badge program. In order to issue you an IBM Digital Badge, your personal information (name, email address, and badge earned) will be shared with Credly. You will receive an email notification from Credly with instructions for claiming the badge. Your personal information is used to issue your badge and for program reporting and operational purposes. It will be handled in a manner consistent with IBM privacy practices. The IBM Privacy Statement can be viewed here: https://www.ibm.com/privacy/us/en/.  IBM employees can view the IBM Internal Privacy Statement here: https://w3.ibm.com/w3publisher/w3-privacy-notice.
+*NOTICE: IBM leverages the services of Credly, a 3rd party data processor authorized by IBM and located in the United States, to assist in the administration of the IBM Digital Badge program. In order to issue you an IBM Digital Badge, your personal information (name, email address, and badge earned) will be shared with Credly. You will receive an email notification from Credly with instructions for claiming the badge. Your personal information is used to issue your badge and for program reporting and operational purposes. It will be handled in a manner consistent with IBM privacy practices. The IBM Privacy Statement can be viewed here: https://www.ibm.com/privacy/us/en/.  IBM employees can view the IBM Internal Privacy Statement here: https://w3.ibm.com/w3publisher/w3-privacy-notice.
 
 
 ## Badge Levels
@@ -18,19 +17,19 @@ For further details regarding the different level of badges, please refer to he 
 
 [**Qiskit Localization Contributor - Bronze Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-bronze-level-translator-2021) <br>
 Earning Criteria <br>
-Translate at least 5,000 words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
+Translate at least **5,000** words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
 
 [**Qiskit Localization Contributor - Silver Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-silver-level-translator-2021) <br>
 Earning Criteria <br>
-Translate at least 8,000 words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
+Translate at least **8,000** words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
 
 [**Qiskit Localization Contributor - Gold Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-gold-level-translator-2021) <br>
 Earning Criteria <br>
-Translate at least 15,000 words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
+Translate at least **15,000** words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
 
 [**Qiskit Localization Contributor - Platinum Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-platinum-level-translator-2021) <br>
 Earning Criteria <br>
-Translate at least 25,000 words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
+Translate at least **25,000** words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
 
 Note: Your name must be listed under the following LOCALIZATION_CONTRIBUTORS file as proof that you have signed the CLA (Contributor License Agreement) necessary to join the Qiskit Localization Project.
 
