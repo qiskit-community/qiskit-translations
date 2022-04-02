@@ -38,10 +38,10 @@ Badges are issued on a yearly basis. The organization team will open an applicat
 The application cycle for 2021 localization contribution was closed on March 31, 2022. All eligible and verified applicants will have their badges issued within 14 days after the application is closed. The form for the 2022 application cycle will open by June 2022 and will be notified via Crowdin Messages and #qiskit-localization on the Qiskit Slack workspace.
 
 ## How can I verify the number of words I translated?
-You can verify the number of words you have translated or approved by logging into Crowdin (https://crowdin.com/project/qiskit-docs) then go to Settings > Reports > Top Members if you have a manager role. 
+You can verify the number of words you have translated or approved by logging into [Crowdin](https://crowdin.com/project/qiskit-docs) then go to Settings > Reports > Top Members if you have a manager role. 
 If you have a translator role, go to Settings > Reports > My Contribution. Make sure to set the Date Range starting from "2021-04-01" up (for 2021 badge applications) to the day of submitting this form before generating the list to see how many words you have translated or approved so far.
 
-After we receive your application, we will ask your language team lead to verify your contributions based on the Qiskit Code of Conduct. (https://github.com/qiskit-community/qiskit-translations/blob/master/CODE_OF_CONDUCT.md) Please note that in case we discover any form of violation of the code of conduct, we cannot issue the relevant badge for you. 
+After we receive your application, we will ask your language team lead to verify your contributions based on the [Qiskit Code of Conduct](https://github.com/qiskit-community/qiskit-translations/blob/master/CODE_OF_CONDUCT.md). Please note that in case we discover any form of violation of the code of conduct, we cannot issue the relevant badge for you. 
 
 ## How are the digital badges administered?
 The Qiskit Localization Contributor Badge program is part of the IBM Digital Badge program and leverages the services of Credly's Acclaim. Acclaim badges are external to IBM, therefore visible to other communities such as LinkedIn. These badges do not expire and are available to the Qiskit community members who have made substantial contributions to the open source community. 
