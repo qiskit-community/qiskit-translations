@@ -1,9 +1,7 @@
-![Image](images/qiskit_localization_contributor_gold.png?raw=true)
-
 # Qiskit Localization Digital Badges
 
 ### The Qiskit Localization project is an IBM Digital Badge eligible program
-
+![Image](images/qiskit_localization_contributor_gold.png?raw=true)
 At Qiskit, we feel that it is important to recognize the contributions that were made by its members to make our documentation more accessible to the global community.
 
 Starting in 2020, localization contributors who drove efforts in translating, proof-reading and managing progress can earn a Qiskit Localization Contributor Badge. After you complete the requirements to earn a badge, you may submit a request to apply for a digital badge so that the project owners can begin assessment and badge processing. Note: Your name must be listed in the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) list as proof that you have acknowledged Qiskti Code of Conduct, Localization guidelines, and accepted the Contributors License Agreement (CLA) upon joining the project. 
