@@ -4,16 +4,16 @@
 ![Image](images/qiskit_localization_contributor_gold.png?raw=true) <br>
 At Qiskit, we feel that it is important to recognize the contributions that were made by its members to make our documentation more accessible to the global community.
 
-Starting in 2020, localization contributors who drove efforts in translating, proof-reading and managing progress can earn a Qiskit Localization Contributor Badge. After you complete the requirements to earn a badge, you may submit a request to apply for a digital badge so that the project owners can begin assessment and badge processing. Note: Your name must be listed in the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) list as proof that you have acknowledged Qiskti Code of Conduct, Localization guidelines, and accepted the Contributors License Agreement (CLA) upon joining the project. 
+Starting in 2020, localization contributors who drove efforts in translating, proof-reading and managing progress can earn a Qiskit Localization Contributor Badge. After you complete the requirements to earn a badge, you may submit a request to apply for a digital badge so that the project owners can begin assessment and badge processing. Note: Your name must be listed in the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) list as proof that you have acknowledged [Qiskit Code of Conduct](https://github.com/Qiskit/qiskit/blob/master/CODE_OF_CONDUCT.md), [Translate Responsibly](https://github.com/qiskit-community/qiskit-translations/blob/master/CODE_OF_CONDUCT.md#translate-responsibly) guideline, and accepted the Contributors License Agreement (CLA) upon joining the project. 
 
 *NOTICE: IBM leverages the services of Credly, a 3rd party data processor authorized by IBM and located in the United States, to assist in the administration of the IBM Digital Badge program. In order to issue you an IBM Digital Badge, your personal information (name, email address, and badge earned) will be shared with Credly. You will receive an email notification from Credly with instructions for claiming the badge. Your personal information is used to issue your badge and for program reporting and operational purposes. It will be handled in a manner consistent with IBM privacy practices. The IBM Privacy Statement can be viewed here: https://www.ibm.com/privacy/us/en/.  IBM employees can view the IBM Internal Privacy Statement here: https://w3.ibm.com/w3publisher/w3-privacy-notice.
 
 
 ## Badge Levels
 
-Each badge earner has demonstrated a level of skill and understanding with the opensource Qiskit Documentation through translating the content into another language. Through their contributions to the Qiskit and the quantum community, this individual has demonstrated an ability and commitment to educate and influence others by making educational material in quantum computing more accessible to others. 
+Each badge earner has demonstrated a level of skill and understanding with the open-source Qiskit Documentation through translating the content into another language. Through their contributions to Qiskit and the quantum community, this individual has demonstrated an ability and commitment to educate and influence others by making educational material in quantum computing more accessible to the global community. 
 
-For further details regarding the different level of badges, please refer to he earning criteria below.
+For further details regarding the different level of badges, please refer to the earning criteria below.
 
 [**Qiskit Localization Contributor - Bronze Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-bronze-level-translator-2021) <br>
 Earning Criteria <br>
@@ -31,11 +31,11 @@ Translate at least **15,000** words in any of the Qiskit related educational mat
 Earning Criteria <br>
 Translate at least **25,000** words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
 
-Note: Your name must be listed under the following LOCALIZATION_CONTRIBUTORS file as proof that you have signed the CLA (Contributor License Agreement) necessary to join the Qiskit Localization Project.
+Note: Your name must be listed under the following L[OCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) file as proof that you have signed the CLA (Contributor License Agreement) necessary to join the Qiskit Localization Project.
 
 ## How can I apply for a badge?
 Badges are issued on a yearly basis. The organization team will open an application form for all eligible members to apply for their digital badges. 
-The application cycle for 2021 localization contribution was closed on March 31, 2022. All eligible and verified applicants will have their badges issued within 14 days after the application is closed. The form for the 2022 application cycle will open by June 2022 and will be notified via Crowdin Messages and #qiskit-localization on the Qiskit Slack workspace.
+The application cycle for 2021 localization contribution was closed on March 31, 2022. All eligible and verified applicants will have their badges issued within 14 days after the application is closed. The form for the 2022 application cycle will open by June 2022 and will be notified via Crowdin messages and #qiskit-localization channel on the Qiskit Slack workspace.
 
 ## How can I verify the number of words I translated?
 You can verify the number of words you have translated or approved by logging into [Crowdin](https://crowdin.com/project/qiskit-docs) then go to Settings > Reports > Top Members if you have a manager role. 
