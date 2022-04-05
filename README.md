@@ -71,6 +71,9 @@ These are general guidelines for joining translation efforts and adding new lang
 5. Now, in the terminal run `git add LOCALIZATION_CONTRIBUTORS`, `git commit -m "Added name under LANGUAGE-NAME"`, `git push origin BRANCH-NAME`. 
 6. Follow the link in the terminal to open a pull request.
 
+## Digital Badges
+
+At Qiskit, we feel that it is important to recognize the contributions that were made by its members to make our documentation more accessible to the global community. Starting in 2020, localization contributors who drove efforts in translating, proof-reading and managing progress can earn a Qiskit Localization Contributor Badge. For details, please refer to [Qiskit Localization Digital Badges](https://github.com/qiskit-community/qiskit-translations/blob/master/badges.md#qiskit-localization-digital-badges).
 
 ## When you find an issue in the original documentation
 
