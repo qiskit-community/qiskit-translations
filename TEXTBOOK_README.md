@@ -87,27 +87,4 @@ During the process of translating Qiskit Textbook (beta), you may identify bug o
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
-| Bengali | Abhijit Mitra, Sristy Sangskriti, Omar Shehab |  @amitracal @Sristy Sangskriti @Shehab  |
-| Chinese Simplified | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)  |
-| Chinese Traditional | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)  |
-| French | Jean-Michel Torres | @torresjm |
-| German | Thorsten Muehge | @Thorsten Mühge |
-| Greek | Vasilis Katopodis | @Vasilis Katopodis |
-| Hindi | Samanvay Sharma, Guncha Malik | @sam @Guncha Malik |
-| Hungarian | Andras Di Giovanni | @Andras Di Giovanni |
-| Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
-| Italian | Eleonora Picca | @Eleonora Picca |
-| Japanese | Kifumi Numata, Takehiko Amano |@Kifumi Numata @Takehiko Amano |
-| Korean | Soyoung Shin, Mingi Ryu | @Sophy @Mingi|
-| Malayalam | Ansah Mohammad Kuriyodath | @Ansah |
-| Marathi | Amol Deshmukh | @Amol Deshmukh |
-| Polish | Piotr Biskupski | @pb.worker |
-| Portuguese (United) | Luiz Henrique Galeoti de Lima, Omar Costa Hamido | @Luiz Galeoti @OCH |
-| Russian | Artem Zasypalov, Vasily Shcherbinin, Farida Shagieva | @artem.z @Vasily Shcherbinin @Farida |
-| Spanish (United) | Claudia Zendejas-Morales, Rodrigo Rosado Rivial  | @clausia @rodrigo rosado |
-| Swahili | Karoki Mugambi | @Karoki Mugambi |
-| Tamil | Manjula Gandhi | @Manjula Gandhi |
-| Thai | Tanapat Deesuwan, Ruchipas Bavontaweepanya, Natchapol Patamawisut | @Tanapat @Ruchipas Bavontaweepanya @Bank Patamawisut |
-| Turkish | Ayşin Sancı, Furkan Semih Dündar | @ayshine @Furkan Semih Dündar |
-| Urdu | Zia Mohammad | @Zia Mohammad |
-| Vietnamese | Rossy Nhung Nguyen | @Rossy Ng |
+|  |  |  |
