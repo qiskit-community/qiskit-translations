@@ -25,6 +25,7 @@ If you have an open issue for a language request, **add the issue link to the PR
 7. For questions about the project, to connect with other translators, or to receive updates regarding the project, please join #qiskit-localization channel in the [Qiskit workspace](http://ibm.co/joinqiskitslack). <br/>
 
 ## Review the CLA document
+
 The [Qiskit Contribution License Agreement (CLA)](https://qiskit.org/license/qiskit-cla.pdf) document is also available for review as PDF.
 
 ## What is GitLocalize?
