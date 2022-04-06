@@ -4,9 +4,9 @@
 
 First of all, **thank you** for showing interest in translating (localizing) Qiskit Textbook! Your effort helps make the textbook more accessible and available to our global community.
 
-If you are interested in contributing to translations, please follow the instructions below.</br>
+**Please note that [localization contributors of Qiskit Documentation must sign up separately](https://github.com/qiskit-community/qiskit-translations/blob/master/README.md)
 
-**Please note that localization_contributors of Qiskit Documentation must sign up for this project separately and complete the steps below to join the Qiskit Textbook Localization project.**
+If you are interested in contributing to translations, please follow the instructions below.</br>
 
 
 ## Steps to participate in Qiskit textbook translations:
