@@ -4,14 +4,14 @@
 
 First of all, **thank you** for showing interest in translating (localizing) Qiskit Textbook! Your effort helps make the textbook more accessible and available to our global community.
 
-**Please note that [localization contributors of Qiskit Documentation must sign up separately](https://github.com/qiskit-community/qiskit-translations/blob/master/README.md)
+**Please note that [localization contributors of Qiskit Documentation must sign up separately](https://github.com/qiskit-community/qiskit-translations/blob/master/README.md)**
 
 If you are interested in contributing to translations, please follow the instructions below.</br>
 
 
 ## Steps to participate in Qiskit textbook translations:
 
-1. Open the [TEXTBOOK_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/TEXTBOOK_CONTRIBUTORS) file. Look for the language header that you'd like to contribute to and add your full name under he header. If you do not find the language that you'd like to contribute to, please read [this section](#how-to-add-a-new-language).<br/>
+1. Open the [TEXTBOOK_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/TEXTBOOK_CONTRIBUTORS) file. Look for the language header that you'd like to contribute to and add your full name under the header. If you do not find the language that you'd like to contribute to, please read [this section](#how-to-add-a-new-language).<br/>
 2. Create a pull request (PR) to add your name to the list. Make sure to follow the template to open a PR.<br/>
 Each contributor must create their own PR and sign the Contributors License Agreement (CLA). (see #3 below).
 If you have an open issue for a language request, **add the issue link to the PR**.
@@ -37,8 +37,6 @@ Gitlocalize is under active development, so you may encounter issues during tran
 
 
 ## How to add a new language?
-
-The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malayalam, Marathi, Polish, Portuguese, Russian, Spanish, Swahili, Tamil, Thai, Turkish, Urdu, and Vietnamese. 
 
 If you want to add a new language and become a translation lead, you can open a [GitHub issue](https://github.com/qiskit-community/qiskit-translations/issues/new/choose) to start a discussion with the Qiskit team and recruit translation project members. Please refer to the [criteria](#what-is-the-criteria-for-adding-a-new-language?) below to receive official support from the administrators for new languages.
 
@@ -82,6 +80,7 @@ During the process of translating Qiskit Textbook (beta), you may identify bug o
 | ---    | --- |
 | Yuri Kobayashi | @Yuri Kobayashi |
 | Soolu Thomas | @Soolu |
+| Sophy Shin | @Sophy |
 
 
 ## Translation Leads (as of April 2022)
