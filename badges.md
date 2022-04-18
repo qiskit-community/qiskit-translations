@@ -45,7 +45,7 @@ If you have a translator role, go to Settings > Reports > My Contribution. Make 
 After we receive your application, we will ask your language team lead to verify your contributions based on the [Qiskit Code of Conduct](https://github.com/qiskit-community/qiskit-translations/blob/master/CODE_OF_CONDUCT.md). Please note that in case we discover any form of violation of the code of conduct, we cannot issue the relevant badge for you. 
 
 ## How are the digital badges administered?
-The Qiskit Localization Contributor Badge program is part of the IBM Digital Badge program and leverages the services of Credly's Acclaim. Acclaim badges are external to IBM, therefore visible to other communities such as LinkedIn. These badges do not expire and are available to the Qiskit community members who have made substantial contributions to the open source community. 
+The Qiskit Localization Contributor Badge program is part of the IBM Digital Badge program and leverages the services of Credly's badge platform. Badges issued through Credly are external to IBM, therefore visible to other communities such as LinkedIn. These badges do not expire and are available to the Qiskit community members who have made substantial contributions to the open source community. 
 
 ## Questions?
 If you have any questions, please reach out to us in #qiskit-localization on the Qiskit Slack workspace. 
