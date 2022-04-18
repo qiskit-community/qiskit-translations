@@ -11,7 +11,7 @@ If you are interested in contributing to translations, please follow the instruc
 
 ## Steps to participate in Qiskit textbook translations:
 
-1. Open the [TEXTBOOK_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/TEXTBOOK_CONTRIBUTORS) file. Look for the language header that you'd like to contribute to and add your full name under the header. If you do not find the language that you'd like to contribute to, please read [this section](#how-to-add-a-new-language).<br/>
+1. Open the [TEXTBOOK_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/TEXTBOOK_CONTRIBUTORS) file. Look for the language header that you'd like to contribute to and add your full name and GitHub ID under the header. If you do not find the language that you'd like to contribute to, please read [this section](#how-to-add-a-new-language).<br/>
 2. Create a pull request (PR) to add your name to the list. Make sure to follow the template to open a PR.<br/>
 Each contributor must create their own PR and sign the Contributors License Agreement (CLA). (see #3 below).
 If you have an open issue for a language request, **add the issue link to the PR**.
