@@ -34,7 +34,7 @@ Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.c
 
 ## How to add a new language to translate?
 
-The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malayalam, Marathi, Polish, Portuguese, Russian, Spanish, Swahili, Tamil, Thai, Turkish, Urdu, and Vietnamese. These translations can be viewed from our [staging site](https://ibm.biz/qiskit-docs-staging).
+The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Malayalam, Marathi, Polish, Portuguese, Russian, Spanish, Swahili, Tamil, Thai, Turkish, and Vietnamese. These translations can be viewed from our [staging site](https://ibm.biz/qiskit-docs-staging).
 
 [Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html), [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html), [Portuguese](https://qiskit.org/documentation/locale/pt_BR/index.html), [French](https://qiskit.org/documentation/locale/fr_FR/index.html) and [Tamil](https://qiskit.org/documentation/locale/ta_IN/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
 
@@ -100,7 +100,6 @@ During the process of translating Qiskit documentation, you may identify errors 
 | German | Thorsten Muehge | @Thorsten Mühge |
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
 | Hindi | Samanvay Sharma, Guncha Malik | @sam @Guncha Malik |
-| Hungarian | Andras Di Giovanni | @Andras Di Giovanni |
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
 | Japanese | Takehiko Amano | @Takehiko Amano |
@@ -109,11 +108,10 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Marathi | Amol Deshmukh | @Amol Deshmukh |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese (United) | Luiz Henrique Galeoti de Lima, Omar Costa Hamido | @Luiz Galeoti @OCH |
-| Russian | Artem Zasypalov, Vasily Shcherbinin, Farida Shagieva | @artem.z @Vasily Shcherbinin @Farida |
+| Russian | Vasily Shcherbinin, Farida Shagieva | @Vasily Shcherbinin @Farida |
 | Spanish (United) | Claudia Zendejas-Morales, Rodrigo Rosado Rivial  | @clausia @rodrigo rosado |
 | Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
 | Thai | Tanapat Deesuwan, Ruchipas Bavontaweepanya, Natchapol Patamawisut | @Tanapat @Ruchipas Bavontaweepanya @Bank Patamawisut |
 | Turkish | Ayşin Sancı, Furkan Semih Dündar | @ayshine @Furkan Semih Dündar |
-| Urdu | Zia Mohammad | @Zia Mohammad |
 | Vietnamese | Rossy Nhung Nguyen | @Rossy Ng |
