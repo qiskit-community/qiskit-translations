@@ -89,11 +89,11 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Soolu Thomas | @Soolu |
 
 
-## Translation Leads (as of January 2022)
+## Translation Leads (as of April 2022)
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
-| Bengali | Abhijit Mitra, Sristy Sangskriti, Omar Shehab |  @amitracal @Sristy Sangskriti @Shehab  |
+| Bengali | Abhijit Mitra, Sristy Sangskriti |  @amitracal @Sristy Sangskriti  |
 | Chinese Simplified | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)  |
 | Chinese Traditional | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)  |
 | French | Jean-Michel Torres | @torresjm |
