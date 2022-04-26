@@ -34,7 +34,7 @@ Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.c
 
 ## How to add a new language to translate?
 
-The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malayalam, Marathi, Polish, Portuguese, Russian, Spanish, Swahili, Tamil, Thai, Turkish, Urdu, and Vietnamese. These translations can be viewed from our [staging site](https://ibm.biz/qiskit-docs-staging).
+The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Malayalam, Marathi, Polish, Portuguese, Russian, Spanish, Swahili, Tamil, Thai, Turkish, and Vietnamese. These translations can be viewed from our [staging site](https://ibm.biz/qiskit-docs-staging).
 
 [Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html), [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html), [Portuguese](https://qiskit.org/documentation/locale/pt_BR/index.html), [French](https://qiskit.org/documentation/locale/fr_FR/index.html) and [Tamil](https://qiskit.org/documentation/locale/ta_IN/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
 
@@ -89,18 +89,17 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Soolu Thomas | @Soolu |
 
 
-## Translation Leads (as of January 2022)
+## Translation Leads (as of April 2022)
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
-| Bengali | Abhijit Mitra, Sristy Sangskriti, Omar Shehab |  @amitracal @Sristy Sangskriti @Shehab  |
+| Bengali | Abhijit Mitra, Sristy Sangskriti |  @amitracal @Sristy Sangskriti  |
 | Chinese Simplified | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)  |
 | Chinese Traditional | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)  |
 | French | Jean-Michel Torres | @torresjm |
 | German | Thorsten Muehge | @Thorsten Mühge |
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
 | Hindi | Samanvay Sharma, Guncha Malik | @sam @Guncha Malik |
-| Hungarian | Andras Di Giovanni | @Andras Di Giovanni |
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
 | Japanese | Takehiko Amano | @Takehiko Amano |
@@ -115,5 +114,4 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
 | Thai | Tanapat Deesuwan, Ruchipas Bavontaweepanya, Natchapol Patamawisut | @Tanapat @Ruchipas Bavontaweepanya @Bank Patamawisut |
 | Turkish | Ayşin Sancı, Furkan Semih Dündar | @ayshine @Furkan Semih Dündar |
-| Urdu | Zia Mohammad | @Zia Mohammad |
 | Vietnamese | Rossy Nhung Nguyen | @Rossy Ng |
