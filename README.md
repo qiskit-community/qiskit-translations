@@ -5,7 +5,7 @@
 
 # Qiskit Documentation Localization [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs)
 
-First of all, **thank you** for showing your interest in translating (localizing) Qiskit Documentation! This helps make the documentation more accessible and available to our global community.
+First of all, **thank you** for showing interest in translating (localizing) Qiskit Documentation! This helps make the documentation more accessible and available to our global community.
 
 If you are interested in contributing to translations, please follow the instructions below.
 
@@ -34,7 +34,7 @@ Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.c
 
 ## How to add a new language to translate?
 
-The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malayalam, Marathi, Polish, Portuguese, Russian, Spanish, Swahili, Tamil, Thai, Turkish, Urdu, and Vietnamese. These translations can be viewed from our [staging site](https://ibm.biz/qiskit-docs-staging).
+The Qiskit Localization Project currently supports: Bengali, Chinese Simplified, Chinese Traditional, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Malayalam, Marathi, Polish, Portuguese, Russian, Spanish, Swahili, Tamil, Thai, Turkish, and Vietnamese. These translations can be viewed from our [staging site](https://ibm.biz/qiskit-docs-staging).
 
 [Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html), [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html), [Portuguese](https://qiskit.org/documentation/locale/pt_BR/index.html), [French](https://qiskit.org/documentation/locale/fr_FR/index.html) and [Tamil](https://qiskit.org/documentation/locale/ta_IN/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
 
@@ -71,6 +71,9 @@ These are general guidelines for joining translation efforts and adding new lang
 5. Now, in the terminal run `git add LOCALIZATION_CONTRIBUTORS`, `git commit -m "Added name under LANGUAGE-NAME"`, `git push origin BRANCH-NAME`. 
 6. Follow the link in the terminal to open a pull request.
 
+## Digital Badges
+
+At Qiskit, we feel that it is important to recognize the contributions that were made by its members to make our documentation more accessible to the global community. Starting in 2020, localization contributors who drove efforts in translating, proof-reading and managing progress can earn a Qiskit Localization Contributor Badge. For details, please refer to [Qiskit Localization Digital Badges](https://github.com/qiskit-community/qiskit-translations/blob/master/badges.md#qiskit-localization-digital-badges).
 
 ## When you find an issue in the original documentation
 
@@ -86,31 +89,29 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Soolu Thomas | @Soolu |
 
 
-## Translation Leads (as of January 2022)
+## Translation Leads (as of April 2022)
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
-| Bengali | Abhijit Mitra, Sristy Sangskriti, Omar Shehab |  @amitracal @Sristy Sangskriti @Shehab  |
+| Bengali | Abhijit Mitra, Sristy Sangskriti |  @amitracal @Sristy Sangskriti  |
 | Chinese Simplified | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)  |
 | Chinese Traditional | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)  |
 | French | Jean-Michel Torres | @torresjm |
 | German | Thorsten Muehge | @Thorsten Mühge |
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
 | Hindi | Samanvay Sharma, Guncha Malik | @sam @Guncha Malik |
-| Hungarian | Andras Di Giovanni | @Andras Di Giovanni |
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca | @Eleonora Picca |
 | Japanese | Takehiko Amano | @Takehiko Amano |
-| Korean | Soyoung Shin, Saesun Kim | @Sophy @Saesun Kim |
+| Korean | Soyoung Shin, Mingi Ryu | @Sophy @Mingi|
 | Malayalam | Ansah Mohammad Kuriyodath | @Ansah |
 | Marathi | Amol Deshmukh | @Amol Deshmukh |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese (United) | Luiz Henrique Galeoti de Lima, Omar Costa Hamido | @Luiz Galeoti @OCH |
-| Russian | Artem Zasypalov, Vasily Shcherbinin, Farida Shagieva | @artem.z @Vasily Shcherbinin @Farida |
+| Russian | Vasily Shcherbinin, Farida Shagieva | @Vasily Shcherbinin @Farida |
 | Spanish (United) | Claudia Zendejas-Morales, Rodrigo Rosado Rivial  | @clausia @rodrigo rosado |
 | Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
 | Thai | Tanapat Deesuwan, Ruchipas Bavontaweepanya, Natchapol Patamawisut | @Tanapat @Ruchipas Bavontaweepanya @Bank Patamawisut |
 | Turkish | Ayşin Sancı, Furkan Semih Dündar | @ayshine @Furkan Semih Dündar |
-| Urdu | Zia Mohammad | @Zia Mohammad |
 | Vietnamese | Rossy Nhung Nguyen | @Rossy Ng |
