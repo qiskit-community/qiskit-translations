@@ -36,10 +36,10 @@ mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 sphinx-build -b html -D content_prefix=documentation/machine-learning -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
 rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
-    $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/LC_MESSAGES/_sources/
+rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/LC_MESSAGES/_sources/
 
-echo "make build dir "
-mkdir -p $SOURCE_DIR/build/
+echo "make ml dir "
+mkdir -p $SOURCE_DIR/machine-learning/
 
-echo "move html files from _build/ to build/"
-mv $SOURCE_DIR/ml_docs_source/$SOURCE_DOC_DIR/locale/* $SOURCE_DIR/build/
+echo "move html files from _build/ to machine-learning/"
+mv $SOURCE_DIR/ml_docs_source/$SOURCE_DOC_DIR/locale/* $SOURCE_DIR/machine-learning/
