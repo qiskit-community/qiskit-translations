@@ -28,9 +28,8 @@ RCLONE_CONFIG_PATH=$(rclone config file | tail -1)
 set -e
 
 CURRENT_TAG=`git describe --abbrev=0`
-IFS='.'
-read -ra VERSION <<< "$CURRENT_TAG"
-STABLE_VERSION=`echo $VERSION | cut -d "." -f -2`
+IFS=. read -ra VERSION <<< "$CURRENT_TAG"
+STABLE_VERSION="${VERSION[0]}.${VERSION[1]}"
 
 # Clone the sources files and po files to $SOURCE_DIR/docs_source
 git clone --depth=1 $SOURCE_REPOSITORY docs_source
