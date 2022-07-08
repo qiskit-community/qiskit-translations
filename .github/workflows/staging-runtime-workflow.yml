@@ -1,15 +1,15 @@
-name: Staging translated Qiskit docs
+name: Staging translated Qiskit Runtime docs
 
 on:
   pull_request:
     branches: [ master ]
   label:
-     types: [ gh-pages ]
+     types: [ gh-pages-apps ]
 
 jobs:
   build_docs:
     runs-on: ubuntu-latest
-    if: contains( github.event.pull_request.labels.*.name, 'gh-pages' )
+    if: contains( github.event.pull_request.labels.*.name, 'gh-pages-apps' )
     steps:
     - uses: actions/checkout@v2
       with:
@@ -20,27 +20,26 @@ jobs:
       with:
         python-version: '3.8'
 
-    - name: Install dependencies
+    - name: Install Qiskit IBM Runtime dependencies
       run: |
+        cd qiskit-ibm-runtime
         python -m pip install --upgrade pip
-        pip install -U virtualenv 'setuptools<61.0.0' wheel
-        pip install -U -r requirements-dev.txt sphinx-intl qiskit
-        pip install -c constraints.txt -U jupyter sphinx nbsphinx networkx sphinx_rtd_theme qiskit-terra[visualization] cvxpy 'pyscf<1.7.4'
-        pip install -c constraints.txt -U .
-        sudo apt-get install graphviz pandoc
+        pip install -U virtualenv setuptools wheel tox
+        sudo apt-get install -y graphviz pandoc
 
-    - name: Build translated Qiskit Docs
+    - name: Build translated Qiskit IBM Runtime Docs
       env:
         TRANSLATION_LANG: ${{ matrix.language }}
       run: |
-        tools/staging_translated_documentation.sh
+        cd qiskit-ibm-runtime
+        ../tools/staging_runtime_translated_documentation.sh
     - name: Compress artifact
       run: |
         mkdir artifacts
         cp -R build/locale/* build/
         rm -r build/locale
-        tar -zcvf translated_docs_${{matrix.language}}.tar.gz build/
-        mv translated_docs_${{matrix.language}}.tar.gz artifacts/.
+        tar -zcvf runtime_translated_docs_${{matrix.language}}.tar.gz build/
+        mv runtime_translated_docs_${{matrix.language}}.tar.gz artifacts/.
     - name: Upload artifact
       uses: actions/upload-artifact@master
       with:
@@ -91,8 +90,9 @@ jobs:
         source-directory: 'build'
         destination-github-username: 'qiskit-community'
         destination-repository-name: 'qiskit-translations-staging'
-        target-directory: 'docs'
+        target-directory: 'runtime'
         user-name: SooluThomas
         user-email: soolu.elto@gmail.com
         target-branch: main
-        commit-message: Qiskit Autodeploy ORIGIN_COMMIT from $GITHUB_REF
+        commit-message: Qiskit [IBM Runtime] Autodeploy ORIGIN_COMMIT from $GITHUB_REF
+
