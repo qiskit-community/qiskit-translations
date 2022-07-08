@@ -29,7 +29,7 @@ set -e
 
 # Clone the sources files and po files to runtime_docs_source/
 git clone --depth=1 $RUNTIME_SOURCE_REPOSITORY runtime_docs_source
-cd runtime_docs_source
+cd runtime_docs_source/docs
 
 # Make translated document
 sphinx-build -b html -D content_prefix=documentation/partners/qiskit_ibm_runtime -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
