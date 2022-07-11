@@ -28,7 +28,7 @@ RCLONE_CONFIG_PATH=$(rclone config file | tail -1)
 set -e
 
 # Clone the sources files and po files to runtime_docs_source/
-git clone --depth=1 $RUNTIME_SOURCE_REPOSITORY runtime_docs_source
+git clone $RUNTIME_SOURCE_REPOSITORY runtime_docs_source
 cd runtime_docs_source/docs
 
 # Make translated document
