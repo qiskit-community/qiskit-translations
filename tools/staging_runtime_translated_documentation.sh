@@ -41,8 +41,7 @@ echo "ls from current dir"
 pwd
 ls -R
 
+pwd
 echo "move html files from _build/ to build/"
-mv -v $SOURCE_DIR/$SOURCE_DOC_DIR/* $SOURCE_DIR/build/
+mv -v $SOURCE_DIR/runtime_docs_source/$SOURCE_DOC_DIR/* $SOURCE_DIR/build/
 echo "move complete"
-
-popd
