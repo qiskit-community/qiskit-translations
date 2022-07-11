@@ -42,7 +42,7 @@ pwd
 ls -R
 
 echo "move html files from _build/ to build/"
-mv $SOURCE_DIR/$SOURCE_DOC_DIR/* $SOURCE_DIR/build/
+mv -v $SOURCE_DIR/$SOURCE_DOC_DIR/* $SOURCE_DIR/build/
+echo "move complete"
 
 popd
-
