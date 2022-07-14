@@ -16,7 +16,6 @@
 
 # Non-travis variables used by this script.
 NATURE_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-nature.git"
-SOURCE_DOC_DIR="docs/_build/html"
 SOURCE_DIR=`pwd`
 
 STABLE_VERSION=`cat ./qiskit_nature/VERSION.txt`
