@@ -17,7 +17,6 @@
 # Non-travis variables used by this script.
 
 RUNTIME_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-ibm-runtime.git"
-SOURCE_DOC_DIR="docs/_build/html"
 SOURCE_DIR=`pwd`
 
 curl https://downloads.rclone.org/rclone-current-linux-amd64.deb -o rclone.deb
@@ -30,6 +29,8 @@ set -e
 # Clone the sources files and po files to runtime_docs_source/
 git clone $RUNTIME_SOURCE_REPOSITORY runtime_docs_source
 cd runtime_docs_source/docs
+
+mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 
 # Make translated document
 sphinx-build -b html -D content_prefix=documentation/partners/qiskit_ibm_runtime -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
