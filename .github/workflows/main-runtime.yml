@@ -1,0 +1,38 @@
+name: Runtime Docs Publish
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        language:
+          - ja_JP
+          - es_UN
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9.9'
+    - name: Install Qiskit IBM Runtime dependencies
+      run: |
+        cd qiskit-ibm-runtime
+        python -m pip install --upgrade pip
+        pip install -U virtualenv setuptools wheel tox
+        pip install -e .
+        sudo apt-get install -y graphviz pandoc
+        pip install -U -r requirements-dev.txt -r requirements.txt sphinx-intl nbsphinx qiskit_sphinx_theme
+    - name: Build translated Qiskit IBM Runtime Docs
+      env:
+        encrypted_rclone_key: ${{ secrets.encrypted_rclone_key }}
+        encrypted_rclone_iv: ${{ secrets.encrypted_rclone_iv }}
+        TRANSLATION_LANG: ${{ matrix.language }}
+      run: |
+        cd qiskit-ibm-runtime
+        ../tools/deploy_runtime_translated_documentation.sh

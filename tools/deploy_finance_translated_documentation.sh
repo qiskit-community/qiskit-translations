@@ -16,7 +16,6 @@
 
 # Non-travis variables used by this script.
 FINANCE_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-finance.git"
-SOURCE_DOC_DIR="docs/_build/html"
 SOURCE_DIR=`pwd`
 
 STABLE_VERSION=`cat ./qiskit_finance/VERSION.txt`
