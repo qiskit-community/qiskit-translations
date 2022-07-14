@@ -15,7 +15,6 @@
 # Script for publishing translated runtime documentation to staging site.
 
 # Non-travis variables used by this script.
-
 RUNTIME_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-ibm-runtime.git"
 SOURCE_DIR=`pwd`
 
@@ -36,13 +35,10 @@ git fetch
 git checkout stable/$FORMATED_VERSION
 
 cd docs
-
 mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 
 # Make translated document
 sphinx-build -b html -D content_prefix=documentation/partners/qiskit_ibm_runtime -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
-
-popd
 
 openssl aes-256-cbc -K $encrypted_rclone_key -iv $encrypted_rclone_iv -in ../tools/rclone.conf.enc -out $RCLONE_CONFIG_PATH -d
 
