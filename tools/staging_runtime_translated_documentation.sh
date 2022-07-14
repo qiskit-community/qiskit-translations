@@ -20,6 +20,9 @@ RUNTIME_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-ibm-runtime.git"
 SOURCE_DOC_DIR="_build/html"
 SOURCE_DIR=`pwd`
 
+STABLE_VERSION=`cat ./qiskit_ibm_runtime/VERSION.txt`
+FORMATED_VERSION=`echo $STABLE_VERSION | cut -d "." -f -2`
+
 curl https://downloads.rclone.org/rclone-current-linux-amd64.deb -o rclone.deb
 sudo apt-get install -y ./rclone.deb
 
@@ -29,7 +32,11 @@ set -e
 
 # Clone the sources files and po files to runtime_docs_source/
 git clone $RUNTIME_SOURCE_REPOSITORY runtime_docs_source
-cd runtime_docs_source/docs
+cd runtime_docs_source/
+git fetch
+git checkout stable/$FORMATED_VERSION
+
+cd docs
 mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 
 # Make translated document
