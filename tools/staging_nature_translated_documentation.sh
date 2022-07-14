@@ -16,7 +16,7 @@
 
 # Non-travis variables used by this script.
 NATURE_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-nature.git"
-SOURCE_DOC_DIR="docs/_build/html"
+SOURCE_DOC_DIR="_build/html"
 SOURCE_DIR=`pwd`
 STABLE_VERSION=`cat ./qiskit_nature/VERSION.txt`
 FORMATED_VERSION=`echo $STABLE_VERSION | cut -d "." -f -2`
@@ -28,6 +28,7 @@ git clone $NATURE_SOURCE_REPOSITORY nature_docs_source
 cd nature_docs_source/
 git fetch
 git checkout stable/$FORMATED_VERSION
+pip install -e .
 
 cd docs/
 mkdir -p locale/  && cp -r ../../docs/locale/* locale/
@@ -36,10 +37,10 @@ mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 sphinx-build -b html -D content_prefix=documentation/nature -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
 rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
-    $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/LC_MESSAGES/_sources/
+rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
 
-echo "make build dir "
-mkdir -p $SOURCE_DIR/build/
+echo "make nature dir "
+mkdir -p $SOURCE_DIR/nature/
 
-echo "move html files from _build/ to build/"
-mv $SOURCE_DIR/nature_docs_source/$SOURCE_DOC_DIR/locale/* $SOURCE_DIR/build/
+echo "move html files from _build/ to nature/"
+mv $SOURCE_DIR/nature_docs_source/docs/$SOURCE_DOC_DIR/locale/* $SOURCE_DIR/nature/

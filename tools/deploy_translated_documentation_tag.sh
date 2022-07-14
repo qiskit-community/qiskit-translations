@@ -16,8 +16,6 @@
 
 # Non-travis variables used by this script.
 SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit.git"
-TARGET_DOC_DIR="documentation/locale/"
-SOURCE_DOC_DIR="docs/_build/html/locale"
 SOURCE_DIR=`pwd`
 
 curl https://downloads.rclone.org/rclone-current-linux-amd64.deb -o rclone.deb
@@ -28,9 +26,8 @@ RCLONE_CONFIG_PATH=$(rclone config file | tail -1)
 set -e
 
 CURRENT_TAG=`git describe --abbrev=0`
-IFS='.'
-read -ra VERSION <<< "$CURRENT_TAG"
-STABLE_VERSION=`echo $VERSION | cut -d "." -f -2`
+IFS=. read -ra VERSION <<< "$CURRENT_TAG"
+STABLE_VERSION="${VERSION[0]}.${VERSION[1]}"
 
 # Clone the sources files and po files to $SOURCE_DIR/docs_source
 git clone --depth=1 $SOURCE_REPOSITORY docs_source
