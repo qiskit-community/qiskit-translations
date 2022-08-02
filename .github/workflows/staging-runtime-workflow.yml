@@ -1,0 +1,98 @@
+name: Staging translated Qiskit Runtime docs
+
+on:
+  pull_request:
+    branches: [ master ]
+  label:
+     types: [ gh-pages-runtime ]
+
+jobs:
+  build_docs:
+    runs-on: ubuntu-latest
+    if: contains( github.event.pull_request.labels.*.name, 'gh-pages-runtime' )
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9.9'
+
+    - name: Install Qiskit IBM Runtime dependencies
+      run: |
+        cd qiskit-ibm-runtime
+        python -m pip install --upgrade pip
+        pip install -U virtualenv setuptools wheel tox
+        pip install -e .
+        sudo apt-get install -y graphviz pandoc
+        pip install -U -r requirements-dev.txt -r requirements.txt sphinx-intl nbsphinx qiskit_sphinx_theme
+
+    - name: Build translated Qiskit IBM Runtime Docs
+      env:
+        TRANSLATION_LANG: ${{ matrix.language }}
+      run: |
+        cd qiskit-ibm-runtime
+        ../tools/staging_runtime_translated_documentation.sh
+    - name: Compress artifact
+      run: |
+        mkdir artifacts
+        cd qiskit-ibm-runtime && tar -zcvf runtime_translated_docs_${{matrix.language}}.tar.gz build
+        mv runtime_translated_docs_${{matrix.language}}.tar.gz ../artifacts/.
+    - name: Upload artifact
+      uses: actions/upload-artifact@master
+      with:
+        name: qiskit-translated-docs
+        path: artifacts
+    strategy:
+      matrix:
+        language:
+          - bn_BN
+          - de_DE
+          - el_GR
+          - es_UN
+          - fr_FR
+          - hi_IN
+          - id_ID
+          - it_IT
+          - ja_JP
+          - ko_KR
+          - ml_IN
+          - mr_IN
+          - pl_PL
+          - pt_UN
+          - ru_RU
+          - sw_KE
+          - ta_IN
+          - th_TH
+          - tr_TR
+          - vi_VN
+          - zh_CN
+          - zh_TW
+
+  deploy_docs:
+    runs-on: ubuntu-latest
+    needs: build_docs
+    steps:
+    - uses: actions/checkout@master
+    - name: Download artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: qiskit-translated-docs
+    - name: Decompress artifact
+      run: |
+        for f in *.tar.gz; do tar -xvf "$f"; done
+    - name: Push directory to another repository
+      uses: cpina/github-action-push-to-another-repository@main
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.STAGING_REPO }}
+      with:
+        source-directory: 'build'
+        destination-github-username: 'qiskit-community'
+        destination-repository-name: 'qiskit-translations-staging'
+        target-directory: 'runtime'
+        user-name: SooluThomas
+        user-email: 11485594+SooluThomas@users.noreply.github.com
+        target-branch: main
+        commit-message: Qiskit Autodeploy ORIGIN_COMMIT from $GITHUB_REF

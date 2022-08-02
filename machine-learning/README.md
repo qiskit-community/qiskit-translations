@@ -2,10 +2,66 @@
 
 [![License](https://img.shields.io/github/license/Qiskit/qiskit-machine-learning.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)<!--- long-description-skip-begin -->[![Build Status](https://github.com/Qiskit/qiskit-machine-learning/workflows/Machine%20Learning%20Unit%20Tests/badge.svg?branch=main)](https://github.com/Qiskit/qiskit-machine-learning/actions?query=workflow%3A"Machine%20Learning%20Unit%20Tests"+branch%3Amain+event%3Apush)[![](https://img.shields.io/github/release/Qiskit/qiskit-machine-learning.svg?style=popout-square)](https://github.com/Qiskit/qiskit-machine-learning/releases)[![](https://img.shields.io/pypi/dm/qiskit-machine-learning.svg?style=popout-square)](https://pypi.org/project/qiskit-machine-learning/)[![Coverage Status](https://coveralls.io/repos/github/Qiskit/qiskit-machine-learning/badge.svg?branch=main)](https://coveralls.io/github/Qiskit/qiskit-machine-learning?branch=main)<!--- long-description-skip-end -->
 
-The Machine Learning package simply contains sample datasets at present. It has some
-classification algorithms such as QSVM and VQC (Variational Quantum Classifier), where this data
-can be used for experiments, and there is also QGAN (Quantum Generative Adversarial Network)
-algorithm.
+Qiskit Machine Learning introduces fundamental computational building blocks - such as Quantum Kernels
+and Quantum Neural Networks - used in different applications, including classification and regression.
+On the one hand, this design is very easy to use and allows users to rapidly prototype a first model
+without deep quantum computing knowledge. On the other hand, Qiskit Machine Learning is very flexible,
+and users can easily extend it to support cutting-edge quantum machine learning research.
+
+Qiskit Machine Learning provides the
+[QuantumKernel](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.kernels.QuantumKernel.html#qiskit_machine_learning.kernels.QuantumKernel)
+class that can be easily used to directly compute
+kernel matrices for given datasets or can be passed to a Quantum Support Vector Classifier 
+[QSVC](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.algorithms.QSVC.html#qiskit_machine_learning.algorithms.QSVC) or
+Quantum Support Vector Regressor
+[QSVR](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.algorithms.QSVR.html#qiskit_machine_learning.algorithms.QSVR)
+to quickly start solving classification or regression problems.
+It also can be used with many other existing kernel-based machine learning algorithms from established
+classical frameworks.
+
+Qiskit Machine Learning defines a generic interface for neural networks that is implemented by different
+quantum neural networks. Multiple implementations are readily provided, such as the
+[OpflowQNN](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.neural_networks.OpflowQNN.html#qiskit_machine_learning.neural_networks.OpflowQNN),
+the [TwoLayerQNN](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.neural_networks.TwoLayerQNN.html#qiskit_machine_learning.neural_networks.TwoLayerQNN),
+and the 
+[CircuitQNN](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.neural_networks.CircuitQNN.html#qiskit_machine_learning.neural_networks.CircuitQNN).
+The [OpflowQNN](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.neural_networks.OpflowQNN.html#qiskit_machine_learning.neural_networks.OpflowQNN)
+allows users to combine parametrized quantum circuits
+with quantum mechanical observables. The circuits can be constructed using, for example, building blocks
+from Qiskit’s circuit library, and the QNN’s output is given by the expected value of the observable.
+The [TwoLayerQNN](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.neural_networks.TwoLayerQNN.html#qiskit_machine_learning.neural_networks.TwoLayerQNN) is a special case of the 
+[OpflowQNN](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.neural_networks.OpflowQNN.html#qiskit_machine_learning.neural_networks.OpflowQNN)
+that takes as input a feature map and an ansatz.
+The [CircuitQNN](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.neural_networks.CircuitQNN.html#qiskit_machine_learning.neural_networks.CircuitQNN) directly takes the quantum circuit’s 
+measurements as output without an observable.
+The output can be used either as a batch of samples, i.e., a list of bitstrings measured from the circuit’s
+qubits, or as a sparse vector of the resulting sampling probabilities for each bitstring. The former is of
+interest in learning distributions resulting from a given quantum circuit, while the latter finds application,
+e.g., in regression or classification. A post-processing step can be used to interpret a given bitstring in
+a particular context, e.g. translating it into a set of classes.
+
+The neural networks include the functionality to evaluate them for a given input as well as to compute the
+corresponding gradients, which is important for efficient training. To train and use neural networks,
+Qiskit Machine Learning provides a variety of learning algorithms such as the
+[NeuralNetworkClassifier](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.algorithms.NeuralNetworkClassifier.html#qiskit_machine_learning.algorithms.NeuralNetworkClassifier)
+and
+[NeuralNetworkRegressor](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.algorithms.NeuralNetworkRegressor.html#qiskit_machine_learning.algorithms.NeuralNetworkRegressor).
+Both take a QNN as input and then use it in a classification or regression context.
+To allow an easy start, two convenience implementations are provided - the Variational Quantum Classifier
+[VQC](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.algorithms.VQC.html#qiskit_machine_learning.algorithms.VQC)
+as well as the Variational Quantum Regressor
+[VQR](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.algorithms.VQR.html#qiskit_machine_learning.algorithms.VQR).
+Both take just a feature map and an ansatz and construct the underlying QNN automatically.
+
+In addition to the models provided directly in Qiskit Machine Learning, it has the
+[TorchConnector](https://qiskit.org/documentation/machine-learning/stubs/qiskit_machine_learning.connectors.TorchConnector.html#qiskit_machine_learning.connectors.TorchConnector),
+which allows users to integrate all of our quantum neural networks directly into the
+[PyTorch](https://pytorch.org)
+open source machine learning library. Thanks to Qiskit’s gradient framework, this includes automatic
+differentiation - the overall gradients computed by [PyTorch](https://pytorch.org)
+during the backpropagation take into
+account quantum neural networks, too. The flexible design also allows the building of connectors
+to other packages in the future.
 
 ## Installation
 
@@ -46,25 +102,25 @@ be classified.
 from qiskit import BasicAer
 from qiskit.utils import QuantumInstance, algorithm_globals
 from qiskit.algorithms.optimizers import COBYLA
-from qiskit.circuit.library import TwoLocal
+from qiskit.circuit.library import TwoLocal, ZZFeatureMap
 from qiskit_machine_learning.algorithms import VQC
-from qiskit_machine_learning.datasets import wine
-from qiskit_machine_learning.circuit.library import RawFeatureVector
+from qiskit_machine_learning.datasets import ad_hoc_data
 
 seed = 1376
 algorithm_globals.random_seed = seed
 
-# Use Wine data set for training and test data
-feature_dim = 4  # dimension of each data point
-training_size = 12
-test_size = 4
+# Use ad hoc data set for training and test data
+feature_dim = 2  # dimension of each data point
+training_size = 20
+test_size = 10
 
 # training features, training labels, test features, test labels as np.array,
 # one hot encoding for labels
 training_features, training_labels, test_features, test_labels = \
-    wine(training_size=training_size, test_size=test_size, n=feature_dim)
+    ad_hoc_data(
+            training_size=training_size, test_size=test_size, n=feature_dim, gap=0.3)
 
-feature_map = RawFeatureVector(feature_dimension=feature_dim)
+feature_map = ZZFeatureMap(feature_dimension=feature_dim, reps=2, entanglement="linear")
 ansatz = TwoLocal(feature_map.num_qubits, ['ry', 'rz'], 'cz', reps=3)
 vqc = VQC(feature_map=feature_map,
           ansatz=ansatz,
@@ -84,7 +140,18 @@ print(f"Testing accuracy: {score:0.2f}")
 
 Learning path notebooks may be found in the
 [Machine Learning tutorials](https://qiskit.org/documentation/machine-learning/tutorials/index.html) section
-of the documentation and are a great place to start.
+of the documentation and are a great place to start. 
+
+Another good place to learn the fundamentals of quantum machine learning is the
+[Quantum Machine Learning](https://learn.qiskit.org/course/machine-learning/introduction) course 
+on the Qiskit Textbook's website. The course is very convenient for beginners who are eager to learn 
+quantum machine learning from scratch, as well as understand the background and theory behind algorithms in
+Qiskit Machine Learning. The course covers a variety of topics to build understanding of parameterized
+circuits, data encoding, variational algorithms etc., and in the end the ultimate goal of machine
+learning - how to build and train quantum ML models for supervised and unsupervised learning. 
+The textbook course is complementary to the tutorials of this module, where the tutorials focus
+on actual Qiskit Machine Learning algorithms, the course more explains and details underlying fundamentals
+of quantum machine learning.
 
 ----------------------------------------------------------------------------------------------------
 
