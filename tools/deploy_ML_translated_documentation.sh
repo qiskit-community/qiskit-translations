@@ -16,7 +16,6 @@
 
 # Non-travis variables used by this script.
 ML_SOURCE_REPOSITORY="https://github.com/Qiskit/qiskit-machine-learning.git"
-SOURCE_DOC_DIR="docs/_build/html"
 SOURCE_DIR=`pwd`
 
 STABLE_VERSION=`cat ./qiskit_machine_learning/VERSION.txt`
