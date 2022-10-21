@@ -90,7 +90,7 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Yuri Kobayashi | @Yuri Kobayashi |
 | Sophy Shin | @Sophy |
 | Soolu Thomas | @Soolu |
-| Claudia Zendejas-Morales | @@clausia |
+| Claudia Zendejas-Morales | @clausia |
 
 
 ## Translation Leads (as of April 2022)
