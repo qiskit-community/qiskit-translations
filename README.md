@@ -48,9 +48,11 @@ If you want to add a new language and become a translation lead, you can open a 
 
 ## What is the criteria for adding a new language?
 
-1. A minimum of **three contributors** is necessary for any new languages to be added and receive official support from the administrators of the localization project.<br/>
-2. In addition to translators, we will need **dedicated proof-readers** to review the translations and approve accuracy of content in that language, to ensure the translations can be released in that language.<br/>
-3. Among the group of contributors, a **translation lead must be identified** to serve as a liaison with the administrators of the localization project. The lead must contact [Soolu Thomas](mailto:soolu.thomas@ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation) and [Yuri Kobayashi](mailto:yurik@jp.ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation) by email for the language to be officially listed under this project. <br/>
+1. A minimum of **five contributors** is necessary for any new languages to be added and receive official support from the administrators of the localization project.<br/>
+2. One of the contributors in that language must be a **Qiskit Advocate** and actively participate.<br/>
+3. In addition to translators, we will need **dedicated proof-readers** to review the translations and approve accuracy of content in that language, to ensure the translations can be released in that language.<br/>
+4. Among the group of contributors, a **translation lead must be identified** to serve as a liaison with the administrators of the localization project. The lead must contact [Soolu Thomas](mailto:soolu.thomas@ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation) and [Yuri Kobayashi](mailto:yurik@jp.ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation) by email containing the issue number (or link) and, a little intro about the TL(s) and the team. <br/>
+5. The project administrators will schedule a meeting with the TLs of the proposed language. Please note that satisfyling the minimum number of translators doesnot automatically make the language ready to be added to Crowdin. It will be very important for the team to make continuous progress and to be active.
 
 These are general guidelines for joining translation efforts and adding new languages. If you have further questions, please feel free to contact [Soolu Thomas](mailto:soolu.thomas@ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation) and [Yuri Kobayashi](mailto:yurik@jp.ibm.com?subject=[GitHub]%20Qiskit%20Documentation%20Translation). Thank you.
 
@@ -86,11 +88,12 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Name | Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack)) |
 | ---    | --- |
 | Yuri Kobayashi | @Yuri Kobayashi |
-| Samanvay Sharma | @sam |
+| Sophy Shin | @Sophy |
 | Soolu Thomas | @Soolu |
+| Claudia Zendejas-Morales | @clausia |
 
 
-## Translation Leads (as of April 2022)
+## Translation Leads (as of Oct 2022)
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
