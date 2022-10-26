@@ -12,13 +12,13 @@ In addition to the IBM Quantum Community [Code of Conduct](https://github.com/Qi
 - Being mindful of the context when translating (having the original source material available to be referenced frequently is highly recommended).
 - Focusing on the quality of translations above quantity
 - Engaging in collaboration and valuing opinions and suggestions from other translators
-- Using tools such as the [Sphinx editor](https://livesphinx.herokuapp.com/) and [Staging site](https://qiskit-community.github.io/qiskit-translations/) to check and correct syntax errors before accepting translations
+- Using tools such as the [Sphinx editor](https://livesphinx.herokuapp.com/) and [Staging site](https://ibm.biz/qiskit-docs-staging) to check and correct syntax errors before accepting translations
 
 ### Examples of  irresponsible acts or translating may include:
 - Copy pasting other’s translation work
 - Blindly accepting translations without careful quality check
 - Abuse of machine translation with no regard to its translation quality
-- Other conduct which could be reasonably be considered inappropriate 
+- Other conduct which could be reasonably be considered inappropriate
 
 
 
