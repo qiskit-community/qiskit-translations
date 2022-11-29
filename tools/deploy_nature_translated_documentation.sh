@@ -33,7 +33,6 @@ git clone $NATURE_SOURCE_REPOSITORY nature_docs_source
 cd nature_docs_source
 git fetch
 git checkout stable/$FORMATED_VERSION
-pip install sparse
 pip install -e .
 
 cd docs/
