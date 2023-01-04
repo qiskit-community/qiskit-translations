@@ -19,13 +19,13 @@ import os
 import setuptools
 
 REQUIREMENTS = [
-    "qiskit-terra>=0.21.0",
+    "qiskit-terra>=0.22",
     "requests>=2.19",
     "requests-ntlm>=1.1.0",
     "numpy>=1.13",
     "urllib3>=1.21.1",
     "python-dateutil>=2.8.0",
-    "websocket-client>=1.0.1",
+    "websocket-client<=1.3.3",
     "typing-extensions>=4.0.0",  # remove when support for Python 3.7 is dropped (use "from typing import" instead)
     "ibm-platform-services>=0.22.6",
 ]
@@ -65,6 +65,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering",
     ],
     keywords="qiskit sdk quantum api runtime ibm",
