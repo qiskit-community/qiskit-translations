@@ -29,14 +29,14 @@ set -e
 # Clone the sources files and po files to $SOURCE_DIR/docs_source
 git clone --depth=1 $SOURCE_REPOSITORY docs_source
 
-echo "after clone"
-ls -a
-pwd
-echo "before rclone"
-
 rclone sync -v --exclude='locale/**' docs_source/docs docs
 
 pushd $SOURCE_DIR/docs
+
+echo "after rclone"
+ls -ll
+pwd
+echo "before sphinx build"
 
 # Make translated document
 sphinx-build -b html -j auto -D content_prefix=documentation -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
