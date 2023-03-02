@@ -38,8 +38,12 @@ ls -ll
 pwd
 echo "before sphinx build"
 
+cd ..
+
 # Make translated document
-sphinx-build -b html -j auto -D content_prefix=documentation -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
+sphinx-build -b html -j auto -D content_prefix=documentation -D language=$TRANSLATION_LANG docs/ docs/_build/html/locale/$TRANSLATION_LANG
+
+cd docs
 
 rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
 rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
