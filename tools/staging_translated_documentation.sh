@@ -35,10 +35,10 @@ pushd $SOURCE_DIR/docs
 
 echo "after rclone"
 ls -ll
-pwd
-echo "before sphinx build"
 
 cd ..
+pwd
+echo "before sphinx build"
 
 # Make translated document
 sphinx-build -b html -j auto -D content_prefix=documentation -D language=$TRANSLATION_LANG docs/ docs/_build/html/locale/$TRANSLATION_LANG
