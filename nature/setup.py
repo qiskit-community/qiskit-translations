@@ -77,7 +77,6 @@ setuptools.setup(
         "pyscf": ["pyscf; sys_platform != 'win32'"],
         "mpl": ["matplotlib>=3.3"],
         "sparse": ["sparse"],
-        "opt_einsum": ["opt_einsum"],
     },
     zip_safe=False,
 )
