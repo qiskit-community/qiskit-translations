@@ -93,7 +93,7 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Claudia Zendejas-Morales | @clausia |
 
 
-## Translation Leads (as of Feb 2023)
+## Translation Leads (as of May 2023)
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
@@ -103,6 +103,7 @@ During the process of translating Qiskit documentation, you may identify errors 
 | French | Jean-Michel Torres | @torresjm |
 | German | Thorsten Muehge | @Thorsten Mühge |
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
+| Gujarati | Komal Pandya, Ashish Patel | @Komal Pandya @Ashish Patel |
 | Hindi | Samanvay Sharma, Guncha Malik | @sam @Guncha Malik |
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Italian | Eleonora Picca, Federico Accetta | @Eleonora Picca @Federico Accetta |
