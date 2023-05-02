@@ -39,7 +39,7 @@ The list of languages that Qiskit Documentation Localization Project currently s
 
 [Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html), [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html), [Portuguese](https://qiskit.org/documentation/locale/pt_BR/index.html), [French](https://qiskit.org/documentation/locale/fr_FR/index.html) and [Tamil](https://qiskit.org/documentation/locale/ta_IN/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
 
-The Machine Learning application tutorials are available in [Bengali](https://qiskit.org/documentation/machine-learning/locale/bn_BN/index.html), [French](https://qiskit.org/documentation/machine-learning/locale/fr_FR/index.html), [Hindi](https://qiskit.org/documentation/machine-learning/locale/hi_IN/index.html), [Italian](https://qiskit.org/documentation/machine-learning/locale/it_IT/index.html), [Japanese](https://qiskit.org/documentation/machine-learning/locale/jp_JP/index.html), [Korean](https://qiskit.org/documentation/machine-learning/locale/ko_KR/index.html), [Malayalam](https://qiskit.org/documentation/machine-learning/locale/ml_IN/index.html), [Russian](https://qiskit.org/documentation/machine-learning/locale/ru_RU/index.html), [Spanish](https://qiskit.org/documentation/machine-learning/locale/es_UN/index.html), [Tamil](https://qiskit.org/documentation/machine-learning/locale/ta_IN/index.html), [Turkish](https://qiskit.org/documentation/machine-learning/locale/tr_TR/index.html), [Vietnamese](https://qiskit.org/documentation/machine-learning/locale/vi_VN/index.html)
+The Machine Learning application tutorials are available in [Bengali](https://qiskit.org/documentation/machine-learning/locale/bn_BN/index.html), [French](https://qiskit.org/documentation/machine-learning/locale/fr_FR/index.html), [Hindi](https://qiskit.org/documentation/machine-learning/locale/hi_IN/index.html), [Japanese](https://qiskit.org/documentation/machine-learning/locale/jp_JP/index.html), [Korean](https://qiskit.org/documentation/machine-learning/locale/ko_KR/index.html), [Malayalam](https://qiskit.org/documentation/machine-learning/locale/ml_IN/index.html), [Russian](https://qiskit.org/documentation/machine-learning/locale/ru_RU/index.html), [Spanish](https://qiskit.org/documentation/machine-learning/locale/es_UN/index.html), [Tamil](https://qiskit.org/documentation/machine-learning/locale/ta_IN/index.html), [Turkish](https://qiskit.org/documentation/machine-learning/locale/tr_TR/index.html)
 
 As mentioned in the blog post [Qiskit in my language is Qiskit](https://medium.com/qiskit/qiskit-in-my-language-is-qiskit-73d4626a99d3), we want to make sure that translated languages have enough community support to ensure quality and consistency. <br/>
 
@@ -93,7 +93,7 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Claudia Zendejas-Morales | @clausia |
 
 
-## Translation Leads (as of Feb 2023)
+## Translation Leads (as of May 2023)
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
@@ -105,17 +105,13 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
 | Hindi | Samanvay Sharma, Guncha Malik | @sam @Guncha Malik |
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
-| Italian | Eleonora Picca, Federico Accetta | @Eleonora Picca @Federico Accetta |
 | Japanese | Takehiko Amano | @Takehiko Amano |
 | Korean | Soyoung Shin, Mingi Ryu | @Sophy @Mingi|
-| Malayalam | Ansah Mohammad Kuriyodath | @Ansah |
 | Marathi | Amol Deshmukh | @Amol Deshmukh |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese (United) | Luiz Henrique Galeoti de Lima, Omar Costa Hamido | @Luiz Galeoti @OCH |
 | Russian | Vasily Shcherbinin, Farida Shagieva | @Vasily Shcherbinin @Farida |
 | Spanish (United) | Claudia Zendejas-Morales, Rodrigo Rosado Rivial  | @clausia @rodrigo rosado |
-| Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
 | Thai | Tanapat Deesuwan, Ruchipas Bavontaweepanya, Natchapol Patamawisut | @Tanapat @Ruchipas Bavontaweepanya @Bank Patamawisut |
 | Turkish | Ayşin Sancı | @ayshine |
-| Vietnamese | Rossy Nhung Nguyen | @Rossy Ng |
