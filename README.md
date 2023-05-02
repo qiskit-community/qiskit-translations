@@ -93,7 +93,7 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Claudia Zendejas-Morales | @clausia |
 
 
-## Translation Leads (as of Feb 2023)
+## Translation Leads (as of May 2023)
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
