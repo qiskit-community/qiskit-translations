@@ -105,17 +105,13 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
 | Hindi | Samanvay Sharma, Guncha Malik | @sam @Guncha Malik |
 | Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
-| Italian | Eleonora Picca, Federico Accetta | @Eleonora Picca @Federico Accetta |
 | Japanese | Takehiko Amano | @Takehiko Amano |
 | Korean | Soyoung Shin, Mingi Ryu | @Sophy @Mingi|
-| Malayalam | Ansah Mohammad Kuriyodath | @Ansah |
 | Marathi | Amol Deshmukh | @Amol Deshmukh |
 | Polish | Piotr Biskupski | @pb.worker |
 | Portuguese (United) | Luiz Henrique Galeoti de Lima, Omar Costa Hamido | @Luiz Galeoti @OCH |
 | Russian | Vasily Shcherbinin, Farida Shagieva | @Vasily Shcherbinin @Farida |
 | Spanish (United) | Claudia Zendejas-Morales, Rodrigo Rosado Rivial  | @clausia @rodrigo rosado |
-| Swahili | Karoki Mugambi | @Karoki Mugambi |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
 | Thai | Tanapat Deesuwan, Ruchipas Bavontaweepanya, Natchapol Patamawisut | @Tanapat @Ruchipas Bavontaweepanya @Bank Patamawisut |
 | Turkish | Ayşin Sancı | @ayshine |
-| Vietnamese | Rossy Nhung Nguyen | @Rossy Ng |
