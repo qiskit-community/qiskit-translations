@@ -104,7 +104,6 @@ During the process of translating Qiskit documentation, you may identify errors 
 | German | Thorsten Muehge | @Thorsten Mühge |
 | Greek | Vasilis Katopodis | @Vasilis Katopodis |
 | Hindi | Samanvay Sharma, Guncha Malik | @sam @Guncha Malik |
-| Indonesian | Rudy Raymond, Eraraya Ricardo Muten | @rraymondhp @Eraraya Ricardo Muten |
 | Japanese | Takehiko Amano | @Takehiko Amano |
 | Korean | Soyoung Shin, Mingi Ryu | @Sophy @Mingi|
 | Marathi | Amol Deshmukh | @Amol Deshmukh |
