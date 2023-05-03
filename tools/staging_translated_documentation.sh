@@ -36,8 +36,8 @@ pushd $SOURCE_DIR/docs
 # Make translated document
 sphinx-build -b html -j auto -D content_prefix=documentation -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
-rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
-rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
+git rm -r $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
+git rm -r $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
 
 echo "ls from current dir"
 pwd
