@@ -45,5 +45,5 @@ openssl aes-256-cbc -K $encrypted_rclone_key -iv $encrypted_rclone_iv -in ../too
 echo "Pushing built Runtime translated docs to qiskit.org/ecosystem"
 rclone sync --progress ./_build/html/locale/$TRANSLATION_LANG IBMCOS:qiskit-org-web-resources/ecosystem/ibm-runtime/locale/$TRANSLATION_LANG
 
-# Push to qiskit.org/documentation
+echo "Pushing built Runtime docs to qiskit.org/documentation"
 rclone sync --progress ./_build/html/locale/$TRANSLATION_LANG IBMCOS:qiskit-org-web-resources/documentation/partners/qiskit_ibm_runtime/locale/$TRANSLATION_LANG

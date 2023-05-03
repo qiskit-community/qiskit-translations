@@ -46,5 +46,5 @@ openssl aes-256-cbc -K $encrypted_rclone_key -iv $encrypted_rclone_iv -in ../too
 echo "Pushing built Nature translated docs to qiskit.org/ecosystem"
 rclone sync --progress ./_build/html/locale/$TRANSLATION_LANG IBMCOS:qiskit-org-web-resources/ecosystem/nature/locale/$TRANSLATION_LANG
 
-# Push to qiskit.org/documentation
+echo "Pushing built Nature docs to qiskit.org/documentation"
 rclone sync --progress ./_build/html/locale/$TRANSLATION_LANG IBMCOS:qiskit-org-web-resources/documentation/nature/locale/$TRANSLATION_LANG
