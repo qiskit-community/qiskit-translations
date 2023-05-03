@@ -42,8 +42,11 @@ mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 # Make translated document
 sphinx-build -b html -D content_prefix=documentation/partners/qiskit_ibm_runtime -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
-git rm -r $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
-git rm -r $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
+echo "current directory"
+pwd
+
+git rm -r $SOURCE_DIR/docs/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
+git rm -r $SOURCE_DIR/docs/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
 
 echo "ls from current dir"
 pwd
