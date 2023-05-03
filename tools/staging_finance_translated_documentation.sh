@@ -34,8 +34,11 @@ mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 # Make translated document
 sphinx-build -b html -D content_prefix=documentation/finance -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
-rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
-rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
+echo "ls"
+ls -a ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/
+
+rm -rf ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
+rm -rf ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
 
 echo "make finance dir "
 mkdir -p $SOURCE_DIR/finance/
