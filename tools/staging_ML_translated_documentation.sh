@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2021.
+# (C) Copyright IBM 2018, 2023.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -35,8 +35,8 @@ mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 # Make translated document
 sphinx-build -b html -D content_prefix=documentation/machine-learning -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
-git rm -r $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
-git rm -r $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
+rm -r ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/
+rm -r ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
 
 echo "make ml dir "
 mkdir -p $SOURCE_DIR/machine-learning/

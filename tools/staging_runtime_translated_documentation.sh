@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2022.
+# (C) Copyright IBM 2018, 2023.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -50,10 +50,6 @@ rm -rf ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
 
 echo "ls"
 ls -a ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/
-
-echo "ls from current dir"
-pwd
-ls -R
 
 echo "move html files from _build/ to build/"
 mv -v $SOURCE_DIR/runtime_docs_source/docs/$SOURCE_DOC_DIR/* $SOURCE_DIR/build/
