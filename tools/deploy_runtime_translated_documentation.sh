@@ -42,5 +42,8 @@ sphinx-build -b html -D content_prefix=documentation/partners/qiskit_ibm_runtime
 
 openssl aes-256-cbc -K $encrypted_rclone_key -iv $encrypted_rclone_iv -in ../tools/rclone.conf.enc -out $RCLONE_CONFIG_PATH -d
 
-echo "Pushing built Runtime docs to website"
+echo "Pushing built Runtime translated docs to qiskit.org/ecosystem"
+rclone sync --progress ./_build/html/locale/$TRANSLATION_LANG IBMCOS:qiskit-org-web-resources/ecosystem/ibm-runtime/locale/$TRANSLATION_LANG
+
+# Push to qiskit.org/documentation
 rclone sync --progress ./_build/html/locale/$TRANSLATION_LANG IBMCOS:qiskit-org-web-resources/documentation/partners/qiskit_ibm_runtime/locale/$TRANSLATION_LANG
