@@ -48,8 +48,8 @@ pwd
 echo "ls"
 ls -a ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/
 
-# git rm --cached -r ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees
-git rm -r ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources
+git rm --cached -r ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/
+git rm -r ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
 
 echo "ls from current dir"
 pwd
