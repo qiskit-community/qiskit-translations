@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2021.
+# (C) Copyright IBM 2018, 2023.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -42,5 +42,8 @@ sphinx-build -b html -D content_prefix=documentation/optimization -D language=$T
 
 openssl aes-256-cbc -K $encrypted_rclone_key -iv $encrypted_rclone_iv -in ../tools/rclone.conf.enc -out $RCLONE_CONFIG_PATH -d
 
-echo "Pushing built Optimization docs to website"
+echo "Pushing built Optimization translated docs to qiskit.org/ecosystem"
+rclone sync --progress ./_build/html/locale/$TRANSLATION_LANG IBMCOS:qiskit-org-web-resources/ecosystem/optimization/locale/$TRANSLATION_LANG
+
+echo "Pushing built Optimization docs to qiskit.org/documentation"
 rclone sync --progress ./_build/html/locale/$TRANSLATION_LANG IBMCOS:qiskit-org-web-resources/documentation/optimization/locale/$TRANSLATION_LANG

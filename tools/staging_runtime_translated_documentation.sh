@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2022.
+# (C) Copyright IBM 2018, 2023.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -42,12 +42,14 @@ mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 # Make translated document
 sphinx-build -b html -D content_prefix=documentation/partners/qiskit_ibm_runtime -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
-rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/ \
-rm -rf $SOURCE_DIR/$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
-
-echo "ls from current dir"
+echo "current directory"
 pwd
-ls -R
+
+rm -rf ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/
+rm -rf ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
+
+echo "ls"
+ls -a ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/
 
 echo "move html files from _build/ to build/"
 mv -v $SOURCE_DIR/runtime_docs_source/docs/$SOURCE_DOC_DIR/* $SOURCE_DIR/build/
