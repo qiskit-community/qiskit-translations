@@ -16,19 +16,19 @@ Each badge earner has demonstrated a level of skill and understanding with the o
 
 For further details regarding the different level of badges, please refer to the earning criteria below.
 
-[**Qiskit Localization Contributor - Bronze Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-bronze-level-translator-2021) <br>
+[**Qiskit Localization Contributor - Bronze Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-bronze-level-transl) <br>
 Earning Criteria <br>
 Translate at least **5,000** words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
 
-[**Qiskit Localization Contributor - Silver Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-silver-level-translator-2021) <br>
+[**Qiskit Localization Contributor - Silver Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-silver-level-transl) <br>
 Earning Criteria <br>
 Translate at least **8,000** words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
 
-[**Qiskit Localization Contributor - Gold Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-gold-level-translator-2021) <br>
+[**Qiskit Localization Contributor - Gold Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-gold-level-translat) <br>
 Earning Criteria <br>
 Translate at least **15,000** words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
 
-[**Qiskit Localization Contributor - Platinum Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-platinum-level-translator-2021) <br>
+[**Qiskit Localization Contributor - Platinum Level Translator**](https://www.credly.com/org/ibm/badge/qiskit-localization-contributor-platinum-level-tran) <br>
 Earning Criteria <br>
 Translate at least **25,000** words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
 
