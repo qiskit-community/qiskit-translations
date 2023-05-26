@@ -37,11 +37,11 @@ Note: Your name must be listed under the following [LOCALIZATION_CONTRIBUTORS](h
 ## How can I apply for a badge?
 Badges are issued on a yearly basis. The organization team will open an application form for all eligible members to apply for their digital badges. 
 
-*The application cycle for 2021 localization contributions was closed on March 31, 2022. All eligible and verified applicants will have their badges issued within 14 days after the application is closed. The form for the 2022 application cycle will open by June 2022 and will be notified via Crowdin messages and the #qiskit-localization channel on the Qiskit Slack workspace.
+*The application cycle for 2023 localization contributions was closed on March 31, 2024. All eligible and verified applicants will have their badges issued within 14 days after the application is closed. The form for the 2023 application cycle will open by tentatively July 2023 and will be notified via Crowdin messages and the #qiskit-localization channel on the Qiskit Slack workspace.
 
 ## How can I verify the number of words I translated?
 You can verify the number of words you have translated or approved by logging into [Crowdin](https://crowdin.com/project/qiskit-docs) then go to Settings > Reports > Top Members if you have a manager role. 
-If you have a translator role, go to Settings > Reports > My Contribution. Make sure to set the Date Range starting from "2021-04-01" up (for 2021 badge applications) to the day of submitting this form before generating the list to see how many words you have translated or approved so far.
+If you have a translator role, go to Settings > Reports > My Contribution. Make sure to set the Date Range starting from "2023-04-01" up (for 2023 badge applications) to the day of submitting this form before generating the list to see how many words you have translated or approved so far.
 
 After we receive your application, we will ask your language team lead to verify your contributions based on the [Qiskit Code of Conduct](https://github.com/qiskit-community/qiskit-translations/blob/master/CODE_OF_CONDUCT.md). Please note that in case we discover any form of violation of the code of conduct, we cannot issue the relevant badge for you. 
 
