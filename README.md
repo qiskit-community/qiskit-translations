@@ -102,6 +102,7 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Chinese Traditional | Helena Zhang, Wen-Sen Lu |  @Helena Zhang @Wen-Sen (Vince)  |
 | French | Jean-Michel Torres | @torresjm |
 | German | Thorsten Muehge | @Thorsten Mühge |
+| Gujarati | Komal Pandya | @Komal Pandya |
 | Hindi | Samanvay Sharma, Guncha Malik | @sam @Guncha Malik |
 | Japanese | Takehiko Amano | @Takehiko Amano |
 | Korean | Soyoung Shin, Mingi Ryu | @Sophy @Mingi|
