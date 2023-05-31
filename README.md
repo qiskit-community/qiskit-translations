@@ -93,7 +93,7 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Claudia Zendejas-Morales | @clausia |
 
 
-## Translation Leads (as of May 2023)
+## Translation Leads
 
 | **Language** | **Translation Leads** | **Slack ([Qiskit Workspace](http://ibm.co/joinqiskitslack))** |
 | ---     | ---    | --- |
@@ -114,3 +114,5 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
 | Thai | Tanapat Deesuwan, Ruchipas Bavontaweepanya, Natchapol Patamawisut | @Tanapat @Ruchipas Bavontaweepanya @Bank Patamawisut |
 | Turkish | Ayşin Sancı | @ayshine |
+
+*(Last updated on May 2023)*
