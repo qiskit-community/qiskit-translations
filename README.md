@@ -112,7 +112,8 @@ During the process of translating Qiskit documentation, you may identify errors 
 | Russian | Vasily Shcherbinin, Farida Shagieva | @Vasily Shcherbinin @Farida |
 | Spanish (United) | Claudia Zendejas-Morales, Rodrigo Rosado Rivial  | @clausia @rodrigo rosado |
 | Tamil | Manjula Gandhi | @Manjula Gandhi |
+| Telugu| Gayatri Vadaparty, Surya Sai Teja Desu | @Gayatri @Surya Sai Teja |
 | Thai | Tanapat Deesuwan, Ruchipas Bavontaweepanya, Natchapol Patamawisut | @Tanapat @Ruchipas Bavontaweepanya @Bank Patamawisut |
 | Turkish | Ayşin Sancı | @ayshine |
 
-*(Last updated on May 2023)*
+*(Last updated on May 31, 2023)*
