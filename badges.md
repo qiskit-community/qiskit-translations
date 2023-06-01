@@ -34,14 +34,14 @@ Translate at least **15,000** words in any of the Qiskit related educational mat
 Earning Criteria <br>
 Translate at least **25,000** words in any of the Qiskit related educational material (example: Qiskit Documentation, Qiskit Tutorials, Qiskit Textbook, etc.).
 
-> **Note:** Your name must be listed in the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) list as a proof that you have acknowledged [Qiskit Code of Conduct](https://github.com/Qiskit/qiskit/blob/master/CODE_OF_CONDUCT.md), [Translate Responsibily](https://github.com/qiskit-community/qiskit-translations/blob/master/CODE_OF_CONDUCT.md#translate-responsibly), and accepted the Contributors License Agreement (CLA) upon joining the project.
+> **Note:** Your name must be listed in the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) list as a proof that you have acknowledged [Qiskit Code of Conduct](https://github.com/Qiskit/qiskit/blob/master/CODE_OF_CONDUCT.md), to [translate responsibily](https://github.com/qiskit-community/qiskit-translations/blob/master/CODE_OF_CONDUCT.md#translate-responsibly), and accepted the Contributors License Agreement (CLA) upon joining the project.
 
 ## Frequently asked Questions
 
 ### :question: How can I apply for a badge?
 The organization team will open an application form for all eligible members to apply for their digital badges.
 
-### :question: Am I eligible if I'm contributing to translate the Qiskit Textbook?
+### :question: Am I eligible if I'm translating Qiskit Textbook?
 Yes, all contributors who have been contributing in Crowdin and/or GitLocalize can apply for the badges.
 
 ### :question: How do I check if I qualify, if I am contributing in Crowdin?
@@ -61,8 +61,8 @@ Yes, of course! You can apply each time you qualify for a badge level, so we enc
 ### :question: When will the badges be issued?
 All eligible and verified applicants will have their badges issued within 14 days of a submitted application. After we receive your application, we will ask your language team lead to verify your contributions based on the [Qiskit Code of Conduct](https://github.com/qiskit-community/qiskit-translations/blob/master/CODE_OF_CONDUCT.md). Please note that in case we discover any form of violation of the code of conduct, we cannot issue the relevant badge for you. 
 
-### :question: Is this applicable for everyone?
-Yes, we will be sending out [Credly badges](https://info.credly.com/), which you can share to your social media like LinkedIn, Twitter etc.
+### :question: Are the badges accessible to everyone?
+Yes, we will be sending out [Credly badges](https://info.credly.com/), which you can share to your social media like LinkedIn, Twitter, etc.
 
 ### :question: How are the digital badges administered?
 The Qiskit Localization Contributor Badge program is part of the IBM Digital Badge program and leverages the services of Credly's badge platform. Badges issued through Credly are external to IBM, therefore visible to other communities such as LinkedIn. These badges do not expire and are available to the Qiskit community members who have made substantial contributions to the open source community. 
