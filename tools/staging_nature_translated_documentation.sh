@@ -34,7 +34,7 @@ cd docs/
 mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 
 # Make translated document
-sphinx-build -b html -D content_prefix=documentation/nature -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
+sphinx-build -b html -D docs_url_prefix=ecosystem/nature -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
 rm -rf ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/
 rm -rf ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
