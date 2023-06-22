@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qiskit-docs\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 17:19+0000\n"
-"PO-Revision-Date: 2023-06-05 18:29\n"
+"POT-Creation-Date: 2023-06-15 18:31+0000\n"
+"PO-Revision-Date: 2023-06-15 19:32\n"
 "Last-Translator: \n"
 "Language: pt_UN\n"
 "Language-Team: Portuguese (United)\n"
@@ -23,154 +23,90 @@ msgid "This page was generated from `docs/tutorials/grover_with_sampler.ipynb`__
 msgstr "Esta página foi gerada a partir de `docs/tutorials/grover_with_sampler.ipynb`__."
 
 #: ../../tutorials/grover_with_sampler.ipynb:9
-msgid "Database search with Grover's using Sampler"
+msgid "Grover's algorithm using the Sampler primitive"
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:11
-msgid "In this tutorial, you will solve a small database search problem using Grover's algorithm with the Sampler primitive in Qiskit Runtime."
+#: ../../tutorials/grover_with_sampler.ipynb:21
+msgid "Background"
 msgstr ""
 
 #: ../../tutorials/grover_with_sampler.ipynb:23
-msgid "Before you begin"
+msgid "Amplitude amplification is a general purpose quantum algorithm, or subroutine, that can be used to obtain a quadratic speedup over a handful of classical algorithms. `Grover’s algorithm <https://arxiv.org/abs/quant-ph/9605043>`__ was the first to demonstrate this speedup on unstructured search problems. Formulating a Grover's search problem requires an oracle function that marks one or more computational basis states as the states we are interested in finding, and an amplification circuit that increases the amplitude of marked states, consequently suppressing the remaining states."
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:25
-msgid "This tutorial requires a Qiskit Runtime service instance. If you haven't done so already, follow the `Getting started guide <https://qiskit.org/documentation/partners/qiskit_ibm_runtime/getting_started.html>`__ to set one up."
+#: ../../tutorials/grover_with_sampler.ipynb:26
+msgid "Here we demonstrate how to construct Grover oracles and make use of the ``GroverOperator`` from the Qiskit circuit library to easily setup a Grover's search instance. The runtime ``Sampler`` primitive allows for seamless execution of Grover circuits, including automatic compilation, error suppression, and readout error mitigation techniques."
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:37
-msgid "Background information"
-msgstr "Informações preliminares"
+#: ../../tutorials/grover_with_sampler.ipynb:38
+msgid "Setup"
+msgstr ""
 
 #: ../../tutorials/grover_with_sampler.ipynb:40
-msgid "Unstructured search problem"
-msgstr "Problema de busca não estruturada"
-
-#: ../../tutorials/grover_with_sampler.ipynb:42
-msgid "In the olden days, you looked up a person's phone number in a phone book. That is an easy task if you know the person's name because a phone book is ordered alphabetically by name. However, the opposite task, that is, you are given a phone number and want to find out who it belongs to, is much more difficult. That is because a phone book is not ordered by phone numbers. This is an example of an unstructured search problem. To solve this problem with a classical computer, your best trick is to randomly pick an entry. On average, you will need to look up half of the entries (:math:`N/2`, if :math:`N` is the total number of entries) to find the owner. If you have a quantum computer, however, you can use Grover's algorithm to find the owner in :math:`\\sqrt N` tries. That means to identify the owner in a phone book that has 1 million numbers, you only need to access 1000 entries, rather than 500,000!"
+msgid "Here we import the small number of tools we need for this tutorial."
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:46
-msgid "Grover's algorithm"
+#: ../../tutorials/grover_with_sampler.ipynb:71
+msgid "Initialize Runtime service and select backends"
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:48
-msgid "In a nutshell, Grover's algorithm uses a nice quantum trick called amplitude amplification to dramatically increase the chances of finding the correct answer - the owner of a phone number - in each try (iteration). That's all you need to know now. You don't have to understand the details about how Grover's algorithm works to apply it, because Qiskit does it for you! However, if you are interested, you can read the chapter about Grover's algorithm in `the Qiskit textbook <https://qiskit.org/textbook/ch-algorithms/grover.html>`__."
+#: ../../tutorials/grover_with_sampler.ipynb:73
+msgid "Here we instantiate the Runtime service that gives access to the quantum devices and the simulator that we use in this tutorial. We will first use a simulator to validate our circuit, then execute it on a real quantum system."
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:51
-msgid "Next, let's look at a concrete example."
+#: ../../tutorials/grover_with_sampler.ipynb:106
+msgid "Define a Grover experiment"
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:63
-msgid "Overview"
+#: ../../tutorials/grover_with_sampler.ipynb:108
+msgid "Grover's algorithm requires an `oracle <https://quantum-computing.ibm.com/admin/docs/admin/guide/grovers-algorithm#the-oracle>`__ that specifies one or more marked computational basis states, where \"marked\" means a state with a phase of -1. A controlled-Z gate, or its multi-controlled generalization over :math:`N` qubits, marks the :math:`2^{N}-1` state (``'1'``\\ \\*\\ :math:`N` bit-string). Marking basis states with one or more ``'0'`` in the binary representation requires applying X-gates on the corresponding qubits before and after the controlled-Z gate; equivalent to having an open-control on that qubit. In the following code, we define an oracle that does just that, marking one or more input basis states defined through their bit-string representation. The ``MCMT`` gate is used to implement the multi-controlled Z-gate."
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:65
-msgid "In this tutorial, you are going to look for the owner of a small phone book using Grover's algorithm following these steps:"
+#: ../../tutorials/grover_with_sampler.ipynb:161
+msgid "Specific Grover's instance"
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:67
-msgid "Create Grover's circuit for the phone book search problem."
+#: ../../tutorials/grover_with_sampler.ipynb:163
+msgid "Now that we have the oracle function, we can define a specific instance of Grover search. In this example we will mark two computational states out of the eight available in a three-qubit computational space:"
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:68
-msgid "Submit the circuits to a quantum computer on the cloud using Qiskit Runtime service and the Sampler primitive."
+#: ../../tutorials/grover_with_sampler.ipynb:197
+msgid "The ``GroverOperator``"
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:69
-msgid "Analyze the results and identify the owner of the phone number."
+#: ../../tutorials/grover_with_sampler.ipynb:199
+msgid "The built-in Qiskit ``GroverOperator`` takes an oracle circuit and returns a circuit that is composed of the oracle circuit itself and a circuit that amplifies the states marked by the oracle. Here, we ``decompose`` the circuit to see the gates within the operator:"
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:81
-msgid "Step 1: Create Grover's circuit"
+#: ../../tutorials/grover_with_sampler.ipynb:230
+msgid "Repeated applications of this ``grover_op`` circuit amplify the marked states, making them the most probable bit-strings in the output distribution from the circuit. There is an optimal number of such applications that is determined by the ratio of marked states to total number of possible computational states:"
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:84
-msgid "Define an unstructured search problem in Qiskit"
-msgstr "Defina um problema de busca não estruturada no Qiskit"
-
-#: ../../tutorials/grover_with_sampler.ipynb:86
-msgid "In this simple example, you are given a small phone book that has 8 entries, person 0 to person 7, and you want to find the owner of a certain phone number. However, you are not allowed to look at the phone book directly. You are only allowed to consult an 'oracle': a black-box circuit that immediately tells you if your guess is right or wrong (like the Oracle in \"The Matrix\")."
+#: ../../tutorials/grover_with_sampler.ipynb:254
+msgid "Full Grover circuit"
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:112
-msgid "Once you have the oracle, you can define the unstructured search problem using the ``AmplificationProblem`` class in Qiskit."
+#: ../../tutorials/grover_with_sampler.ipynb:256
+msgid "A complete Grover experiment starts with a Hadamard gate on each qubit; creating an even superposition of all computational basis states, followed the Grover operator (``grover_op``) repeated the optimal number of times. Here we make use of the ``QuantumCircuit.power(INT)`` method to repeatedly apply the Grover operator."
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:136
-msgid "Construct Grover's circuit for the problem"
+#: ../../tutorials/grover_with_sampler.ipynb:294
+msgid "Execution with the Sampler primitive"
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:138
-msgid "Now you are ready to construct the quantum circuits for Grover's algorithm for this problem. Grover's algorithm's accuracy in finding the correct answer increases with the number of iterations. Let's create two circuits with one and two iterations each to see this effect."
+#: ../../tutorials/grover_with_sampler.ipynb:296
+msgid "Amplitude amplification is a sampling problem that is suitable for execution with the ``Sampler`` runtime primitive. Because we have a single circuit, we instantiate a ``Sampler`` using the target backend. To begin, this is the simulator:"
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:166
-msgid "Let's look at the circuits:"
+#: ../../tutorials/grover_with_sampler.ipynb:317
+msgid "Now we execute the circuit by using ``sim_sampler.run``. The result is obtained in the returned quasi-probability distribution:"
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:218
-msgid "Step 2: Submit the circuits to a quantum computer on the cloud"
+#: ../../tutorials/grover_with_sampler.ipynb:338
+msgid "To see that the marked states are visible in the returned distribution, we convert the returned quasi-probability distribution from integer to bit-string representation to compare to the list of ``marked_states``."
 msgstr ""
 
-#: ../../tutorials/grover_with_sampler.ipynb:220
-msgid "Now that the Grover's circuits are created, let's submit them to a quantum computer on the cloud by using the Sampler primitive."
-msgstr ""
-
-#: ../../tutorials/grover_with_sampler.ipynb:232
-msgid "Connect to the Qiskit Runtime service"
-msgstr "Conecte-se ao serviço Qiskit Runtime"
-
-#: ../../tutorials/grover_with_sampler.ipynb:234
-msgid "First, connect to the Qiskit Runtime service instance that you created in `Before you begin <#Before-you-begin>`__."
-msgstr ""
-
-#: ../../tutorials/grover_with_sampler.ipynb:258
-msgid "Grover's algorithm determines the correct answer based on the highest probability of measurement outcomes. The ``Sampler`` primitive is perfect for getting probabilities, so you will use that. In the following cell, you create an instance of the ``Sampler`` primitive, and start a Runtime session using the context manager (``with ...:``), which automatically opens and closes the session for you."
-msgstr ""
-
-#: ../../tutorials/grover_with_sampler.ipynb:260
-msgid "The ``Sampler`` primitive allows a batch submission of circuits in a job. Here you are passing a list of two circuits (Grover with 1 iteration and 2 iterations) to the Sampler but only one call is needed to sample the probability of measurement outcomes of both circuits."
-msgstr ""
-
-#: ../../tutorials/grover_with_sampler.ipynb:312
-msgid "Step 3: Analyze the results"
-msgstr ""
-
-#: ../../tutorials/grover_with_sampler.ipynb:314
-msgid "Let's look at the results:"
-msgstr ""
-
-#: ../../tutorials/grover_with_sampler.ipynb:383
-msgid "Let's print out the quantum result, along with the secret string, to check the quantum computer found the correct answer."
-msgstr ""
-
-#: ../../tutorials/grover_with_sampler.ipynb:437
-msgid "Congratulations! You have successfully found the owner of the phone number."
-msgstr ""
-
-#: ../../tutorials/grover_with_sampler.ipynb:439
-msgid "You can re-run the tutorial a few times to generate other random secret strings to check that we are not cheating! The quantum computer will find the correct answer every time."
-msgstr ""
-
-#: ../../tutorials/grover_with_sampler.ipynb:451
-msgid "Summary"
-msgstr ""
-
-#: ../../tutorials/grover_with_sampler.ipynb:453
-msgid "In this tutorial, you have solved a small database search problem using a quantum computer. You have constructed Grover's circuits by defining a phone book search problem using the ``AmplificationProblem`` class in Qiskit and then submitted the circuits to run using the Sampler primitive through Qiskit Runtime service."
-msgstr ""
-
-#: ../../tutorials/grover_with_sampler.ipynb:465
-msgid "References"
-msgstr ""
-
-#: ../../tutorials/grover_with_sampler.ipynb:467
-msgid "Harkins, F., Grover's search algorithm. In A. Abbas, et al. Learn Quantum Computation Using Qiskit. URL: https://learn.qiskit.org/course/introduction/grovers-search-algorithm (accessed 09/01/2022) (2020)."
-msgstr ""
-
-#: ../../tutorials/grover_with_sampler.ipynb:479
-msgid "Qiskit versions and copyright"
+#: ../../tutorials/grover_with_sampler.ipynb:373
+msgid "Having verified that our code does indeed produce the desired outcome, we now execute it on a real device, creating an ``Sampler`` instance targeting that system:"
 msgstr ""
 
