@@ -33,7 +33,7 @@ cd docs/
 mkdir -p locale/  && cp -r ../../docs/locale/* locale/
 
 # Make translated document
-sphinx-build -b html -D content_prefix=documentation/machine-learning -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
+sphinx-build -b html -D docs_url_prefix=ecosystem/machine-learning -D language=$TRANSLATION_LANG . _build/html/locale/$TRANSLATION_LANG
 
 rm -r ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/.doctrees/
 rm -r ./$SOURCE_DOC_DIR/locale/$TRANSLATION_LANG/_sources/
