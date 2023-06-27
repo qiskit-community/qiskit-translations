@@ -39,11 +39,7 @@ $$\color{#D22222}\textsf{\Large\&#x26A0;\kern{0.2cm}\Large We won't be adding an
 
 $$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large This is due to a lot of upcoming changes in the documentation.}$$
 
-The list of languages that Qiskit Documentation Localization Project currently supports can be seen in the [Crowdin project page](https://crowdin.com/project/qiskit-docs). These translations can be viewed from our [staging site](https://ibm.biz/qiskit-docs-staging).
-
-[Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html), [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html), [Portuguese](https://qiskit.org/documentation/locale/pt_BR/index.html), [French](https://qiskit.org/documentation/locale/fr_FR/index.html) and [Tamil](https://qiskit.org/documentation/locale/ta_IN/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
-
-The Machine Learning application tutorials are available in [Bengali](https://qiskit.org/documentation/machine-learning/locale/bn_BN/index.html), [French](https://qiskit.org/documentation/machine-learning/locale/fr_FR/index.html), [Hindi](https://qiskit.org/documentation/machine-learning/locale/hi_IN/index.html), [Japanese](https://qiskit.org/documentation/machine-learning/locale/jp_JP/index.html), [Korean](https://qiskit.org/documentation/machine-learning/locale/ko_KR/index.html), [Malayalam](https://qiskit.org/documentation/machine-learning/locale/ml_IN/index.html), [Russian](https://qiskit.org/documentation/machine-learning/locale/ru_RU/index.html), [Spanish](https://qiskit.org/documentation/machine-learning/locale/es_UN/index.html), [Tamil](https://qiskit.org/documentation/machine-learning/locale/ta_IN/index.html), [Turkish](https://qiskit.org/documentation/machine-learning/locale/tr_TR/index.html)
+The list of languages that Qiskit Documentation Localization Project currently supports can be seen in the [Crowdin project page](https://crowdin.com/project/qiskit-docs).
 
 As mentioned in the blog post [Qiskit in my language is Qiskit](https://medium.com/qiskit/qiskit-in-my-language-is-qiskit-73d4626a99d3), we want to make sure that translated languages have enough community support to ensure quality and consistency. <br/>
 
