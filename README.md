@@ -35,18 +35,18 @@ Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.c
 
 ## How to add a new language to translate?
 
-The list of languages that Qiskit Documentation Localization Project currently supports can be seen in the [Crowdin project page](https://crowdin.com/project/qiskit-docs). These translations can be viewed from our [staging site](https://ibm.biz/qiskit-docs-staging).
+$$\color{#D22222}\textsf{\Large\&#x26A0;\kern{0.2cm}\Large We won't be adding any new languages to Crowdin until further notice.}$$
 
-[Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html), [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html), [Portuguese](https://qiskit.org/documentation/locale/pt_BR/index.html), [French](https://qiskit.org/documentation/locale/fr_FR/index.html) and [Tamil](https://qiskit.org/documentation/locale/ta_IN/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
+$$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large This is due to a lot of upcoming changes in the documentation.}$$
 
-The Machine Learning application tutorials are available in [Bengali](https://qiskit.org/documentation/machine-learning/locale/bn_BN/index.html), [French](https://qiskit.org/documentation/machine-learning/locale/fr_FR/index.html), [Hindi](https://qiskit.org/documentation/machine-learning/locale/hi_IN/index.html), [Japanese](https://qiskit.org/documentation/machine-learning/locale/jp_JP/index.html), [Korean](https://qiskit.org/documentation/machine-learning/locale/ko_KR/index.html), [Malayalam](https://qiskit.org/documentation/machine-learning/locale/ml_IN/index.html), [Russian](https://qiskit.org/documentation/machine-learning/locale/ru_RU/index.html), [Spanish](https://qiskit.org/documentation/machine-learning/locale/es_UN/index.html), [Tamil](https://qiskit.org/documentation/machine-learning/locale/ta_IN/index.html), [Turkish](https://qiskit.org/documentation/machine-learning/locale/tr_TR/index.html)
+The list of languages that Qiskit Documentation Localization Project currently supports can be seen in the [Crowdin project page](https://crowdin.com/project/qiskit-docs).
 
 As mentioned in the blog post [Qiskit in my language is Qiskit](https://medium.com/qiskit/qiskit-in-my-language-is-qiskit-73d4626a99d3), we want to make sure that translated languages have enough community support to ensure quality and consistency. <br/>
 
 If you want to add a new language and become a translation lead, you can open a [GitHub issue](https://github.com/qiskit-community/qiskit-translations/issues/new/choose) to start a discussion with the Qiskit team and recruit translation project members. Please refer to the [criteria](#what-is-the-criteria-for-adding-a-new-language?) below to receive official support from the administrators for new languages.
 
 
-## 🆕What is the criteria for adding a new language?
+## What is the criteria for adding a new language?
 
 1. A minimum of **five contributors** is necessary for any new languages to be added and receive official support from the administrators of the localization project.<br/>
 2. One of the contributors in that language must be a **Qiskit Advocate** and should actively participate.<br/>
