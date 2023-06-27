@@ -10,7 +10,6 @@ First of all, **thank you** for showing interest in translating (localizing) Qis
 
 If you are interested in contributing to Qiskit Documentation translations, please follow the instructions below.
 
-
 ## To sign up to participate in translations:
 
 1. Open the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) file. Look for the language header that you'd like to contribute to and sign up under there. If you do not find the language that you'd like to contribute to, please read [this section](#how-to-add-a-new-language-to-translate).<br/>
@@ -35,6 +34,10 @@ Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.c
 
 ## How to add a new language to translate?
 
+$$\color{#D22222}\textsf{\Large\&#x26A0;\kern{0.2cm}\Large We won't be adding any new languages to Crowdin until further notice.}$$
+
+$$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large This is due to a lot of upcoming changes in the documentation.}$$
+
 The list of languages that Qiskit Documentation Localization Project currently supports can be seen in the [Crowdin project page](https://crowdin.com/project/qiskit-docs). These translations can be viewed from our [staging site](https://ibm.biz/qiskit-docs-staging).
 
 [Japanese](https://qiskit.org/documentation/locale/ja_JP/index.html), [German](https://qiskit.org/documentation/locale/de_DE/index.html), [Korean](https://qiskit.org/documentation/locale/ko_KR/index.html), [Portuguese](https://qiskit.org/documentation/locale/pt_BR/index.html), [French](https://qiskit.org/documentation/locale/fr_FR/index.html) and [Tamil](https://qiskit.org/documentation/locale/ta_IN/index.html) documentation are now available in the [Qiskit Documentation website](https://qiskit.org/documentation/index.html).
@@ -46,7 +49,7 @@ As mentioned in the blog post [Qiskit in my language is Qiskit](https://medium.c
 If you want to add a new language and become a translation lead, you can open a [GitHub issue](https://github.com/qiskit-community/qiskit-translations/issues/new/choose) to start a discussion with the Qiskit team and recruit translation project members. Please refer to the [criteria](#what-is-the-criteria-for-adding-a-new-language?) below to receive official support from the administrators for new languages.
 
 
-## 🆕What is the criteria for adding a new language?
+## What is the criteria for adding a new language?
 
 1. A minimum of **five contributors** is necessary for any new languages to be added and receive official support from the administrators of the localization project.<br/>
 2. One of the contributors in that language must be a **Qiskit Advocate** and should actively participate.<br/>
