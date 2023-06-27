@@ -10,6 +10,7 @@ First of all, **thank you** for showing interest in translating (localizing) Qis
 
 If you are interested in contributing to Qiskit Documentation translations, please follow the instructions below.
 
+
 ## To sign up to participate in translations:
 
 1. Open the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) file. Look for the language header that you'd like to contribute to and sign up under there. If you do not find the language that you'd like to contribute to, please read [this section](#how-to-add-a-new-language-to-translate).<br/>
