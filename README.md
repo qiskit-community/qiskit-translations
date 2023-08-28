@@ -1,6 +1,6 @@
 ![Image](images/qiskit_header.png?raw=true)
 
-> :warning: **This repository is not a package.**: The [setup.py](https://github.com/qiskit-community/qiskit-translations/blob/master/setup.py) file is only in this repository as a requirement for building docs. If you'd like to install Qiskit, follow the [link](https://github.com/Qiskit/qiskit).
+> :warning: **This repository is not a package.**: The [setup.py](https://github.com/qiskit-community/qiskit-translations/blob/main/setup.py) file is only in this repository as a requirement for building docs. If you'd like to install Qiskit, follow the [link](https://github.com/Qiskit/qiskit).
 
 # Qiskit Documentation Localization [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs)
 
@@ -13,11 +13,11 @@ If you are interested in contributing to Qiskit Documentation translations, plea
 
 ## To sign up to participate in translations:
 
-1. Open the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) file. Look for the language header that you'd like to contribute to and sign up under there. If you do not find the language that you'd like to contribute to, please read [this section](#how-to-add-a-new-language-to-translate).<br/>
+1. Open the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/main/LOCALIZATION_CONTRIBUTORS) file. Look for the language header that you'd like to contribute to and sign up under there. If you do not find the language that you'd like to contribute to, please read [this section](#how-to-add-a-new-language-to-translate).<br/>
 2. Create a pull request (PR) to add your name to the list. Make sure to follow the template to open a Pull Request.<br/>
       - Each contributor has to create their own PR and sign the CLA (see #3 below).
       - If you have an open issue for a language request, **add the issue link to the PR**.
-   
+
    _(Not sure how to open a PR? Checkout [this section](#how-to-add-my-name-to-localization_contributors-list-and-open-a-pr-in-github))_
 
 3. When you conribute to a Qiskit open source project on GitHub with a new pull request, a bot will evaluate whether you have signed the [Qiskit Contribution License Agreement (CLA)](https://qiskit.org/license/qiskit-cla.pdf). If it is your first time contributing to Qiskit, you will be prompted to sign the CLA in your PR. Please make sure to sign the CLA by accepting the agreement.
@@ -60,23 +60,23 @@ These are general guidelines for joining translation efforts and adding new lang
 ## How to add my name to LOCALIZATION_CONTRIBUTORS list and open a PR in GitHub?
 
 **Option 1: In Github (Recommended)**
-1. Click on the pen-like button which says "Edit this file" in the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/master/LOCALIZATION_CONTRIBUTORS) file.
+1. Click on the pen-like button which says "Edit this file" in the [LOCALIZATION_CONTRIBUTORS](https://github.com/qiskit-community/qiskit-translations/blob/main/LOCALIZATION_CONTRIBUTORS) file.
 2. Add your name under the language you'd like to contribute to.
 3. Once your name is added, scroll down and find a green button which says "Propose changes".
 4. The page now reloads automatically and find and click on another green button - "Create pull request".
-5. This should create the pull request and once that's done, follow the [instructions](https://github.com/qiskit-community/qiskit-translations/blob/master/README.md#to-sign-up-to-participate-in-translations) (step 3, 4, 5).
+5. This should create the pull request and once that's done, follow the [instructions](https://github.com/qiskit-community/qiskit-translations/blob/main/README.md#to-sign-up-to-participate-in-translations) (step 3, 4, 5).
 
 **Option 2: Creating a local clone of the repository and pushing from local**
 1. Clone this repository by following [this guide](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository-from-github/cloning-a-repository).
 2. Make sure your local git configuration by following the instructions here -- [Setting username](https://docs.github.com/en/get-started/getting-started-with-git/setting-your-username-in-git) and [Setting email](https://docs.github.com/en/github/setting-up-and-managing-your-github-user-account/managing-email-preferences/setting-your-commit-email-address#setting-your-commit-email-address-in-git)
 3. Create a branch by running `git checkout -b BRANCH_NAME` in your terminal.
 4. Find LOCALIZATION_CONTRIBUTORS file in your local copy of qiskit-translations (created after cloning this repository) and add your name under the language you'd like to contribute to.
-5. Now, in the terminal run `git add LOCALIZATION_CONTRIBUTORS`, `git commit -m "Added name under LANGUAGE-NAME"`, `git push origin BRANCH-NAME`. 
+5. Now, in the terminal run `git add LOCALIZATION_CONTRIBUTORS`, `git commit -m "Added name under LANGUAGE-NAME"`, `git push origin BRANCH-NAME`.
 6. Follow the link in the terminal to open a pull request.
 
 ## Digital Badges
 
-At Qiskit, we feel that it is important to recognize the contributions that were made by its members to make our documentation more accessible to the global community. Starting in 2020, localization contributors who drove efforts in translating, proof-reading and managing progress can earn a Qiskit Localization Contributor Badge. For details, please refer to [Qiskit Localization Digital Badges](https://github.com/qiskit-community/qiskit-translations/blob/master/badges.md#qiskit-localization-digital-badges).
+At Qiskit, we feel that it is important to recognize the contributions that were made by its members to make our documentation more accessible to the global community. Starting in 2020, localization contributors who drove efforts in translating, proof-reading and managing progress can earn a Qiskit Localization Contributor Badge. For details, please refer to [Qiskit Localization Digital Badges](https://github.com/qiskit-community/qiskit-translations/blob/main/badges.md#qiskit-localization-digital-badges).
 
 ## When you find an issue in the original documentation
 
