@@ -1,12 +1,12 @@
 <!-- Copyright Contributors to the Qiskit project. -->
 
 # Code of Conduct
-All members of this project agree to adhere to the Qiskit Code of Conduct listed at [https://github.com/Qiskit/qiskit/blob/master/CODE_OF_CONDUCT.md](https://github.com/Qiskit/qiskit/blob/master/CODE_OF_CONDUCT.md)
+All members of this project agree to adhere to the Qiskit Code of Conduct listed at [https://github.com/Qiskit/qiskit/blob/main/CODE_OF_CONDUCT.md](https://github.com/Qiskit/qiskit/blob/main/CODE_OF_CONDUCT.md)
 
 ----
 
 # Translate Responsibly
-In addition to the IBM Quantum Community [Code of Conduct](https://github.com/Qiskit/qiskit/blob/master/CODE_OF_CONDUCT.md), the Qiskit Localization Project values the following standards which are applicable in the context of community translation efforts.
+In addition to the IBM Quantum Community [Code of Conduct](https://github.com/Qiskit/qiskit/blob/main/CODE_OF_CONDUCT.md), the Qiskit Localization Project values the following standards which are applicable in the context of community translation efforts.
 
 ### Examples of translating responsibly:
 - Being mindful of the context when translating (having the original source material available to be referenced frequently is highly recommended).
