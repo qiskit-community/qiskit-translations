@@ -19,7 +19,7 @@ import os
 import setuptools
 
 REQUIREMENTS = [
-    "qiskit-terra>=0.24.0",
+    "qiskit>=0.44.1",
     "requests>=2.19",
     "requests-ntlm>=1.1.0",
     "numpy>=1.13",
@@ -27,13 +27,11 @@ REQUIREMENTS = [
     "python-dateutil>=2.8.0",
     "websocket-client>=1.5.1",
     "ibm-platform-services>=0.22.6",
-    "qiskit-ibm-provider>=0.5.3",
+    "qiskit-ibm-provider>=0.7.0",
 ]
 
 # Handle version.
-VERSION_PATH = os.path.join(
-    os.path.dirname(__file__), "qiskit_ibm_runtime", "VERSION.txt"
-)
+VERSION_PATH = os.path.join(os.path.dirname(__file__), "qiskit_ibm_runtime", "VERSION.txt")
 with open(VERSION_PATH, "r") as version_file:
     VERSION = version_file.read().strip()
 
