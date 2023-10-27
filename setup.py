@@ -12,6 +12,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+# This file is the setup.py file for the qiskit package. Because python
+# packaging doesn't offer a mechanism to have qiskit supersede qiskit-terra
+# and cleanly upgrade from one to the other, there needs to be a separate
+# package shim to ensure no matter how people installed qiskit < 0.44.1 the
+# upgrade works.
+
 import os
 
 from setuptools import setup
@@ -20,53 +26,11 @@ README_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "README.m
 with open(README_PATH) as readme_file:
     README = readme_file.read()
 
-# NOTE: The lists below require each requirement on a separate line,
-# putting multiple requirements on the same line will prevent qiskit-bot
-# from correctly updating the versions for the qiskit packages.
-requirements = [
-    "qiskit-terra==0.24.1",
-    "qiskit-aer==0.12.0",
-    "qiskit-ibmq-provider==0.20.2",
-]
-
-
-optimization_extra = [
-    "qiskit-optimization>=0.4.0",
-]
-
-
-finance_extra = [
-    "qiskit-finance>=0.3.3",
-]
-
-
-machine_learning_extra = [
-    "qiskit-machine-learning>=0.4.0",
-]
-
-
-nature_extra = [
-    "qiskit-nature>=0.4.1",
-]
-
-experiments_extra = [
-    "qiskit-experiments>=0.2.0",
-]
-
-visualization_extra = [
-    "matplotlib>=2.1",
-    "ipywidgets>=7.3.0",
-    "pydot",
-    "pillow>=4.2.1",
-    "pylatexenc>=1.4",
-    "seaborn>=0.9.0",
-    "pygments>=2.4",
-]
-
+requirements = ["qiskit-terra==0.25.3"]
 
 setup(
     name="qiskit",
-    version="0.43.1",
+    version="0.44.3",
     description="Software for developing quantum computing programs",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -84,10 +48,10 @@ setup(
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Scientific/Engineering",
     ],
     keywords="qiskit sdk quantum",
@@ -98,19 +62,12 @@ setup(
         "Source Code": "https://github.com/Qiskit/qiskit",
     },
     include_package_data=True,
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     extras_require={
-        "visualization": visualization_extra,
-        "all": optimization_extra
-        + finance_extra
-        + machine_learning_extra
-        + nature_extra
-        + experiments_extra
-        + visualization_extra,
-        "experiments": experiments_extra,
-        "optimization": optimization_extra,
-        "finance": finance_extra,
-        "machine-learning": machine_learning_extra,
-        "nature": nature_extra,
+        "qasm3-import": ["qiskit-terra[qasm3-import]"],
+        "visualization": ["qiskit-terra[visualization]"],
+        "crosstalk-pass": ["qiskit-terra[crosstalk-pass]"],
+        "csp-layout-pass": ["qiskit-terra[csp-layout-pass]"],
+        "all": ["qiskit-terra[all]"],
     },
 )
