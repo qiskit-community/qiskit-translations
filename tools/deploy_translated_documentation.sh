@@ -30,6 +30,8 @@ git clone --depth=1 $SOURCE_REPOSITORY docs_source
 rclone sync -v --exclude='locale/**' docs_source/docs docs
 
 pushd $SOURCE_DIR/docs
+STABLE_COMMIT_HASH=`cat ./qiskit-commit-hash`
+git checkout $STABLE_COMMIT_HASH
 
 # Make translated document
 
