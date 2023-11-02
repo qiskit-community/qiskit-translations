@@ -26,7 +26,9 @@ RCLONE_CONFIG_PATH=$(rclone config file | tail -1)
 set -e
 
 # Clone the sources files and po files to $SOURCE_DIR/docs_source
-git clone --depth=1 $SOURCE_REPOSITORY docs_source
+git clone $SOURCE_REPOSITORY docs_source
+STABLE_COMMIT_HASH=`cat ./qiskit-commit-hash`
+git -C docs_source checkout $STABLE_COMMIT_HASH
 rclone sync -v --exclude='locale/**' docs_source/docs docs
 
 pushd $SOURCE_DIR/docs
