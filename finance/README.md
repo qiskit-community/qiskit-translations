@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/github/license/Qiskit/qiskit-finance.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)<!--- long-description-skip-begin -->[![Build Status](https://github.com/qiskit-community/qiskit-finance/workflows/Finance%20Unit%20Tests/badge.svg?branch=main)](https://github.com/qiskit-community/qiskit-finance/actions?query=workflow%3A"Finance%20Unit%20Tests"+branch%3Amain+event%3Apush)[![](https://img.shields.io/github/release/Qiskit/qiskit-finance.svg?style=popout-square)](https://github.com/qiskit-community/qiskit-finance/releases)[![](https://img.shields.io/pypi/dm/qiskit-finance.svg?style=popout-square)](https://pypi.org/project/qiskit-finance/)[![Coverage Status](https://coveralls.io/repos/github/Qiskit/qiskit-finance/badge.svg?branch=main)](https://coveralls.io/github/Qiskit/qiskit-finance?branch=main)<!--- long-description-skip-end -->
 
 **Qiskit Finance** is an open-source framework that contains uncertainty components for stock/securities problems,
-Ising translators for portfolio optimizations and data providers to source real or random data to
+applications, such as portfolio optimization, and data providers to source real or random data to
 finance experiments.
 
 ## Installation
@@ -20,7 +20,7 @@ pip install qiskit-finance
 If you want to work on the very latest work-in-progress versions, either to try features ahead of
 their official release or if you want to contribute to Finance, then you can install from source.
 To do this follow the instructions in the
- [documentation](https://qiskit.org/documentation/finance/getting_started.html#installation).
+ [documentation](https://qiskit.org/ecosystem/finance/getting_started.html#installation).
 
 
 ----------------------------------------------------------------------------------------------------
@@ -33,8 +33,8 @@ evaluate a fixed income asset with uncertain interest rates.
 
 ```python
 import numpy as np
-from qiskit import BasicAer
-from qiskit.algorithms import AmplitudeEstimation
+from qiskit.primitives import Sampler
+from qiskit_algorithms import AmplitudeEstimation
 from qiskit_finance.circuit.library import NormalDistribution
 from qiskit_finance.applications import FixedIncomePricing
 
@@ -65,8 +65,8 @@ problem = fixed_income.to_estimation_problem()
 num_eval_qubits = 5
 
 # Construct and run amplitude estimation
-q_i = BasicAer.get_backend("statevector_simulator")
-algo = AmplitudeEstimation(num_eval_qubits=num_eval_qubits, quantum_instance=q_i)
+sampler = Sampler()
+algo = AmplitudeEstimation(num_eval_qubits=num_eval_qubits, sampler=sampler)
 result = algo.estimate(problem)
 
 print(f"Estimated value:\t{fixed_income.interpret(result):.4f}")
@@ -77,7 +77,7 @@ When running the above the estimated value result should be 2.46 and probability
 ### Further examples
 
 Learning path notebooks may be found in the
-[finance tutorials](https://qiskit.org/documentation/finance/tutorials/index.html) section
+[finance tutorials](https://qiskit.org/ecosystem/finance/tutorials/index.html) section
 of the documentation and are a great place to start.
 
 ----------------------------------------------------------------------------------------------------
@@ -101,11 +101,7 @@ Finance continues to grow with the help and work of
 [many people](https://github.com/qiskit-community/qiskit-finance/graphs/contributors), who contribute
 to the project at different levels.
 If you use Qiskit, please cite as per the provided
-[BibTeX file](https://github.com/Qiskit/qiskit/blob/master/Qiskit.bib).
-
-Please note that if you do not like the way your name is cited in the BibTex file then consult
-the information found in the [.mailmap](https://github.com/Qiskit/qiskit-finance/blob/main/.mailmap)
-file.
+[BibTeX file](https://github.com/Qiskit/qiskit/blob/main/CITATION.bib).
 
 ## License
 
