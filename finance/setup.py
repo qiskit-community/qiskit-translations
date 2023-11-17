@@ -1,4 +1,4 @@
-# This code is part of Qiskit.
+# This code is part of a Qiskit project.
 #
 # (C) Copyright IBM 2021, 2023.
 #
@@ -57,17 +57,17 @@ setuptools.setup(
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Scientific/Engineering"
     ],
     keywords='qiskit sdk quantum finance',
     packages=setuptools.find_packages(include=['qiskit_finance', 'qiskit_finance.*']),
     install_requires=REQUIREMENTS,
     include_package_data=True,
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     project_urls={
         "Bug Tracker": "https://github.com/qiskit-community/qiskit-finance/issues",
         "Documentation": "https://qiskit.org/ecosystem/finance/",
