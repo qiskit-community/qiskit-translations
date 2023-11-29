@@ -15,7 +15,7 @@
 # This file is the setup.py file for the qiskit package. Because python
 # packaging doesn't offer a mechanism to have qiskit supersede qiskit-terra
 # and cleanly upgrade from one to the other, there needs to be a separate
-# package shim to ensure no matter how people installed qiskit < 0.44.1 the
+# package shim to ensure no matter how people installed qiskit < 0.45.0 the
 # upgrade works.
 
 import os
@@ -26,11 +26,11 @@ README_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "README.m
 with open(README_PATH) as readme_file:
     README = readme_file.read()
 
-requirements = ["qiskit-terra==0.25.3"]
+requirements = ["qiskit-terra==0.45.1"]
 
 setup(
     name="qiskit",
-    version="0.44.3",
+    version="0.45.1",
     description="Software for developing quantum computing programs",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -52,6 +52,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Scientific/Engineering",
     ],
     keywords="qiskit sdk quantum",
