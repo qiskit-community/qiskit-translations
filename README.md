@@ -1,15 +1,12 @@
-![Image](images/qiskit_header.png?raw=true)
-
 > :warning: **This repository is not a package.**: The [setup.py](https://github.com/qiskit-community/qiskit-translations/blob/main/setup.py) file is only in this repository as a requirement for building docs. If you'd like to install Qiskit, follow the [link](https://github.com/Qiskit/qiskit).
 
-# Qiskit Documentation Localization [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs)
+# Qiskit Ecosystem Localization [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs)
 
-First of all, **thank you** for showing interest in translating (localizing) Qiskit Documentation! This helps make the documentation more accessible and available to our global community.
+First of all, **thank you** for showing interest in translating (localizing) documentation for projects in the [Qiskit Ecosystem](https://qiskit.github.io/ecosystem)! This helps make the documentation more accessible and available to our global community.
 
-:eyes: **Please note that you must sign up separately if you want to join the localization project for [Qiskit Textbook](https://qiskit.org/learn/). For signing up to join the Qiskit Textbook Localization project, please refer the steps outlined [here](https://github.com/Qiskit/platypus/blob/main/TRANSLATING.md).**
+If you are interested in contributing to Qiskit Ecosystem translations, please follow the instructions below.
 
-If you are interested in contributing to Qiskit Documentation translations, please follow the instructions below.
-
+We will have instructions soon for how to translate the Qiskit documentation at https://docs.quantum.ibm.com.
 
 ## To sign up to participate in translations:
 
@@ -20,7 +17,7 @@ If you are interested in contributing to Qiskit Documentation translations, plea
 
    _(Not sure how to open a PR? Checkout [this section](#how-to-add-my-name-to-localization_contributors-list-and-open-a-pr-in-github))_
 
-3. When you conribute to a Qiskit open source project on GitHub with a new pull request, a bot will evaluate whether you have signed the [Qiskit Contribution License Agreement (CLA)](https://qiskit.org/license/qiskit-cla.pdf). If it is your first time contributing to Qiskit, you will be prompted to sign the CLA in your PR. Please make sure to sign the CLA by accepting the agreement.
+3. When you conribute to a Qiskit open source project on GitHub with a new pull request, a bot will evaluate whether you have signed the [Qiskit Contribution License Agreement (CLA)](https://qiskit.org/license/qiskit-cla.pdf). If it is your first time contributing to a Qiskit project, you will be prompted to sign the CLA in your PR. Please make sure to sign the CLA by accepting the agreement.
 4. In the [Qiskit-Docs Crowdin project](https://crowdin.com/project/qiskit-docs), choose the language that you want to contribute to.<br/>
 5. Click the **Join** button and **paste the URL of your PR** in the dialog box where you are asked why you want to join the Crowdin project.
 ![request_crowdin](images/image_send_request_in_crowdin.png?raw=true)
@@ -30,7 +27,7 @@ Failing to do so will result in a delay in approving your request in Crowdin and
 
 ## What is Crowdin?
 
-Qiskit documentation is translated (localized) using [Crowdin](https://crowdin.com/), a software and web localization platform that allows organizations to coordinate translation projects and collaborate with communities to translate materials. Crowdin allows our community of translators to amplify their impact by automatically reusing the work invested in translating one sentence, to translate other, similar sentences. Crowdin also makes translations resilient to many types of changes to the original material, such as moving sentences around, even across files.
+Qiskit Ecosystem project documentation is translated (localized) using [Crowdin](https://crowdin.com/), a software and web localization platform that allows organizations to coordinate translation projects and collaborate with communities to translate materials. Crowdin allows our community of translators to amplify their impact by automatically reusing the work invested in translating one sentence, to translate other, similar sentences. Crowdin also makes translations resilient to many types of changes to the original material, such as moving sentences around, even across files.
 
 
 ## How to add a new language to translate?
@@ -39,7 +36,7 @@ $$\color{#D22222}\textsf{\Large\&#x26A0;\kern{0.2cm}\Large We won't be adding an
 
 $$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large This is due to a lot of upcoming changes in the documentation.}$$
 
-The list of languages that Qiskit Documentation Localization Project currently supports can be seen in the [Crowdin project page](https://crowdin.com/project/qiskit-docs).
+The list of languages that Qiskit Ecosystem Localization Project currently supports can be seen in the [Crowdin project page](https://crowdin.com/project/qiskit-docs).
 
 As mentioned in the blog post [Qiskit in my language is Qiskit](https://medium.com/qiskit/qiskit-in-my-language-is-qiskit-73d4626a99d3), we want to make sure that translated languages have enough community support to ensure quality and consistency. <br/>
 
@@ -80,7 +77,7 @@ At Qiskit, we feel that it is important to recognize the contributions that were
 
 ## When you find an issue in the original documentation
 
-During the process of translating Qiskit documentation, you may identify errors (mostly typos) in the original documentation. Please feel free to suggest corrections by opening an [issue](https://github.com/Qiskit/qiskit/issues/new/choose) and choose **Documentation**.
+During the process of translating Qiskit Ecosystem documentation, you may identify errors (mostly typos) in the original documentation. Please feel free to suggest corrections by opening an [issue](https://github.com/Qiskit/qiskit/issues/new/choose) and choose **Documentation**.
 
 
 ## Project Leads
