@@ -1,5 +1,3 @@
-> :warning: **This repository is not a package.**: The [setup.py](https://github.com/qiskit-community/qiskit-translations/blob/main/setup.py) file is only in this repository as a requirement for building docs. If you'd like to install Qiskit, follow the [link](https://github.com/Qiskit/qiskit).
-
 # Qiskit Applications Localization [![Crowdin](https://badges.crowdin.net/qiskit-docs/localized.svg)](https://crowdin.com/project/qiskit-docs)
 
 First of all, **thank you** for showing interest in translating (localizing) documentation for [Qiskit Nature](https://qiskit.org/ecosystem/nature), [Qiskit Finance](https://qiskit.org/ecosystem/finance), [Qiskit Machine Learning](https://qiskit.org/ecosystem/machine-learning), and [Qiskit Optimization](https://qiskit.org/ecosystem/optimization)! This helps make the documentation more accessible and available to our global community.
