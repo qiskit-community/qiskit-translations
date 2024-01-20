@@ -1,6 +1,6 @@
 ---
 name: Add New Language
-about: Request for adding new language to Qiskit Documentation
+about: Request for adding new language to Qiskit Ecosystem documentation
 title: Request for [LANGUAGE]
 labels: New Language Request, help wanted
 assignees: ''
@@ -13,7 +13,7 @@ assignees: ''
 ⚠️ Please make sure to do the following before creating an issue.
 
 - [ ] I have checked if there's an already existing issue for this language.
-- [ ] I have read the CONTRIBUTING document on the Qiskit website. (Link - https://qiskit.org/documentation/contributing_to_qiskit.html#translating-documentation)
+- [ ] I have read the Qiskit CONTRIBUTING guide. (Link - https://github.com/Qiskit/qiskit/blob/main/CONTRIBUTING.md)
 - [ ] I understand that there have to be more volunteers for the role of Translation Lead, Proofreaders and Translators to get the request approved and open the language in Crowdin.
 -->
 
