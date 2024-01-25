@@ -6,9 +6,9 @@ $$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large will no longer be actively run
 
 $$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large Translations will be removed in a few months after becoming stale.}$$
 
-$$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large If you are interested in maintaining localization for Qiskit Ecosystem projects}$$
+$$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large If you are interested in maintaining localization for Qiskit Ecosystem}$$
 
-$$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large localization for Qiskit Ecosystem projects}$$
+$$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large project\'s localization for Qiskit Ecosystem projects}$$
 
 $$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large please create an issue at the target repository to start discussion.}$$
 
