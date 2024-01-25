@@ -8,9 +8,13 @@ $$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large Translations will be removed i
 
 $$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large If you are interested in maintaining localization for Qiskit Ecosystem projects}$$
 
+$$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large localization for Qiskit Ecosystem projects}$$
+
 $$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large please create an issue at the target repository to start discussion.}$$
 
-$$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large Thank you to all the volunteers who have contributed to this project over the years!.}$$
+$$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large Thank you to all the volunteers who have}$$
+
+$$\color{#D22222}\textsf{\qquad\kern{0.2cm}\Large contributed to this project over the years!.}$$
 
 ## Direct links to target repos
 
